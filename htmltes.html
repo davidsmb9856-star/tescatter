@@ -41,7 +41,30 @@
             resize: vertical;
         }
 
-        .hidden-button { display: none; } 
+        button {
+            padding: 10px 18px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        /* Styling untuk tombol Hapus */
+        #clearDataBtn {
+            background-color: #e74c3c; /* Merah */
+        }
+        #clearDataBtn:hover {
+            background-color: #c0392b; 
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-end; /* Posisikan tombol Hapus di kanan */
+            margin-bottom: 15px;
+        }
 
         hr {
             border: 0;
@@ -163,7 +186,7 @@
             gap: 5px; 
             width: 90%;
             max-width: 1200px; 
-            max-height: 80vh; /* Ditingkatkan sedikit */
+            max-height: 80vh;
             margin: 10px 0;
             overflow: hidden; 
         }
@@ -188,7 +211,6 @@
             text-shadow: 0 0 10px rgba(241, 196, 15, 0.8);
         }
         
-        /* Menghilangkan input di zoom */
         .zoom-link-input-area { display: none; }
 
         .close-btn {
@@ -222,7 +244,9 @@
                   oninput="handleInput()"
                   onpaste="handleInput()"></textarea>
         
-        <div class="hidden-button"></div>
+        <div class="button-group">
+            <button id="clearDataBtn" onclick="clearAllData()">🗑️ Hapus Semua Data</button>
+        </div>
 
         <hr>
 
@@ -272,8 +296,11 @@
         const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong"; 
         let isZoomOpen = false;
 
-        // Data contoh
+        // Data contoh (tetap dipertahankan untuk inisialisasi awal yang mudah)
         const initialData = [
+            { userid: "Ietha88", links: ["https://i.imgur.com/3Q9bF7Z.png", "https://i.imgur.com/3Q9bF7Z.png", "https://i.imgur.com/3Q9bF7Z.png"] },
+            { userid: "UserBaru", links: ["https://i.imgur.com/5V8aGgO.png", "https://i.imgur.com/5V8aGgO.png", "https://i.imgur.com/5V8aGgO.png"] },
+            { userid: "PaketAkhir", links: ["https://i.imgur.com/R0Z5lVz.png", "https://i.imgur.com/R0Z5lVz.png", "https://i.imgur.com/R0Z5lVz.png"] }
         ];
         
         // --- Handler Input Utama Otomatis ---
@@ -318,8 +345,9 @@
                 }
             });
 
+            // Jika Textarea kosong, tampilkan placeholder (jangan muat initialData)
             if (allPackagesData.length === 0) {
-                allPackagesData = inputArea.value.trim() === "" ? initialData : [];
+                 // Tidak melakukan apa-apa, biarkan updateGallery(-1) membersihkan
             }
             
             document.getElementById('maxPackageNum').textContent = allPackagesData.length;
@@ -331,7 +359,7 @@
             } else {
                 currentPackageIndex = 0;
                 document.getElementById('currentPackageNum').textContent = 0;
-                updateGallery(-1); 
+                updateGallery(-1); // Bersihkan tampilan
             }
         }
 
@@ -348,12 +376,17 @@
             const validPackages = allPackagesData.length;
             
             let currentPackage = { userid: 'N/A', links: ["", "", ""] };
+            
             if (index >= 0 && index < validPackages) {
                 currentPackage = allPackagesData[index];
+                combinedSlot.style.pointerEvents = 'auto'; // Dapat diklik
+            } else {
+                 // Kondisi bersih/kosong
+                combinedSlot.style.pointerEvents = 'none'; // Tidak dapat diklik
             }
 
             combinedSlot.setAttribute('data-userid', currentPackage.userid);
-            useridCaption.textContent = `USER ID: ${currentPackage.userid}`;
+            useridCaption.textContent = currentPackage.userid === 'N/A' ? 'Belum Ada Data' : `USER ID: ${currentPackage.userid}`;
 
             let validLinkCount = 0;
             for (let i = 0; i < packageSize; i++) {
@@ -366,7 +399,8 @@
                     validLinkCount++;
                 } else {
                     imgSlots[i].src = placeholderImage;
-                    imgSlots[i].style.display = 'none'; 
+                    // Tampilkan placeholder jika tidak ada data sama sekali
+                    imgSlots[i].style.display = (index === -1 && i === 1) ? 'block' : 'none'; 
                     imgSlots[i].setAttribute('data-link', "");
                 }
             }
@@ -379,7 +413,6 @@
 
             document.getElementById('currentPackageNum').textContent = validPackages > 0 ? index + 1 : 0;
             
-            // Perbarui tampilan zoom jika modal sedang terbuka
             if (isZoomOpen) {
                 updateZoomDisplay(currentPackage.userid, currentPackage.links);
                 updateZoomNavButtons();
@@ -436,9 +469,8 @@
 
         // --- Fungsi Zoom Gambar ---
         function openZoom() {
-            // Pastikan data yang akan ditampilkan valid
             if (allPackagesData.length === 0 || allPackagesData[currentPackageIndex].links.filter(l => l.length > 0).length === 0) {
-                 alert("Tidak ada paket yang valid untuk ditampilkan.");
+                 // Tidak melakukan apa-apa karena pointer-events sudah 'none'
                  return;
             }
             
@@ -455,7 +487,6 @@
         function closeZoom(event) {
             const modal = document.getElementById("zoomModal");
             
-            // Mencegah penutupan modal jika yang diklik adalah tombol navigasi
             if (event.target.classList.contains('zoom-nav-button') || event.target.tagName === 'IMG') {
                 event.stopPropagation();
                 return;
@@ -466,11 +497,27 @@
                 isZoomOpen = false;
             }
         }
+        
+        // --- Fungsi Hapus Semua Data (Baru) ---
+        function clearAllData() {
+            if (confirm("Apakah Anda yakin ingin menghapus SEMUA data dari galeri?")) {
+                // 1. Kosongkan array data utama
+                allPackagesData = [];
+                // 2. Kosongkan Textarea
+                document.getElementById('linkInput').value = '';
+                // 3. Reset status tampilan
+                currentPackageIndex = 0;
+                document.getElementById('maxPackageNum').textContent = 0;
+                // 4. Perbarui galeri ke kondisi kosong
+                updateGallery(-1); 
+                
+                alert("Semua data berhasil dihapus.");
+            }
+        }
 
-        // --- Event Listener Keyboard (Baru) ---
+        // --- Event Listener Keyboard (Untuk Navigasi Zoom) ---
         document.addEventListener('keydown', (event) => {
             if (isZoomOpen) {
-                // Mencegah scroll halaman saat zoom terbuka
                 if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
                     event.preventDefault(); 
                 }
@@ -480,15 +527,14 @@
                 } else if (event.key === "ArrowRight") {
                     navigatePackage('next');
                 } else if (event.key === "Escape") {
-                    // Menutup modal dengan tombol ESC
                     closeZoom({ target: document.getElementById("zoomModal") });
                 }
             }
         });
 
-        // Inisialisasi
+        // Inisialisasi: Muat data contoh saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
-            // Isi Textarea dengan contoh data dan muat otomatis
+            // Isi Textarea dengan contoh data
             const initialText = initialData.map(p => 
                 `${p.userid} ${p.links.join(' ')}`
             ).join('\n');
