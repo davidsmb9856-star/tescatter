@@ -9,7 +9,7 @@
         /* ======================== CSS ======================== */
         body {
             font-family: Arial, sans-serif;
-            background-color: #2c3e50; /* Warna latar belakang gelap */
+            background-color: #2c3e50;
             color: #ecf0f1;
             padding: 20px;
         }
@@ -92,13 +92,14 @@
             display: flex; /* Menggunakan flexbox untuk 3 gambar di dalamnya */
             justify-content: center;
             align-items: center;
+            position: relative; /* Untuk memposisikan User ID */
             border: 2px solid #3498db;
-            padding: 5px; /* Sedikit padding di sekeliling gabungan */
+            padding: 5px;
             border-radius: 8px;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
             background-color: #2c3e50;
-            min-height: 200px; /* Tinggi minimum agar tidak terlalu kecil saat kosong */
+            min-height: 200px;
         }
 
         .combined-image-slot:hover {
@@ -107,21 +108,16 @@
         }
 
         .combined-image-slot img {
-            max-width: 33.33%; /* Setiap gambar mengambil 1/3 lebar */
-            height: 180px; /* Tinggi tetap */
-            object-fit: contain; /* Memastikan gambar terlihat penuh */
+            max-width: 33.33%; 
+            height: 180px; 
+            object-fit: contain; 
             display: block;
-            margin: 0; /* Hapus margin antar gambar */
-            border-radius: 4px; /* Optional: sedikit radius pada gambar individu */
+            margin: 0;
+            border-radius: 4px; 
         }
         
-        /* Jika hanya ada 1 atau 2 gambar, mereka akan tetap di tengah */
-        .combined-image-slot.has-one img:first-child { max-width: 100%; }
-        .combined-image-slot.has-two img { max-width: 50%; }
-
-
         .combined-image-slot .caption-userid {
-            position: absolute; /* Posisikan teks di atas gambar */
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -131,11 +127,12 @@
             background-color: rgba(0,0,0,0.7);
             padding: 5px 10px;
             border-radius: 5px;
-            display: none; /* Sembunyikan secara default */
-            pointer-events: none; /* Agar tidak menghalangi klik gambar */
+            display: none; 
+            pointer-events: none; 
+            z-index: 10;
         }
         .combined-image-slot:hover .caption-userid {
-            display: block; /* Tampilkan saat hover */
+            display: block;
         }
 
 
@@ -159,30 +156,32 @@
             height: 100%; 
             overflow: auto; 
             background-color: rgba(0,0,0,0.95);
-            justify-content: center; /* Untuk menengahkan konten modal */
-            align-items: center; /* Untuk menengahkan konten modal */
+            justify-content: center;
+            align-items: center;
             flex-direction: column;
         }
 
-        .zoomed-content-wrapper { /* Wadah baru untuk gambar zoom */
-            display: flex; /* Agar gambar-gambar zoom berdampingan */
+        .zoomed-content-wrapper {
+            display: flex; 
             justify-content: center;
             align-items: center;
-            gap: 5px; /* Sedikit celah antar gambar di zoom */
+            gap: 5px; 
             width: 90%;
-            max-width: 1100px; /* Lebar maksimum untuk gabungan */
-            max-height: 80vh; /* Tinggi maksimum */
+            max-width: 1200px; /* Lebar maksimum dinaikkan */
+            max-height: 80vh; 
             margin-top: 10px;
             margin-bottom: 20px;
         }
 
         .zoomed-content-wrapper img {
-            max-width: 33.33%; /* Setiap gambar zoom mengambil 1/3 */
+            max-width: calc(33.33% - 5px); /* Sesuaikan lebar dengan gap */
             height: auto;
             max-height: 80vh;
             border-radius: 8px;
             box-shadow: 0 0 15px rgba(52, 152, 219, 0.8);
             object-fit: contain;
+            /* Tambahan: Pastikan gambar-gambar zoom terlihat jelas */
+            min-width: 0; /* Agar tidak melebihi wadah */
         }
 
         .zoomed-userid {
@@ -239,10 +238,12 @@
             <button class="nav-button" id="prevBtn" onclick="prevPackage()" disabled>&#9664; Kiri</button>
             
             <div class="combined-image-slot" id="combinedImageSlot" onclick="openZoom(this)">
-                <p class="caption-userid" id="combinedSlotUserid"></p>
-                <img src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+Kosong+1" alt="Slot 1">
-                <img src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+Kosong+2" alt="Slot 2">
-                <img src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+Kosong+3" alt="Slot 3">
+                
+                <p class="caption-userid" id="combinedSlotUserid">USER ID</p>
+                
+                <img id="imgSlot1" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+1" alt="Slot 1">
+                <img id="imgSlot2" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+2" alt="Slot 2">
+                <img id="imgSlot3" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+3" alt="Slot 3">
             </div>
 
             <button class="nav-button" id="nextBtn" onclick="nextPackage()" disabled>Kanan &#9654;</button>
@@ -257,8 +258,10 @@
     <div id="zoomModal" class="modal" onclick="closeZoom(event)">
         <span class="close-btn">&times;</span>
         <span id="zoomedUserid" class="zoomed-userid"></span> 
+        
         <div class="zoomed-content-wrapper" id="zoomedContentWrapper">
             </div>
+        
         <div id="caption">Klik di mana saja di luar gambar atau ikon (x) untuk menutup.</div>
     </div>
 
@@ -270,22 +273,22 @@
         const packageSize = 3; 
         const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong"; 
 
-        // Data 2 paket yang dimuat otomatis
+        // Data contoh (menggunakan link Imgur untuk simulasi)
         const initialData = [
             { 
                 userid: "Ietha88", 
                 links: [
-                    "https://i.imgur.com/G5g2mJc.png", // Ini adalah link ke gambar yang Anda upload sebelumnya
-                    "https://i.imgur.com/G5g2mJc.png",
-                    "https://i.imgur.com/G5g2mJc.png"
+                    "https://i.imgur.com/3Q9bF7Z.png", // Contoh link 1
+                    "https://i.imgur.com/3Q9bF7Z.png", // Contoh link 2
+                    "https://i.imgur.com/3Q9bF7Z.png"  // Contoh link 3
                 ] 
             },
             { 
                 userid: "UserBaru", 
                 links: [
-                    "https://i.imgur.com/Qh2v72S.png", // Ini adalah link ke gambar yang Anda upload sebelumnya
-                    "https://i.imgur.com/Qh2v72S.png",
-                    "https://i.imgur.com/Qh2v72S.png"
+                    "https://i.imgur.com/5V8aGgO.png", // Contoh link 4
+                    "https://i.imgur.com/5V8aGgO.png", // Contoh link 5
+                    "https://i.imgur.com/5V8aGgO.png"  // Contoh link 6
                 ] 
             }
         ];
@@ -300,3 +303,171 @@
                 .filter(line => line.length > 0);
             
             allPackagesData = [];
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+            rawLines.forEach((line, index) => {
+                if (index < MAX_PACKAGES) {
+                    const urls = line.match(urlRegex) || [];
+                    
+                    const words = line.split(/\s+/).filter(w => w.length > 0);
+                    let userid = 'N/A';
+                    
+                    if (words.length > 0 && !words[0].startsWith('http')) {
+                        userid = words[0];
+                    }
+
+                    if (urls.length >= 1) { 
+                        const links = urls.slice(0, packageSize); 
+                        
+                        while (links.length < packageSize) {
+                            links.push(""); 
+                        }
+                        
+                        allPackagesData.push({ userid: userid, links: links });
+                    }
+                }
+            });
+
+            // Jika Textarea kosong, kembalikan ke data awal
+            if (allPackagesData.length === 0 && initialData.length > 0) {
+                 allPackagesData = initialData;
+            }
+            
+            document.getElementById('maxPackageNum').textContent = allPackagesData.length;
+            
+            if (allPackagesData.length > 0) {
+                currentPackageIndex = 0; 
+                updateGallery(currentPackageIndex);
+            } else {
+                currentPackageIndex = 0;
+                document.getElementById('currentPackageNum').textContent = 0;
+                updateGallery(-1); 
+            }
+        }
+
+        // --- Fungsi untuk Mengupdate Tampilan Galeri ---
+        function updateGallery(index) {
+            const imgSlots = [
+                document.getElementById('imgSlot1'),
+                document.getElementById('imgSlot2'),
+                document.getElementById('imgSlot3')
+            ];
+            
+            const combinedSlot = document.getElementById('combinedImageSlot');
+            const useridCaption = document.getElementById('combinedSlotUserid');
+            const validPackages = allPackagesData.length;
+            
+            let currentPackage = { userid: 'N/A', links: ["", "", ""] };
+            if (index >= 0 && index < validPackages) {
+                currentPackage = allPackagesData[index];
+            }
+
+            // Update User ID di slot gabungan
+            combinedSlot.setAttribute('data-userid', currentPackage.userid);
+            useridCaption.textContent = `USER ID: ${currentPackage.userid}`;
+
+            let validLinkCount = 0;
+            for (let i = 0; i < packageSize; i++) {
+                const link = currentPackage.links[i] || "";
+
+                // Update gambar individual di dalam slot gabungan
+                if (link) {
+                    imgSlots[i].src = link;
+                    imgSlots[i].style.display = 'block'; // Tampilkan gambar
+                    imgSlots[i].setAttribute('data-link', link);
+                    validLinkCount++;
+                } else {
+                    imgSlots[i].src = placeholderImage;
+                    imgSlots[i].style.display = 'none'; // Sembunyikan jika kosong
+                    imgSlots[i].setAttribute('data-link', "");
+                }
+            }
+            
+            // Atur opacity/class berdasarkan ketersediaan link
+            if (validLinkCount > 0) {
+                combinedSlot.style.opacity = 1;
+            } else {
+                combinedSlot.style.opacity = 0.5;
+            }
+
+            // Simpan semua link di wadah utama (digunakan untuk zoom)
+            combinedSlot.setAttribute('data-links', currentPackage.links.join('|||'));
+            
+            // Update informasi paket
+            document.getElementById('currentPackageNum').textContent = validPackages > 0 ? index + 1 : 0;
+
+            // Update status tombol navigasi
+            document.getElementById('prevBtn').disabled = (index <= 0 || validPackages === 0);
+            document.getElementById('nextBtn').disabled = (index >= validPackages - 1 || validPackages === 0);
+        }
+
+        // --- Fungsi Navigasi Kanan (Next) ---
+        function nextPackage() {
+            if (currentPackageIndex < allPackagesData.length - 1) {
+                currentPackageIndex++;
+                updateGallery(currentPackageIndex);
+            }
+        }
+
+        // --- Fungsi Navigasi Kiri (Prev) ---
+        function prevPackage() {
+            if (currentPackageIndex > 0) {
+                currentPackageIndex--;
+                updateGallery(currentPackageIndex);
+            }
+        }
+
+        // --- Fungsi Zoom Gambar (Memuat 3 Gambar Sekaligus) ---
+        function openZoom(slotElement) {
+            const linksString = slotElement.getAttribute('data-links');
+            const userid = slotElement.getAttribute('data-userid');
+            
+            if (!linksString || linksString.replace(/\|\|\|/g, '').length === 0) {
+                 alert("Paket ini tidak memiliki link gambar yang valid.");
+                 return;
+            }
+
+            const links = linksString.split('|||').filter(link => link.length > 0);
+            
+            const modal = document.getElementById("zoomModal");
+            const zoomedUserid = document.getElementById("zoomedUserid");
+            const wrapper = document.getElementById("zoomedContentWrapper");
+            
+            // 1. Bersihkan wadah gambar zoom
+            wrapper.innerHTML = '';
+            
+            // 2. Isi wadah dengan <img> baru untuk setiap link
+            links.forEach(link => {
+                const img = document.createElement('img');
+                img.src = link;
+                img.alt = 'Zoomed Image';
+                wrapper.appendChild(img);
+            });
+            
+            // 3. Tampilkan modal dan User ID
+            zoomedUserid.textContent = userid; 
+            modal.style.display = "flex"; // Gunakan flex agar centering CSS bekerja
+        }
+
+        // --- Fungsi Tutup Zoom ---
+        function closeZoom(event) {
+            const modal = document.getElementById("zoomModal");
+            if (event.target === modal || event.target.classList.contains('close-btn')) {
+                modal.style.display = "none";
+            }
+        }
+
+        // Inisialisasi: Muat data contoh saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            allPackagesData = initialData; // Set data awal
+            document.getElementById('maxPackageNum').textContent = allPackagesData.length;
+            updateGallery(currentPackageIndex); 
+            
+            // Isi Textarea dengan contoh data untuk memudahkan pengeditan
+            document.getElementById('linkInput').value = 
+                "Ietha88 " + initialData[0].links.join(' ') + "\n" +
+                "UserBaru " + initialData[1].links.join(' ');
+        });
+    </script>
+</body>
+</html>
