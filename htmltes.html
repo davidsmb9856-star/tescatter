@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri Tanpa Batas & Zoom Navigasi</title>
+    <title>Galeri Tanpa Batas & Zoom Navigasi Otomatis</title>
     
     <style>
         /* ======================== CSS ======================== */
@@ -149,7 +149,6 @@
             padding: 0 20px;
             cursor: pointer;
             transition: color 0.3s;
-            /* Pastikan tombol tidak terhalang oleh overflow */
             z-index: 10; 
         }
 
@@ -166,7 +165,6 @@
             max-width: 1200px; 
             max-height: 75vh; 
             margin: 10px 0;
-            /* Izinkan overflow agar tombol nav tidak terlalu dekat dengan gambar */
             overflow: hidden; 
         }
 
@@ -190,16 +188,19 @@
             text-shadow: 0 0 10px rgba(241, 196, 15, 0.8);
         }
 
-        .zoom-link-input {
+        /* --- Style untuk Textarea di dalam Zoom --- */
+        .zoom-link-input-area {
             width: 90%;
             max-width: 700px;
+            height: 80px; /* Tinggi yang lebih pendek dari input utama */
             padding: 10px;
             border: 1px solid #7f8c8d;
             background-color: #2c3e50;
             color: #ecf0f1;
             border-radius: 6px;
             margin-top: 20px;
-            text-align: center;
+            text-align: left; /* Biarkan teks rata kiri untuk tempel */
+            resize: none; /* Nonaktifkan resize */
         }
 
         .close-btn {
@@ -233,14 +234,13 @@
                   oninput="handleInput()"
                   onpaste="handleInput()"></textarea>
         
-        <div class="hidden-button">
-            </div>
+        <div class="hidden-button"></div>
 
         <hr>
 
         <div class="gallery-container">
             
-            <div class="combined-image-slot" id="combinedImageSlot" onclick="openZoom()">
+            <div class="combined-image-slot" id="combinedImageSlot" onclick="openZoom(currentPackageIndex)">
                 
                 <p class="caption-userid" id="combinedSlotUserid">USER ID</p>
                 
@@ -263,19 +263,20 @@
         
         <div class="zoomed-content-area">
             
-            <button class="zoom-nav-button" id="prevZoomBtn" onclick="navigatePackage('prev')" disabled>&#9664;</button>
+            <button class="zoom-nav-button" id="prevZoomBtn" onclick="navigatePackage('prev')">&#9664;</button>
             
             <div class="zoomed-content-wrapper" id="zoomedContentWrapper">
                 </div>
 
-            <button class="zoom-nav-button" id="nextZoomBtn" onclick="navigatePackage('next')" disabled>&#9654;</button>
+            <button class="zoom-nav-button" id="nextZoomBtn" onclick="navigatePackage('next')">&#9654;</button>
         </div>
         
-        <input type="text" id="zoomLinkInput" class="zoom-link-input" 
-               placeholder="Tempelkan link gambar tunggal di sini (Tekan Enter untuk muat)"
-               onchange="loadZoomFromInput(this.value)">
-
-        <div id="caption">Geser paket menggunakan tombol navigasi (&#9664; / &#9654;)</div>
+        <textarea id="zoomLinkInput" class="zoom-link-input-area" 
+               placeholder="Tempelkan link gambar (tunggal atau multibar) di sini untuk diuji coba..."
+               oninput="handleZoomInput()"
+               onpaste="handleZoomInput()"></textarea>
+               
+        <div id="caption">Geser paket menggunakan tombol navigasi (&#9664; / &#9654;). Data di atas hanya untuk pengujian visual.</div>
     </div>
 
     <script>
@@ -285,36 +286,16 @@
         const packageSize = 3; 
         const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong"; 
         let isZoomOpen = false;
+        let isCustomZoom = false; // Status untuk membedakan antara paket dan link tempel
 
         // Data contoh
         const initialData = [
-            { 
-                userid: "Ietha88", 
-                links: [
-                    "https://i.imgur.com/3Q9bF7Z.png",
-                    "https://i.imgur.com/3Q9bF7Z.png",
-                    "https://i.imgur.com/3Q9bF7Z.png"
-                ] 
-            },
-            { 
-                userid: "UserBaru", 
-                links: [
-                    "https://i.imgur.com/5V8aGgO.png",
-                    "https://i.imgur.com/5V8aGgO.png",
-                    "https://i.imgur.com/5V8aGgO.png"
-                ] 
-            },
-            {
-                 userid: "PaketAkhir",
-                 links: [
-                    "https://i.imgur.com/R0Z5lVz.png",
-                    "https://i.imgur.com/R0Z5lVz.png",
-                    "https://i.imgur.com/R0Z5lVz.png"
-                 ]
-            }
+            { userid: "Ietha88", links: ["https://i.imgur.com/3Q9bF7Z.png", "https://i.imgur.com/3Q9bF7Z.png", "https://i.imgur.com/3Q9bF7Z.png"] },
+            { userid: "UserBaru", links: ["https://i.imgur.com/5V8aGgO.png", "https://i.imgur.com/5V8aGgO.png", "https://i.imgur.com/5V8aGgO.png"] },
+            { userid: "PaketAkhir", links: ["https://i.imgur.com/R0Z5lVz.png", "https://i.imgur.com/R0Z5lVz.png", "https://i.imgur.com/R0Z5lVz.png"] }
         ];
         
-        // --- Handler Input Otomatis ---
+        // --- Handler Input Utama Otomatis ---
         let inputTimeout;
         function handleInput() {
             clearTimeout(inputTimeout);
@@ -323,6 +304,15 @@
             }, 50);
         }
 
+        // --- Handler Input Zoom Otomatis ---
+        let zoomInputTimeout;
+        function handleZoomInput() {
+            clearTimeout(zoomInputTimeout);
+            zoomInputTimeout = setTimeout(() => {
+                loadZoomFromInput();
+            }, 50);
+        }
+        
         // --- Fungsi Utama untuk Memuat Gambar (dari Textarea) ---
         function loadImages() {
             const inputArea = document.getElementById('linkInput');
@@ -336,7 +326,6 @@
             const urlRegex = /(https?:\/\/[^\s]+)/g;
 
             rawLines.forEach((line) => {
-                // Tidak ada batasan MAX_PACKAGES di sini
                 const urls = line.match(urlRegex) || [];
                 
                 const words = line.split(/\s+/).filter(w => w.length > 0);
@@ -364,7 +353,6 @@
             document.getElementById('maxPackageNum').textContent = allPackagesData.length;
             
             if (allPackagesData.length > 0) {
-                // Pastikan index saat ini tetap valid
                 currentPackageIndex = Math.min(currentPackageIndex, allPackagesData.length - 1);
                 currentPackageIndex = Math.max(0, currentPackageIndex);
                 updateGallery(currentPackageIndex);
@@ -421,8 +409,8 @@
             
             document.getElementById('currentPackageNum').textContent = validPackages > 0 ? index + 1 : 0;
             
-            // Perbarui tampilan zoom jika modal sedang terbuka
-            if (isZoomOpen) {
+            // Perbarui tampilan zoom jika modal sedang terbuka dan BUKAN custom zoom
+            if (isZoomOpen && !isCustomZoom) {
                 updateZoomDisplay(currentPackage.userid, currentPackage.links);
                 updateZoomNavButtons();
             }
@@ -430,6 +418,9 @@
 
         // --- Fungsi Navigasi (Digunakan untuk Zoom) ---
         function navigatePackage(direction) {
+            // Hanya navigasi jika kita sedang melihat data paket, bukan link tempel
+            if (isCustomZoom) return;
+
             let newIndex = currentPackageIndex;
             if (direction === 'next' && currentPackageIndex < allPackagesData.length - 1) {
                 newIndex++;
@@ -439,7 +430,6 @@
             
             if (newIndex !== currentPackageIndex) {
                 currentPackageIndex = newIndex;
-                // Geser tampilan zoom dan galeri utama
                 updateGallery(currentPackageIndex); 
             }
         }
@@ -468,13 +458,22 @@
             const prevBtn = document.getElementById('prevZoomBtn');
             const nextBtn = document.getElementById('nextZoomBtn');
             
-            prevBtn.disabled = (currentPackageIndex === 0 || allPackagesData.length <= 1);
-            nextBtn.disabled = (currentPackageIndex >= allPackagesData.length - 1 || allPackagesData.length <= 1);
+            // Navigasi hanya diaktifkan jika sedang tidak dalam mode custom zoom
+            if (isCustomZoom || allPackagesData.length <= 1) {
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+            } else {
+                prevBtn.disabled = (currentPackageIndex === 0);
+                nextBtn.disabled = (currentPackageIndex >= allPackagesData.length - 1);
+            }
         }
 
         // --- Fungsi Zoom Gambar (Memuat 3 Gambar Sekaligus) ---
-        function openZoom() {
-            // Kita ambil data dari index paket yang sedang ditampilkan
+        function openZoom(index) {
+            // Set index paket yang dibuka
+            currentPackageIndex = index;
+            isCustomZoom = false; // Kembali ke mode paket
+            
             const currentPackage = allPackagesData[currentPackageIndex];
             
             if (!currentPackage || currentPackage.links.filter(l => l.length > 0).length === 0) {
@@ -483,6 +482,8 @@
             }
             
             isZoomOpen = true;
+            document.getElementById('zoomLinkInput').value = ''; // Kosongkan input zoom
+            
             updateZoomDisplay(currentPackage.userid, currentPackage.links);
             updateZoomNavButtons();
             
@@ -490,44 +491,64 @@
         }
         
         // --- Muat Link dari Input di Modal Zoom ---
-        function loadZoomFromInput(linkUrl) {
-            const urlRegex = /(https?:\/\/[^\s]+)/;
-            const link = linkUrl.trim();
+        function loadZoomFromInput() {
+            const inputArea = document.getElementById('zoomLinkInput');
+            const rawText = inputArea.value.trim();
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
             
-            if (link && urlRegex.test(link)) {
-                 const wrapper = document.getElementById("zoomedContentWrapper");
-                 const zoomedUserid = document.getElementById("zoomedUserid");
+            const links = rawText.match(urlRegex) || [];
+            
+            const wrapper = document.getElementById("zoomedContentWrapper");
+            const zoomedUserid = document.getElementById("zoomedUserid");
+            
+            if (links.length > 0) {
+                wrapper.innerHTML = '';
+                isCustomZoom = true; // Masuk mode custom zoom
+
+                links.forEach(link => {
+                    const img = document.createElement('img');
+                    img.src = link;
+                    img.alt = 'Link Tempel';
+                    // Sesuaikan lebar gambar di zoom jika hanya ada 1 link yang ditempel
+                    img.style.maxWidth = links.length === 1 ? '90%' : 'calc(33.33% - 5px)'; 
+                    wrapper.appendChild(img);
+                });
                  
-                 wrapper.innerHTML = '';
+                 zoomedUserid.textContent = "Uji Coba Link";
                  
-                 const img = document.createElement('img');
-                 img.src = link;
-                 img.alt = 'Link Tempel';
-                 img.style.maxWidth = '100%';
-                 wrapper.appendChild(img);
-                 
-                 zoomedUserid.textContent = "Link Tunggal";
-                 
-                 // Nonaktifkan navigasi
-                 document.getElementById('prevZoomBtn').disabled = true;
-                 document.getElementById('nextZoomBtn').disabled = true;
             } else {
-                 alert("Link tidak valid.");
+                isCustomZoom = false; // Kembali ke mode paket
+                // Jika input kosong, muat ulang paket yang sedang dilihat
+                const currentPackage = allPackagesData[currentPackageIndex];
+                if (currentPackage) {
+                    updateZoomDisplay(currentPackage.userid, currentPackage.links);
+                    zoomedUserid.textContent = currentPackage.userid;
+                }
             }
+            updateZoomNavButtons();
         }
 
 
         // --- Fungsi Tutup Zoom ---
         function closeZoom(event) {
             const modal = document.getElementById("zoomModal");
+            // Mencegah penutupan modal jika yang diklik adalah tombol navigasi
+            if (event.target.classList.contains('zoom-nav-button')) {
+                event.stopPropagation();
+                return;
+            }
+            
             if (event.target === modal || event.target.classList.contains('close-btn')) {
                 modal.style.display = "none";
                 isZoomOpen = false;
+                isCustomZoom = false;
                 document.getElementById('zoomLinkInput').value = ''; 
+                // Pastikan galeri utama ter-update ke index terakhir yang dilihat
+                updateGallery(currentPackageIndex); 
             }
         }
 
-        // Inisialisasi: Muat data contoh saat halaman dimuat
+        // Inisialisasi
         document.addEventListener('DOMContentLoaded', () => {
             // Isi Textarea dengan contoh data dan muat otomatis
             const initialText = initialData.map(p => 
@@ -536,7 +557,7 @@
             
             document.getElementById('linkInput').value = initialText;
             
-            loadImages(); // Muat data awal
+            loadImages(); 
         });
     </script>
 </body>
