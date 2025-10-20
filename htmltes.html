@@ -6,7 +6,7 @@
     <title>Galeri Menu 3 Gambar Per Paket</title>
     
     <style>
-        /* ======================== CSS ======================== */
+        /* [ ... CSS Styles seperti sebelumnya ... ] */
         body {
             font-family: Arial, sans-serif;
             background-color: #2c3e50; /* Warna latar belakang gelap */
@@ -243,32 +243,48 @@
 
     <script>
         /* ======================== JAVASCRIPT ======================== */
-        let allPackagesData = []; // Array untuk menampung { userid: "", links: [] }
+        let allPackagesData = []; 
         const MAX_PACKAGES = 6;
-        let currentPackageIndex = 0; // Index paket saat ini (0-5)
-        const packageSize = 3; // Jumlah gambar per paket
+        let currentPackageIndex = 0; 
+        const packageSize = 3; 
         const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+Kosong"; // Placeholder
 
-        // --- Fungsi Utama untuk Memuat Gambar ---
+        // Data 2 paket yang dimuat otomatis
+        const initialData = [
+            { 
+                userid: "Ietha88", 
+                links: [
+                    "uploaded:image_492848.jpg-9252020c-3d0f-4ccc-bc16-6cec1070276d",
+                    "uploaded:image_492848.jpg-9252020c-3d0f-4ccc-bc16-6cec1070276d",
+                    "uploaded:image_492848.jpg-9252020c-3d0f-4ccc-bc16-6cec1070276d"
+                ] 
+            },
+            { 
+                userid: "UserBaru", 
+                links: [
+                    "uploaded:image_4bc89a.jpg-d4da4c11-9b3a-4e24-adc5-79528f3ce35b",
+                    "uploaded:image_4bc89a.jpg-d4da4c11-9b3a-4e24-adc5-79528f3ce35b",
+                    "uploaded:image_4bc89a.jpg-d4da4c11-9b3a-4e24-adc5-79528f3ce35b"
+                ] 
+            }
+        ];
+
+        // --- Fungsi Utama untuk Memuat Gambar (dari Textarea) ---
         function loadImages() {
             const inputArea = document.getElementById('linkInput');
             
-            // Memecah input per baris
             const rawLines = inputArea.value
                 .split('\n')
                 .map(line => line.trim())
                 .filter(line => line.length > 0);
             
             allPackagesData = [];
-
-            // Regex untuk mencari URL yang valid
             const urlRegex = /(https?:\/\/[^\s]+)/g;
 
             rawLines.forEach((line, index) => {
                 if (index < MAX_PACKAGES) {
-                    const urls = line.match(urlRegex) || []; // Cari semua URL
+                    const urls = line.match(urlRegex) || [];
                     
-                    // Anggap kata pertama yang BUKAN URL sebagai User ID
                     const words = line.split(/\s+/).filter(w => w.length > 0);
                     let userid = 'N/A';
                     
@@ -276,10 +292,9 @@
                         userid = words[0];
                     }
 
-                    if (urls.length >= 1) { // Minimal harus ada 1 link
-                        const links = urls.slice(0, packageSize); // Ambil 3 link pertama
+                    if (urls.length >= 1) { 
+                        const links = urls.slice(0, packageSize); 
                         
-                        // Tambahkan link kosong jika kurang dari 3
                         while (links.length < packageSize) {
                             links.push(""); 
                         }
@@ -288,16 +303,20 @@
                     }
                 }
             });
+
+            // Jika Textarea kosong, kembalikan ke data awal (jika ada)
+            if (allPackagesData.length === 0 && initialData.length > 0) {
+                 allPackagesData = initialData;
+            }
             
             document.getElementById('maxPackageNum').textContent = allPackagesData.length;
             
             if (allPackagesData.length > 0) {
-                currentPackageIndex = 0; // Selalu mulai dari paket pertama
+                currentPackageIndex = 0; 
                 updateGallery(currentPackageIndex);
             } else {
                 currentPackageIndex = 0;
                 document.getElementById('currentPackageNum').textContent = 0;
-                // Reset tampilan galeri
                 updateGallery(-1); 
             }
         }
@@ -312,7 +331,6 @@
             
             const validPackages = allPackagesData.length;
             
-            // Default ke tampilan kosong jika index tidak valid
             let currentPackage = { userid: 'N/A', links: ["", "", ""] };
             if (index >= 0 && index < validPackages) {
                 currentPackage = allPackagesData[index];
@@ -338,10 +356,8 @@
                 slots[i].setAttribute('data-userid', currentPackage.userid); 
             }
         
-            // Update informasi paket
             document.getElementById('currentPackageNum').textContent = validPackages > 0 ? index + 1 : 0;
 
-            // Update status tombol navigasi
             document.getElementById('prevBtn').disabled = (index <= 0 || validPackages === 0);
             document.getElementById('nextBtn').disabled = (index >= validPackages - 1 || validPackages === 0);
         }
@@ -367,33 +383,38 @@
             const imageUrl = slotElement.getAttribute('data-link');
             const userid = slotElement.getAttribute('data-userid');
             
-            if (imageUrl) {
+            if (imageUrl && imageUrl !== placeholderImage) {
                 const modal = document.getElementById("zoomModal");
                 const zoomedImage = document.getElementById("zoomedImage");
                 const zoomedUserid = document.getElementById("zoomedUserid");
                 
-                // Pastikan modal muncul sebelum mengatur gambar
                 modal.style.display = "block"; 
                 
                 zoomedImage.src = imageUrl;
                 zoomedUserid.textContent = userid; 
             } else {
-                alert("Slot ini kosong atau tidak memiliki link gambar.");
+                alert("Slot ini kosong atau tidak memiliki link gambar yang valid.");
             }
         }
 
         // --- Fungsi Tutup Zoom ---
         function closeZoom(event) {
             const modal = document.getElementById("zoomModal");
-            // Tutup jika mengklik tombol (x) atau area di luar gambar
             if (event.target === modal || event.target.classList.contains('close-btn')) {
                 modal.style.display = "none";
             }
         }
 
-        // Inisialisasi
+        // Inisialisasi: Muat data contoh saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
+            allPackagesData = initialData; // Set data awal
+            document.getElementById('maxPackageNum').textContent = allPackagesData.length;
             updateGallery(currentPackageIndex); 
+            
+            // Isi Textarea dengan contoh data untuk memudahkan pengeditan
+            document.getElementById('linkInput').value = 
+                "Ietha88 " + initialData[0].links[0] + " " + initialData[0].links[1] + " " + initialData[0].links[2] + "\n" +
+                "UserBaru " + initialData[1].links[0] + " " + initialData[1].links[1] + " " + initialData[1].links[2];
         });
     </script>
 </body>
