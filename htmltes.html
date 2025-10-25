@@ -883,237 +883,273 @@ hr {
             loadImages(); 
         });
 
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // ===== TAB FUNCTIONALITY =====
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
-            
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const tabId = button.getAttribute('data-tab');
-                    
-                    // Update active tab button
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    
-                    // Update active tab content
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    document.getElementById(tabId).classList.add('active');
-                });
-            });
+        let tsModeActive = false;
 
-            // ===== SCATTER 6 KOLOM FUNCTIONALITY =====
-            // Elemen DOM untuk Scatter 6 Kolom
-            const autoInput = document.getElementById('autoInput');
-            const autoDeleteBtn = document.getElementById('autoDeleteBtn');
-            const dataCount = document.getElementById('dataCount');
-            const autoInputWarning = document.getElementById('autoInputWarning');
-            const autoInputError = document.getElementById('autoInputError');
-            const inputCol1 = document.getElementById('inputCol1');
-            const inputCol2 = document.getElementById('inputCol2');
-            const inputCol3 = document.getElementById('inputCol3');
-            const inputCol4 = document.getElementById('inputCol4');
-            const inputCol5 = document.getElementById('inputCol5');
-            const inputCol6 = document.getElementById('inputCol6');
-            const clearScatter6Btn = document.getElementById('clearScatter6Btn');
-            const scatter6Results = document.getElementById('scatter6Results');
-            const modal = document.getElementById('imageModal');
-            const closeBtn = document.querySelector('.close-btn');
-            const imageInfo = document.getElementById('imageInfo');
-            const colInfo = document.getElementById('colInfo');
-            const userIdInfo = document.getElementById('userIdInfo');
-            const ticketInfo = document.getElementById('ticketInfo');
-            const imagesContainer = document.getElementById('imagesContainer');
-            const indicators = [
-                document.getElementById('indicator1'),
-                document.getElementById('indicator2'),
-                document.getElementById('indicator3'),
-                document.getElementById('indicator4'),
-                document.getElementById('indicator5'),
-                document.getElementById('indicator6')
-            ];
-            const clearColBtns = document.querySelectorAll('.clear-col-btn');
-            const tsToggle = document.getElementById('tsToggle');
-            const globalMinimizeBtn = document.getElementById('globalMinimizeBtn');
-            const modalNavigation = document.getElementById('modalNavigation');
+function toggleTSMode() {
+  tsModeActive = !tsModeActive;
+  const btn = document.getElementById("tsToggleBtn");
+  if (tsModeActive) {
+    btn.textContent = "TS: ON";
+    btn.classList.add("on");
+  } else {
+    btn.textContent = "TS: OFF";
+    btn.classList.remove("on");
+  }
+  if (document.getElementById("scatterTextarea").value.trim()) {
+    hitungScatter();
+  }
+}
 
-            // Variabel untuk kontrol zoom
-            const zoomInBtn = document.getElementById('zoomInBtn');
-            const zoomOutBtn = document.getElementById('zoomOutBtn');
-            const zoomResetBtn = document.getElementById('zoomResetBtn');
-            const zoomIndicator = document.getElementById('zoomIndicator');
 
-            // Variabel global untuk menyimpan hasil
-            let scatterResults = [null, null, null, null, null, null];
 
-            // Data untuk fitur undo cancel
-            let undoData = [null, null, null, null, null, null];
 
-            // Status minimize global
-            let isAllMinimized = true;
+// Ekstrak data dari satu baris
+function extractFromLine(line) {
+  let userId = "-";
 
-            // Variabel untuk menyimpan kolom yang sedang aktif di modal
-            let currentModalColumn = 1;
+  // Parsing User ID
+  const parts = line.split(/\s+/);
+  for (let i = 0; i < parts.length; i++) {
+    if (/^20\d{2}$/.test(parts[i]) && i + 1 < parts.length) {
+      const calon = parts[i + 1].trim();
+      if (calon.length >= 3 && !/^\d+$/.test(calon)) {
+        userId = calon;
+        break;
+      }
+    }
+  }
 
-            // Variabel untuk kontrol zoom
-            let currentZoomLevel = 1;
-            const ZOOM_STEP = 0.2;
-            const MIN_ZOOM = 0.5;
-            const MAX_ZOOM = 3;
+  // Jika mode TS aktif, tambahkan " TS" di akhir
+  if (tsModeActive && userId !== "-") {
+    userId += " TS";
+  }
 
-            // ===== CREDIT CALCULATOR FUNCTIONALITY =====
-            // Elemen DOM untuk Kalkulator Credit
-            const creditDataEl = document.getElementById('creditData');
-            const clearCreditBtn = document.getElementById('clearCreditBtn');
-            const creditTotalEl = document.getElementById('creditTotal');
-            const copyCreditBtn = document.getElementById('copyCreditBtn');
-            const creditCopyNotification = document.getElementById('creditCopyNotification');
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
+  const gambarRegex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg|png|gif|webp|bmp|svg)|https?:\/\/(?:prnt\.sc|imghostr\.com)\/[^\s]+)/gi;
+  const gambarLinks = line.match(gambarRegex) || [];
 
-            // ===== INISIALISASI FUNGSI SCATTER 6 KOLOM =====
-            // Event untuk minimize global
-            globalMinimizeBtn.addEventListener('click', function() {
-                const allColumns = document.querySelectorAll('.column-input');
+  const kodeTiketMatch = line.match(/\b\d{17,20}\b/);
+  const kodeTiket = kodeTiketMatch ? kodeTiketMatch[0] : "-";
 
-                if (isAllMinimized) {
-                    // Jika semua minimized, buka semua
-                    allColumns.forEach(col => col.classList.remove('minimized'));
-                    globalMinimizeBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Minimize Semua Kolom';
-                    isAllMinimized = false;
-                } else {
-                    // Jika semua terbuka, minimize semua
-                    allColumns.forEach(col => col.classList.add('minimized'));
-                    globalMinimizeBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Buka Semua Kolom';
-                    isAllMinimized = true;
-                }
-            });
+  const betMatch = line.match(/BET\s+([0-9.,\- ]+)/i);
+  let bettingan = "-";
+  if (betMatch) {
+    const parts = betMatch[1].split("-");
+    bettingan = parts[0].trim();
+  }
 
-            // Event untuk input otomatis
-            autoInput.addEventListener('input', function() {
-                updateDataCount();
-                processAutoInput();
-            });
+  return { userId, kodeTiket, gambarLinks, bettingan };
+}
 
-            autoDeleteBtn.addEventListener('click', function() {
-                autoInput.value = '';
-                updateDataCount();
-                processAutoInput();
-            });
+// Render semua hasil
+function renderHasil(transaksiList) {
+  const container = document.getElementById("hasilScatterContainer");
+  container.innerHTML = "";
 
-            // Tombol hapus untuk tab 6 kolom
-            clearScatter6Btn.addEventListener('click', function() {
-                inputCol1.value = '';
-                inputCol2.value = '';
-                inputCol3.value = '';
-                inputCol4.value = '';
-                inputCol5.value = '';
-                inputCol6.value = '';
-                autoInput.value = '';
-                scatter6Results.innerHTML = '';
-                scatterResults = [null, null, null, null, null, null];
-                // Reset undo data
-                undoData = [null, null, null, null, null, null];
-                updateDataCount();
-                hideAllMessages();
-            });
+  transaksiList.forEach((trans, idx) => {
+    const { userId, kodeTiket, gambarLinks, bettingan } = trans;
+    const prefix = `t${idx}_`;
 
-            // Event untuk tombol hapus per kolom
-            clearColBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const colNum = this.getAttribute('data-col');
-                    const inputId = `inputCol${colNum}`;
-                    const inputElement = document.getElementById(inputId);
+    let gambarHTML = '';
+    for (let i = 1; i <= 3; i++) {
+      const link = gambarLinks[i - 1];
+      let content = '<div>-</div>';
+      if (link) {
+        if (link.includes('prnt.sc') || link.includes('imghostr.com')) {
+          content = `<a href="${link}" target="_blank" style="color:#ffcc00;">Lihat Gambar ${i}</a>`;
+        } else {
+          content = `<img src="${link}" onclick="openLightbox('${link}', '${userId}')" />`;
+        }
+      }
+      gambarHTML += `
+        <div class="gambar-slot-multi">
+          <h4 style="margin:4px 0;font-size:14px;">Gambar ${i}</h4>
+          ${content}
+          <div class="userid-label">User ID: ${userId}</div>
+        </div>
+      `;
+    }
 
-                    // Kosongkan input kolom
-                    inputElement.value = '';
+    const block = document.createElement("div");
+    block.className = "hasil-transaksi";
+    block.innerHTML = `
+      <div class="hasil-item" id="${prefix}uidItem">
+        <label>User ID:</label>
+        <div class="hasil-text" id="${prefix}uid">${userId}</div>
+        <button class="copy-btn" onclick="copyText('${prefix}uid', '${prefix}uidItem')">💫</button>
+      </div>
+      <div class="hasil-item" id="${prefix}ktItem">
+        <label>Kode Tiket:</label>
+        <div class="hasil-text" id="${prefix}kt">${kodeTiket}</div>
+        <button class="copy-btn" onclick="copyText('${prefix}kt', '${prefix}ktItem')">💫</button>
+      </div>
+      <div class="hasil-item" id="${prefix}lbItem">
+        <label>Link Bukti:</label>
+        <div class="hasil-text" id="${prefix}lb">${gambarLinks.join(", ") || "-"}</div>
+        <button class="copy-btn" onclick="copyText('${prefix}lb', '${prefix}lbItem')">💫</button>
+      </div>
+      <div class="hasil-item" id="${prefix}betItem">
+        <label>Bettingan:</label>
+        <div class="hasil-text" id="${prefix}bet">${bettingan}</div>
+        <button class="copy-btn" onclick="copyText('${prefix}bet', '${prefix}betItem')">💫</button>
+      </div>
+      <div class="gambar-container-multi">
+        ${gambarHTML}
+      </div>
+    `;
+    container.appendChild(block);
+  });
+}
 
-                    // Reset undo data untuk kolom ini
-                    undoData[colNum - 1] = null;
+// Fungsi utama
+function hitungScatter() {
+  const input = document.getElementById("scatterTextarea").value.trim();
+  if (!input) {
+    document.getElementById("hasilScatterContainer").innerHTML = "";
+    return;
+  }
 
-                    // Proses ulang data
-                    showProcessingIndicator(parseInt(colNum) - 1);
-                    setTimeout(() => {
-                        processScatter6Data();
-                        hideProcessingIndicator(parseInt(colNum) - 1);
-                    }, 300);
-                });
-            });
+  const lines = input.split("\n").slice(0, 7); // Ambil maks 7 baris
+  const transList = lines.map(line => extractFromLine(line.trim()));
+  renderHasil(transList);
+}
 
-            // Event untuk modal gambar
-            closeBtn.addEventListener('click', closeModal);
+function hapusScatter() {
+  document.getElementById("scatterTextarea").value = "";
+  document.getElementById("hasilScatterContainer").innerHTML = "";
+}
 
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
+// Copy dengan efek background merah
+function copyText(elementId, itemContainerId) {
+  const el = document.getElementById(elementId);
+  const container = document.getElementById(itemContainerId);
+  if (!el || el.innerText === "-") return;
 
-            // Tutup modal dengan tombol ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === "Escape" && modal.style.display === "block") {
-                    closeModal();
-                }
-            });
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    container.classList.add("red-bg");
+    setTimeout(() => {
+      container.classList.remove("red-bg");
+    }, 1000);
+  }).catch(err => {
+    console.warn("Gagal menyalin:", err);
+  });
+}
 
-            // Event listener untuk toggle TS
-            tsToggle.addEventListener('change', function() {
-                updateResultsWithTS();
-            });
 
-            // Event listener untuk setiap kolom input
-            [inputCol1, inputCol2, inputCol3, inputCol4, inputCol5, inputCol6].forEach((input, index) => {
-                input.addEventListener('input', function() {
-                    // Tampilkan indikator pemrosesan
-                    showProcessingIndicator(index);
 
-                    // Proses data setelah penundaan kecil
-                    setTimeout(() => {
-                        processScatter6Data();
-                        hideProcessingIndicator(index);
-                    }, 300);
-                });
-            });
 
-            // Event listener untuk tombol navigasi di modal
-            modalNavigation.addEventListener('click', function(e) {
-                const navBtn = e.target.closest('.nav-btn');
-                if (navBtn) {
-                    const colIndex = parseInt(navBtn.getAttribute('data-col'));
 
-                    // Pindah ke kolom yang dipilih
-                    navigateToColumn(colIndex);
-                }
-            });
 
-            // Event listener untuk kontrol zoom
-            zoomInBtn.addEventListener('click', function() {
-                zoomIn();
-            });
 
-            zoomOutBtn.addEventListener('click', function() {
-                zoomOut();
-            });
+// === LIGHTBOX DENGAN NAVIGASI ===
+let currentLightboxIndex = 0;
+let currentLightboxImages = [];
+let currentLightboxUserId = "";
 
-            zoomResetBtn.addEventListener('click', function() {
-                resetZoom();
-            });
+function openLightbox(imgUrl, userId) {
+  const modal = document.getElementById("lightboxModal");
+  const img = document.getElementById("lightboxImg");
+  const caption = document.getElementById("lightboxCaption");
 
-            // ===== FUNGSI SCATTER 6 KOLOM =====
-            // Fungsi untuk zoom in
-            function zoomIn() {
-                if (currentZoomLevel < MAX_ZOOM) {
-                    currentZoomLevel += ZOOM_STEP;
-                    applyZoom();
-                }
-            }
 
-            // Fungsi untuk zoom out
-     …
+  currentLightboxImages = getCurrentTransaksiImages(userId);
+  currentLightboxUserId = userId;
+  currentLightboxIndex = currentLightboxImages.findIndex(img => img === imgUrl);
+  if (currentLightboxIndex === -1) currentLightboxIndex = 0;
+
+
+
+  img.src = currentLightboxImages[currentLightboxIndex];
+  caption.innerText = `User ID: ${userId}`;
+  modal.style.display = "flex";
+
+
+  updateNavButtons();
+}
+
+function getCurrentTransaksiImages(userId) {
+  const allItems = document.querySelectorAll('.hasil-transaksi');
+  for (let item of allItems) {
+    const uidEl = item.querySelector('.hasil-text[id$="uid"]');
+    if (uidEl && uidEl.innerText === userId) {
+      const imgEls = item.querySelectorAll('.gambar-slot-multi img');
+      return Array.from(imgEls).map(el => el.src).filter(src => src);
+    }
+  }
+  return [];
+}
+
+function prevImage() {
+  if (currentLightboxImages.length <= 1) return;
+  currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+  updateLightboxImage();
+}
+
+function nextImage() {
+  if (currentLightboxImages.length <= 1) return;
+  currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+  updateLightboxImage();
+}
+
+function updateLightboxImage() {
+  const img = document.getElementById("lightboxImg");
+  const caption = document.getElementById("lightboxCaption");
+  img.src = currentLightboxImages[currentLightboxIndex];
+  caption.innerText = `User ID: ${currentLightboxUserId}`;
+  updateNavButtons();
+}
+
+function updateNavButtons() {
+  const prevBtn = document.querySelector('.prev');
+  const nextBtn = document.querySelector('.next');
+
+  if (currentLightboxImages.length <= 1) {
+    prevBtn.style.opacity = '0.3';
+    nextBtn.style.opacity = '0.3';
+    prevBtn.style.pointerEvents = 'none';
+    nextBtn.style.pointerEvents = 'none';
+  } else {
+    prevBtn.style.opacity = '1';
+    nextBtn.style.opacity = '1';
+    prevBtn.style.pointerEvents = 'auto';
+    nextBtn.style.pointerEvents = 'auto';
+  }
+}
+
+function closeLightbox() {
+  document.getElementById("lightboxModal").style.display = "none";
+  currentLightboxImages = [];
+  currentLightboxUserId = "";
+  currentLightboxIndex = 0;
+}
+
+
+
+// Navigasi keyboard
+document.addEventListener('keydown', (e) => {
+  const lightbox = document.getElementById('lightboxModal');
+  if (lightbox.style.display !== 'flex') return;
+
+  if (e.key === 'ArrowLeft') {
+    prevImage();
+  } else if (e.key === 'ArrowRight') {
+    nextImage();
+  } else if (e.key === 'Escape') {
+    closeLightbox();
+  }
+});
+
+// Event listener input
+document.addEventListener("DOMContentLoaded", () => {
+  const ta = document.getElementById("scatterTextarea");
+  if (ta) {
+    ta.addEventListener("paste", () => setTimeout(hitungScatter, 50));
+    ta.addEventListener("input", hitungScatter);
+  }
+});
     </script>
 </body>
 </html>
+
 
 
 
