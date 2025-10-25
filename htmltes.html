@@ -621,364 +621,63 @@ button:hover,
 </div>
     
     <script>
-        /* ======================== JAVASCRIPT ======================== */
-        let allPackagesData = []; 
-        let currentPackageIndex = 0; 
-        const packageSize = 3; 
-        const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong"; 
-        let isZoomOpen = false;
-
-        // Data contoh (tetap dipertahankan untuk inisialisasi awal yang mudah)
-        const initialData = [
-        ];
-        
-        // --- Handler Input Utama Otomatis ---
-        let inputTimeout;
-        function handleInput() {
-            clearTimeout(inputTimeout);
-            inputTimeout = setTimeout(() => {
-                loadImages();
-            }, 50);
-        }
-
-        // --- Fungsi Utama untuk Memuat Gambar (dari Textarea) ---
-        function loadImages() {
-            const inputArea = document.getElementById('linkInput');
-            
-            const rawLines = inputArea.value
-                .split('\n')
-                .map(line => line.trim())
-                .filter(line => line.length > 0);
-            
-            allPackagesData = [];
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-            rawLines.forEach((line) => {
-                const urls = line.match(urlRegex) || [];
-                
-                const words = line.split(/\s+/).filter(w => w.length > 0);
-                let userid = 'N/A';
-                
-                if (words.length > 0 && !words[0].startsWith('http')) {
-                    userid = words[0];
-                }
-
-                if (urls.length >= 1) { 
-                    const links = urls.slice(0, packageSize); 
-                    
-                    while (links.length < packageSize) {
-                        links.push(""); 
-                    }
-                    
-                    allPackagesData.push({ userid: userid, links: links });
-                }
-            });
-
-            if (allPackagesData.length === 0) {
-                 // Tidak melakukan apa-apa, biarkan updateGallery(-1) membersihkan
-            }
-            
-            document.getElementById('maxPackageNum').textContent = allPackagesData.length;
-            
-            if (allPackagesData.length > 0) {
-                currentPackageIndex = Math.min(currentPackageIndex, allPackagesData.length - 1);
-                currentPackageIndex = Math.max(0, currentPackageIndex);
-                updateGallery(currentPackageIndex);
-            } else {
-                currentPackageIndex = 0;
-                document.getElementById('currentPackageNum').textContent = 0;
-                updateGallery(-1); // Bersihkan tampilan
-            }
-        }
-
-        // --- Fungsi untuk Mengupdate Tampilan Galeri ---
-        function updateGallery(index) {
-            const imgSlots = [
-                document.getElementById('imgSlot1'),
-                document.getElementById('imgSlot2'),
-                document.getElementById('imgSlot3')
-            ];
-            
-            const combinedSlot = document.getElementById('combinedImageSlot');
-            const useridCaption = document.getElementById('combinedSlotUserid');
-            const validPackages = allPackagesData.length;
-            
-            let currentPackage = { userid: 'N/A', links: ["", "", ""] };
-            
-            if (index >= 0 && index < validPackages) {
-                currentPackage = allPackagesData[index];
-                combinedSlot.style.pointerEvents = 'auto'; // Dapat diklik
-            } else {
-                combinedSlot.style.pointerEvents = 'none'; // Tidak dapat diklik
-                currentPackage.userid = 'N/A'; // Pastikan kondisi default saat kosong
-            }
-
-            combinedSlot.setAttribute('data-userid', currentPackage.userid);
-            useridCaption.textContent = currentPackage.userid === 'N/A' ? 'Belum Ada Data' : `USER ID: ${currentPackage.userid}`;
-
-            let validLinkCount = 0;
-            for (let i = 0; i < packageSize; i++) {
-                const link = currentPackage.links[i] || "";
-
-                if (link) {
-                    imgSlots[i].src = link;
-                    imgSlots[i].style.display = 'block'; 
-                    imgSlots[i].setAttribute('data-link', link);
-                    validLinkCount++;
-                } else {
-                    imgSlots[i].src = placeholderImage;
-                    // Tampilkan placeholder tengah saja jika tidak ada data sama sekali
-                    imgSlots[i].style.display = (index === -1 && i === 1) ? 'block' : 'none'; 
-                    imgSlots[i].setAttribute('data-link', "");
-                }
-            }
-            
-            if (validLinkCount > 0) {
-                combinedSlot.style.opacity = 1;
-            } else {
-                combinedSlot.style.opacity = 0.5;
-            }
-
-            document.getElementById('currentPackageNum').textContent = validPackages > 0 ? index + 1 : 0;
-            
-            if (isZoomOpen) {
-                updateZoomDisplay(currentPackage.userid, currentPackage.links);
-                updateZoomNavButtons();
-            }
-        }
-
-        // --- Fungsi Navigasi (Untuk Tombol Fisik & Keyboard) ---
-        function navigatePackage(direction) {
-            let newIndex = currentPackageIndex;
-            if (direction === 'next' && currentPackageIndex < allPackagesData.length - 1) {
-                newIndex++;
-            } else if (direction === 'prev' && currentPackageIndex > 0) {
-                newIndex--;
-            }
-            
-            if (newIndex !== currentPackageIndex) {
-                currentPackageIndex = newIndex;
-                updateGallery(currentPackageIndex); 
-            }
-        }
-        
-        // --- Update Tampilan Zoom ---
-        function updateZoomDisplay(userid, links) {
-            const wrapper = document.getElementById("zoomedContentWrapper");
-            const zoomedUserid = document.getElementById("zoomedUserid");
-            
-            wrapper.innerHTML = '';
-            
-            links.forEach(link => {
-                if (link) {
-                    const img = document.createElement('img');
-                    img.src = link;
-                    img.alt = 'Zoomed Image';
-                    wrapper.appendChild(img);
-                }
-            });
-            
-            zoomedUserid.textContent = userid; 
-        }
-        
-        // --- Update Status Tombol Navigasi Zoom ---
-        function updateZoomNavButtons() {
-            const prevBtn = document.getElementById('prevZoomBtn');
-            const nextBtn = document.getElementById('nextZoomBtn');
-            
-            if (allPackagesData.length <= 1) {
-                prevBtn.disabled = true;
-                nextBtn.disabled = true;
-            } else {
-                prevBtn.disabled = (currentPackageIndex === 0);
-                nextBtn.disabled = (currentPackageIndex >= allPackagesData.length - 1);
-            }
-        }
-
-        // --- Fungsi Zoom Gambar ---
-        function openZoom() {
-            if (allPackagesData.length === 0 || allPackagesData[currentPackageIndex].links.filter(l => l.length > 0).length === 0) {
-                 return;
-            }
-            
-            isZoomOpen = true;
-            
-            const currentPackage = allPackagesData[currentPackageIndex];
-            updateZoomDisplay(currentPackage.userid, currentPackage.links);
-            updateZoomNavButtons();
-            
-            document.getElementById("zoomModal").style.display = "flex"; 
-        }
-        
-        // --- Fungsi Tutup Zoom ---
-        function closeZoom(event) {
-            const modal = document.getElementById("zoomModal");
-            
-            if (event.target.classList.contains('zoom-nav-button') || event.target.tagName === 'IMG') {
-                event.stopPropagation();
-                return;
-            }
-            
-            if (event.target === modal || event.target.classList.contains('close-btn')) {
-                modal.style.display = "none";
-                isZoomOpen = false;
-            }
-        }
-        
-        // --- Fungsi Hapus Semua Data (TANPA NOTIFIKASI) ---
-        function clearAllData() {
-            // 1. Kosongkan array data utama
-            allPackagesData = [];
-            // 2. Kosongkan Textarea
-            document.getElementById('linkInput').value = '';
-            // 3. Reset status tampilan
-            currentPackageIndex = 0;
-            document.getElementById('maxPackageNum').textContent = 0;
-            // 4. Perbarui galeri ke kondisi kosong
-            updateGallery(-1); 
-            
-            // Tambahkan notifikasi cepat (opsional) atau biarkan tanpa notif sama sekali
-            console.log("Semua data berhasil dihapus.");
-        }
-
-        // --- Event Listener Keyboard (Untuk Navigasi Zoom) ---
-        document.addEventListener('keydown', (event) => {
-            if (isZoomOpen) {
-                if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-                    event.preventDefault(); 
-                }
-
-                if (event.key === "ArrowLeft") {
-                    navigatePackage('prev');
-                } else if (event.key === "ArrowRight") {
-                    navigatePackage('next');
-                } else if (event.key === "Escape") {
-                    closeZoom({ target: document.getElementById("zoomModal") });
-                }
-            }
-        });
-
-        // Inisialisasi: Muat data contoh saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', () => {
-            // Isi Textarea dengan contoh data
-            const initialText = initialData.map(p => 
-                `${p.userid} ${p.links.join(' ')}`
-            ).join('\n');
-            
-            document.getElementById('linkInput').value = initialText;
-            
-            loadImages(); 
-        });
-
-let currentLightboxIndex = 0;
-let currentLightboxImages = [];
-let currentLightboxUserId = "";
-
-function openLightbox(imgUrl, userId) {
-  const modal = document.getElementById("lightboxModal");
-  const img = document.getElementById("lightboxImg");
-  const caption = document.getElementById("lightboxCaption");
-  currentLightboxImages = getCurrentTransaksiImages(userId);
-  currentLightboxUserId = userId;
-  currentLightboxIndex = currentLightboxImages.findIndex(img => img === imgUrl);
-  if (currentLightboxIndex === -1) currentLightboxIndex = 0;
-  img.src = currentLightboxImages[currentLightboxIndex];
-  caption.innerText = `User ID: ${userId}`;
-  modal.style.display = "flex";
-  updateNavButtons();
-}
-
-function prevImage() {
-  if (currentLightboxImages.length <= 1) return;
-  currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
-  updateLightboxImage();
-}
-
-function nextImage() {
-  if (currentLightboxImages.length <= 1) return;
-  currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
-  updateLightboxImage();
-}
-
-function updateLightboxImage() {
-  const img = document.getElementById("lightboxImg");
-  const caption = document.getElementById("lightboxCaption");
-  img.src = currentLightboxImages[currentLightboxIndex];
-  caption.innerText = `User ID: ${currentLightboxUserId}`;
-  updateNavButtons();
-}
-
-function updateNavButtons() {
-  const prevBtn = document.querySelector('.prev');
-  const nextBtn = document.querySelector('.next');
-
-  if (currentLightboxImages.length <= 1) {
-    prevBtn.style.opacity = '0.3';
-    nextBtn.style.opacity = '0.3';
-    prevBtn.style.pointerEvents = 'none';
-    nextBtn.style.pointerEvents = 'none';
-  } else {
-    prevBtn.style.opacity = '1';
-    nextBtn.style.opacity = '1';
-    prevBtn.style.pointerEvents = 'auto';
-    nextBtn.style.pointerEvents = 'auto';
-  }
-}
-
-function closeLightbox() {
-  document.getElementById("lightboxModal").style.display = "none";
-  currentLightboxImages = [];
-  currentLightboxUserId = "";
-  currentLightboxIndex = 0;
-}
-
-document.addEventListener('keydown', (e) => {
-  const lightbox = document.getElementById('lightboxModal');
-  if (lightbox.style.display !== 'flex') return;
-
-  if (e.key === 'ArrowLeft') {
-    prevImage();
-  } else if (e.key === 'ArrowRight') {
-    nextImage();
-  } else if (e.key === 'Escape') {
-    closeLightbox();
-  }
-});
-
 document.addEventListener('DOMContentLoaded', function() {
     // ==========================================================
-    // 🚀 CACHE ELEMENT DOM UTAMA & VARIABEL GLOBAL
+    // 🚀 CACHE ELEMENT DOM UTAMA & VARIABEL GLOBAL (GABUNGAN)
     // ==========================================================
 
-    // --- Tab & Global ---
-    const DOM = {
-        tabButtons: document.querySelectorAll('.tab-button'),
-        tabContents: document.querySelectorAll('.tab-content'),
-        toast: document.getElementById('toast'),
-        toastMessage: document.getElementById('toastMessage')
+    // --- State Global (Penting untuk mengatasi bentrok modal) ---
+    let isZoomOpen = false; // Status untuk modal Galeri/Paket (#zoomModal)
+    let isImageModalOpen = false; // Status untuk modal Scatter (#imageModal)
+    let isLightboxOpen = false; // Status untuk modal Lightbox (#lightboxModal)
+
+    // --- Variabel Galeri Paket (3 Gambar) ---
+    let allPackagesData = [];
+    let currentPackageIndex = 0;
+    const packageSize = 3;
+    const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong";
+    const GALERI = {
+        linkInput: document.getElementById('linkInput'),
+        maxPackageNum: document.getElementById('maxPackageNum'),
+        currentPackageNum: document.getElementById('currentPackageNum'),
+        combinedSlot: document.getElementById('combinedImageSlot'),
+        useridCaption: document.getElementById('combinedSlotUserid'),
+        imgSlots: [
+            document.getElementById('imgSlot1'),
+            document.getElementById('imgSlot2'),
+            document.getElementById('imgSlot3')
+        ],
+        zoomModal: document.getElementById('zoomModal'),
+        zoomedUserid: document.getElementById('zoomedUserid'),
+        zoomedContentWrapper: document.getElementById('zoomedContentWrapper'),
+        prevZoomBtn: document.getElementById('prevZoomBtn'),
+        nextZoomBtn: document.getElementById('nextZoomBtn'),
+        zoomLinkInput: document.getElementById('zoomLinkInput')
     };
 
-    // --- Scatter 6 Kolom ---
+    // --- Variabel Scatter 6 Kolom & Kalkulator ---
+    let scatterResults = [null, null, null, null, null, null];
+    let undoData = [null, null, null, null, null, null];
+    let currentModalColumn = 1;
+    let currentZoomLevel = 1;
+    const ZOOM_STEP = 0.2;
+    const MIN_ZOOM = 0.5;
+    const MAX_ZOOM = 3;
+
     const SCATTER = {
         inputCols: [1, 2, 3, 4, 5, 6].map(i => document.getElementById(`inputCol${i}`)),
         indicators: [1, 2, 3, 4, 5, 6].map(i => document.getElementById(`indicator${i}`)),
         autoInput: document.getElementById('autoInput'),
-        autoDeleteBtn: document.getElementById('autoDeleteBtn'),
-        dataCount: document.getElementById('dataCount'),
-        clearScatter6Btn: document.getElementById('clearScatter6Btn'),
-        clearColBtns: document.querySelectorAll('.clear-col-btn'),
         tsToggle: document.getElementById('tsToggle'),
-        globalMinimizeBtn: document.getElementById('globalMinimizeBtn'),
         scatter6Results: document.getElementById('scatter6Results'),
         modal: document.getElementById('imageModal'),
-        closeBtn: document.querySelector('#imageModal .close-btn'), // Spesifikkan
         modalNavigation: document.getElementById('modalNavigation'),
         imagesContainer: document.getElementById('imagesContainer'),
         zoomInBtn: document.getElementById('zoomInBtn'),
         zoomOutBtn: document.getElementById('zoomOutBtn'),
         zoomResetBtn: document.getElementById('zoomResetBtn'),
         zoomIndicator: document.getElementById('zoomIndicator'),
-        resultInfos: { // Cache elemen info di modal
+        resultInfos: {
             imageInfo: document.getElementById('imageInfo'),
             colInfo: document.getElementById('colInfo'),
             userIdInfo: document.getElementById('userIdInfo'),
@@ -986,7 +685,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // --- Credit Calculator ---
     const CREDIT = {
         data: document.getElementById('creditData'),
         total: document.getElementById('creditTotal'),
@@ -994,22 +692,22 @@ document.addEventListener('DOMContentLoaded', function() {
         copyBtn: document.getElementById('copyCreditBtn'),
     };
 
-    // --- Variabel State Global ---
-    let scatterResults = [null, null, null, null, null, null];
-    let undoData = [null, null, null, null, null, null];
-    let isAllMinimized = true;
-    let currentModalColumn = 1;
-    let currentZoomLevel = 1;
-    const ZOOM_STEP = 0.2;
-    const MIN_ZOOM = 0.5;
-    const MAX_ZOOM = 3;
+    const DOM = {
+        tabButtons: document.querySelectorAll('.tab-button'),
+        toast: document.getElementById('toast'),
+        toastMessage: document.getElementById('toastMessage')
+    };
+    
+    // --- Variabel Lightbox (tambahan) ---
+    let currentLightboxImages = [];
+    let currentLightboxUserId = "";
+    let currentLightboxIndex = 0;
 
 
     // ==========================================================
-    // 🧠 FUNGSI UTILITAS & UX
+    // 🧠 FUNGSI UTILITAS & UX (Dipindahkan ke dalam scope DOMContentLoaded)
     // ==========================================================
 
-    /** Menampilkan Toast Notification yang keren */
     function showToast(message, duration = 2000) {
         DOM.toastMessage.textContent = message;
         DOM.toast.classList.add('show');
@@ -1018,8 +716,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }, duration);
     }
 
-    /** Menyalin teks menggunakan Clipboard API modern */
     async function copyToClipboard(text, notificationMessage) {
+        if (!text || text === 'N/A' || text === '0') {
+            showToast('Tidak ada data yang valid untuk disalin.', 1500);
+            return;
+        }
         try {
             await navigator.clipboard.writeText(text);
             showToast(notificationMessage || `✅ Berhasil menyalin: ${text.substring(0, 20)}...`);
@@ -1029,106 +730,249 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    /** Menampilkan indikator loading kolom */
-    function showProcessingIndicator(index) {
-        SCATTER.indicators[index].style.backgroundColor = 'yellow';
-    }
+    function showProcessingIndicator(index) { SCATTER.indicators[index].style.backgroundColor = 'yellow'; }
+    function hideProcessingIndicator(index) { SCATTER.indicators[index].style.backgroundColor = ''; }
 
-    /** Menyembunyikan indikator loading kolom */
-    function hideProcessingIndicator(index) {
-        SCATTER.indicators[index].style.backgroundColor = '';
-    }
 
     // ==========================================================
-    // ⚙️ FUNGSI SCATTER 6 KOLOM UTAMA
+    // 📸 FUNGSI GALERI PAKET (3 GAMBAR)
+    // ==========================================================
+    // Catatan: Fungsi ini sekarang diakses melalui properti window
+    // atau event listener di dalam scope ini.
+
+    let inputTimeout;
+    window.handleInput = function() { // Diperlukan untuk oninput/onpaste di HTML
+        clearTimeout(inputTimeout);
+        inputTimeout = setTimeout(loadImages, 50);
+    }
+
+    function loadImages() {
+        const rawLines = GALERI.linkInput.value
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
+
+        allPackagesData = [];
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+        rawLines.forEach((line) => {
+            const urls = line.match(urlRegex) || [];
+            const words = line.split(/\s+/).filter(w => w.length > 0);
+            let userid = 'N/A';
+
+            if (words.length > 0 && !words[0].startsWith('http')) {
+                userid = words[0];
+            }
+
+            if (urls.length >= 1) {
+                const links = urls.slice(0, packageSize);
+                while (links.length < packageSize) {
+                    links.push("");
+                }
+                allPackagesData.push({ userid: userid, links: links });
+            }
+        });
+
+        GALERI.maxPackageNum.textContent = allPackagesData.length;
+
+        if (allPackagesData.length > 0) {
+            currentPackageIndex = Math.min(currentPackageIndex, allPackagesData.length - 1);
+            currentPackageIndex = Math.max(0, currentPackageIndex);
+            updateGallery(currentPackageIndex);
+        } else {
+            currentPackageIndex = 0;
+            GALERI.currentPackageNum.textContent = 0;
+            updateGallery(-1);
+        }
+    }
+
+    function updateGallery(index) {
+        const validPackages = allPackagesData.length;
+        let currentPackage = { userid: 'N/A', links: ["", "", ""] };
+
+        if (index >= 0 && index < validPackages) {
+            currentPackage = allPackagesData[index];
+            GALERI.combinedSlot.style.pointerEvents = 'auto';
+            GALERI.combinedSlot.style.opacity = 1;
+        } else {
+            GALERI.combinedSlot.style.pointerEvents = 'none';
+            GALERI.combinedSlot.style.opacity = 0.5;
+        }
+
+        GALERI.combinedSlot.setAttribute('data-userid', currentPackage.userid);
+        GALERI.useridCaption.textContent = currentPackage.userid === 'N/A' ? 'Belum Ada Data' : `USER ID: ${currentPackage.userid}`;
+
+        let validLinkCount = 0;
+        for (let i = 0; i < packageSize; i++) {
+            const link = currentPackage.links[i] || "";
+            const imgSlot = GALERI.imgSlots[i];
+
+            if (link) {
+                imgSlot.src = link;
+                imgSlot.style.display = 'block';
+                imgSlot.setAttribute('data-link', link);
+                validLinkCount++;
+            } else {
+                imgSlot.src = placeholderImage;
+                imgSlot.style.display = (index === -1 && i === 1) ? 'block' : 'none';
+                imgSlot.setAttribute('data-link', "");
+            }
+        }
+
+        GALERI.currentPackageNum.textContent = validPackages > 0 ? index + 1 : 0;
+
+        if (isZoomOpen) {
+            updateZoomDisplay(currentPackage.userid, currentPackage.links);
+            updateZoomNavButtons();
+        }
+    }
+
+    window.navigatePackage = function(direction) { // Diperlukan untuk onclick di HTML
+        let newIndex = currentPackageIndex;
+        if (direction === 'next' && currentPackageIndex < allPackagesData.length - 1) {
+            newIndex++;
+        } else if (direction === 'prev' && currentPackageIndex > 0) {
+            newIndex--;
+        }
+
+        if (newIndex !== currentPackageIndex) {
+            currentPackageIndex = newIndex;
+            updateGallery(currentPackageIndex);
+        }
+    }
+
+    function updateZoomDisplay(userid, links) {
+        GALERI.zoomedContentWrapper.innerHTML = '';
+        GALERI.zoomLinkInput.value = links.filter(l => l).join('\n'); // Tampilkan semua link
+
+        links.forEach(link => {
+            if (link) {
+                const img = document.createElement('img');
+                img.src = link;
+                img.alt = 'Zoomed Image';
+                GALERI.zoomedContentWrapper.appendChild(img);
+            }
+        });
+
+        GALERI.zoomedUserid.textContent = userid;
+    }
+
+    function updateZoomNavButtons() {
+        GALERI.prevZoomBtn.disabled = (currentPackageIndex === 0);
+        GALERI.nextZoomBtn.disabled = (currentPackageIndex >= allPackagesData.length - 1);
+    }
+
+    window.openZoom = function() { // Diperlukan untuk onclick di HTML
+        if (allPackagesData.length === 0 || allPackagesData[currentPackageIndex].links.filter(l => l.length > 0).length === 0) {
+            return;
+        }
+
+        // Tutup modal lain jika terbuka
+        if (isImageModalOpen) closeModalScatter();
+        if (isLightboxOpen) closeLightbox();
+
+        isZoomOpen = true;
+
+        const currentPackage = allPackagesData[currentPackageIndex];
+        updateZoomDisplay(currentPackage.userid, currentPackage.links);
+        updateZoomNavButtons();
+
+        GALERI.zoomModal.style.display = "flex";
+    }
+
+    window.closeZoom = function(event) { // Diperlukan untuk onclick di HTML
+        const modal = GALERI.zoomModal;
+
+        if (event && (event.target.classList.contains('zoom-nav-button') || event.target.tagName === 'IMG')) {
+            event.stopPropagation();
+            return;
+        }
+
+        if (!event || event.target === modal || event.target.classList.contains('close-btn')) {
+            modal.style.display = "none";
+            isZoomOpen = false;
+
+            // Bersihkan konten
+            GALERI.zoomedContentWrapper.innerHTML = '';
+            GALERI.zoomedUserid.textContent = '';
+            GALERI.zoomLinkInput.value = '';
+        }
+    }
+
+    window.clearAllData = function() { // Diperlukan untuk onclick di HTML
+        allPackagesData = [];
+        GALERI.linkInput.value = '';
+        currentPackageIndex = 0;
+        GALERI.maxPackageNum.textContent = 0;
+        updateGallery(-1);
+        showToast("Data Galeri Paket dihapus.");
+    }
+
+
+    // ==========================================================
+    // ⚙️ FUNGSI SCATTER 6 KOLOM & CALCULATOR
     // ==========================================================
 
-    /** Parsing input teks untuk mendapatkan link gambar, User ID, dan Kode Tiket */
     function parseInput(text, isTS) {
         if (!text) return null;
-
-        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-        
-        // Asumsi kita hanya memproses baris pertama sebagai data utama
-        const line = lines[0];
-        
+        const line = text.split('\n')[0].trim();
         const urlRegex = /(https?:\/\/[^\s]+)/g;
         const ticketRegex = /\b\d{17,20}\b/;
-        
-        const links = (line.match(urlRegex) || []).slice(0, 3); // Ambil maks 3 link
+        const links = (line.match(urlRegex) || []).slice(0, 3);
         const ticket = (line.match(ticketRegex) || [])[0] || 'N/A';
-        
         let userId = 'N/A';
         const words = line.split(/\s+/).filter(w => w.length > 0);
-        
-        // Logika sederhana: ambil kata pertama yang bukan link
+
         for (const word of words) {
-            if (!word.startsWith('http') && !ticketRegex.test(word)) {
+            if (!word.startsWith('http') && !ticketRegex.test(word) && word !== '-') {
                 userId = word;
                 break;
             }
         }
 
-        if (isTS && userId !== 'N/A') {
-            userId += ' TS';
-        }
-
-        // Return object yang rapi
+        if (isTS && userId !== 'N/A') { userId += ' TS'; }
         return { userId, ticket, links };
     }
 
-    /** Memproses semua data kolom dan merender hasilnya */
     function processScatter6Data() {
         const isTS = SCATTER.tsToggle.checked;
-
         SCATTER.inputCols.forEach((input, index) => {
+            // Hilangkan indikator processing setelah input selesai diproses
+            hideProcessingIndicator(index);
             scatterResults[index] = parseInput(input.value, isTS);
         });
-
         renderScatterResults();
     }
 
-    /** Merender hasil ke dalam kolom output HTML */
     function renderScatterResults() {
         SCATTER.scatter6Results.innerHTML = '';
-        
         scatterResults.forEach((result, index) => {
             const colNum = index + 1;
-            const hasData = result && (result.userId !== 'N/A' || result.links.length > 0);
+            const hasData = result && (result.userId !== 'N/A' || result.links.filter(l => l).length > 0);
 
             const resultBlock = document.createElement('div');
-            resultBlock.className = 'result-block';
-            if (hasData) {
-                resultBlock.classList.add('has-data');
-            }
+            resultBlock.className = 'result-block' + (hasData ? ' has-data' : '');
 
-            const linksHTML = result ? result.links.map((link, i) => 
-                link 
-                ? `<button class="view-image-btn" data-col="${colNum}" data-index="${i}" data-link="${link}">
-                     🔗 Bukti ${i + 1}
-                   </button>` 
-                : `<button class="view-image-btn no-link" disabled>
-                     Bukti ${i + 1} (Kosong)
-                   </button>`
+            const linksHTML = result ? result.links.map((link, i) =>
+                link
+                ? `<button class="view-image-btn" data-col="${colNum}" data-link="${link}">🔗 Bukti ${i + 1}</button>`
+                : `<button class="view-image-btn no-link" disabled>Bukti ${i + 1} (Kosong)</button>`
             ).join('') : '';
 
             const userId = result ? result.userId : 'N/A';
             const ticket = result ? result.ticket : 'N/A';
-
-            // Tombol Undo
-            const undoBtnHTML = undoData[index] ? 
-                `<button class="undo-btn" data-col="${colNum}">↩️ Undo Cancel</button>` : '';
+            const undoBtnHTML = undoData[index] ? `<button class="undo-btn" data-col="${colNum}">↩️ Undo Cancel</button>` : '';
 
             resultBlock.innerHTML = `
                 <h4>Kolom ${colNum}</h4>
                 <div class="result-item">
                     <label>User ID:</label>
-                    <span id="uidCol${colNum}" class="data-text">${userId}</span>
+                    <span class="data-text">${userId}</span>
                     <button class="copy-btn" data-text="${userId}">📋</button>
                 </div>
                 <div class="result-item">
                     <label>Kode Tiket:</label>
-                    <span id="ticketCol${colNum}" class="data-text">${ticket}</span>
+                    <span class="data-text">${ticket}</span>
                     <button class="copy-btn" data-text="${ticket}">📋</button>
                 </div>
                 <div class="link-group">${linksHTML}</div>
@@ -1141,85 +985,72 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /** Memproses input dari textarea otomatis */
     function processAutoInput() {
         const text = SCATTER.autoInput.value;
         const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
         
-        if (lines.length > 6) {
-            SCATTER.autoInputWarning.textContent = `⚠️ Terdeteksi ${lines.length} baris. Hanya 6 baris pertama yang akan diproses.`;
-            SCATTER.autoInputWarning.style.display = 'block';
-        } else {
-            SCATTER.autoInputWarning.style.display = 'none';
-        }
-
-        // Distribusikan data ke 6 kolom input
         SCATTER.inputCols.forEach((input, index) => {
             input.value = lines[index] || '';
         });
 
         processScatter6Data();
     }
-    
-    // ==========================================================
-    // 🖼️ FUNGSI MODAL ZOOM & NAVIGASI
-    // ==========================================================
 
-    /** Memuat data kolom ke modal zoom */
-    function loadModalContent(colIndex) {
+    // --- Fungsi Modal Scatter (#imageModal) ---
+    function loadModalContentScatter(colIndex) {
         const result = scatterResults[colIndex - 1];
-        
+
         if (!result) return;
-        
+
         currentModalColumn = colIndex;
-        
-        // Update info teks di modal
+
         SCATTER.resultInfos.imageInfo.textContent = `Kolom ${colIndex} / User ID: ${result.userId}`;
         SCATTER.resultInfos.colInfo.textContent = `Kolom ${colIndex}`;
         SCATTER.resultInfos.userIdInfo.textContent = `User ID: ${result.userId}`;
         SCATTER.resultInfos.ticketInfo.textContent = `Kode Tiket: ${result.ticket}`;
 
-        // Render gambar
         SCATTER.imagesContainer.innerHTML = '';
         result.links.forEach(link => {
             if (link) {
                 const img = document.createElement('img');
                 img.src = link;
                 img.alt = 'Bukti Transaksi';
+                img.onclick = () => openLightbox(link, result.userId); // Tambahkan event lightbox
                 SCATTER.imagesContainer.appendChild(img);
             }
         });
 
-        // Update tampilan navigasi modal
-        updateModalNavigationButtons();
+        updateModalNavigationButtonsScatter();
     }
 
-    /** Membuka modal zoom */
-    function openModal(colIndex) {
-        loadModalContent(colIndex);
+    function openModalScatter(colIndex) {
+        // Tutup modal lain jika terbuka
+        if (isZoomOpen) closeZoom();
+        if (isLightboxOpen) closeLightbox();
+
+        loadModalContentScatter(colIndex);
         SCATTER.modal.style.display = 'block';
-        resetZoom(); // Reset zoom saat modal dibuka
+        isImageModalOpen = true;
+        resetZoom();
     }
 
-    /** Menutup modal zoom */
-    function closeModal() {
+    function closeModalScatter() {
         SCATTER.modal.style.display = 'none';
+        isImageModalOpen = false;
     }
 
-    /** Navigasi ke kolom lain di dalam modal */
-    function navigateToColumn(targetCol) {
+    function navigateToColumnScatter(targetCol) {
         if (targetCol >= 1 && targetCol <= 6) {
-            loadModalContent(targetCol);
+            loadModalContentScatter(targetCol);
         }
     }
 
-    /** Update status tombol navigasi di modal */
-    function updateModalNavigationButtons() {
+    function updateModalNavigationButtonsScatter() {
         const navButtons = SCATTER.modalNavigation.querySelectorAll('.nav-btn');
         navButtons.forEach(btn => {
             const btnCol = parseInt(btn.getAttribute('data-col'));
             btn.classList.remove('active-col');
-            btn.disabled = scatterResults[btnCol - 1] === null;
+            btn.disabled = scatterResults[btnCol - 1] === null || scatterResults[btnCol - 1].links.filter(l => l).length === 0;
 
             if (btnCol === currentModalColumn) {
                 btn.classList.add('active-col');
@@ -1227,56 +1058,102 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Logika Zoom ---
     function applyZoom() {
         SCATTER.imagesContainer.style.transform = `scale(${currentZoomLevel})`;
         SCATTER.zoomIndicator.textContent = `${Math.round(currentZoomLevel * 100)}%`;
-        
-        // Atur posisi agar zoom di tengah
-        const translateX = (1 - currentZoomLevel) * 50;
-        const translateY = (1 - currentZoomLevel) * 50;
         SCATTER.imagesContainer.style.transformOrigin = 'center center';
     }
 
-    function zoomIn() {
-        currentZoomLevel = Math.min(MAX_ZOOM, currentZoomLevel + ZOOM_STEP);
-        applyZoom();
+    function zoomIn() { currentZoomLevel = Math.min(MAX_ZOOM, currentZoomLevel + ZOOM_STEP); applyZoom(); }
+    function zoomOut() { currentZoomLevel = Math.max(MIN_ZOOM, currentZoomLevel - ZOOM_STEP); applyZoom(); }
+    function resetZoom() { currentZoomLevel = 1; applyZoom(); }
+
+    // --- Lightbox Functions (Untuk gambar di dalam Modal Scatter) ---
+
+    // Dapatkan semua link gambar yang valid dari kolom yang sedang aktif di modal scatter
+    function getCurrentTransaksiImages(userId) {
+        const result = scatterResults[currentModalColumn - 1];
+        return result && result.userId === userId ? result.links.filter(l => l) : [];
     }
 
-    function zoomOut() {
-        currentZoomLevel = Math.max(MIN_ZOOM, currentZoomLevel - ZOOM_STEP);
-        applyZoom();
+    function openLightbox(imgUrl, userId) {
+        // Tutup modal lain jika terbuka (terutama modal galeri)
+        if (isZoomOpen) closeZoom();
+
+        const modal = document.getElementById("lightboxModal");
+        const img = document.getElementById("lightboxImg");
+        const caption = document.getElementById("lightboxCaption");
+
+        currentLightboxImages = getCurrentTransaksiImages(userId);
+        currentLightboxUserId = userId;
+        currentLightboxIndex = currentLightboxImages.findIndex(img => img === imgUrl);
+        if (currentLightboxIndex === -1) currentLightboxIndex = 0;
+
+        img.src = currentLightboxImages[currentLightboxIndex];
+        caption.innerText = `User ID: ${userId} (${currentLightboxIndex + 1}/${currentLightboxImages.length})`;
+        modal.style.display = "flex";
+        isLightboxOpen = true;
+        updateNavButtonsLightbox();
     }
 
-    function resetZoom() {
-        currentZoomLevel = 1;
-        applyZoom();
+    function prevImageLightbox() {
+        if (currentLightboxImages.length <= 1) return;
+        currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+        updateLightboxImage();
     }
 
-    // ==========================================================
-    // 💰 FUNGSI CREDIT CALCULATOR
-    // ==========================================================
+    function nextImageLightbox() {
+        if (currentLightboxImages.length <= 1) return;
+        currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+        updateLightboxImage();
+    }
 
-    /** Memproses data credit dan menghitung total */
+    function updateLightboxImage() {
+        const img = document.getElementById("lightboxImg");
+        const caption = document.getElementById("lightboxCaption");
+        img.src = currentLightboxImages[currentLightboxIndex];
+        caption.innerText = `User ID: ${currentLightboxUserId} (${currentLightboxIndex + 1}/${currentLightboxImages.length})`;
+        updateNavButtonsLightbox();
+    }
+
+    function updateNavButtonsLightbox() {
+        const prevBtn = document.querySelector('#lightboxModal .prev');
+        const nextBtn = document.querySelector('#lightboxModal .next');
+
+        if (currentLightboxImages.length <= 1) {
+            prevBtn.style.opacity = '0.3';
+            nextBtn.style.opacity = '0.3';
+            prevBtn.style.pointerEvents = 'none';
+            nextBtn.style.pointerEvents = 'none';
+        } else {
+            prevBtn.style.opacity = '1';
+            nextBtn.style.opacity = '1';
+            prevBtn.style.pointerEvents = 'auto';
+            nextBtn.style.pointerEvents = 'auto';
+        }
+    }
+
+    window.closeLightbox = function() { // Diperlukan untuk onclick di HTML
+        document.getElementById("lightboxModal").style.display = "none";
+        isLightboxOpen = false;
+        currentLightboxImages = [];
+        currentLightboxUserId = "";
+        currentLightboxIndex = 0;
+    }
+
+    // --- Fungsi Credit Calculator ---
     function processCreditData() {
         const text = CREDIT.data.value;
         const lines = text.split('\n');
         let totalCredit = 0;
-
-        // Regex untuk mencari angka di awal baris, mengabaikan tanda (./,)
         const numberRegex = /^\s*(\-?\d[\d\.,]*)/;
 
         lines.forEach(line => {
             const match = line.match(numberRegex);
             if (match) {
-                // Hapus semua karakter non-digit kecuali tanda minus di awal
                 let numStr = match[1].replace(/,/g, '').replace(/\./g, '');
-                
-                // Cek apakah ada tanda minus di awal
                 const isNegative = numStr.startsWith('-');
-                if(isNegative) {
-                    numStr = numStr.substring(1);
-                }
+                if(isNegative) { numStr = numStr.substring(1); }
 
                 const value = parseInt(numStr, 10);
                 if (!isNaN(value)) {
@@ -1284,24 +1161,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-
-        // Format hasil ke rupiah (misal: 10.000.000)
         CREDIT.total.textContent = totalCredit.toLocaleString('id-ID');
     }
 
-
     // ==========================================================
-    // 🔗 DELEGASI EVENT LISTENER & INISIALISASI
+    // 🔗 EVENT LISTENER & INISIALISASI
     // ==========================================================
 
-    // --- Inisialisasi Tab ---
-    if (DOM.tabButtons.length > 0) {
-        DOM.tabButtons[0].click(); // Aktifkan tab pertama secara default
-    }
+    // --- Tab Functionality ---
+    DOM.tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.getAttribute('data-tab');
+            DOM.tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+    if (DOM.tabButtons.length > 0) { DOM.tabButtons[0].click(); }
 
-    // --- Event Listener Global Scatter ---
-
-    // Delegasi event untuk tombol di hasil render (Copy, View Image, Cancel, Undo)
+    // --- Delegasi Event Scatter ---
     SCATTER.scatter6Results.addEventListener('click', function(e) {
         const copyBtn = e.target.closest('.copy-btn');
         const viewBtn = e.target.closest('.view-image-btn');
@@ -1311,85 +1190,84 @@ document.addEventListener('DOMContentLoaded', function() {
         if (copyBtn) {
             const textToCopy = copyBtn.getAttribute('data-text') || copyBtn.previousElementSibling.textContent;
             copyToClipboard(textToCopy);
-        } 
-        else if (viewBtn && !viewBtn.disabled) {
+        } else if (viewBtn && !viewBtn.disabled) {
             const colNum = parseInt(viewBtn.getAttribute('data-col'));
-            openModal(colNum);
-        } 
-        else if (cancelBtn) {
+            openModalScatter(colNum);
+        } else if (cancelBtn) {
             const colNum = parseInt(cancelBtn.getAttribute('data-col'));
             const colIndex = colNum - 1;
-            
-            // Logika Cancel (Simpan data lama untuk undo, lalu hapus input & proses ulang)
             undoData[colIndex] = SCATTER.inputCols[colIndex].value;
             SCATTER.inputCols[colIndex].value = '';
             processScatter6Data();
             showToast(`Kolom ${colNum} Dibatalkan. Klik 'Undo Cancel' untuk mengembalikan.`);
-        } 
-        else if (undoBtn) {
+        } else if (undoBtn) {
             const colNum = parseInt(undoBtn.getAttribute('data-col'));
             const colIndex = colNum - 1;
-            
-            // Logika Undo (Kembalikan data dari undoData)
             SCATTER.inputCols[colIndex].value = undoData[colIndex];
-            undoData[colIndex] = null; // Reset undo
+            undoData[colIndex] = null;
             processScatter6Data();
             showToast(`Kolom ${colNum} berhasil dikembalikan.`);
         }
     });
 
-    // --- Scatter General Events ---
-    SCATTER.autoInput.addEventListener('input', function() {
-        // updateDataCount(); // FUNGSI INI PERLU DIBUAT JIKA DIPERLUKAN
-        processAutoInput();
-    });
-
-    SCATTER.autoDeleteBtn.addEventListener('click', function() {
+    // --- Input & Controls Scatter ---
+    SCATTER.autoInput.addEventListener('input', processAutoInput);
+    document.getElementById('autoDeleteBtn').addEventListener('click', function() {
         SCATTER.autoInput.value = '';
-        // updateDataCount();
         processAutoInput();
     });
-
     SCATTER.tsToggle.addEventListener('change', processScatter6Data);
+
+    SCATTER.inputCols.forEach((input, index) => {
+        input.addEventListener('input', function() {
+            showProcessingIndicator(index);
+            setTimeout(processScatter6Data, 300);
+        });
+    });
 
     // --- Credit Calculator Events ---
     CREDIT.data.addEventListener('input', processCreditData);
-    CREDIT.clearBtn.addEventListener('click', function() {
-        CREDIT.data.value = '';
-        processCreditData(); // Memastikan total menjadi 0
-        showToast('Data Credit Dihapus.');
-    });
-    CREDIT.copyBtn.addEventListener('click', function() {
-        copyToClipboard(CREDIT.total.textContent, '✅ Total Credit berhasil disalin!');
-    });
+    CREDIT.clearBtn.addEventListener('click', function() { CREDIT.data.value = ''; processCreditData(); showToast('Data Credit Dihapus.'); });
+    CREDIT.copyBtn.addEventListener('click', function() { copyToClipboard(CREDIT.total.textContent, '✅ Total Credit berhasil disalin!'); });
 
-    // --- Modal Navigation Keyboard Events (Panah Kiri/Kanan) ---
-    document.addEventListener('keydown', function(e) {
-        if (SCATTER.modal.style.display === 'block') {
-            if (e.key === "ArrowRight") {
-                e.preventDefault();
-                navigateToColumn(currentModalColumn < 6 ? currentModalColumn + 1 : 1);
-            } else if (e.key === "ArrowLeft") {
-                e.preventDefault();
-                navigateToColumn(currentModalColumn > 1 ? currentModalColumn - 1 : 6);
-            }
-        }
+    // --- Modal Scatter (#imageModal) Events ---
+    document.querySelector('#imageModal .close-btn').addEventListener('click', closeModalScatter);
+    SCATTER.modal.addEventListener('click', (e) => {
+        if (e.target === SCATTER.modal) { closeModalScatter(); }
     });
-
-    // --- Modal Zoom Events ---
+    SCATTER.modalNavigation.addEventListener('click', function(e) {
+        const navBtn = e.target.closest('.nav-btn');
+        if (navBtn) { navigateToColumnScatter(parseInt(navBtn.getAttribute('data-col'))); }
+    });
     SCATTER.zoomInBtn.addEventListener('click', zoomIn);
     SCATTER.zoomOutBtn.addEventListener('click', zoomOut);
     SCATTER.zoomResetBtn.addEventListener('click', resetZoom);
 
-    // Inisialisasi Credit Calculator
-    processCreditData(); 
+    // --- Navigasi Keyboard Global (GALERI & SCATTER) ---
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "Escape") {
+            if (isZoomOpen) { window.closeZoom(e); }
+            else if (isImageModalOpen) { closeModalScatter(); }
+            else if (isLightboxOpen) { window.closeLightbox(); }
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            if (isZoomOpen) { // Navigasi Galeri
+                e.preventDefault();
+                window.navigatePackage(e.key === "ArrowLeft" ? 'prev' : 'next');
+            } else if (isImageModalOpen) { // Navigasi Modal Scatter
+                e.preventDefault();
+                navigateToColumnScatter(e.key === "ArrowLeft" ? (currentModalColumn > 1 ? currentModalColumn - 1 : 6) : (currentModalColumn < 6 ? currentModalColumn + 1 : 1));
+            } else if (isLightboxOpen) { // Navigasi Lightbox
+                e.preventDefault();
+                e.key === "ArrowLeft" ? prevImageLightbox() : nextImageLightbox();
+            }
+        }
+    });
+
+    // --- Inisialisasi Awal ---
+    loadImages(); // Muat data galeri awal
+    processCreditData(); // Muat data credit awal
 });
+        
 </script>
 </body>
 </html>
-
-
-
-
-
-
