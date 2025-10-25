@@ -429,214 +429,343 @@ button:hover,
 </head>
 <body>
 
-    <div class="container">
-        <h1>📸 Galeri Gambar Otomatis & Zoom Navigasi</h1>
-        <p style="text-align: center; color: #3498db;">**Tempel/Ketik** data. Format: **USERID link_gambar1 link_gambar2 link_gambar3**</p>
-
-        <textarea id="linkInput" 
-                  placeholder="Tempelkan data paket di sini. Setiap baris adalah satu paket." 
-                  rows="8" 
-                  oninput="handleInput()"
-                  onpaste="handleInput()"></textarea>
-        
-        <div class="button-group">
-            <button id="clearDataBtn" onclick="clearAllData()">🗑️ Hapus Semua Data</button>
-        </div>
-
-        <hr>
-
-        <div class="gallery-container">
-            
-            <div class="combined-image-slot" id="combinedImageSlot" onclick="openZoom()">
-                
-                <p class="caption-userid" id="combinedSlotUserid">USER ID</p>
-                
-                <img id="imgSlot1" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+1" alt="Slot 1">
-                <img id="imgSlot2" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+2" alt="Slot 2">
-                <img id="imgSlot3" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+3" alt="Slot 3">
-            </div>
-            
-        </div>
-
-        <p class="package-info">
-            Paket: <span id="currentPackageNum">0</span> / <span id="maxPackageNum">0</span>
-        </p>
-
-    </div>
-
-    <div id="zoomModal" class="modal" onclick="closeZoom(event)">
-        <span class="close-btn">&times;</span>
-        <span id="zoomedUserid" class="zoomed-userid"></span> 
-        
-        <div class="zoomed-content-area">
-            
-            <button class="zoom-nav-button" id="prevZoomBtn" onclick="navigatePackage('prev')">&#9664;</button>
-            
-            <div class="zoomed-content-wrapper" id="zoomedContentWrapper">
-                </div>
-
-            <button class="zoom-nav-button" id="nextZoomBtn" onclick="navigatePackage('next')">&#9654;</button>
-        </div>
-        
-        <textarea id="zoomLinkInput" class="zoom-link-input-area"></textarea>
-               
-        <div id="caption">Geser paket menggunakan tombol navigasi (&#9664; / &#9654;) atau tombol panah Kiri/Kanan pada keyboard.</div>
-    </div>
 <div class="container">
-    <h1>Analisis & Kalkulasi Transaksi</h1>
+    <h1>Aplikasi Utility Transaksi</h1>
 
     <div class="tab-buttons">
-        <button class="tab-button active" data-tab="scatterTab"><i class="fas fa-th-large"></i> Scatter 6 Kolom</button>
-        <button class="tab-button" data-tab="creditCalculatorTab"><i class="fas fa-calculator"></i> Kalkulator Credit</button>
-        <button class="tab-button" data-tab="cekBonusEventTab"><i class="fas fa-gift"></i> Cek Bonus Event</button>
+        <button class="tab-button active" data-tab="tab-scatter">Scatter 6 Kolom</button>
+        <button class="tab-button" data-tab="tab-gallery">Galeri Paket (3 Slot)</button>
+        <button class="tab-button" data-tab="tab-credit">Kalkulator Credit</button>
     </div>
 
-    <div id="scatterTab" class="tab-content active">
-
-        <div class="scatter-controls">
-            <div class="input-group" style="flex: 2;">
-                <label for="autoInput">Input Otomatis (Tempel Semua Data):</label>
-                <textarea id="autoInput" placeholder="Tempel semua data (maks 6 baris pertama akan diproses)"></textarea>
-                <div class="controls-group">
-                    <span id="dataCount" style="margin-right: 10px; color: #ccc;">Data: 0 baris</span>
-                    <button id="autoDeleteBtn" class="cancel-btn"><i class="fas fa-trash"></i> Hapus Input Otomatis</button>
-                    <span id="autoInputWarning" style="color: yellow; margin-left: 10px; display: none;"></span>
-                    <span id="autoInputError" style="color: red; margin-left: 10px; display: none;"></span>
-                </div>
+    <div id="tab-scatter" class="tab-content active">
+        <h2>Scatter 6 Kolom</h2>
+        <div class="scatter-container">
+            <div class="input-area">
+                <p>Masukkan Data Otomatis (Max 6 Baris):</p>
+                <textarea id="autoInput" rows="10" placeholder="Paste data transaksi di sini (max 6 baris, 1 baris = 1 kolom)."></textarea>
+                <div id="autoInputWarning" style="color: orange; display: none;"></div>
+                <div id="autoInputError" style="color: red; display: none;"></div>
+                <p>Baris Terdeteksi: <span id="dataCount">0</span></p>
+                <button id="autoDeleteBtn" class="danger"><i class="fas fa-trash"></i> Hapus Input Otomatis</button>
+                <button id="clearScatter6Btn" class="danger" style="margin-left: 10px;">Bersihkan Semua Kolom</button>
             </div>
             
-            <div class="input-group" style="flex: 1; margin-left: 20px;">
-                <button id="globalMinimizeBtn" class="copy-btn" style="width: 100%; margin-bottom: 10px;"><i class="fas fa-chevron-down"></i> Buka Semua Kolom</button>
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                    <input type="checkbox" id="tsToggle" style="margin-right: 5px;">
-                    <label for="tsToggle" style="color: #ffc107;">Mode TS (Tambahkan 'TS' di User ID)</label>
+            <div class="manual-input-area">
+                <p>Toggle TS: <input type="checkbox" id="tsToggle"> (Tambah "TS" ke User ID)</p>
+                <div id="globalControls" style="margin-bottom: 10px;">
+                    <button id="globalMinimizeBtn" style="background-color: #555;"><i class="fas fa-chevron-down"></i> Buka Semua Kolom</button>
                 </div>
-                <button id="clearScatter6Btn" class="cancel-btn" style="width: 100%;"><i class="fas fa-broom"></i> Hapus Semua Kolom & Input</button>
-            </div>
-        </div>
-
-        <div class="column-input-grid">
-            <div class="column-input minimized">
-                <h3>Kolom 1 <span class="indicator" id="indicator1"></span> <button class="clear-col-btn" data-col="1">Hapus</button></h3>
-                <textarea id="inputCol1" placeholder="Data Kolom 1..."></textarea>
-            </div>
-            <div class="column-input minimized">
-                <h3>Kolom 2 <span class="indicator" id="indicator2"></span> <button class="clear-col-btn" data-col="2">Hapus</button></h3>
-                <textarea id="inputCol2" placeholder="Data Kolom 2..."></textarea>
-            </div>
-            <div class="column-input minimized">
-                <h3>Kolom 3 <span class="indicator" id="indicator3"></span> <button class="clear-col-btn" data-col="3">Hapus</button></h3>
-                <textarea id="inputCol3" placeholder="Data Kolom 3..."></textarea>
-            </div>
-            <div class="column-input minimized">
-                <h3>Kolom 4 <span class="indicator" id="indicator4"></span> <button class="clear-col-btn" data-col="4">Hapus</button></h3>
-                <textarea id="inputCol4" placeholder="Data Kolom 4..."></textarea>
-            </div>
-            <div class="column-input minimized">
-                <h3>Kolom 5 <span class="indicator" id="indicator5"></span> <button class="clear-col-btn" data-col="5">Hapus</button></h3>
-                <textarea id="inputCol5" placeholder="Data Kolom 5..."></textarea>
-            </div>
-            <div class="column-input minimized">
-                <h3>Kolom 6 <span class="indicator" id="indicator6"></span> <button class="clear-col-btn" data-col="6">Hapus</button></h3>
-                <textarea id="inputCol6" placeholder="Data Kolom 6..."></textarea>
-            </div>
-        </div>
-
-        <div class="input-group">
-            <label style="color: #00ffff; font-size: 18px; font-weight: bold;">💎 Hasil Scatter</label>
-            <div id="scatter6Results" class="scatter-results">
+                <div class="input-cols">
+                    <div class="input-col column-input minimized">
+                        <span id="indicator1" class="indicator"></span>
+                        <label>Kolom 1</label>
+                        <textarea id="inputCol1" rows="3" placeholder="Data transaksi..."></textarea>
+                        <button class="clear-col-btn danger" data-col="1">Hapus</button>
+                    </div>
+                    <div class="input-col column-input minimized">
+                        <span id="indicator2" class="indicator"></span>
+                        <label>Kolom 2</label>
+                        <textarea id="inputCol2" rows="3" placeholder="Data transaksi..."></textarea>
+                        <button class="clear-col-btn danger" data-col="2">Hapus</button>
+                    </div>
+                    <div class="input-col column-input minimized">
+                        <span id="indicator3" class="indicator"></span>
+                        <label>Kolom 3</label>
+                        <textarea id="inputCol3" rows="3" placeholder="Data transaksi..."></textarea>
+                        <button class="clear-col-btn danger" data-col="3">Hapus</button>
+                    </div>
+                    <div class="input-col column-input minimized">
+                        <span id="indicator4" class="indicator"></span>
+                        <label>Kolom 4</label>
+                        <textarea id="inputCol4" rows="3" placeholder="Data transaksi..."></textarea>
+                        <button class="clear-col-btn danger" data-col="4">Hapus</button>
+                    </div>
+                    <div class="input-col column-input minimized">
+                        <span id="indicator5" class="indicator"></span>
+                        <label>Kolom 5</label>
+                        <textarea id="inputCol5" rows="3" placeholder="Data transaksi..."></textarea>
+                        <button class="clear-col-btn danger" data-col="5">Hapus</button>
+                    </div>
+                    <div class="input-col column-input minimized">
+                        <span id="indicator6" class="indicator"></span>
+                        <label>Kolom 6</label>
+                        <textarea id="inputCol6" rows="3" placeholder="Data transaksi..."></textarea>
+                        <button class="clear-col-btn danger" data-col="6">Hapus</button>
+                    </div>
                 </div>
-        </div>
-
-    </div>
-
-    <div id="creditCalculatorTab" class="tab-content">
-        <div class="input-group">
-            <label for="creditData" style="font-size: 16px;">Tempelkan Data Transaksi Credit (Satu baris satu transaksi):</label>
-            <textarea id="creditData" placeholder="Contoh: 10000000 | deposit 5000000 | 500000"></textarea>
+            </div>
         </div>
         
-        <div class="credit-result-box">
-            <span>TOTAL CREDIT TERKUMPUL (Rp):</span>
-            <span id="creditTotal">0</span>
-            <div>
-                <button id="copyCreditBtn" class="copy-btn"><i class="fas fa-copy"></i> Salin Total</button>
-                <button id="clearCreditBtn" class="cancel-btn"><i class="fas fa-trash"></i> Hapus Data</button>
+        <h3>Hasil Pemrosesan</h3>
+        <div id="scatter6Results" class="result-container">
+            </div>
+    </div>
+
+    <div id="tab-gallery" class="tab-content">
+        <h2>Galeri Paket (3 Slot Gambar)</h2>
+        <div class="gallery-3-container">
+            <div class="gallery-input-area">
+                <p>Masukkan Data Paket (User ID [spasi] Link1 Link2 Link3):</p>
+                <textarea id="linkInput" rows="15" 
+                    placeholder="Contoh:&#10;USER1 https://link1.jpg https://link2.png&#10;USER2 https://linkA.gif https://linkB.jpg https://linkC.webp"
+                    oninput="handleInput()" onpaste="handleInput()"></textarea>
+                <button onclick="clearAllData()" class="danger"><i class="fas fa-trash"></i> Hapus Semua Data Galeri</button>
+            </div>
+            <div class="image-display-area">
+                <h3>Tampilan Galeri</h3>
+                <div id="combinedImageSlot" class="combined-slot" onclick="openZoom()">
+                    <img id="imgSlot1" src="placeholder" alt="Gambar 1">
+                    <img id="imgSlot2" src="placeholder" alt="Gambar 2">
+                    <img id="imgSlot3" src="placeholder" alt="Gambar 3">
+                </div>
+                <div class="pagination">
+                    <button class="nav-btn" onclick="navigatePackage('prev')">← Prev</button>
+                    <span>Paket <span id="currentPackageNum">0</span> dari <span id="maxPackageNum">0</span></span>
+                    <button class="nav-btn" onclick="navigatePackage('next')">Next →</button>
+                </div>
+                <p id="combinedSlotUserid">Belum Ada Data</p>
             </div>
         </div>
     </div>
-    
-    <div id="cekBonusEventTab" class="tab-content">
-        <p style="text-align: center; color: #aaa;">Konten untuk Cek Bonus Event...</p>
+
+    <div id="tab-credit" class="tab-content">
+        <div class="credit-calc">
+            <div>
+                <h2>Input Nominal</h2>
+                <textarea id="creditData" rows="15" placeholder="Masukkan nominal per baris. Contoh:&#10;1000000&#10;-500.000&#10;5.000.000,00"></textarea>
+                <button id="clearCreditBtn" class="danger"><i class="fas fa-trash"></i> Bersihkan</button>
+            </div>
+            <div class="credit-result">
+                <h2>Total Credit</h2>
+                <p class="total-display">Rp <span id="creditTotal">0</span></p>
+                <button id="copyCreditBtn"><i class="fas fa-copy"></i> Salin Total Nominal</button>
+            </div>
         </div>
-
-
+    </div>
 </div>
 
-<div id="imageModal">
+<div id="imageModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        
+        <span class="modal-close close-btn">&times;</span>
+        <h2>Tampilan Bukti Transaksi</h2>
         <div class="modal-info">
-            <h3 id="imageInfo" style="margin-top: 0; color: #fff;">Kolom X / User ID: N/A</h3>
-            <span id="colInfo">Kolom: N/A</span> | 
-            <span id="userIdInfo">User ID: N/A</span> | 
-            <span id="ticketInfo">Kode Tiket: N/A</span>
+            <p id="imageInfo">Kolom X / User ID: N/A</p>
+            <p id="colInfo">Kolom X</p>
+            <p id="userIdInfo">User ID: N/A</p>
+            <p id="ticketInfo">Kode Tiket: N/A</p>
+        </div>
+        
+        <div id="modalNavigation" style="margin: 10px 0;">
+            <button class="nav-btn" data-col="1">K1</button>
+            <button class="nav-btn" data-col="2">K2</button>
+            <button class="nav-btn" data-col="3">K3</button>
+            <button class="nav-btn" data-col="4">K4</button>
+            <button class="nav-btn" data-col="5">K5</button>
+            <button class="nav-btn" data-col="6">K6</button>
         </div>
 
         <div class="modal-controls">
-            <div id="modalNavigation">
-                <button class="nav-btn" data-col="1">K1</button>
-                <button class="nav-btn" data-col="2">K2</button>
-                <button class="nav-btn" data-col="3">K3</button>
-                <button class="nav-btn" data-col="4">K4</button>
-                <button class="nav-btn" data-col="5">K5</button>
-                <button class="nav-btn" data-col="6">K6</button>
-            </div>
-            <div class="zoom-controls">
-                <button id="zoomInBtn"><i class="fas fa-search-plus"></i> Zoom In</button>
+            <div>
                 <button id="zoomOutBtn"><i class="fas fa-search-minus"></i> Zoom Out</button>
-                <button id="zoomResetBtn"><i class="fas fa-redo-alt"></i> Reset</button>
-                <span id="zoomIndicator">100%</span>
+                <button id="zoomInBtn"><i class="fas fa-search-plus"></i> Zoom In</button>
+                <button id="zoomResetBtn"><i class="fas fa-redo"></i> Reset (<span id="zoomIndicator">100%</span>)</button>
             </div>
         </div>
-
-        <div id="imagesContainer">
-            </div>
-
+        
+        <div class="images-scroll-container">
+            <div id="imagesContainer">
+                </div>
+        </div>
     </div>
 </div>
 
-<div id="toast">
-    <div id="toastMessage"></div>
+<div id="zoomModal" class="modal" onclick="closeZoom(event)">
+    <div class="modal-content" style="max-width: 800px; margin-top: 2%;">
+        <span class="modal-close close-btn" onclick="closeZoom(event)">&times;</span>
+        <h2>Detail Paket Gambar</h2>
+        <p id="zoomedUserid" style="font-weight: bold; font-size: 1.2em;">USER ID</p>
+
+        <div class="modal-controls" style="justify-content: center; margin-bottom: 15px;">
+            <button id="prevZoomBtn" class="zoom-nav-button" onclick="navigatePackage('prev')">← Prev Paket</button>
+            <button id="nextZoomBtn" class="zoom-nav-button" onclick="navigatePackage('next')">Next Paket →</button>
+        </div>
+        
+        <div class="images-scroll-container">
+            <div id="zoomedContentWrapper">
+                </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <label for="zoomLinkInput">Link Gambar (untuk disalin):</label>
+            <textarea id="zoomLinkInput" rows="5" readonly></textarea>
+            </div>
+    </div>
 </div>
 
-<!-- Modal Zoom Lightbox -->
-<div id="lightboxModal" class="lightbox-modal" style="display:none;">
-  <span class="close" onclick="closeLightbox()">&times;</span>
-  <span class="nav-btn prev" onclick="prevImage()">&lsaquo;</span>
-  <span class="nav-btn next" onclick="nextImage()">&rsaquo;</span>
-  <img id="lightboxImg" src="" alt="Zoomed Image" />
-  <div id="lightboxCaption" class="lightbox-caption">User ID: -</div>
+<div id="lightboxModal" class="modal" onclick="closeLightbox()">
+    <span class="lightbox-nav prev" onclick="event.stopPropagation(); prevImageLightbox();">&#10094;</span>
+    <img id="lightboxImg">
+    <span class="lightbox-nav next" onclick="event.stopPropagation(); nextImageLightbox();">&#10095;</span>
+    <div id="lightboxCaption"></div>
 </div>
-    
-    <script>
+
+<div id="toast"><span id="toastMessage"></span></div>
+
+<script>
+// Variabel dan Fungsi Global Galeri Paket (3 Slot)
+let allPackagesData = [];
+let currentPackageIndex = 0;
+const packageSize = 3;
+const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong";
+let isZoomOpen = false;
+let inputTimeout;
+let currentLightboxImages = [];
+let currentLightboxUserId = "";
+let currentLightboxIndex = 0;
+let isLightboxOpen = false;
+
+// Data contoh (dikosongkan agar textarea kosong saat pertama kali dimuat)
+const initialData = [];
+
+// Fungsi yang diakses langsung dari HTML (harus menjadi properti window)
+window.handleInput = function() {
+    clearTimeout(inputTimeout);
+    inputTimeout = setTimeout(loadImages, 50);
+}
+
+window.navigatePackage = function(direction) {
+    let newIndex = currentPackageIndex;
+    if (direction === 'next' && currentPackageIndex < allPackagesData.length - 1) {
+        newIndex++;
+    } else if (direction === 'prev' && currentPackageIndex > 0) {
+        newIndex--;
+    }
+
+    if (newIndex !== currentPackageIndex) {
+        currentPackageIndex = newIndex;
+        updateGallery(currentPackageIndex);
+    }
+}
+
+window.openZoom = function() {
+    if (allPackagesData.length === 0 || allPackagesData[currentPackageIndex].links.filter(l => l.length > 0).length === 0) {
+        return;
+    }
+
+    // Tutup modal lain jika terbuka
+    const imageModal = document.getElementById('imageModal');
+    if (imageModal.style.display === 'block') {
+        imageModal.style.display = 'none';
+        // Asumsi variabel isImageModalOpen ada di dalam DOMContentLoaded
+    }
+    if (isLightboxOpen) closeLightbox();
+
+    isZoomOpen = true;
+
+    const currentPackage = allPackagesData[currentPackageIndex];
+    updateZoomDisplay(currentPackage.userid, currentPackage.links);
+    updateZoomNavButtons();
+
+    document.getElementById("zoomModal").style.display = "flex";
+}
+
+window.closeZoom = function(event) {
+    const modal = document.getElementById("zoomModal");
+
+    if (event && (event.target.classList.contains('zoom-nav-button') || event.target.tagName === 'IMG')) {
+        event.stopPropagation();
+        return;
+    }
+
+    if (!event || event.target === modal || event.target.classList.contains('close-btn')) {
+        modal.style.display = "none";
+        isZoomOpen = false;
+        // Bersihkan konten
+        document.getElementById('zoomedContentWrapper').innerHTML = '';
+        document.getElementById('zoomedUserid').textContent = '';
+        document.getElementById('zoomLinkInput').value = '';
+    }
+}
+
+window.clearAllData = function() {
+    allPackagesData = [];
+    document.getElementById('linkInput').value = '';
+    currentPackageIndex = 0;
+    document.getElementById('maxPackageNum').textContent = 0;
+    updateGallery(-1);
+    showToast("Data Galeri Paket dihapus.");
+}
+
+window.closeLightbox = function() { // Lightbox untuk gambar di Scatter
+    document.getElementById("lightboxModal").style.display = "none";
+    isLightboxOpen = false;
+    currentLightboxImages = [];
+    currentLightboxUserId = "";
+    currentLightboxIndex = 0;
+}
+
+
 document.addEventListener('DOMContentLoaded', function() {
-    // ==========================================================
-    // 🚀 CACHE ELEMENT DOM UTAMA & VARIABEL GLOBAL (GABUNGAN)
-    // ==========================================================
-
-    // --- State Global (Penting untuk mengatasi bentrok modal) ---
-    let isZoomOpen = false; // Status untuk modal Galeri/Paket (#zoomModal)
+    // ===== CACHE ELEMENT DOM UTAMA & VARIABEL GLOBAL (GABUNGAN) =====
+    
+    // Variabel yang diinisialisasi ulang di dalam scope DOMContentLoaded
+    let scatterResults = [null, null, null, null, null, null];
+    let undoData = [null, null, null, null, null, null];
+    let isAllMinimized = true;
+    let currentModalColumn = 1;
+    let currentZoomLevel = 1;
+    const ZOOM_STEP = 0.2;
+    const MIN_ZOOM = 0.5;
+    const MAX_ZOOM = 3;
     let isImageModalOpen = false; // Status untuk modal Scatter (#imageModal)
-    let isLightboxOpen = false; // Status untuk modal Lightbox (#lightboxModal)
 
-    // --- Variabel Galeri Paket (3 Gambar) ---
-    let allPackagesData = [];
-    let currentPackageIndex = 0;
-    const packageSize = 3;
-    const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong";
-    const GALERI = {
+    // Elemen DOM untuk Scatter 6 Kolom
+    const autoInput = document.getElementById('autoInput');
+    const autoDeleteBtn = document.getElementById('autoDeleteBtn');
+    const dataCount = document.getElementById('dataCount');
+    const autoInputWarning = document.getElementById('autoInputWarning');
+    const autoInputError = document.getElementById('autoInputError');
+    const inputCol1 = document.getElementById('inputCol1');
+    const inputCol2 = document.getElementById('inputCol2');
+    const inputCol3 = document.getElementById('inputCol3');
+    const inputCol4 = document.getElementById('inputCol4');
+    const inputCol5 = document.getElementById('inputCol5');
+    const inputCol6 = document.getElementById('inputCol6');
+    const inputCols = [inputCol1, inputCol2, inputCol3, inputCol4, inputCol5, inputCol6];
+    const clearScatter6Btn = document.getElementById('clearScatter6Btn');
+    const scatter6Results = document.getElementById('scatter6Results');
+    const modal = document.getElementById('imageModal');
+    const closeBtn = document.querySelector('#imageModal .modal-close');
+    const imageInfo = document.getElementById('imageInfo');
+    const colInfo = document.getElementById('colInfo');
+    const userIdInfo = document.getElementById('userIdInfo');
+    const ticketInfo = document.getElementById('ticketInfo');
+    const imagesContainer = document.getElementById('imagesContainer');
+    const indicators = [
+        document.getElementById('indicator1'), document.getElementById('indicator2'),
+        document.getElementById('indicator3'), document.getElementById('indicator4'),
+        document.getElementById('indicator5'), document.getElementById('indicator6')
+    ];
+    const clearColBtns = document.querySelectorAll('.clear-col-btn');
+    const tsToggle = document.getElementById('tsToggle');
+    const globalMinimizeBtn = document.getElementById('globalMinimizeBtn');
+    const modalNavigation = document.getElementById('modalNavigation');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const zoomResetBtn = document.getElementById('zoomResetBtn');
+    const zoomIndicator = document.getElementById('zoomIndicator');
+    
+    // Elemen DOM untuk Kalkulator Credit
+    const creditDataEl = document.getElementById('creditData');
+    const clearCreditBtn = document.getElementById('clearCreditBtn');
+    const creditTotalEl = document.getElementById('creditTotal');
+    const copyCreditBtn = document.getElementById('copyCreditBtn');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+
+    // Elemen DOM untuk Galeri Paket
+    const galeri = {
         linkInput: document.getElementById('linkInput'),
         maxPackageNum: document.getElementById('maxPackageNum'),
         currentPackageNum: document.getElementById('currentPackageNum'),
@@ -654,67 +783,8 @@ document.addEventListener('DOMContentLoaded', function() {
         nextZoomBtn: document.getElementById('nextZoomBtn'),
         zoomLinkInput: document.getElementById('zoomLinkInput')
     };
-
-    // --- Variabel Scatter 6 Kolom & Kalkulator ---
-    let scatterResults = [null, null, null, null, null, null];
-    let undoData = [null, null, null, null, null, null];
-    let currentModalColumn = 1;
-    let currentZoomLevel = 1;
-    const ZOOM_STEP = 0.2;
-    const MIN_ZOOM = 0.5;
-    const MAX_ZOOM = 3;
-
-    const SCATTER = {
-        inputCols: [1, 2, 3, 4, 5, 6].map(i => document.getElementById(`inputCol${i}`)),
-        indicators: [1, 2, 3, 4, 5, 6].map(i => document.getElementById(`indicator${i}`)),
-        autoInput: document.getElementById('autoInput'),
-        tsToggle: document.getElementById('tsToggle'),
-        scatter6Results: document.getElementById('scatter6Results'),
-        modal: document.getElementById('imageModal'),
-        modalNavigation: document.getElementById('modalNavigation'),
-        imagesContainer: document.getElementById('imagesContainer'),
-        zoomInBtn: document.getElementById('zoomInBtn'),
-        zoomOutBtn: document.getElementById('zoomOutBtn'),
-        zoomResetBtn: document.getElementById('zoomResetBtn'),
-        zoomIndicator: document.getElementById('zoomIndicator'),
-        resultInfos: {
-            imageInfo: document.getElementById('imageInfo'),
-            colInfo: document.getElementById('colInfo'),
-            userIdInfo: document.getElementById('userIdInfo'),
-            ticketInfo: document.getElementById('ticketInfo')
-        }
-    };
-
-    const CREDIT = {
-        data: document.getElementById('creditData'),
-        total: document.getElementById('creditTotal'),
-        clearBtn: document.getElementById('clearCreditBtn'),
-        copyBtn: document.getElementById('copyCreditBtn'),
-    };
-
-    const DOM = {
-        tabButtons: document.querySelectorAll('.tab-button'),
-        toast: document.getElementById('toast'),
-        toastMessage: document.getElementById('toastMessage')
-    };
     
-    // --- Variabel Lightbox (tambahan) ---
-    let currentLightboxImages = [];
-    let currentLightboxUserId = "";
-    let currentLightboxIndex = 0;
-
-
-    // ==========================================================
-    // 🧠 FUNGSI UTILITAS & UX (Dipindahkan ke dalam scope DOMContentLoaded)
-    // ==========================================================
-
-    function showToast(message, duration = 2000) {
-        DOM.toastMessage.textContent = message;
-        DOM.toast.classList.add('show');
-        setTimeout(() => {
-            DOM.toast.classList.remove('show');
-        }, duration);
-    }
+    // ===== FUNGSI UTILITY DASAR =====
 
     async function copyToClipboard(text, notificationMessage) {
         if (!text || text === 'N/A' || text === '0') {
@@ -729,59 +799,210 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('❌ Gagal menyalin. Silakan salin manual.', 3000);
         }
     }
-
-    function showProcessingIndicator(index) { SCATTER.indicators[index].style.backgroundColor = 'yellow'; }
-    function hideProcessingIndicator(index) { SCATTER.indicators[index].style.backgroundColor = ''; }
-
-
-    // ==========================================================
-    // 📸 FUNGSI GALERI PAKET (3 GAMBAR)
-    // ==========================================================
-    // Catatan: Fungsi ini sekarang diakses melalui properti window
-    // atau event listener di dalam scope ini.
-
-    let inputTimeout;
-    window.handleInput = function() { // Diperlukan untuk oninput/onpaste di HTML
-        clearTimeout(inputTimeout);
-        inputTimeout = setTimeout(loadImages, 50);
+    
+    function showToast(message, duration = 2000) {
+        toastMessage.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
+    }
+    
+    function showProcessingIndicator(index) { indicators[index].style.backgroundColor = 'yellow'; }
+    function hideProcessingIndicator(index) { indicators[index].style.backgroundColor = ''; }
+    function hideAllMessages() {
+        autoInputWarning.style.display = 'none';
+        autoInputError.style.display = 'none';
     }
 
+    // ===== FUNGSI SCATTER 6 KOLOM =====
+
+    function updateDataCount() {
+        const lines = autoInput.value.split('\n').filter(line => line.trim().length > 0);
+        dataCount.textContent = lines.length;
+        hideAllMessages();
+        if (lines.length > 6) {
+            autoInputWarning.textContent = `⚠️ Terdeteksi ${lines.length} baris. Hanya 6 baris pertama yang akan diproses.`;
+            autoInputWarning.style.display = 'block';
+        }
+    }
+    
+    function parseInput(text, isTS) {
+        if (!text) return null;
+        const line = text.split('\n')[0].trim();
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const ticketRegex = /\b\d{17,20}\b/;
+        const links = (line.match(urlRegex) || []).slice(0, 3);
+        const ticket = (line.match(ticketRegex) || [])[0] || 'N/A';
+        let userId = 'N/A';
+        const words = line.split(/\s+/).filter(w => w.length > 0);
+        for (const word of words) {
+            if (!word.startsWith('http') && !ticketRegex.test(word) && word !== '-') {
+                userId = word;
+                break;
+            }
+        }
+        if (isTS && userId !== 'N/A') { userId += ' TS'; }
+        return { userId, ticket, links };
+    }
+    
+    function processAutoInput() {
+        const text = autoInput.value;
+        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        inputCols.forEach((input, index) => { input.value = lines[index] || ''; });
+        processScatter6Data();
+    }
+    
+    function processScatter6Data() {
+        const isTS = tsToggle.checked;
+        inputCols.forEach((input, index) => { scatterResults[index] = parseInput(input.value, isTS); });
+        renderScatterResults();
+    }
+    
+    function renderScatterResults() {
+        scatter6Results.innerHTML = '';
+        scatterResults.forEach((result, index) => {
+            const colNum = index + 1;
+            const hasData = result && (result.userId !== 'N/A' || result.links.filter(l => l).length > 0);
+            const resultBlock = document.createElement('div');
+            resultBlock.className = 'result-block' + (hasData ? ' has-data' : '');
+            const linksHTML = result ? result.links.map((link, i) => 
+                link 
+                ? `<button class="view-image-btn" data-col="${colNum}" data-link="${link}">🔗 Bukti ${i + 1}</button>` 
+                : `<button class="view-image-btn no-link" disabled>Bukti ${i + 1} (Kosong)</button>`
+            ).join('') : '';
+            const userId = result ? result.userId : 'N/A';
+            const ticket = result ? result.ticket : 'N/A';
+            const undoBtnHTML = undoData[index] ? `<button class="undo-btn" data-col="${colNum}">↩️ Undo Cancel</button>` : '';
+
+            resultBlock.innerHTML = `
+                <h4>Kolom ${colNum}</h4>
+                <div class="result-item">
+                    <label>User ID:</label>
+                    <span id="uidCol${colNum}" class="data-text">${userId}</span>
+                    <button class="copy-btn" data-text="${userId}">📋</button>
+                </div>
+                <div class="result-item">
+                    <label>Kode Tiket:</label>
+                    <span id="ticketCol${colNum}" class="data-text">${ticket}</span>
+                    <button class="copy-btn" data-text="${ticket}">📋</button>
+                </div>
+                <div class="link-group">${linksHTML}</div>
+                <div class="action-group">
+                    <button class="cancel-btn danger" data-col="${colNum}">❌ Cancel</button>
+                    ${undoBtnHTML}
+                </div>
+            `;
+            scatter6Results.appendChild(resultBlock);
+        });
+    }
+
+    function updateResultsWithTS() { processScatter6Data(); }
+    
+    // --- Modal Scatter & Zoom ---
+    function loadModalContent(colIndex) {
+        const result = scatterResults[colIndex - 1];
+        if (!result) return;
+        currentModalColumn = colIndex;
+        imageInfo.textContent = `Kolom ${colIndex} / User ID: ${result.userId}`;
+        colInfo.textContent = `Kolom ${colIndex}`;
+        userIdInfo.textContent = `User ID: ${result.userId}`;
+        ticketInfo.textContent = `Kode Tiket: ${result.ticket}`;
+
+        imagesContainer.innerHTML = '';
+        result.links.forEach(link => {
+            if (link) {
+                const img = document.createElement('img');
+                img.src = link;
+                img.alt = 'Bukti Transaksi';
+                // Tambahkan event untuk membuka lightbox
+                img.onclick = () => openLightbox(link, result.userId); 
+                imagesContainer.appendChild(img);
+            }
+        });
+        updateModalNavigationButtons();
+    }
+
+    function openModal(colIndex) {
+        // Tutup modal Galeri jika terbuka
+        if (isZoomOpen) window.closeZoom();
+        if (isLightboxOpen) closeLightbox();
+
+        loadModalContent(colIndex);
+        modal.style.display = 'block';
+        isImageModalOpen = true;
+        resetZoom();
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        isImageModalOpen = false;
+    }
+
+    function navigateToColumn(targetCol) {
+        if (targetCol >= 1 && targetCol <= 6) {
+            const result = scatterResults[targetCol - 1];
+            if (result && result.links.filter(l => l).length > 0) {
+                 loadModalContent(targetCol);
+            } else {
+                showToast(`Kolom ${targetCol} tidak memiliki link gambar.`);
+            }
+        }
+    }
+    
+    function updateModalNavigationButtons() {
+        const navButtons = modalNavigation.querySelectorAll('.nav-btn');
+        navButtons.forEach(btn => {
+            const btnCol = parseInt(btn.getAttribute('data-col'));
+            btn.classList.remove('active-col');
+            const result = scatterResults[btnCol - 1];
+            btn.disabled = !result || result.links.filter(l => l).length === 0;
+            if (btnCol === currentModalColumn) {
+                btn.classList.add('active-col');
+            }
+        });
+    }
+    
+    function applyZoom() {
+        imagesContainer.style.transform = `scale(${currentZoomLevel})`;
+        zoomIndicator.textContent = `${Math.round(currentZoomLevel * 100)}%`;
+        imagesContainer.style.transformOrigin = 'center center';
+    }
+    
+    function zoomIn() { currentZoomLevel = Math.min(MAX_ZOOM, currentZoomLevel + ZOOM_STEP); applyZoom(); }
+    function zoomOut() { currentZoomLevel = Math.max(MIN_ZOOM, currentZoomLevel - ZOOM_STEP); applyZoom(); }
+    function resetZoom() { currentZoomLevel = 1; applyZoom(); }
+
+    // ===== FUNGSI GALERI PAKET (Diakses dari luar scope DOMContentLoaded) =====
+
     function loadImages() {
-        const rawLines = GALERI.linkInput.value
+        const rawLines = galeri.linkInput.value
             .split('\n')
             .map(line => line.trim())
             .filter(line => line.length > 0);
-
         allPackagesData = [];
         const urlRegex = /(https?:\/\/[^\s]+)/g;
-
         rawLines.forEach((line) => {
             const urls = line.match(urlRegex) || [];
             const words = line.split(/\s+/).filter(w => w.length > 0);
             let userid = 'N/A';
-
             if (words.length > 0 && !words[0].startsWith('http')) {
                 userid = words[0];
             }
-
             if (urls.length >= 1) {
                 const links = urls.slice(0, packageSize);
-                while (links.length < packageSize) {
-                    links.push("");
-                }
+                while (links.length < packageSize) { links.push(""); }
                 allPackagesData.push({ userid: userid, links: links });
             }
         });
-
-        GALERI.maxPackageNum.textContent = allPackagesData.length;
-
+        galeri.maxPackageNum.textContent = allPackagesData.length;
         if (allPackagesData.length > 0) {
             currentPackageIndex = Math.min(currentPackageIndex, allPackagesData.length - 1);
             currentPackageIndex = Math.max(0, currentPackageIndex);
             updateGallery(currentPackageIndex);
         } else {
             currentPackageIndex = 0;
-            GALERI.currentPackageNum.textContent = 0;
+            galeri.currentPackageNum.textContent = 0;
             updateGallery(-1);
         }
     }
@@ -789,24 +1010,20 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateGallery(index) {
         const validPackages = allPackagesData.length;
         let currentPackage = { userid: 'N/A', links: ["", "", ""] };
-
         if (index >= 0 && index < validPackages) {
             currentPackage = allPackagesData[index];
-            GALERI.combinedSlot.style.pointerEvents = 'auto';
-            GALERI.combinedSlot.style.opacity = 1;
+            galeri.combinedSlot.style.pointerEvents = 'auto';
+            galeri.combinedSlot.style.opacity = 1;
         } else {
-            GALERI.combinedSlot.style.pointerEvents = 'none';
-            GALERI.combinedSlot.style.opacity = 0.5;
+            galeri.combinedSlot.style.pointerEvents = 'none';
+            galeri.combinedSlot.style.opacity = 0.5;
         }
-
-        GALERI.combinedSlot.setAttribute('data-userid', currentPackage.userid);
-        GALERI.useridCaption.textContent = currentPackage.userid === 'N/A' ? 'Belum Ada Data' : `USER ID: ${currentPackage.userid}`;
-
+        galeri.combinedSlot.setAttribute('data-userid', currentPackage.userid);
+        galeri.useridCaption.textContent = currentPackage.userid === 'N/A' ? 'Belum Ada Data' : `USER ID: ${currentPackage.userid}`;
         let validLinkCount = 0;
         for (let i = 0; i < packageSize; i++) {
             const link = currentPackage.links[i] || "";
-            const imgSlot = GALERI.imgSlots[i];
-
+            const imgSlot = galeri.imgSlots[i];
             if (link) {
                 imgSlot.src = link;
                 imgSlot.style.display = 'block';
@@ -818,267 +1035,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 imgSlot.setAttribute('data-link', "");
             }
         }
-
-        GALERI.currentPackageNum.textContent = validPackages > 0 ? index + 1 : 0;
-
+        galeri.currentPackageNum.textContent = validPackages > 0 ? index + 1 : 0;
         if (isZoomOpen) {
             updateZoomDisplay(currentPackage.userid, currentPackage.links);
             updateZoomNavButtons();
         }
     }
 
-    window.navigatePackage = function(direction) { // Diperlukan untuk onclick di HTML
-        let newIndex = currentPackageIndex;
-        if (direction === 'next' && currentPackageIndex < allPackagesData.length - 1) {
-            newIndex++;
-        } else if (direction === 'prev' && currentPackageIndex > 0) {
-            newIndex--;
-        }
-
-        if (newIndex !== currentPackageIndex) {
-            currentPackageIndex = newIndex;
-            updateGallery(currentPackageIndex);
-        }
-    }
-
     function updateZoomDisplay(userid, links) {
-        GALERI.zoomedContentWrapper.innerHTML = '';
-        GALERI.zoomLinkInput.value = links.filter(l => l).join('\n'); // Tampilkan semua link
-
+        galeri.zoomedContentWrapper.innerHTML = '';
+        galeri.zoomLinkInput.value = links.filter(l => l).join('\n');
         links.forEach(link => {
             if (link) {
                 const img = document.createElement('img');
                 img.src = link;
                 img.alt = 'Zoomed Image';
-                GALERI.zoomedContentWrapper.appendChild(img);
+                galeri.zoomedContentWrapper.appendChild(img);
             }
         });
-
-        GALERI.zoomedUserid.textContent = userid;
+        galeri.zoomedUserid.textContent = userid;
     }
 
     function updateZoomNavButtons() {
-        GALERI.prevZoomBtn.disabled = (currentPackageIndex === 0);
-        GALERI.nextZoomBtn.disabled = (currentPackageIndex >= allPackagesData.length - 1);
+        galeri.prevZoomBtn.disabled = (currentPackageIndex === 0);
+        galeri.nextZoomBtn.disabled = (currentPackageIndex >= allPackagesData.length - 1);
     }
-
-    window.openZoom = function() { // Diperlukan untuk onclick di HTML
-        if (allPackagesData.length === 0 || allPackagesData[currentPackageIndex].links.filter(l => l.length > 0).length === 0) {
-            return;
-        }
-
-        // Tutup modal lain jika terbuka
-        if (isImageModalOpen) closeModalScatter();
-        if (isLightboxOpen) closeLightbox();
-
-        isZoomOpen = true;
-
-        const currentPackage = allPackagesData[currentPackageIndex];
-        updateZoomDisplay(currentPackage.userid, currentPackage.links);
-        updateZoomNavButtons();
-
-        GALERI.zoomModal.style.display = "flex";
-    }
-
-    window.closeZoom = function(event) { // Diperlukan untuk onclick di HTML
-        const modal = GALERI.zoomModal;
-
-        if (event && (event.target.classList.contains('zoom-nav-button') || event.target.tagName === 'IMG')) {
-            event.stopPropagation();
-            return;
-        }
-
-        if (!event || event.target === modal || event.target.classList.contains('close-btn')) {
-            modal.style.display = "none";
-            isZoomOpen = false;
-
-            // Bersihkan konten
-            GALERI.zoomedContentWrapper.innerHTML = '';
-            GALERI.zoomedUserid.textContent = '';
-            GALERI.zoomLinkInput.value = '';
-        }
-    }
-
-    window.clearAllData = function() { // Diperlukan untuk onclick di HTML
-        allPackagesData = [];
-        GALERI.linkInput.value = '';
-        currentPackageIndex = 0;
-        GALERI.maxPackageNum.textContent = 0;
-        updateGallery(-1);
-        showToast("Data Galeri Paket dihapus.");
-    }
-
-
-    // ==========================================================
-    // ⚙️ FUNGSI SCATTER 6 KOLOM & CALCULATOR
-    // ==========================================================
-
-    function parseInput(text, isTS) {
-        if (!text) return null;
-        const line = text.split('\n')[0].trim();
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const ticketRegex = /\b\d{17,20}\b/;
-        const links = (line.match(urlRegex) || []).slice(0, 3);
-        const ticket = (line.match(ticketRegex) || [])[0] || 'N/A';
-        let userId = 'N/A';
-        const words = line.split(/\s+/).filter(w => w.length > 0);
-
-        for (const word of words) {
-            if (!word.startsWith('http') && !ticketRegex.test(word) && word !== '-') {
-                userId = word;
-                break;
-            }
-        }
-
-        if (isTS && userId !== 'N/A') { userId += ' TS'; }
-        return { userId, ticket, links };
-    }
-
-    function processScatter6Data() {
-        const isTS = SCATTER.tsToggle.checked;
-        SCATTER.inputCols.forEach((input, index) => {
-            // Hilangkan indikator processing setelah input selesai diproses
-            hideProcessingIndicator(index);
-            scatterResults[index] = parseInput(input.value, isTS);
-        });
-        renderScatterResults();
-    }
-
-    function renderScatterResults() {
-        SCATTER.scatter6Results.innerHTML = '';
-        scatterResults.forEach((result, index) => {
-            const colNum = index + 1;
-            const hasData = result && (result.userId !== 'N/A' || result.links.filter(l => l).length > 0);
-
-            const resultBlock = document.createElement('div');
-            resultBlock.className = 'result-block' + (hasData ? ' has-data' : '');
-
-            const linksHTML = result ? result.links.map((link, i) =>
-                link
-                ? `<button class="view-image-btn" data-col="${colNum}" data-link="${link}">🔗 Bukti ${i + 1}</button>`
-                : `<button class="view-image-btn no-link" disabled>Bukti ${i + 1} (Kosong)</button>`
-            ).join('') : '';
-
-            const userId = result ? result.userId : 'N/A';
-            const ticket = result ? result.ticket : 'N/A';
-            const undoBtnHTML = undoData[index] ? `<button class="undo-btn" data-col="${colNum}">↩️ Undo Cancel</button>` : '';
-
-            resultBlock.innerHTML = `
-                <h4>Kolom ${colNum}</h4>
-                <div class="result-item">
-                    <label>User ID:</label>
-                    <span class="data-text">${userId}</span>
-                    <button class="copy-btn" data-text="${userId}">📋</button>
-                </div>
-                <div class="result-item">
-                    <label>Kode Tiket:</label>
-                    <span class="data-text">${ticket}</span>
-                    <button class="copy-btn" data-text="${ticket}">📋</button>
-                </div>
-                <div class="link-group">${linksHTML}</div>
-                <div class="action-group">
-                    <button class="cancel-btn danger" data-col="${colNum}">❌ Cancel</button>
-                    ${undoBtnHTML}
-                </div>
-            `;
-            SCATTER.scatter6Results.appendChild(resultBlock);
-        });
-    }
-
-    function processAutoInput() {
-        const text = SCATTER.autoInput.value;
-        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-        
-        SCATTER.inputCols.forEach((input, index) => {
-            input.value = lines[index] || '';
-        });
-
-        processScatter6Data();
-    }
-
-    // --- Fungsi Modal Scatter (#imageModal) ---
-    function loadModalContentScatter(colIndex) {
-        const result = scatterResults[colIndex - 1];
-
-        if (!result) return;
-
-        currentModalColumn = colIndex;
-
-        SCATTER.resultInfos.imageInfo.textContent = `Kolom ${colIndex} / User ID: ${result.userId}`;
-        SCATTER.resultInfos.colInfo.textContent = `Kolom ${colIndex}`;
-        SCATTER.resultInfos.userIdInfo.textContent = `User ID: ${result.userId}`;
-        SCATTER.resultInfos.ticketInfo.textContent = `Kode Tiket: ${result.ticket}`;
-
-        SCATTER.imagesContainer.innerHTML = '';
-        result.links.forEach(link => {
-            if (link) {
-                const img = document.createElement('img');
-                img.src = link;
-                img.alt = 'Bukti Transaksi';
-                img.onclick = () => openLightbox(link, result.userId); // Tambahkan event lightbox
-                SCATTER.imagesContainer.appendChild(img);
-            }
-        });
-
-        updateModalNavigationButtonsScatter();
-    }
-
-    function openModalScatter(colIndex) {
-        // Tutup modal lain jika terbuka
-        if (isZoomOpen) closeZoom();
-        if (isLightboxOpen) closeLightbox();
-
-        loadModalContentScatter(colIndex);
-        SCATTER.modal.style.display = 'block';
-        isImageModalOpen = true;
-        resetZoom();
-    }
-
-    function closeModalScatter() {
-        SCATTER.modal.style.display = 'none';
-        isImageModalOpen = false;
-    }
-
-    function navigateToColumnScatter(targetCol) {
-        if (targetCol >= 1 && targetCol <= 6) {
-            loadModalContentScatter(targetCol);
-        }
-    }
-
-    function updateModalNavigationButtonsScatter() {
-        const navButtons = SCATTER.modalNavigation.querySelectorAll('.nav-btn');
-        navButtons.forEach(btn => {
-            const btnCol = parseInt(btn.getAttribute('data-col'));
-            btn.classList.remove('active-col');
-            btn.disabled = scatterResults[btnCol - 1] === null || scatterResults[btnCol - 1].links.filter(l => l).length === 0;
-
-            if (btnCol === currentModalColumn) {
-                btn.classList.add('active-col');
-            }
-        });
-    }
-
-    function applyZoom() {
-        SCATTER.imagesContainer.style.transform = `scale(${currentZoomLevel})`;
-        SCATTER.zoomIndicator.textContent = `${Math.round(currentZoomLevel * 100)}%`;
-        SCATTER.imagesContainer.style.transformOrigin = 'center center';
-    }
-
-    function zoomIn() { currentZoomLevel = Math.min(MAX_ZOOM, currentZoomLevel + ZOOM_STEP); applyZoom(); }
-    function zoomOut() { currentZoomLevel = Math.max(MIN_ZOOM, currentZoomLevel - ZOOM_STEP); applyZoom(); }
-    function resetZoom() { currentZoomLevel = 1; applyZoom(); }
-
-    // --- Lightbox Functions (Untuk gambar di dalam Modal Scatter) ---
-
-    // Dapatkan semua link gambar yang valid dari kolom yang sedang aktif di modal scatter
+    
+    // ===== FUNGSI LIGHTBOX (untuk Scatter Modal) =====
+    
     function getCurrentTransaksiImages(userId) {
         const result = scatterResults[currentModalColumn - 1];
         return result && result.userId === userId ? result.links.filter(l => l) : [];
     }
 
     function openLightbox(imgUrl, userId) {
-        // Tutup modal lain jika terbuka (terutama modal galeri)
-        if (isZoomOpen) closeZoom();
+        if (isZoomOpen) window.closeZoom();
+        if (isImageModalOpen) closeModal(); // Close scatter modal preview
 
         const modal = document.getElementById("lightboxModal");
         const img = document.getElementById("lightboxImg");
@@ -1095,7 +1087,7 @@ document.addEventListener('DOMContentLoaded', function() {
         isLightboxOpen = true;
         updateNavButtonsLightbox();
     }
-
+    
     function prevImageLightbox() {
         if (currentLightboxImages.length <= 1) return;
         currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
@@ -1115,7 +1107,7 @@ document.addEventListener('DOMContentLoaded', function() {
         caption.innerText = `User ID: ${currentLightboxUserId} (${currentLightboxIndex + 1}/${currentLightboxImages.length})`;
         updateNavButtonsLightbox();
     }
-
+    
     function updateNavButtonsLightbox() {
         const prevBtn = document.querySelector('#lightboxModal .prev');
         const nextBtn = document.querySelector('#lightboxModal .next');
@@ -1133,17 +1125,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    window.closeLightbox = function() { // Diperlukan untuk onclick di HTML
-        document.getElementById("lightboxModal").style.display = "none";
-        isLightboxOpen = false;
-        currentLightboxImages = [];
-        currentLightboxUserId = "";
-        currentLightboxIndex = 0;
-    }
 
-    // --- Fungsi Credit Calculator ---
+    // ===== FUNGSI CREDIT CALCULATOR =====
+
     function processCreditData() {
-        const text = CREDIT.data.value;
+        const text = creditDataEl.value;
         const lines = text.split('\n');
         let totalCredit = 0;
         const numberRegex = /^\s*(\-?\d[\d\.,]*)/;
@@ -1154,34 +1140,78 @@ document.addEventListener('DOMContentLoaded', function() {
                 let numStr = match[1].replace(/,/g, '').replace(/\./g, '');
                 const isNegative = numStr.startsWith('-');
                 if(isNegative) { numStr = numStr.substring(1); }
-
-                const value = parseInt(numStr, 10);
+                const digitsOnly = numStr.match(/\d/g)?.join('') || '0'; 
+                const value = parseInt(digitsOnly, 10);
                 if (!isNaN(value)) {
                     totalCredit += isNegative ? -value : value;
                 }
             }
         });
-        CREDIT.total.textContent = totalCredit.toLocaleString('id-ID');
+        creditTotalEl.textContent = totalCredit.toLocaleString('id-ID');
     }
 
-    // ==========================================================
-    // 🔗 EVENT LISTENER & INISIALISASI
-    // ==========================================================
+    // ===== EVENT LISTENERS =====
 
     // --- Tab Functionality ---
-    DOM.tabButtons.forEach(button => {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const tabId = button.getAttribute('data-tab');
-            DOM.tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
         });
     });
-    if (DOM.tabButtons.length > 0) { DOM.tabButtons[0].click(); }
+    if (tabButtons.length > 0) { tabButtons[0].click(); }
 
-    // --- Delegasi Event Scatter ---
-    SCATTER.scatter6Results.addEventListener('click', function(e) {
+    // --- Scatter General Events ---
+    globalMinimizeBtn.addEventListener('click', function() {
+        const allColumns = document.querySelectorAll('.column-input');
+        if (isAllMinimized) {
+            allColumns.forEach(col => col.classList.remove('minimized'));
+            globalMinimizeBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Minimize Semua Kolom';
+            isAllMinimized = false;
+        } else {
+            allColumns.forEach(col => col.classList.add('minimized'));
+            globalMinimizeBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Buka Semua Kolom';
+            isAllMinimized = true;
+        }
+    });
+
+    autoInput.addEventListener('input', function() { updateDataCount(); processAutoInput(); });
+    autoDeleteBtn.addEventListener('click', function() { autoInput.value = ''; updateDataCount(); processAutoInput(); });
+    clearScatter6Btn.addEventListener('click', function() {
+        inputCols.forEach(input => input.value = '');
+        scatter6Results.innerHTML = '';
+        scatterResults = [null, null, null, null, null, null];
+        undoData = [null, null, null, null, null, null];
+        updateDataCount();
+        hideAllMessages();
+    });
+
+    clearColBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const colNum = parseInt(this.getAttribute('data-col'));
+            inputCols[colNum - 1].value = '';
+            undoData[colNum - 1] = null;
+            showProcessingIndicator(colNum - 1);
+            setTimeout(() => { processScatter6Data(); hideProcessingIndicator(colNum - 1); }, 300);
+        });
+    });
+
+    tsToggle.addEventListener('change', updateResultsWithTS);
+
+    inputCols.forEach((input, index) => {
+        input.addEventListener('input', function() {
+            showProcessingIndicator(index);
+            setTimeout(() => { processScatter6Data(); hideProcessingIndicator(index); }, 300);
+        });
+    });
+    
+    // Delegasi Event Listener untuk hasil render (Copy, View Image, Cancel, Undo)
+    scatter6Results.addEventListener('click', function(e) {
         const copyBtn = e.target.closest('.copy-btn');
         const viewBtn = e.target.closest('.view-image-btn');
         const cancelBtn = e.target.closest('.cancel-btn');
@@ -1189,74 +1219,59 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (copyBtn) {
             const textToCopy = copyBtn.getAttribute('data-text') || copyBtn.previousElementSibling.textContent;
-            copyToClipboard(textToCopy);
+            copyToClipboard(textToCopy, `✅ Berhasil menyalin: ${textToCopy.substring(0, 20)}...`);
         } else if (viewBtn && !viewBtn.disabled) {
             const colNum = parseInt(viewBtn.getAttribute('data-col'));
-            openModalScatter(colNum);
+            openModal(colNum);
         } else if (cancelBtn) {
             const colNum = parseInt(cancelBtn.getAttribute('data-col'));
             const colIndex = colNum - 1;
-            undoData[colIndex] = SCATTER.inputCols[colIndex].value;
-            SCATTER.inputCols[colIndex].value = '';
+            undoData[colIndex] = inputCols[colIndex].value;
+            inputCols[colIndex].value = '';
             processScatter6Data();
             showToast(`Kolom ${colNum} Dibatalkan. Klik 'Undo Cancel' untuk mengembalikan.`);
         } else if (undoBtn) {
             const colNum = parseInt(undoBtn.getAttribute('data-col'));
             const colIndex = colNum - 1;
-            SCATTER.inputCols[colIndex].value = undoData[colIndex];
+            inputCols[colIndex].value = undoData[colIndex];
             undoData[colIndex] = null;
             processScatter6Data();
             showToast(`Kolom ${colNum} berhasil dikembalikan.`);
         }
     });
 
-    // --- Input & Controls Scatter ---
-    SCATTER.autoInput.addEventListener('input', processAutoInput);
-    document.getElementById('autoDeleteBtn').addEventListener('click', function() {
-        SCATTER.autoInput.value = '';
-        processAutoInput();
-    });
-    SCATTER.tsToggle.addEventListener('change', processScatter6Data);
-
-    SCATTER.inputCols.forEach((input, index) => {
-        input.addEventListener('input', function() {
-            showProcessingIndicator(index);
-            setTimeout(processScatter6Data, 300);
-        });
-    });
-
-    // --- Credit Calculator Events ---
-    CREDIT.data.addEventListener('input', processCreditData);
-    CREDIT.clearBtn.addEventListener('click', function() { CREDIT.data.value = ''; processCreditData(); showToast('Data Credit Dihapus.'); });
-    CREDIT.copyBtn.addEventListener('click', function() { copyToClipboard(CREDIT.total.textContent, '✅ Total Credit berhasil disalin!'); });
-
-    // --- Modal Scatter (#imageModal) Events ---
-    document.querySelector('#imageModal .close-btn').addEventListener('click', closeModalScatter);
-    SCATTER.modal.addEventListener('click', (e) => {
-        if (e.target === SCATTER.modal) { closeModalScatter(); }
-    });
-    SCATTER.modalNavigation.addEventListener('click', function(e) {
+    // --- Modal Scatter Events ---
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) { closeModal(); } });
+    modalNavigation.addEventListener('click', function(e) {
         const navBtn = e.target.closest('.nav-btn');
-        if (navBtn) { navigateToColumnScatter(parseInt(navBtn.getAttribute('data-col'))); }
+        if (navBtn) { navigateToColumn(parseInt(navBtn.getAttribute('data-col'))); }
     });
-    SCATTER.zoomInBtn.addEventListener('click', zoomIn);
-    SCATTER.zoomOutBtn.addEventListener('click', zoomOut);
-    SCATTER.zoomResetBtn.addEventListener('click', resetZoom);
+    zoomInBtn.addEventListener('click', zoomIn);
+    zoomOutBtn.addEventListener('click', zoomOut);
+    zoomResetBtn.addEventListener('click', resetZoom);
+    
+    // --- Credit Calculator Events ---
+    creditDataEl.addEventListener('input', processCreditData);
+    clearCreditBtn.addEventListener('click', function() { creditDataEl.value = ''; processCreditData(); showToast('Data Credit Dihapus.'); });
+    copyCreditBtn.addEventListener('click', function() { copyToClipboard(creditTotalEl.textContent, '✅ Total Credit berhasil disalin!'); });
 
-    // --- Navigasi Keyboard Global (GALERI & SCATTER) ---
+    // --- Navigasi Keyboard Global (Scatter & Galeri & Lightbox) ---
     document.addEventListener('keydown', function(e) {
         if (e.key === "Escape") {
             if (isZoomOpen) { window.closeZoom(e); }
-            else if (isImageModalOpen) { closeModalScatter(); }
+            else if (isImageModalOpen) { closeModal(); }
             else if (isLightboxOpen) { window.closeLightbox(); }
         } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-            if (isZoomOpen) { // Navigasi Galeri
+            if (isZoomOpen) { 
                 e.preventDefault();
                 window.navigatePackage(e.key === "ArrowLeft" ? 'prev' : 'next');
-            } else if (isImageModalOpen) { // Navigasi Modal Scatter
+            } else if (isImageModalOpen) { 
                 e.preventDefault();
-                navigateToColumnScatter(e.key === "ArrowLeft" ? (currentModalColumn > 1 ? currentModalColumn - 1 : 6) : (currentModalColumn < 6 ? currentModalColumn + 1 : 1));
-            } else if (isLightboxOpen) { // Navigasi Lightbox
+                const nextCol = currentModalColumn < 6 ? currentModalColumn + 1 : 1;
+                const prevCol = currentModalColumn > 1 ? currentModalColumn - 1 : 6;
+                navigateToColumn(e.key === "ArrowRight" ? nextCol : prevCol);
+            } else if (isLightboxOpen) { 
                 e.preventDefault();
                 e.key === "ArrowLeft" ? prevImageLightbox() : nextImageLightbox();
             }
@@ -1264,10 +1279,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Inisialisasi Awal ---
-    loadImages(); // Muat data galeri awal
-    processCreditData(); // Muat data credit awal
+    const initialText = initialData.map(p => `${p.userid} ${p.links.join(' ')}`).join('\n');
+    document.getElementById('linkInput').value = initialText;
+    loadImages(); 
+    updateDataCount();
+    processScatter6Data();
+    processCreditData();
 });
-        
 </script>
+
 </body>
 </html>
