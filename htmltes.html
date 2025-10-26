@@ -892,65 +892,98 @@ hr {
       return { userId, kodeTiket, gambarLinks, bettingan };
     }
 
-    // Render semua hasil
-    function renderHasil(transaksiList) {
-      const container = document.getElementById("hasilScatterContainer");
-      container.innerHTML = "";
+// Render semua hasil (diubah total untuk layout 3 kolom)
+function renderHasil(transaksiList) {
+    const container = document.getElementById("hasilScatterContainer");
+    container.innerHTML = "";
 
-      transaksiList.forEach((trans, idx) => {
-        const { userId, kodeTiket, gambarLinks, bettingan } = trans;
+    // Isi hingga 6 slot, bahkan jika data kurang
+    const maxSlots = 6;
+    for (let idx = 0; idx < maxSlots; idx++) {
+        const trans = transaksiList[idx];
         const prefix = `t${idx}_`;
+        
+        // Data default jika slot kosong
+        let userId = "-";
+        let kodeTiket = "-";
+        let gambarLinks = [];
+        let bettingan = "-";
+        let cardStyle = ""; // Untuk kolom 6 yang kosong
 
-        let gambarHTML = '';
-        for (let i = 1; i <= 3; i++) {
-          const link = gambarLinks[i - 1];
-          let content = '<div>-</div>';
-          if (link) {
-            if (link.includes('prnt.sc') || link.includes('imghostr.com')) {
-              content = `<a href="${link}" target="_blank" style="color:#ffcc00;">Lihat Gambar ${i}</a>`;
-            } else {
-              content = `<img src="${link}" onclick="openLightbox('${link}', '${userId}')" />`;
-            }
-          }
-          gambarHTML += `
-            <div class="gambar-slot-multi">
-              <h4 style="margin:4px 0;font-size:14px;">Gambar ${i}</h4>
-              ${content}
-              <div class="userid-label">User ID: ${userId}</div>
-            </div>
-          `;
+        if (trans) {
+            userId = trans.userId;
+            kodeTiket = trans.kodeTiket;
+            gambarLinks = trans.gambarLinks;
+            bettingan = trans.bettingan;
+        } else if (idx === 5) {
+            // Gaya khusus untuk Kolom 6 yang kosong
+            cardStyle = `background: #181829; opacity: 0.8;`; 
         }
+
+        // HTML untuk Tiga Tombol Aksi
+        let actionButtonsHTML = `
+            <div class="scatter-action-buttons">
+                <button class="btn-view" ${gambarLinks.length > 0 ? '' : 'disabled'} onclick="${gambarLinks.length > 0 ? `openLightbox('${gambarLinks[0]}', '${userId}')` : ''}">
+                    <i class="fas fa-image"></i> Lihat Gambar
+                </button>
+                <button class="btn-selesai">
+                    <i class="fas fa-check-circle"></i> Tandai Selesai
+                </button>
+                <button class="btn-cancel">
+                    <i class="fas fa-times-circle"></i> X Cancel
+                </button>
+            </div>
+        `;
+        
+        // Sembunyikan tombol jika slot benar-benar kosong (Kolom 6)
+        if (!trans) {
+             actionButtonsHTML = `
+                <div class="scatter-action-buttons">
+                    <button class="btn-selesai" disabled>
+                        Tandai Selesai
+                    </button>
+                    <button class="btn-cancel" disabled>
+                        X Cancel
+                    </button>
+                </div>
+             `;
+        }
+
 
         const block = document.createElement("div");
         block.className = "hasil-transaksi";
+        block.style.cssText = cardStyle;
         block.innerHTML = `
-          <div class="hasil-item" id="${prefix}uidItem">
-            <label>User ID:</label>
-            <div class="hasil-text" id="${prefix}uid">${userId}</div>
-            <button class="copy-btn" onclick="copyText('${prefix}uid', '${prefix}uidItem')">💫</button>
-          </div>
-          <div class="hasil-item" id="${prefix}ktItem">
-            <label>Kode Tiket:</label>
-            <div class="hasil-text" id="${prefix}kt">${kodeTiket}</div>
-            <button class="copy-btn" onclick="copyText('${prefix}kt', '${prefix}ktItem')">💫</button>
-          </div>
-          <div class="hasil-item" id="${prefix}lbItem">
-            <label>Link Bukti:</label>
-            <div class="hasil-text" id="${prefix}lb">${gambarLinks.join(", ") || "-"}</div>
-            <button class="copy-btn" onclick="copyText('${prefix}lb', '${prefix}lbItem')">💫</button>
-          </div>
-          <div class="hasil-item" id="${prefix}betItem">
-            <label>Bettingan:</label>
-            <div class="hasil-text" id="${prefix}bet">${bettingan}</div>
-            <button class="copy-btn" onclick="copyText('${prefix}bet', '${prefix}betItem')">💫</button>
-          </div>
-          <div class="gambar-container-multi">
-            ${gambarHTML}
-          </div>
+            <div class="card-header">Kolom ${idx + 1}</div>
+            <div class="card-content-wrapper">
+                
+                <div class="hasil-item" id="${prefix}uidItem">
+                    <label>User ID :</label>
+                    <div class="hasil-text" id="${prefix}uid">${userId}</div>
+                    <button class="copy-btn" onclick="copyText('${prefix}uid', '${prefix}uidItem')">📋</button>
+                </div>
+                <div class="hasil-item" id="${prefix}ktItem">
+                    <label>Kode Tiket :</label>
+                    <div class="hasil-text" id="${prefix}kt">${kodeTiket}</div>
+                    <button class="copy-btn" onclick="copyText('${prefix}kt', '${prefix}ktItem')">📋</button>
+                </div>
+                <div class="hasil-item" id="${prefix}lbItem">
+                    <label>Link Bukti :</label>
+                    <div class="hasil-text" id="${prefix}lb">${gambarLinks.length > 0 ? '.. ' : '-'}</div>
+                    <button class="copy-btn" onclick="copyText('${prefix}lb', '${prefix}lbItem')">📋</button>
+                </div>
+                <div class="hasil-item" id="${prefix}betItem">
+                    <label>Bettingan :</label>
+                    <div class="hasil-text" id="${prefix}bet">${bettingan}</div>
+                    <button class="copy-btn" onclick="copyText('${prefix}bet', '${prefix}betItem')">📋</button>
+                </div>
+
+                ${actionButtonsHTML}
+            </div>
         `;
         container.appendChild(block);
-      });
     }
+}
 
     // Fungsi utama
     function hitungScatter() {
@@ -1092,5 +1125,6 @@ hr {
 </script>
 </body>
 </html>
+
 
 
