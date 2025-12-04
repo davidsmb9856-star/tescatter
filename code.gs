@@ -1,489 +1,1128 @@
-const SHEET_ID = '1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0';
-const FOLDER_NAMES = ["DEPOSIT", "WITHDRAW", "GANGGUAN", "KENDALA ALL", "FOTO", "CARA BERMAIN", "PROMO"];
-
-function doGet() {
-return HtmlService.createHtmlOutputFromFile('index')
-.setTitle('Aplikasi Catatan');
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeri Keyboard Navigasi & Zoom Otomatis</title>
+    <style>
+:root {
+    --neon-blue: #00ffff; /* Biru Neon Cerah */
+    --dark-background: #121212; /* Latar Belakang Sangat Gelap */
+    --card-background: #1e1e1e; /* Latar Belakang Card Gelap */
+    --input-background: #2a2a2a; /* Latar Belakang Input Gelap */
+    --border-color: #00bfff; /* Biru Neon Sekunder untuk batas */
+    --text-color: #e0f7fa; /* Teks Putih Kebiruan */
+    --secondary-neon: #00bfff; /* Biru Neon Sekunder untuk highlight */
+    --danger-color: #ff4d4d; /* Merah Neon untuk bahaya */
+    --success-color: #39ff14; /* Hijau Neon untuk sukses */
+    --warning-color: #f1c40f; /* Kuning Neon untuk peringatan/caption */
+    --primary-button: #00bfff; /* Warna utama tombol */
+    --primary-button-hover: #00e5ff;
 }
 
-function doPost(e) {
-try {
-if (e.parameter.action === "getPasaran") {
-const tanggal = getTanggalPasaran();
-return ContentService.createTextOutput(
-JSON.stringify({
-tanggal: tanggal,
-data: getPasaranList()
-})
-).setMimeType(ContentService.MimeType.JSON);
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--dark-background);
+    color: var(--text-color);
+    padding: 20px;
+    margin: 0;
+    line-height: 1.6;
 }
 
-const data = JSON.parse(e.postData.contents);
-const folder = data.folder;
-const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(folder);
-
-if (!sheet) {
-return jsonResponse({ status: 'error', message: 'Sheet tidak ditemukan' });
+.container, 
+.scatter-section {
+    max-width: 960px;
+    margin: 20px auto;
+    background: var(--card-background); 
+    padding: 30px;
+    border-radius: 12px;
+    /* Efek glow biru neon */
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), 0 0 10px rgba(0, 255, 255, 0.1); 
+    border: 1px solid var(--secondary-neon);
 }
 
-if (data.action === "delete") {
-const result = deleteNote(folder, data.id);
-return jsonResponse({ status: 'success', message: result });
+.scatter-section {
+    padding: 20px;
+    margin-bottom: 25px;
 }
 
-const id = data.id || Utilities.getUuid();
-const now = new Date();
-const formattedDate = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
-
-const title = data.title || '';
-const content = data.content || '';
-const content2 = data.content2 || '';
-const content3 = data.content3 || '';
-
-let updated = false;
-const values = sheet.getDataRange().getValues();
-
-for (let i = 1; i < values.length; i++) {
-if (values[i][0] === id) {
-sheet.getRange(i + 1, 2, 1, 5).setValues([[formattedDate, title, content, content2, content3]]);
-updated = true;
-break;
-}
+h1 {
+    text-align: center;
+    color: var(--neon-blue);
+    margin-bottom: 25px;
+    /* Efek neon */
+    text-shadow: 0 0 8px var(--neon-blue), 0 0 15px var(--secondary-neon); 
+    font-size: 2.5em;
 }
 
-if (!updated) {
-if (folder === "FOTO") {
-sheet.appendRow([id, formattedDate, title, content, '', '']);
-} else {
-sheet.appendRow([id, formattedDate, title, content, content2, content3]);
-}
-}
-
-return jsonResponse({
-status: 'success',
-id: id,
-message: updated ? "Catatan diperbarui." : "Catatan disimpan."
-});
-
-} catch (error) {
-return jsonResponse({
-status: 'error',
-message: 'Terjadi kesalahan: ' + error.message
-});
-}
+h2 {
+    text-align: center;
+    color: var(--secondary-neon);
+    margin-top: 20px;
+    text-shadow: 0 0 5px rgba(0, 191, 255, 0.7);
 }
 
-function deleteNote(folder, id) {
-const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(folder);
-if (!sheet) return 'Sheet tidak ditemukan';
-const values = sheet.getDataRange().getValues();
-for (let i = 1; i < values.length; i++) {
-if (values[i][0] === id) {
-sheet.deleteRow(i + 1);
-return 'Catatan dihapus';
-}
-}
-return 'Catatan tidak ditemukan';
+.judul-glow {
+    text-align: center;
+    color: var(--success-color); /* Menggunakan warna sukses neon */
+    text-shadow: 0 0 10px var(--success-color), 0 0 20px var(--success-color);
+    margin-bottom: 20px;
+    font-size: 2.5em; /* Konsisten dengan h1 */
 }
 
-function getNotes(folder) {
-const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(folder);
-if (!sheet) return [];
-
-const data = sheet.getDataRange().getValues();
-
-return data.slice(1).map(row => ({
-id: row[0],
-date: Utilities.formatDate(new Date(row[1]), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm"),
-title: row[2],
-content: row[3],
-content2: row[4] || "",
-content3: row[5] || ""
-}));
+/* * --- Form, Input & Tombol --- 
+ */
+textarea {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--secondary-neon); /* Border neon */
+    box-sizing: border-box;
+    background-color: var(--input-background); /* Latar belakang gelap */
+    color: var(--text-color);
+    border-radius: 6px;
+    resize: vertical;
+    /* Efek glow ringan saat fokus */
+    transition: box-shadow 0.3s;
 }
 
-function getHitunganTogel() {
-const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName("HITUNGAN TOGEL");
-if (!sheet) {
-return { error: "Sheet HITUNGAN TOGEL tidak ditemukan." };
+textarea:focus {
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 191, 255, 0.8);
 }
 
-const nominal = sheet.getRange("X1").getValue();
-
-function gabungXY(xRange, yRange) {
-const xData = sheet.getRange(xRange).getValues();
-const yData = sheet.getRange(yRange).getValues();
-return xData.map((x, i) => ({
-label: x[0] || "",
-value: yData[i] ? yData[i][0] || "" : ""
-})).filter(row => row.label !== "" || row.value !== "");
+/* Style untuk semua button yang tidak spesifik */
+button,
+.btn {
+    padding: 10px 18px;
+    color: var(--dark-background);
+    background-color: var(--primary-button); /* Biru neon sebagai warna primer */
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    font-weight: bold;
+    margin-right: 10px;
+    /* Efek neon ringan */
+    box-shadow: 0 0 5px rgba(0, 191, 255, 0.5);
 }
 
-const kelompok = {
-"HITUNG HADIAH SEMUA PASARAN": gabungXY("X3:X43", "Y3:Y43"),
-"HITUNG HADIAH PASARAN TOTO MACAU 4D": gabungXY("X46:X81", "Y46:Y81"),
-"HITUNG HADIAH PASARAN TOTO MACAU 5D": gabungXY("X84:X120", "Y84:Y120"),
-"HITUNG HADIAH PASARAN KINGKONG 4D": gabungXY("X123:X154", "Y123:Y154"),
-"PERHITUNGAN BONUS": gabungXY("X157:X180", "Y157:Y180"),
-"HITUNG HADIAH PASARAN JAKARTA": gabungXY("X183:X214", "Y183:Y214"),
-"HITUNG HADIAH PASARAN TOTOMALI": gabungXY("X218:X249", "Y218:Y249"),
-"HITUNG HADIAH PASARAN HOKIDRAW": gabungXY("X252:X283", "Y252:Y283"),
-"HITUNG HADIAH PASARAN SYDNEY DAN HONGKONG": gabungXY("X286:X317", "Y286:Y317")
-};
-
-return {
-nominal: nominal,
-kelompok: kelompok
-};
+button:hover,
+.btn:hover {
+    background-color: var(--primary-button-hover);
+    box-shadow: 0 0 10px var(--primary-button-hover);
 }
 
-function updateNominalTogel(nominal) {
-const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName("HITUNGAN TOGEL");
-sheet.getRange("X1").setValue(nominal);
+/* Tombol Danger */
+#clearDataBtn,
+.btn.danger {
+    background-color: var(--danger-color); /* Merah Neon */
+    color: var(--text-color);
+    box-shadow: 0 0 5px var(--danger-color);
+}
+#clearDataBtn:hover,
+.btn.danger:hover {
+    background-color: #ff8080; /* Merah yang lebih terang saat hover */
+    box-shadow: 0 0 10px var(--danger-color);
 }
 
-function simpanFotoDariLink(judul, link) {
-const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("FOTO");
-sheet.appendRow([new Date(), judul, link]);
+.button-group {
+    display: flex;
+    justify-content: flex-end; /* Posisikan tombol Hapus di kanan */
+    margin-bottom: 15px;
+    margin-top: 10px; /* Diperbarui agar lebih konsisten */
+    text-align: unset; /* override center dari style lama */
 }
 
-function jsonResponse(obj) {
-return ContentService
-.createTextOutput(JSON.stringify(obj))
-.setMimeType(ContentService.MimeType.JSON);
+/* Style untuk textarea spesifik */
+.input-textarea {
+    height: 100px;
+    background: var(--input-background);
+    color: var(--text-color);
+    border: 1px solid var(--secondary-neon);
+    padding: 10px;
+    margin: 10px 0;
 }
 
-function getPasaranList() {
-const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("PASARAN TOGEL");
-if (!sheet) return [];
-
-const dataB = sheet.getRange("B3:B86").getValues();
-const dataC = sheet.getRange("C3:C86").getValues();
-
-const result = [];
-for (let i = 0; i < dataB.length; i++) {
-const bVal = dataB[i][0] || "";
-const cVal = dataC[i][0] || "";
-result.push([bVal, cVal]);
+/* Style untuk toggle */
+.ts-toggle {
+    background: var(--input-background);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.ts-toggle.on {
+    background: var(--success-color);
+    color: var(--dark-background); /* Teks gelap di atas hijau neon */
+    border-color: var(--success-color);
+    box-shadow: 0 0 8px var(--success-color);
 }
 
-return result;
+.card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 15px 40px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .hasil-calculator-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transform: scale(0.9);
+            transform-origin: top left;
+            width: 111%; /* Mengkompensasi scaling */
+        }
+
+        .hasil-calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .hasil-input-section {
+            grid-column: 1;
+        }
+
+        .hasil-result-section {
+            grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #hasilData {
+            min-height: 150px;
+            font-size: 0.85rem;
+            padding: 12px;
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            resize: vertical;
+            width: 100%;
+        }
+
+        .hasil-result-box {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hasil-result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hasil-result-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .hasil-total {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin: 10px 0;
+            text-align: center;
+            padding: 10px;
+            background-color: var(--primary-lighter);
+            border-radius: 8px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .hasil-action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .hasil-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-weight: 600;
+        }
+
+        .hasil-copy-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .hasil-copy-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .hasil-clear-btn {
+            background: var(--delete-color);
+            color: white;
+        }
+
+        .hasil-clear-btn:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+        }
+
+        .hasil-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+.hasil-item.red-bg {
+    background: var(--danger-color);
+    transition: background 0.3s;
 }
 
-function setTanggalPasaran(tanggal) {
-const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("PASARAN TOGEL");
-if (!sheet) return;
-sheet.getRange("B1").setValue(tanggal);
-return "Tanggal pasaran disimpan: " + tanggal;
+hr {
+    border: 0;
+    height: 1px;
+    /* Garis gradien neon */
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--secondary-neon), rgba(0, 0, 0, 0));
+    margin: 25px 0;
 }
 
-function getTanggalPasaran() {
-const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("PASARAN TOGEL");
-if (!sheet) return "";
-const cellValue = sheet.getRange("B1").getValue();
-if (!cellValue) return "";
-if (cellValue instanceof Date) {
-const day = cellValue.getDate().toString().padStart(2, '0');
-const month = (cellValue.getMonth() + 1).toString().padStart(2, '0');
-const year = cellValue.getFullYear();
-return `${day}/${month}/${year}`;
-}
-return cellValue.toString();
+.gallery-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
 }
 
-function getPengaturanTogelLengkap() {
-const ss = SpreadsheetApp.openById(SHEET_ID);
-const sheet = ss.getSheetByName("HITUNGAN TOGEL");
-const sheetPasaran = ss.getSheetByName("PASARAN TOGEL");
-
-if (!sheet) return { status: "error", message: "Sheet HITUNGAN TOGEL tidak ditemukan." };
-
-const kelompok = [
-{ judul: "HADIAH SEMUA PASARAN TOGEL", colNama: "I", colHadiah: "K", colDiskon: "L", startRow: 3, endRow: 43 },
-{ judul: "PASARAN TOTO MACAU 4D", colNama: "I", colHadiah: "K", colDiskon: "L", startRow: 46, endRow: 81 },
-{ judul: "PASARAN TOTO MACAU 5D", colNama: "I", colHadiah: "K", colDiskon: "L", startRow: 84, endRow: 120 },
-{ judul: "PASARAN KINGKONG 4D", colNama: "I", colHadiah: "K", colDiskon: "L", startRow: 123, endRow: 154 },
-{ judul: "PERHITUNGAN ALL BONUS", colNama: "I", colHadiah: "K", colDiskon: "O", startRow: 157, endRow: 180 },
-{ judul: "PASARAN JAKARTA", colNama: "I", colHadiah: "K", colDiskon: "L", startRow: 183, endRow: 214 },
-{ judul: "PASARAN TOTOMALI", colNama: "I", colHadiah: "K", colDiskon: "L", startRow: 218, endRow: 249 },
-{ judul: "PASARAN HOKIDRAW", colNama: "I", colHadiah: "K", colDiskon: "L", startRow: 252, endRow: 283 },
-{ judul: "PASARAN SYDNEY DAN HONGKONG", colNama: "I", colHadiah: "K", colDiskon: "L", startRow: 286, endRow: 317 },
-];
-
-const data = kelompok.map(k => {
-const namaData = sheet.getRange(`${k.colNama}${k.startRow}:${k.colNama}${k.endRow}`).getValues().map(r => r[0] || "");
-const hadiahData = sheet.getRange(`${k.colHadiah}${k.startRow}:${k.colHadiah}${k.endRow}`).getValues().map(r => r[0] || "");
-const diskonData = sheet.getRange(`${k.colDiskon}${k.startRow}:${k.colDiskon}${k.endRow}`).getValues().map(r => r[0] || "");
-const items = namaData.map((n, i) => ({
-nama: n,
-hadiah: hadiahData[i] || "",
-diskon: diskonData[i] || ""
-})).filter(item => item.nama);
-
-return {
-judul: k.judul,
-items: items,
-colNama: k.colNama,
-colHadiah: k.colHadiah,
-colDiskon: k.colDiskon,
-startRow: k.startRow
-};
-});
-
-const linkLive = sheetPasaran ? sheetPasaran.getRange("C57:C86").getValues().map(r => r[0] || "") : [];
-
-let jadwalPasaran = [];
-if (sheetPasaran) {
-const ranges = ["I", "J", "K", "L", "N"];
-const values = ranges.map(col => sheetPasaran.getRange(`${col}3:${col}58`).getValues().map(r => r[0] || ""));
-for (let i = 0; i < values[0].length; i++) {
-if (values[0][i] || values[1][i]) {
-jadwalPasaran.push({
-index: i,
-jamTutup: values[0][i],
-namaPasaran: values[1][i],
-diskon: values[2][i],
-jamResult: values[3][i],
-link: values[4][i]
-});
-}
-}
+/* ----- Tampilan Gabungan (Slot) ----- */
+.combined-image-slot {
+    flex-grow: 0;
+    width: 80%;
+    max-width: 700px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border: 2px solid var(--secondary-neon);
+    padding: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s;
+    background-color: var(--input-background);
+    min-height: 200px;
 }
 
-const kendalaAllData = getKendalaAll();
-
-return { status: "success", data, linkLive, jadwalPasaran, kendalaAllData };
+.combined-image-slot:hover {
+    transform: scale(1.03);
+    /* Efek glow saat hover */
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 20px rgba(0, 191, 255, 0.4); 
 }
 
-function updatePengaturanTogelBaris(payload) {
-const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName("HITUNGAN TOGEL");
-if (!sheet) return { status: "error", message: "Sheet tidak ditemukan" };
-
-try {
-if (payload.nama !== undefined)
-sheet.getRange(payload.rangeNama).setValue(payload.nama);
-if (payload.hadiah !== undefined)
-sheet.getRange(payload.rangeHadiah).setValue(payload.hadiah);
-if (payload.diskon !== undefined) {
-const val = payload.diskon.toString().trim();
-const cell = sheet.getRange(payload.rangeDiskon);
-if (val.includes("%")) {
-cell.setValue(val).setNumberFormat("@STRING@");
-} else {
-const num = parseFloat(val);
-cell.setValue(!isNaN(num) ? num : val).setNumberFormat("0.##");
+.combined-image-slot img {
+    max-width: 33.33%; 
+    height: 180px; 
+    object-fit: contain; 
+    display: block;
+    margin: 0;
+    border-radius: 4px; 
 }
+ 
+.combined-image-slot .caption-userid {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--warning-color);
+    font-size: 1.5em;
+    font-weight: bold;
+    background-color: rgba(0,0,0,0.8); /* Background yang lebih gelap untuk kontras */
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: none; 
+    pointer-events: none; 
+    z-index: 10;
 }
-return { status: "success", message: "Pengaturan tersimpan" };
-} catch (err) {
-return { status: "error", message: "Gagal simpan: " + err };
-}
-}
-
-function updateLinkPasaran(payload) {
-const sheetPasaran = SpreadsheetApp.openById(SHEET_ID).getSheetByName("PASARAN TOGEL");
-if (!sheetPasaran) return { status: "error", message: "Sheet PASARAN TOGEL tidak ditemukan" };
-
-try {
-const startRow = 57, col = 3;
-sheetPasaran.getRange(startRow + parseInt(payload.index, 10), col).setValue(payload.link);
-return { status: "success", message: "Link Live Pasaran tersimpan" };
-} catch (err) {
-return { status: "error", message: "Gagal simpan: " + err };
-}
+.combined-image-slot:hover .caption-userid {
+    display: block;
 }
 
-function updateJadwalPasaran(payload) {
-const sheetPasaran = SpreadsheetApp.openById(SHEET_ID).getSheetByName("PASARAN TOGEL");
-if (!sheetPasaran) return { status: "error", message: "Sheet PASARAN TOGEL tidak ditemukan" };
-
-try {
-const rowStart = 3;
-const colMap = { jamTutup: 9, namaPasaran: 10, diskon: 11, jamResult: 12, link: 14 };
-
-const r = rowStart + parseInt(payload.index, 10);
-sheetPasaran.getRange(r, colMap.jamTutup).setValue(payload.jamTutup);
-sheetPasaran.getRange(r, colMap.namaPasaran).setValue(payload.namaPasaran);
-sheetPasaran.getRange(r, colMap.diskon).setValue(payload.diskon);
-sheetPasaran.getRange(r, colMap.jamResult).setValue(payload.jamResult);
-sheetPasaran.getRange(r, colMap.link).setValue(payload.link);
-
-return { status: "success", message: "Jadwal Pasaran tersimpan" };
-} catch (err) {
-return { status: "error", message: "Gagal simpan Jadwal Pasaran: " + err };
-}
+.package-info {
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--neon-blue); /* Warna neon yang konsisten */
+    text-shadow: 0 0 5px var(--neon-blue);
 }
 
-function getKendalaAll() {
-const ss = SpreadsheetApp.openById(SHEET_ID);
-const sh = ss.getSheetByName('KENDALA ALL');
-if (!sh) return { status: "error", message: "Sheet KENDALA ALL tidak ditemukan." };
-
-const lastRow = sh.getLastRow();
-// Jika sheet kosong (hanya header row), kembalikan satu item kosong untuk ditampilkan.
-if (lastRow < 2) {
-return [{
-rowIndex: 2,
-judul: "",
-jawaban1: "",
-jawaban2: "",
-jawaban3: ""
-}];
+.gambar-container-multi {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center; /* Dipusatkan agar rapi */
+}
+.gambar-slot-multi {
+    text-align: center;
+    width: 110px;
+    transition: transform 0.2s;
+}
+.gambar-slot-multi:hover {
+    transform: translateY(-3px);
+}
+.gambar-slot-multi img {
+    max-width: 100%;
+    height: auto; /* Agar tidak terpotong */
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--secondary-neon);
+    box-shadow: 0 0 5px rgba(0, 191, 255, 0.3);
+    transition: border 0.3s, box-shadow 0.3s;
+}
+.gambar-slot-multi img:hover {
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+.userid-label {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--warning-color); /* Kuning neon */
 }
 
-// Dapatkan nilai dari kolom C sampai F, mulai dari baris 2 hingga baris terakhir dengan konten.
-const data = sh.getRange(2, 3, lastRow - 1, 4).getValues();
 
-// Petakan data ke format yang diinginkan, **termasuk baris kosong**.
-const items = data.map((row, i) => ({
-rowIndex: i + 2,
-judul: row[0] || "",
-jawaban1: row[1] || "",
-jawaban2: row[2] || "",
-jawaban3: row[3] || ""
-}));
-return items;
+.modal,
+.lightbox-modal {
+    display: none;
+    position: fixed; 
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.95);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
 }
 
-function updateKendalaAll(item) {
-const ss = SpreadsheetApp.openById(SHEET_ID);
-const sh = ss.getSheetByName('KENDALA ALL');
-if (!sh) return { status: "error", message: "Sheet KENDALA ALL tidak ditemukan." };
-
-try {
-sh.getRange(item.rowIndex, 3).setValue(item.judul);
-sh.getRange(item.rowIndex, 4).setValue(item.jawaban1);
-sh.getRange(item.rowIndex, 5).setValue(item.jawaban2);
-sh.getRange(item.rowIndex, 6).setValue(item.jawaban3);
-return { status: "success", message: "Data Kendala ALL berhasil disimpan." };
-} catch (err) {
-return { status: "error", message: "Gagal simpan: " + err };
-}
+.zoomed-content-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
 }
 
-function tambahKendalaAllBaris() {
-const ss = SpreadsheetApp.openById(SHEET_ID);
-const sh = ss.getSheetByName('KENDALA ALL');
-if (!sh) return { status: "error", message: "Sheet KENDALA ALL tidak ditemukan." };
-try {
-sh.appendRow(["", "", "", ""]);
-return { status: "success", message: "Baris kosong berhasil ditambahkan." };
-} catch(err) {
-return { status: "error", message: "Gagal menambahkan baris: " + err.message };
-}
-}
-
-function saveNewKendalaAll(payload) {
-const ss = SpreadsheetApp.openById(SHEET_ID);
-const sh = ss.getSheetByName('KENDALA ALL');
-if (!sh) return { status: "error", message: "Sheet KENDALA ALL tidak ditemukan." };
-
-try {
-// Cari baris kosong pertama
-const lastRow = sh.getLastRow();
-const nextRow = lastRow + 1;
-
-// Tulis data ke baris kosong tersebut
-sh.getRange(nextRow, 3).setValue(payload.judul);
-sh.getRange(nextRow, 4).setValue(payload.jawaban1);
-sh.getRange(nextRow, 5).setValue(payload.jawaban2);
-sh.getRange(nextRow, 6).setValue(payload.jawaban3);
-
-return { status: "success", message: "Catatan baru berhasil disimpan." };
-} catch(err) {
-return { status: "error", message: "Gagal menyimpan catatan baru: " + err.message };
-}
+.zoom-nav-button,
+.nav-btn {
+    background-color: transparent;
+    color: var(--secondary-neon);
+    border: none;
+    font-size: 3em;
+    padding: 0 20px;
+    cursor: pointer;
+    transition: color 0.3s, background-color 0.3s;
+    z-index: 10000;
+    user-select: none;
 }
 
-function addNewKendala(payload) {
-const ss = SpreadsheetApp.openById(SHEET_ID);
-const sh = ss.getSheetByName('KENDALA ALL');
-if (!sh) {
-return { status: "error", message: "Sheet KENDALA ALL tidak ditemukan." };
+.zoom-nav-button:hover:not(:disabled),
+.nav-btn:hover {
+    color: var(--neon-blue);
+    background: rgba(0, 191, 255, 0.1); /* Efek hover ringan */
 }
-try {
-const lastRow = sh.getLastRow();
-const nextRow = lastRow + 1;
-// Pastikan baris berikutnya adalah baris kosong
-const range = sh.getRange(nextRow, 3, 1, 4);
-// Tulis data ke baris kosong yang paling bawah
-range.setValues([[payload.judul, payload.jawaban1, payload.jawaban2, payload.jawaban3]]);
-return { status: "success", message: "Catatan baru berhasil ditambahkan." };
-} catch (e) {
-return { status: "error", message: "Gagal menambahkan catatan: " + e.message };
+/* Nav button spesifik untuk lightbox */
+.nav-btn {
+    position: absolute;
+    top: 20%;
+    transform: translateY(-50%);
+    font-size: 40px;
+    padding: 10px 15px;
+    border-radius: 20%;
+    background: rgba(0,0,0,0.5);
 }
+.prev { left: 20px; }
+.next { right: 20px; }
+
+.zoomed-content-wrapper {
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Jarak yang lebih besar agar jelas */
+    width: 90%;
+    max-width: 1200px; 
+    max-height: 80vh;
+    margin: 10px 0;
+    overflow: hidden; 
 }
 
-function getReportLineData() {
-    const ss = SpreadsheetApp.openById(SHEET_ID);
-    const sheet = ss.getSheetByName("PERIHAL REPORT");
-    
-    if (!sheet) {
-        return { status: "error", message: "Sheet 'PERIHAL REPORT' tidak ditemukan." };
-    }
+.zoomed-content-wrapper img,
+.lightbox-modal img {
+    max-width: calc(33.33% - 10px); /* Disesuaikan dengan gap */
+    height: auto;
+    max-height: 80vh;
+    border-radius: 8px;
+    /* Efek glow yang lebih menonjol untuk gambar utama */
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 25px rgba(0, 191, 255, 0.5); 
+    object-fit: contain;
+    min-width: 0;
+}
+.lightbox-modal img {
+    max-width: 90%;
+    box-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 30px var(--neon-blue);
+}
 
-    try {
-        const dataRange = sheet.getRange("A2:D450");
-        const values = dataRange.getValues();
+.zoomed-userid {
+    display: block;
+    text-align: center;
+    color: var(--warning-color);
+    font-size: 2.2em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px var(--warning-color);
+}
+ 
+.zoom-link-input-area { display: none; } /* Tetap disembunyikan */
+
+.close-btn,
+.close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: var(--danger-color);
+    font-size: 45px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+    text-shadow: 0 0 10px var(--danger-color);
+    z-index: 10000;
+}
+
+.close-btn:hover,
+.close-btn:focus,
+.close:hover {
+    color: #ff8080; /* Merah terang saat hover */
+    text-decoration: none;
+}
+
+.lightbox-caption {
+    margin-top: 10px;
+    color: var(--text-color);
+    font-size: 14px;
+    background: rgba(0,0,0,0.7);
+    padding: 8px 12px;
+    border-radius: 4px;
+    text-shadow: 0 0 5px var(--warning-color);
+}
+</style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📸 Galeri Gambar Otomatis & Zoom Navigasi</h1>
+        <p style="text-align: center; color: #3498db;">**Tempel/Ketik** data. Format: **USERID link_gambar1 link_gambar2 link_gambar3**</p>
+
+        <textarea id="linkInput" 
+                  placeholder="Tempelkan data paket di sini. Setiap baris adalah satu paket." 
+                  rows="8" 
+                  oninput="handleInput()"
+                  onpaste="handleInput()"></textarea>
         
-        const items = values
-            .map((row, i) => ({
-                rowIndex: i + 2, 
-                colA: row[0] ? String(row[0]).trim() : "", // ALL KENDALA REPORT
-                colB: row[1] ? String(row[1]).trim() : "", // MEMO/REPORT
-                colC: row[2] ? String(row[2]).trim() : "", // POST/MEMO KE ADMIN,WA,FB
-                colD: row[3] ? String(row[3]).trim() : ""  // REPORT KE LINE
-            }))
-            .filter(item => {
-                // Filter: Hanya sertakan baris jika SETIDAKNYA satu kolom (A, B, C, atau D) memiliki data.
-                return item.colA || item.colB || item.colC || item.colD;
+        <div class="button-group">
+            <button id="clearDataBtn" onclick="clearAllData()">🗑️ Hapus Semua Data</button>
+        </div>
+
+        <hr>
+
+        <div class="gallery-container">
+            
+            <div class="combined-image-slot" id="combinedImageSlot" onclick="openZoom()">
+                
+                <p class="caption-userid" id="combinedSlotUserid">USER ID</p>
+                
+                <img id="imgSlot1" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+1" alt="Slot 1">
+                <img id="imgSlot2" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+2" alt="Slot 2">
+                <img id="imgSlot3" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+3" alt="Slot 3">
+            </div>
+            
+        </div>
+
+        <p class="package-info">
+            Paket: <span id="currentPackageNum">0</span> / <span id="maxPackageNum">0</span>
+        </p>
+
+    </div>
+
+    <div id="zoomModal" class="modal" onclick="closeZoom(event)">
+        <span class="close-btn">&times;</span>
+        <span id="zoomedUserid" class="zoomed-userid"></span> 
+        
+        <div class="zoomed-content-area">
+            
+            <button class="zoom-nav-button" id="prevZoomBtn" onclick="navigatePackage('prev')">&#9664;</button>
+            
+            <div class="zoomed-content-wrapper" id="zoomedContentWrapper">
+                </div>
+
+            <button class="zoom-nav-button" id="nextZoomBtn" onclick="navigatePackage('next')">&#9654;</button>
+        </div>
+        
+        <textarea id="zoomLinkInput" class="zoom-link-input-area"></textarea>
+               
+        <div id="caption">Geser paket menggunakan tombol navigasi (&#9664; / &#9654;) atau tombol panah Kiri/Kanan pada keyboard.</div>
+    </div>
+
+    <div class="scatter-section">
+  <h3 class="judul-glow">💫 LINE TOGEL 💫</h3>
+  <h2>💣 DATA SCATTER MAHJONG</h2>
+
+  <!-- Tombol TS ON/OFF -->
+  <div class="button-group" style="margin: 10px 0;">
+    <button id="tsToggleBtn" onclick="toggleTSMode()" class="ts-toggle">TS: OFF</button>
+  </div>
+
+  <textarea id="scatterTextarea" class="input-textarea" placeholder="Tempelkan 1–7 baris data (satu baris = satu transaksi)..."></textarea>
+
+  <div class="button-group">
+    <button onclick="hapusScatter()" class="btn danger">🧹 Hapus</button>
+  </div>
+
+  <!-- Wadah hasil multi-transaksi -->
+  <div id="hasilScatterContainer"></div>
+</div>
+
+<!-- Modal Zoom Lightbox -->
+<div id="lightboxModal" class="lightbox-modal" style="display:none;">
+  <span class="close" onclick="closeLightbox()">&times;</span>
+  <span class="nav-btn prev" onclick="prevImage()">&lsaquo;</span>
+  <span class="nav-btn next" onclick="nextImage()">&rsaquo;</span>
+  <img id="lightboxImg" src="" alt="Zoomed Image" />
+  <div id="lightboxCaption" class="lightbox-caption">User ID: -</div>
+</div>
+    
+    <script>
+        /* ======================== JAVASCRIPT ======================== */
+        let allPackagesData = []; 
+        let currentPackageIndex = 0; 
+        const packageSize = 3; 
+        const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong"; 
+        let isZoomOpen = false;
+
+        // Data contoh (tetap dipertahankan untuk inisialisasi awal yang mudah)
+        const initialData = [
+        ];
+        
+        // --- Handler Input Utama Otomatis ---
+        let inputTimeout;
+        function handleInput() {
+            clearTimeout(inputTimeout);
+            inputTimeout = setTimeout(() => {
+                loadImages();
+            }, 50);
+        }
+
+        // --- Fungsi Utama untuk Memuat Gambar (dari Textarea) ---
+        function loadImages() {
+            const inputArea = document.getElementById('linkInput');
+            
+            const rawLines = inputArea.value
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            allPackagesData = [];
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+            rawLines.forEach((line) => {
+                const urls = line.match(urlRegex) || [];
+                
+                const words = line.split(/\s+/).filter(w => w.length > 0);
+                let userid = 'N/A';
+                
+                if (words.length > 0 && !words[0].startsWith('http')) {
+                    userid = words[0];
+                }
+
+                if (urls.length >= 1) { 
+                    const links = urls.slice(0, packageSize); 
+                    
+                    while (links.length < packageSize) {
+                        links.push(""); 
+                    }
+                    
+                    allPackagesData.push({ userid: userid, links: links });
+                }
             });
 
-        return { 
-            status: "success", 
-            data: items
-        };
+            if (allPackagesData.length === 0) {
+                 // Tidak melakukan apa-apa, biarkan updateGallery(-1) membersihkan
+            }
+            
+            document.getElementById('maxPackageNum').textContent = allPackagesData.length;
+            
+            if (allPackagesData.length > 0) {
+                currentPackageIndex = Math.min(currentPackageIndex, allPackagesData.length - 1);
+                currentPackageIndex = Math.max(0, currentPackageIndex);
+                updateGallery(currentPackageIndex);
+            } else {
+                currentPackageIndex = 0;
+                document.getElementById('currentPackageNum').textContent = 0;
+                updateGallery(-1); // Bersihkan tampilan
+            }
+        }
 
-    } catch (e) {
-        return { status: "error", message: "Gagal mengambil data report: " + e.message };
-    }
-}
+        // --- Fungsi untuk Mengupdate Tampilan Galeri ---
+        function updateGallery(index) {
+            const imgSlots = [
+                document.getElementById('imgSlot1'),
+                document.getElementById('imgSlot2'),
+                document.getElementById('imgSlot3')
+            ];
+            
+            const combinedSlot = document.getElementById('combinedImageSlot');
+            const useridCaption = document.getElementById('combinedSlotUserid');
+            const validPackages = allPackagesData.length;
+            
+            let currentPackage = { userid: 'N/A', links: ["", "", ""] };
+            
+            if (index >= 0 && index < validPackages) {
+                currentPackage = allPackagesData[index];
+                combinedSlot.style.pointerEvents = 'auto'; // Dapat diklik
+            } else {
+                combinedSlot.style.pointerEvents = 'none'; // Tidak dapat diklik
+                currentPackage.userid = 'N/A'; // Pastikan kondisi default saat kosong
+            }
 
-/**
- * Memperbarui data ke Google Sheet.
- */
-function updateReportLineData(payload) {
-    const ss = SpreadsheetApp.openById(SHEET_ID);
-    const sheet = ss.getSheetByName("PERIHAL REPORT");
-    
-    if (!sheet) {
-        return { status: "error", message: "Sheet 'PERIHAL REPORT' tidak ditemukan." };
-    }
+            combinedSlot.setAttribute('data-userid', currentPackage.userid);
+            useridCaption.textContent = currentPackage.userid === 'N/A' ? 'Belum Ada Data' : `USER ID: ${currentPackage.userid}`;
 
-    try {
-        const row = payload.rowIndex;
-        if (row < 2 || row > 450) {
-            return { status: "error", message: "Indeks baris tidak valid." };
+            let validLinkCount = 0;
+            for (let i = 0; i < packageSize; i++) {
+                const link = currentPackage.links[i] || "";
+
+                if (link) {
+                    imgSlots[i].src = link;
+                    imgSlots[i].style.display = 'block'; 
+                    imgSlots[i].setAttribute('data-link', link);
+                    validLinkCount++;
+                } else {
+                    imgSlots[i].src = placeholderImage;
+                    // Tampilkan placeholder tengah saja jika tidak ada data sama sekali
+                    imgSlots[i].style.display = (index === -1 && i === 1) ? 'block' : 'none'; 
+                    imgSlots[i].setAttribute('data-link', "");
+                }
+            }
+            
+            if (validLinkCount > 0) {
+                combinedSlot.style.opacity = 1;
+            } else {
+                combinedSlot.style.opacity = 0.5;
+            }
+
+            document.getElementById('currentPackageNum').textContent = validPackages > 0 ? index + 1 : 0;
+            
+            if (isZoomOpen) {
+                updateZoomDisplay(currentPackage.userid, currentPackage.links);
+                updateZoomNavButtons();
+            }
+        }
+
+        // --- Fungsi Navigasi (Untuk Tombol Fisik & Keyboard) ---
+        function navigatePackage(direction) {
+            let newIndex = currentPackageIndex;
+            if (direction === 'next' && currentPackageIndex < allPackagesData.length - 1) {
+                newIndex++;
+            } else if (direction === 'prev' && currentPackageIndex > 0) {
+                newIndex--;
+            }
+            
+            if (newIndex !== currentPackageIndex) {
+                currentPackageIndex = newIndex;
+                updateGallery(currentPackageIndex); 
+            }
         }
         
-        // Tulis nilai baru ke sel A, B, C, dan D pada baris tersebut.
-        sheet.getRange(row, 1, 1, 4).setValues([[
-            payload.colA, 
-            payload.colB, 
-            payload.colC, 
-            payload.colD
-        ]]);
+        // --- Update Tampilan Zoom ---
+        function updateZoomDisplay(userid, links) {
+            const wrapper = document.getElementById("zoomedContentWrapper");
+            const zoomedUserid = document.getElementById("zoomedUserid");
+            
+            wrapper.innerHTML = '';
+            
+            links.forEach(link => {
+                if (link) {
+                    const img = document.createElement('img');
+                    img.src = link;
+                    img.alt = 'Zoomed Image';
+                    wrapper.appendChild(img);
+                }
+            });
+            
+            zoomedUserid.textContent = userid; 
+        }
         
-        return { status: "success", message: `Baris ${row} berhasil diperbarui.` };
+        // --- Update Status Tombol Navigasi Zoom ---
+        function updateZoomNavButtons() {
+            const prevBtn = document.getElementById('prevZoomBtn');
+            const nextBtn = document.getElementById('nextZoomBtn');
+            
+            if (allPackagesData.length <= 1) {
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+            } else {
+                prevBtn.disabled = (currentPackageIndex === 0);
+                nextBtn.disabled = (currentPackageIndex >= allPackagesData.length - 1);
+            }
+        }
 
-    } catch (e) {
-        return { status: "error", message: "Gagal menyimpan data report: " + e.message };
+        // --- Fungsi Zoom Gambar ---
+        function openZoom() {
+            if (allPackagesData.length === 0 || allPackagesData[currentPackageIndex].links.filter(l => l.length > 0).length === 0) {
+                 return;
+            }
+            
+            isZoomOpen = true;
+            
+            const currentPackage = allPackagesData[currentPackageIndex];
+            updateZoomDisplay(currentPackage.userid, currentPackage.links);
+            updateZoomNavButtons();
+            
+            document.getElementById("zoomModal").style.display = "flex"; 
+        }
+        
+        // --- Fungsi Tutup Zoom ---
+        function closeZoom(event) {
+            const modal = document.getElementById("zoomModal");
+            
+            if (event.target.classList.contains('zoom-nav-button') || event.target.tagName === 'IMG') {
+                event.stopPropagation();
+                return;
+            }
+            
+            if (event.target === modal || event.target.classList.contains('close-btn')) {
+                modal.style.display = "none";
+                isZoomOpen = false;
+            }
+        }
+        
+        // --- Fungsi Hapus Semua Data (TANPA NOTIFIKASI) ---
+        function clearAllData() {
+            // 1. Kosongkan array data utama
+            allPackagesData = [];
+            // 2. Kosongkan Textarea
+            document.getElementById('linkInput').value = '';
+            // 3. Reset status tampilan
+            currentPackageIndex = 0;
+            document.getElementById('maxPackageNum').textContent = 0;
+            // 4. Perbarui galeri ke kondisi kosong
+            updateGallery(-1); 
+            
+            // Tambahkan notifikasi cepat (opsional) atau biarkan tanpa notif sama sekali
+            console.log("Semua data berhasil dihapus.");
+        }
+
+        // --- Event Listener Keyboard (Untuk Navigasi Zoom) ---
+        document.addEventListener('keydown', (event) => {
+            if (isZoomOpen) {
+                if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                    event.preventDefault(); 
+                }
+
+                if (event.key === "ArrowLeft") {
+                    navigatePackage('prev');
+                } else if (event.key === "ArrowRight") {
+                    navigatePackage('next');
+                } else if (event.key === "Escape") {
+                    closeZoom({ target: document.getElementById("zoomModal") });
+                }
+            }
+        });
+
+        // Inisialisasi: Muat data contoh saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            // Isi Textarea dengan contoh data
+            const initialText = initialData.map(p => 
+                `${p.userid} ${p.links.join(' ')}`
+            ).join('\n');
+            
+            document.getElementById('linkInput').value = initialText;
+            
+            loadImages(); 
+        });
+
+        let tsModeActive = false;
+
+function toggleTSMode() {
+  tsModeActive = !tsModeActive;
+  const btn = document.getElementById("tsToggleBtn");
+  if (tsModeActive) {
+    btn.textContent = "TS: ON";
+    btn.classList.add("on");
+  } else {
+    btn.textContent = "TS: OFF";
+    btn.classList.remove("on");
+  }
+  if (document.getElementById("scatterTextarea").value.trim()) {
+    hitungScatter();
+  }
+}
+
+// Ekstrak data dari satu baris
+function extractFromLine(line) {
+  let userId = "-";
+
+  // Parsing User ID
+  const parts = line.split(/\s+/);
+  for (let i = 0; i < parts.length; i++) {
+    if (/^20\d{2}$/.test(parts[i]) && i + 1 < parts.length) {
+      const calon = parts[i + 1].trim();
+      if (calon.length >= 3 && !/^\d+$/.test(calon)) {
+        userId = calon;
+        break;
+      }
     }
+  }
+
+  // Jika mode TS aktif, tambahkan " TS" di akhir
+  if (tsModeActive && userId !== "-") {
+    userId += " TS";
+  }
+
+  const gambarRegex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg|png|gif|webp|bmp|svg)|https?:\/\/(?:prnt\.sc|imghostr\.com)\/[^\s]+)/gi;
+  const gambarLinks = line.match(gambarRegex) || [];
+
+  const kodeTiketMatch = line.match(/\b\d{17,20}\b/);
+  const kodeTiket = kodeTiketMatch ? kodeTiketMatch[0] : "-";
+
+  const betMatch = line.match(/BET\s+([0-9.,\- ]+)/i);
+  let bettingan = "-";
+  if (betMatch) {
+    const parts = betMatch[1].split("-");
+    bettingan = parts[0].trim();
+  }
+
+  return { userId, kodeTiket, gambarLinks, bettingan };
 }
 
-// Catatan: Pastikan jsonResponse(obj) juga ada di kode GAS Anda
-function jsonResponse(obj) {
-    return ContentService
-        .createTextOutput(JSON.stringify(obj))
-        .setMimeType(ContentService.MimeType.JSON);
+// Render semua hasil
+function renderHasil(transaksiList) {
+  const container = document.getElementById("hasilScatterContainer");
+  container.innerHTML = "";
+
+  transaksiList.forEach((trans, idx) => {
+    const { userId, kodeTiket, gambarLinks, bettingan } = trans;
+    const prefix = `t${idx}_`;
+
+    let gambarHTML = '';
+    for (let i = 1; i <= 3; i++) {
+      const link = gambarLinks[i - 1];
+      let content = '<div>-</div>';
+      if (link) {
+        if (link.includes('prnt.sc') || link.includes('imghostr.com')) {
+          content = `<a href="${link}" target="_blank" style="color:#ffcc00;">Lihat Gambar ${i}</a>`;
+        } else {
+          content = `<img src="${link}" onclick="openLightbox('${link}', '${userId}')" />`;
+        }
+      }
+      gambarHTML += `
+        <div class="gambar-slot-multi">
+          <h4 style="margin:4px 0;font-size:14px;">Gambar ${i}</h4>
+          ${content}
+          <div class="userid-label">User ID: ${userId}</div>
+        </div>
+      `;
+    }
+
+    const block = document.createElement("div");
+    block.className = "hasil-transaksi";
+    block.innerHTML = `
+      <div class="hasil-item" id="${prefix}uidItem">
+        <label>User ID:</label>
+        <div class="hasil-text" id="${prefix}uid">${userId}</div>
+        <button class="copy-btn" onclick="copyText('${prefix}uid', '${prefix}uidItem')">💫</button>
+      </div>
+      <div class="hasil-item" id="${prefix}ktItem">
+        <label>Kode Tiket:</label>
+        <div class="hasil-text" id="${prefix}kt">${kodeTiket}</div>
+        <button class="copy-btn" onclick="copyText('${prefix}kt', '${prefix}ktItem')">💫</button>
+      </div>
+      <div class="hasil-item" id="${prefix}lbItem">
+        <label>Link Bukti:</label>
+        <div class="hasil-text" id="${prefix}lb">${gambarLinks.join(", ") || "-"}</div>
+        <button class="copy-btn" onclick="copyText('${prefix}lb', '${prefix}lbItem')">💫</button>
+      </div>
+      <div class="hasil-item" id="${prefix}betItem">
+        <label>Bettingan:</label>
+        <div class="hasil-text" id="${prefix}bet">${bettingan}</div>
+        <button class="copy-btn" onclick="copyText('${prefix}bet', '${prefix}betItem')">💫</button>
+      </div>
+      <div class="gambar-container-multi">
+        ${gambarHTML}
+      </div>
+    `;
+    container.appendChild(block);
+  });
 }
+
+// Fungsi utama
+function hitungScatter() {
+  const input = document.getElementById("scatterTextarea").value.trim();
+  if (!input) {
+    document.getElementById("hasilScatterContainer").innerHTML = "";
+    return;
+  }
+
+  const lines = input.split("\n").slice(0, 7); // Ambil maks 7 baris
+  const transList = lines.map(line => extractFromLine(line.trim()));
+  renderHasil(transList);
+}
+
+function hapusScatter() {
+  document.getElementById("scatterTextarea").value = "";
+  document.getElementById("hasilScatterContainer").innerHTML = "";
+}
+
+// Copy dengan efek background merah
+function copyText(elementId, itemContainerId) {
+  const el = document.getElementById(elementId);
+  const container = document.getElementById(itemContainerId);
+  if (!el || el.innerText === "-") return;
+
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    container.classList.add("red-bg");
+    setTimeout(() => {
+      container.classList.remove("red-bg");
+    }, 1000);
+  }).catch(err => {
+    console.warn("Gagal menyalin:", err);
+  });
+}
+
+// === LIGHTBOX DENGAN NAVIGASI ===
+let currentLightboxIndex = 0;
+let currentLightboxImages = [];
+let currentLightboxUserId = "";
+
+function openLightbox(imgUrl, userId) {
+  const modal = document.getElementById("lightboxModal");
+  const img = document.getElementById("lightboxImg");
+  const caption = document.getElementById("lightboxCaption");
+  currentLightboxImages = getCurrentTransaksiImages(userId);
+  currentLightboxUserId = userId;
+  currentLightboxIndex = currentLightboxImages.findIndex(img => img === imgUrl);
+  if (currentLightboxIndex === -1) currentLightboxIndex = 0;
+  img.src = currentLightboxImages[currentLightboxIndex];
+  caption.innerText = `User ID: ${userId}`;
+  modal.style.display = "flex";
+  updateNavButtons();
+}
+
+function getCurrentTransaksiImages(userId) {
+  const allItems = document.querySelectorAll('.hasil-transaksi');
+  for (let item of allItems) {
+    const uidEl = item.querySelector('.hasil-text[id$="uid"]');
+    if (uidEl && uidEl.innerText === userId) {
+      const imgEls = item.querySelectorAll('.gambar-slot-multi img');
+      return Array.from(imgEls).map(el => el.src).filter(src => src);
+    }
+  }
+  return [];
+}
+
+function prevImage() {
+  if (currentLightboxImages.length <= 1) return;
+  currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+  updateLightboxImage();
+}
+
+function nextImage() {
+  if (currentLightboxImages.length <= 1) return;
+  currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+  updateLightboxImage();
+}
+
+function updateLightboxImage() {
+  const img = document.getElementById("lightboxImg");
+  const caption = document.getElementById("lightboxCaption");
+  img.src = currentLightboxImages[currentLightboxIndex];
+  caption.innerText = `User ID: ${currentLightboxUserId}`;
+  updateNavButtons();
+}
+
+function updateNavButtons() {
+  const prevBtn = document.querySelector('.prev');
+  const nextBtn = document.querySelector('.next');
+
+  if (currentLightboxImages.length <= 1) {
+    prevBtn.style.opacity = '0.3';
+    nextBtn.style.opacity = '0.3';
+    prevBtn.style.pointerEvents = 'none';
+    nextBtn.style.pointerEvents = 'none';
+  } else {
+    prevBtn.style.opacity = '1';
+    nextBtn.style.opacity = '1';
+    prevBtn.style.pointerEvents = 'auto';
+    nextBtn.style.pointerEvents = 'auto';
+  }
+}
+
+function closeLightbox() {
+  document.getElementById("lightboxModal").style.display = "none";
+  currentLightboxImages = [];
+  currentLightboxUserId = "";
+  currentLightboxIndex = 0;
+}
+
+document.addEventListener('keydown', (e) => {
+  const lightbox = document.getElementById('lightboxModal');
+  if (lightbox.style.display !== 'flex') return;
+
+  if (e.key === 'ArrowLeft') {
+    prevImage();
+  } else if (e.key === 'ArrowRight') {
+    nextImage();
+  } else if (e.key === 'Escape') {
+    closeLightbox();
+  }
+});
+
+// Event listener input
+document.addEventListener("DOMContentLoaded", () => {
+  const ta = document.getElementById("scatterTextarea");
+  if (ta) {
+    ta.addEventListener("paste", () => setTimeout(hitungScatter, 50));
+    ta.addEventListener("input", hitungScatter);
+  }
+});
+</script>
+</body>
+</html>
