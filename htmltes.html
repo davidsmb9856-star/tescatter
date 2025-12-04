@@ -1030,31 +1030,21 @@ document.addEventListener('DOMContentLoaded', function() {
         updateGalleryNavButtons();
     }
 
-// ... kode lainnya
+    function updateGalleryModalContent() {
+        const container = document.getElementById('imagesContainer');
+        container.innerHTML = '';
+        const currentPackage = allPackagesData[currentPackageIndex];
+        document.getElementById('galleryUseridInfo').textContent = `User ID: ${currentPackage.userid}`;
 
-function updateGalleryModalContent() {
-    const container = document.getElementById('imagesContainer');
-    container.innerHTML = '';
-    const currentPackage = allPackagesData[currentPackageIndex];
-    document.getElementById('galleryUseridInfo').textContent = `User ID: ${currentPackage.userid}`;
-
-    currentPackage.links.forEach(link => {
-        if (link) {
-            const img = document.createElement('img');
-            img.src = link; 
-            img.className = 'modal-img';
-            // --- BARIS YANG DIPERBAIKI ---
-            img.onclick = () => { 
-                img.classList.toggle('zoomed'); 
-                // Hapus pemanggilan applyZoom() agar tidak bentrok
-            };
-            // --- AKHIR DARI BARIS YANG DIPERBAIKI ---
-            container.appendChild(img);
-        }
-    });
-}
-
-// ... kode lainnya
+        currentPackage.links.forEach(link => {
+            if (link) {
+                const img = document.createElement('img');
+                img.src = link; img.className = 'modal-img';
+                img.onclick = () => { img.classList.toggle('zoomed'); };
+                container.appendChild(img);
+            }
+        });
+    }
     
     function navigateGalleryPackage(direction) {
         if (direction === 'next' && currentPackageIndex < allPackagesData.length - 1) currentPackageIndex++;
@@ -1073,7 +1063,7 @@ function updateGalleryModalContent() {
     }
 
 
-    // ===== SCATTER FUNCTIONALITY =====
+    // ===== SCATTER FUNCTIONALITY (REVISED) =====
     const scatterInput = document.getElementById('scatterInput');
     const scatterResults = document.getElementById('scatterResults');
     const tsToggle = document.getElementById('tsToggle');
@@ -1084,23 +1074,50 @@ function updateGalleryModalContent() {
     document.getElementById('clearScatterBtn').addEventListener('click', () => { scatterInput.value=''; processScatterInput();});
     tsToggle.addEventListener('change', renderScatterResults);
 
+    // --- FUNGSI YANG SUDAH DIPERBAIKI ---
+    function processSingleScatterData(data) {
+        if (!data) {
+            return { userId: '-', ticketCode: '-', links: [], betValue: '-', hasData: false, hasImages: false };
+        }
+
+        // Pisahkan data berdasarkan tab
+        const parts = data.split(/\t/);
+
+        // Inisialisasi variabel
+        let userId = parts[1]?.trim() || '-'; // User ID di posisi ke-2
+        let ticketCode = parts[7]?.trim() || '-'; // Kode Tiket di posisi ke-8
+        let betValue = parts[8]?.trim() || '-'; // Bettingan di posisi ke-9
+
+        // Ekstrak Link Bukti dari posisi ke-3, 4, dan 5
+        let imageLinks = [];
+        if (parts[2]) imageLinks.push(parts[2].trim());
+        if (parts[3]) imageLinks.push(parts[3].trim());
+        if (parts[4]) imageLinks.push(parts[4].trim());
+        
+        return {
+            userId: userId,
+            ticketCode: ticketCode,
+            links: imageLinks,
+            betValue: betValue,
+            hasData: true,
+            hasImages: imageLinks.length > 0
+        };
+    }
+
     function processScatterInput() {
         const data = scatterInput.value.trim();
         const lines = data.split('\n').filter(line => line.trim().length > 0 && line.includes('http'));
         
         document.getElementById('dataCount').textContent = lines.length;
-        document.getElementById('autoInputError').style.display = lines.length === 0 && data ? 'flex' : 'none';
-        
-        scatterData = lines.map(line => {
-            const parts = line.split(/\t/);
-            return {
-                userId: parts[2]?.trim() || '-',
-                ticketCode: parts[3]?.trim() || '-',
-                links: parts[4]?.split(',').map(l=>l.trim()).filter(l=>l) || [],
-                betValue: parts[6]?.trim() || '-',
-                hasData: true,
-            };
-        });
+        const errorMsgEl = document.getElementById('autoInputError');
+        if (lines.length === 0 && data) {
+            errorMsgEl.style.display = 'flex';
+            errorMsgEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i><span>Format data tidak valid. Pastikan data mengandung link gambar.</span>`;
+            scatterData = [];
+        } else {
+            errorMsgEl.style.display = 'none';
+            scatterData = lines.map(line => processSingleScatterData(line));
+        }
         renderScatterResults();
     }
 
@@ -1239,4 +1256,5 @@ function updateGalleryModalContent() {
 
 </body>
 </html>
+
 
