@@ -1,358 +1,555 @@
-
-                        <!DOCTYPE html>
-                        <html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <link rel="stylesheet" href="css/deposit-withdraw-analyzer-neon.css">
-              <style>
-                body {
-                  background-color: white; /* Ensure the iframe has a white background */
-                }
-
-.depo-wd-container {
-  max-width: 1200px;
-  margin: 20px auto;
-  font-family: 'Segoe UI', 'Consolas', monospace, sans-serif;
-  background: #0a0f1d;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
-  border: 1px solid rgba(0, 229, 255, 0.2);
-}
-
-.depo-wd-title {
-  text-align: center;
-  color: #00f3ff;
-  margin-bottom: 20px;
-  font-size: 26px;
-  font-weight: 700;
-  text-shadow: 0 0 10px rgba(0, 243, 255, 0.6);
-  letter-spacing: 1px;
-}
-
-.summary-box {
-  background: rgba(10, 20, 40, 0.7);
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 25px;
-  color: #a0d8ff;
-  font-size: 14px;
-  text-align: center;
-  box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.15);
-  border: 1px solid rgba(0, 200, 255, 0.2);
-}
-
-.user-card {
-  background: rgba(12, 20, 38, 0.85);
-  border-radius: 14px;
-  margin-bottom: 22px;
-  overflow: hidden;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
-  border-left: 4px solid #00b0ff;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.user-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 229, 255, 0.25);
-}
-
-.user-header {
-  padding: 14px 20px;
-  font-weight: bold;
-  font-size: 17px;
-  color: white;
-  background: linear-gradient(90deg, #002244, #004466);
-  text-shadow: 0 0 6px rgba(0, 243, 255, 0.5);
-}
-
-.user-body {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 16px;
-  gap: 20px;
-}
-
-.col {
-  flex: 1;
-  min-width: 250px;
-  display: flex;
-  flex-direction: column;
-}
-
-.col-title {
-  font-size: 15px;
-  color: #00e5ff;
-  margin-bottom: 8px;
-  font-weight: 700;
-  padding-bottom: 4px;
-  border-bottom: 1px solid #00b0ff;
-  text-shadow: 0 0 4px rgba(0, 229, 255, 0.4);
-}
-
-.entry-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 160px;
-  overflow-y: auto;
-  flex: 1;
-  scrollbar-width: thin;
-  scrollbar-color: #00b0ff #0a1429;
-}
-
-.entry-item {
-  background: rgba(20, 35, 65, 0.6);
-  padding: 9px 14px;
-  margin-bottom: 7px;
-  border-radius: 8px;
-  font-family: 'Consolas', monospace;
-  color: #c0e8ff;
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border: 1px solid rgba(0, 180, 255, 0.2);
-  transition: background 0.2s;
-}
-
-.entry-item:hover {
-  background: rgba(30, 50, 90, 0.8);
-  border-color: rgba(0, 229, 255, 0.4);
-}
-
-.total-row {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px dashed #00b0ff;
-  font-weight: bold;
-  font-family: 'Consolas', monospace;
-  color: #ffffff;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 7px 16px;
-  border-radius: 22px;
-  font-weight: bold;
-  margin-top: 12px;
-  font-size: 13px;
-  background: rgba(0, 30, 60, 0.4);
-  border: 1px solid rgba(0, 200, 255, 0.3);
-  box-shadow: 0 0 6px rgba(0, 229, 255, 0.2);
-}
-
-/* Diff colors with neon feel */
-.diff-cocok {
-  color: #4dff4d;
-  text-shadow: 0 0 6px rgba(77, 255, 77, 0.5);
-}
-
-.diff-lebih {
-  color: #ffcc00;
-  text-shadow: 0 0 6px rgba(255, 204, 0, 0.5);
-}
-
-.diff-kurang {
-  color: #ff6666;
-  text-shadow: 0 0 6px rgba(255, 102, 102, 0.5);
-}
-
-/* Scrollbar styling (WebKit browsers) */
-.entry-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.entry-list::-webkit-scrollbar-track {
-  background: #0a1429;
-  border-radius: 4px;
-}
-
-.entry-list::-webkit-scrollbar-thumb {
-  background: #00b0ff;
-  border-radius: 4px;
-  border: 2px solid #0a1429;
-}
-
-.entry-list::-webkit-scrollbar-thumb:hover {
-  background: #00e5ff;
-}
-
-/* Blocked links — per your preference */
-a.blocked-link,
-.entry-item a[href^="http"]:not([href*="trusted-domain.com"]) {
-  background-color: yellow !important;
-  color: #000 !important;
-  padding: 1px 4px;
-  border-radius: 3px;
-  text-decoration: none;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .depo-wd-container {
-    margin: 10px;
-    padding: 15px;
-  }
-  .user-body {
-    flex-direction: column;
-  }
-  .col {
-    min-width: 100%;
-  }
-}
-
-
-              </style>
-                        </head>
-                        <body>
-<script src="deposit-withdraw-analyzer.js"></script>
-  
-  <textarea id="dataDeposit"></textarea>
-  <textarea id="dataWithdraw"></textarea>
-  <button onclick="prosesDepositWithdraw()">Proses</button>
-  <button onclick="clearDeposit()">Clear Deposit</button>
-  <button onclick="clearWithdraw()">Clear Withdraw</button>
-  <div id="hasilDepoWd"></div>
-              <script>
-function clearDeposit() {
-    document.getElementById('dataDeposit').value = '';
-    document.getElementById('dataDeposit').focus();
-}
-
-function clearWithdraw() {
-    document.getElementById('dataWithdraw').value = '';
-    document.getElementById('dataWithdraw').focus();
-}
-
-function prosesDepositWithdraw() {
-    const rawDeposit = document.getElementById('dataDeposit').value;
-    const rawWithdraw = document.getElementById('dataWithdraw').value;
-
-    if (!rawDeposit.trim() || !rawWithdraw.trim()) {
-        document.getElementById('hasilDepoWd').innerHTML = '<p style="color:#ff6b6b; font-weight:bold; text-align:center;">⚠️ Harap isi kedua kolom DEPOSIT dan WITHDRAW!</p>';
-        return;
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Deposit vs Withdraw Analyzer — Neon Blue</title>
+  <style>
+    /* ==============================
+       GLOBAL & NEON BLUE THEME
+       ============================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    // Ekstrak nama setelah "DEPO " dan ambil bagian setelah "/" terakhir
-    function extractNameFromText(text) {
+    body {
+      background: #080c18;
+      color: #e0f0ff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00f3ff;
+      margin: 10px 0 30px;
+      font-size: 28px;
+      text-shadow: 0 0 12px rgba(0, 243, 255, 0.7);
+      letter-spacing: 1px;
+    }
+
+    .input-section {
+      max-width: 1200px;
+      margin: 0 auto 30px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .input-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section {
+      background: rgba(12, 22, 42, 0.8);
+      border: 1px solid rgba(0, 200, 255, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .section-title {
+      color: #00e5ff;
+      margin-bottom: 10px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: #0a1222;
+      color: #c0e8ff;
+      border: 1px solid #00b0ff;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #00f3ff;
+      box-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    #btnProses {
+      background: #00b0ff;
+      color: #001a2a;
+      font-weight: bold;
+      padding: 10px 20px;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    #btnProses:hover {
+      background: #00f3ff;
+      box-shadow: 0 0 12px rgba(0, 243, 255, 0.6);
+    }
+
+    .btn-clear {
+      background: #2c3e50;
+      color: #a0d8ff;
+      border: 1px solid #00b0ff;
+    }
+
+    .btn-clear:hover {
+      background: #34495e;
+      color: #00f3ff;
+    }
+
+    /* ==============================
+       HASIL ANALISIS — NEON CARD
+       ============================== */
+
+    .depo-wd-container {
+      max-width: 1200px;
+      margin: 20px auto;
+      font-family: 'Segoe UI', 'Consolas', monospace, sans-serif;
+      background: #0a0f1d;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+    }
+
+    .depo-wd-title {
+      text-align: center;
+      color: #00f3ff;
+      margin-bottom: 20px;
+      font-size: 26px;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.6);
+      letter-spacing: 1px;
+    }
+
+    .summary-box {
+      background: rgba(10, 20, 40, 0.7);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      color: #a0d8ff;
+      font-size: 14px;
+      text-align: center;
+      box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.15);
+      border: 1px solid rgba(0, 200, 255, 0.2);
+    }
+
+    .user-card {
+      background: rgba(12, 20, 38, 0.85);
+      border-radius: 14px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+      border-left: 4px solid #00b0ff;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .user-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 229, 255, 0.25);
+    }
+
+    .user-header {
+      padding: 14px 20px;
+      font-weight: bold;
+      font-size: 17px;
+      color: white;
+      background: linear-gradient(90deg, #002244, #004466);
+      text-shadow: 0 0 6px rgba(0, 243, 255, 0.5);
+    }
+
+    .user-name-text {
+      text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+      letter-spacing: 0.5px;
+    }
+
+    .user-body {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 16px;
+      gap: 20px;
+    }
+
+    .col {
+      flex: 1;
+      min-width: 250px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .col-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      color: #00e5ff;
+      margin-bottom: 8px;
+      font-weight: 700;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #00b0ff;
+      text-shadow: 0 0 4px rgba(0, 229, 255, 0.4);
+    }
+
+    .col-title small {
+      color: #88b8e6;
+      font-weight: normal;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .entry-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 160px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .entry-item {
+      background: rgba(20, 35, 65, 0.6);
+      padding: 9px 14px;
+      margin-bottom: 7px;
+      border-radius: 8px;
+      font-family: 'Consolas', monospace;
+      color: #c0e8ff;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid rgba(0, 180, 255, 0.2);
+      transition: background 0.2s;
+    }
+
+    .entry-item:hover {
+      background: rgba(30, 50, 90, 0.8);
+      border-color: rgba(0, 229, 255, 0.4);
+    }
+
+    .entry-item.empty {
+      color: #666 !important;
+      font-style: italic;
+      text-align: center;
+    }
+
+    .nominal {
+      display: block;
+      font-weight: bold;
+      color: #e0f7ff;
+    }
+
+    .withdraw-note {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #a5d6a7;
+      font-style: italic;
+      padding-left: 2px;
+      border-left: 2px solid #4caf50;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed #00b0ff;
+    }
+
+    .total-label {
+      color: #88b8e6;
+      font-weight: 600;
+    }
+
+    .total-value {
+      font-weight: 700;
+      font-family: 'Consolas', monospace;
+    }
+
+    .deposit-color {
+      color: #4fc3f7;
+      text-shadow: 0 0 5px rgba(79, 195, 247, 0.4);
+    }
+
+    .withdraw-color {
+      color: #ff8a80;
+      text-shadow: 0 0 5px rgba(255, 138, 128, 0.4);
+    }
+
+    .user-footer {
+      padding: 14px 20px;
+      background: rgba(10, 20, 40, 0.6);
+      border-top: 1px solid rgba(0, 150, 255, 0.2);
+    }
+
+    .selisih-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .selisih-value {
+      font-family: 'Consolas', monospace;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .diff-cocok {
+      color: #4dff4d;
+      text-shadow: 0 0 6px rgba(77, 255, 77, 0.5);
+    }
+
+    .diff-lebih {
+      color: #ffcc00;
+      text-shadow: 0 0 6px rgba(255, 204, 0, 0.5);
+    }
+
+    .diff-kurang {
+      color: #ff6666;
+      text-shadow: 0 0 6px rgba(255, 102, 102, 0.5);
+    }
+
+    .selisih-desc {
+      font-size: 13px;
+      font-style: italic;
+    }
+
+    .selisih-desc.deposit-bigger {
+      color: #66bb6a;
+    }
+
+    .selisih-desc.withdraw-bigger {
+      color: #ff6b6b;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 13px;
+      background: rgba(0, 30, 60, 0.4);
+      border: 1px solid;
+      box-shadow: 0 0 6px rgba(0, 200, 255, 0.2);
+    }
+
+    /* Scrollbar */
+    .entry-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .entry-list::-webkit-scrollbar-track {
+      background: #0a1429;
+      border-radius: 4px;
+    }
+
+    .entry-list::-webkit-scrollbar-thumb {
+      background: #00b0ff;
+      border-radius: 4px;
+      border: 2px solid #0a1429;
+    }
+
+    .entry-list::-webkit-scrollbar-thumb:hover {
+      background: #00e5ff;
+    }
+
+    /* Error message */
+    .error-msg {
+      text-align: center;
+      padding: 16px;
+      color: #ff6b6b;
+      font-weight: bold;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>💰 Deposit vs Withdraw Analyzer</h1>
+
+  <div class="input-section">
+    <div class="section">
+      <div class="section-title">📥 DATA DEPOSIT</div>
+      <textarea id="dataDeposit" placeholder="Contoh:
+Depo BCA / ADIV ARYA ATMAJA	16,300,000
+DEPO MYBCA / MIA	2,900,000"></textarea>
+      <div class="buttons">
+        <button class="btn-clear" onclick="clearDeposit()">🗑️ Clear</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📤 DATA WITHDRAW</div>
+      <textarea id="dataWithdraw" placeholder="Format: [Keterangan] [Nominal] [Sumber Deposit]
+Contoh:
+PENGIRIMAN DANA...	16,300,000	Depo BCA / ADIV ARYA ATMAJA
+KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
+      <div class="buttons">
+        <button class="btn-clear" onclick="clearWithdraw()">🗑️ Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="buttons" style="max-width:1200px; margin:0 auto 20px;">
+    <button id="btnProses" onclick="prosesDepositWithdraw()">⚡ PROSES ANALISIS</button>
+  </div>
+
+  <div id="hasilDepoWd"></div>
+
+  <script>
+    function clearDeposit() {
+      document.getElementById('dataDeposit').value = '';
+      document.getElementById('dataDeposit').focus();
+    }
+
+    function clearWithdraw() {
+      document.getElementById('dataWithdraw').value = '';
+      document.getElementById('dataWithdraw').focus();
+    }
+
+    function prosesDepositWithdraw() {
+      const rawDeposit = document.getElementById('dataDeposit').value;
+      const rawWithdraw = document.getElementById('dataWithdraw').value;
+
+      if (!rawDeposit.trim() || !rawWithdraw.trim()) {
+        document.getElementById('hasilDepoWd').innerHTML = 
+          '<div class="error-msg">⚠️ Harap isi kedua kolom DEPOSIT dan WITHDRAW!</div>';
+        return;
+      }
+
+      function extractNameFromText(text) {
         let cleaned = text.trim();
         const depoIndex = cleaned.indexOf('DEPO ');
         if (depoIndex !== -1) {
-            cleaned = cleaned.substring(depoIndex + 5).trim();
+          cleaned = cleaned.substring(depoIndex + 5).trim();
         }
         const lastSlash = cleaned.lastIndexOf('/');
         if (lastSlash !== -1) {
-            return cleaned.substring(lastSlash + 1).trim();
+          return cleaned.substring(lastSlash + 1).trim();
         }
         return cleaned;
-    }
+      }
 
-    // Parse satu baris data
-    function parseLine(line, isWithdraw = false) {
+      function parseLine(line, isWithdraw = false) {
         line = line.trim();
         if (!line) return null;
 
-        // Prioritaskan pemisahan tab (disarankan untuk paste dari Excel/Sheets)
         const parts = line.split('\t').map(p => p.trim()).filter(p => p);
-
         if (parts.length >= 2) {
-            if (isWithdraw) {
-                // Format: [Keterangan] [Nominal] [Sumber DEPO]
-                const keterangan = parts[0];
-                const nominalRaw = parts[1];
-                const sourceDesc = parts.length >= 3 ? parts[2] : keterangan;
-                const nama = extractNameFromText(sourceDesc);
-                const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
-                return { nama, nominalRaw, nominalClean, asli: line, note: keterangan };
-            } else {
-                // Format: [Deskripsi DEPO] [Nominal]
-                const desc = parts[0];
-                const nominalRaw = parts[1];
-                const nama = extractNameFromText(desc);
-                const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
-                return { nama, nominalRaw, nominalClean, asli: line, note: '' };
-            }
+          if (isWithdraw) {
+            const keterangan = parts[0];
+            const nominalRaw = parts[1];
+            const sourceDesc = parts.length >= 3 ? parts[2] : keterangan;
+            const nama = extractNameFromText(sourceDesc);
+            const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
+            return { nama, nominalRaw, nominalClean, asli: line, note: keterangan };
+          } else {
+            const desc = parts[0];
+            const nominalRaw = parts[1];
+            const nama = extractNameFromText(desc);
+            const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
+            return { nama, nominalRaw, nominalClean, asli: line, note: '' };
+          }
         }
 
-        // Fallback ke regex (kurang akurat, tapi tetap berusaha)
         if (isWithdraw) {
-            const match = line.match(/^(.+?)\s+([0-9,.]+)\s+(.+)$/);
-            if (match) {
-                const keterangan = match[1].trim();
-                const nominalRaw = match[2].trim();
-                const sourceDesc = match[3].trim();
-                const nama = extractNameFromText(sourceDesc);
-                const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
-                return { nama, nominalRaw, nominalClean, asli: line, note: keterangan };
-            }
+          const match = line.match(/^(.+?)\s+([0-9,.]+)\s+(.+)$/);
+          if (match) {
+            const keterangan = match[1].trim();
+            const nominalRaw = match[2].trim();
+            const sourceDesc = match[3].trim();
+            const nama = extractNameFromText(sourceDesc);
+            const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
+            return { nama, nominalRaw, nominalClean, asli: line, note: keterangan };
+          }
         } else {
-            const match = line.match(/(.+?)\s+([0-9,.]+)$/);
-            if (match) {
-                const desc = match[1].trim();
-                const nominalRaw = match[2].trim();
-                const nama = extractNameFromText(desc);
-                const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
-                return { nama, nominalRaw, nominalClean, asli: line, note: '' };
-            }
+          const match = line.match(/(.+?)\s+([0-9,.]+)$/);
+          if (match) {
+            const desc = match[1].trim();
+            const nominalRaw = match[2].trim();
+            const nama = extractNameFromText(desc);
+            const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
+            return { nama, nominalRaw, nominalClean, asli: line, note: '' };
+          }
         }
 
         return null;
-    }
+      }
 
-    // Parsing data
-    const depositList = rawDeposit
+      const depositList = rawDeposit
         .split('\n')
         .map(line => parseLine(line, false))
         .filter(item => item);
 
-    const withdrawList = rawWithdraw
+      const withdrawList = rawWithdraw
         .split('\n')
         .map(line => parseLine(line, true))
         .filter(item => item);
 
-    if (depositList.length === 0 || withdrawList.length === 0) {
-        document.getElementById('hasilDepoWd').innerHTML = '<p style="color:#ef5350; font-weight:bold; text-align:center;">❌ Format data tidak valid!</p>';
+      if (depositList.length === 0 || withdrawList.length === 0) {
+        document.getElementById('hasilDepoWd').innerHTML = 
+          '<div class="error-msg">❌ Format data tidak valid! Pastikan ada angka di akhir baris.</div>';
         return;
-    }
+      }
 
-    // Agregasi
-    const depositTotal = {};
-    const withdrawTotal = {};
-    const depositDetails = {};
-    const withdrawDetails = {};
+      const depositTotal = {};
+      const withdrawTotal = {};
+      const depositDetails = {};
+      const withdrawDetails = {};
 
-    depositList.forEach(item => {
+      depositList.forEach(item => {
         const key = item.nama.toLowerCase().trim();
         depositTotal[key] = (depositTotal[key] || 0) + item.nominalClean;
         if (!depositDetails[key]) depositDetails[key] = [];
         depositDetails[key].push({ raw: item.nominalRaw, clean: item.nominalClean, asli: item.asli });
-    });
+      });
 
-    withdrawList.forEach(item => {
+      withdrawList.forEach(item => {
         const key = item.nama.toLowerCase().trim();
         withdrawTotal[key] = (withdrawTotal[key] || 0) + item.nominalClean;
         if (!withdrawDetails[key]) withdrawDetails[key] = [];
         withdrawDetails[key].push({
-            raw: item.nominalRaw,
-            clean: item.nominalClean,
-            asli: item.asli,
-            note: item.note || ''
+          raw: item.nominalRaw,
+          clean: item.nominalClean,
+          asli: item.asli,
+          note: item.note || ''
         });
-    });
+      });
 
-    // Hasil per pengguna
-    const allNames = new Set([...Object.keys(depositTotal), ...Object.keys(withdrawTotal)]);
-    const results = [];
-    let totalCocok = 0;
+      const allNames = new Set([...Object.keys(depositTotal), ...Object.keys(withdrawTotal)]);
+      const results = [];
+      let totalCocok = 0;
 
-    allNames.forEach(key => {
+      allNames.forEach(key => {
         const namaAsli = depositDetails[key] 
-            ? depositList.find(d => d.nama.toLowerCase().trim() === key)?.nama
-            : withdrawList.find(w => w.nama.toLowerCase().trim() === key)?.nama
-            || key;
+          ? depositList.find(d => d.nama.toLowerCase().trim() === key)?.nama
+          : withdrawList.find(w => w.nama.toLowerCase().trim() === key)?.nama
+          || key;
 
         const depo = depositTotal[key] || 0;
         const wd = withdrawTotal[key] || 0;
@@ -360,234 +557,127 @@ function prosesDepositWithdraw() {
 
         let status, bgColor;
         if (depo > 0 && wd > 0) {
-            if (diff === 0) {
-                status = '✅ COCOK';
-                bgColor = '#2e7d32';
-                totalCocok++;
-            } else {
-                status = '⚠️ BEDA TOTAL';
-                bgColor = '#ff8f00';
-            }
+          if (diff === 0) {
+            status = '✅ COCOK';
+            bgColor = '#2e7d32';
+            totalCocok++;
+          } else {
+            status = '⚠️ BEDA TOTAL';
+            bgColor = '#ff8f00';
+          }
         } else {
-            status = '❌ TIDAK LENGKAP';
-            bgColor = '#b71c1c';
+          status = '❌ TIDAK LENGKAP';
+          bgColor = '#b71c1c';
         }
 
         const depoFmt = depo > 0 ? new Intl.NumberFormat('id-ID').format(depo) : '–';
         const wdFmt = wd > 0 ? new Intl.NumberFormat('id-ID').format(wd) : '–';
         const selisihDisplay = diff === 0 
-            ? '0' 
-            : (diff > 0 
-                ? `+${new Intl.NumberFormat('id-ID').format(diff)}` 
-                : new Intl.NumberFormat('id-ID').format(diff));
+          ? '0' 
+          : (diff > 0 
+              ? `+${new Intl.NumberFormat('id-ID').format(diff)}` 
+              : new Intl.NumberFormat('id-ID').format(diff));
+
+        const diffClass = diff === 0 ? 'diff-cocok' : (diff > 0 ? 'diff-lebih' : 'diff-kurang');
 
         results.push({
-            nama: namaAsli,
-            depoFmt,
-            wdFmt,
-            selisihDisplay,
-            diff,
-            status,
-            bgColor,
-            depositEntries: depositDetails[key] || [],
-            withdrawEntries: withdrawDetails[key] || []
+          nama: namaAsli,
+          depoFmt,
+          wdFmt,
+          selisihDisplay,
+          diff,
+          diffClass,
+          status,
+          bgColor,
+          depositEntries: depositDetails[key] || [],
+          withdrawEntries: withdrawDetails[key] || []
         });
-    });
+      });
 
-    // Bangun HTML
-    let html = `
-    <style>
-      .depo-wd-container {
-        max-width: 1200px;
-        margin: 20px auto;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      }
-      .depo-wd-title {
-        text-align: center;
-        color: #4fc3f7;
-        margin-bottom: 20px;
-        font-size: 24px;
-        font-weight: 600;
-      }
-      .summary-box {
-        background: #0f2a4d;
-        padding: 16px;
-        border-radius: 10px;
-        margin-bottom: 25px;
-        color: #bbdefb;
-        font-size: 14px;
-        text-align: center;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      }
-      .user-card {
-        background: #121f33;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        overflow: hidden;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-        border-left: 5px solid;
-      }
-      .user-header {
-        padding: 14px 20px;
-        font-weight: bold;
-        font-size: 16px;
-        color: white;
-      }
-      .user-body {
-        display: flex;
-        flex-wrap: wrap;
-        padding: 16px;
-        gap: 20px;
-      }
-      .col {
-        flex: 1;
-        min-width: 250px;
-        display: flex;
-        flex-direction: column;
-      }
-      .col-title {
-        font-size: 14px;
-        color: #4fc3f7;
-        margin-bottom: 8px;
-        font-weight: 600;
-        padding-bottom: 4px;
-        border-bottom: 1px solid #3498db;
-      }
-      .entry-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        max-height: 160px;
-        overflow-y: auto;
-        flex: 1;
-      }
-      .entry-item {
-        background: #1e3a5f;
-        padding: 8px 12px;
-        margin-bottom: 6px;
-        border-radius: 6px;
-        font-family: monospace;
-        color: #bbdefb;
-        font-size: 13px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .total-row {
-        margin-top: 10px;
-        padding-top: 8px;
-        border-top: 1px dashed #3498db;
-        font-weight: bold;
-        font-family: monospace;
-        color: white;
-        flex-shrink: 0;
-      }
-      .status-badge {
-        display: inline-block;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: bold;
-        margin-top: 12px;
-        font-size: 13px;
-      }
-      .diff-cocok { color: #66bb6a; }
-      .diff-lebih { color: #ff8f00; }
-      .diff-kurang { color: #ef5350; }
+      let html = `
+      <div class="depo-wd-container">
+        <div class="depo-wd-title">💰 ANALISIS DEPOSIT vs WITHDRAW (Per Pengguna)</div>
+        <div class="summary-box">
+          <strong>📊 Ringkasan:</strong><br>
+          Total Pengguna: <strong>${results.length}</strong> | 
+          <span style="color:#66bb6a;">✅ COCOK: ${totalCocok}</span> | 
+          <span style="color:#ff8f00;">⚠️ BEDA TOTAL: ${results.filter(r => r.status === '⚠️ BEDA TOTAL').length}</span> | 
+          <span style="color:#ef5350;">❌ TIDAK LENGKAP: ${results.filter(r => r.status === '❌ TIDAK LENGKAP').length}</span>
+        </div>
+      `;
 
-      /* Scrollbar styling */
-      .entry-list::-webkit-scrollbar {
-        width: 6px;
-      }
-      .entry-list::-webkit-scrollbar-track {
-        background: #0d1b2a;
-        border-radius: 3px;
-      }
-      .entry-list::-webkit-scrollbar-thumb {
-        background: #4fc3f7;
-        border-radius: 3px;
-      }
-      .entry-list::-webkit-scrollbar-thumb:hover {
-        background: #29b6f6;
-      }
-    </style>
-
-    <div class="depo-wd-container">
-      <div class="depo-wd-title">💰 ANALISIS DEPOSIT vs WITHDRAW (Per Pengguna)</div>
-      
-      <div class="summary-box">
-        <strong>📊 Ringkasan:</strong><br>
-        Total Pengguna: <strong>${results.length}</strong> | 
-        <span style="color:#66bb6a;">✅ COCOK: ${totalCocok}</span> | 
-        <span style="color:#ff8f00;">⚠️ BEDA TOTAL: ${results.filter(r => r.status === '⚠️ BEDA TOTAL').length}</span> | 
-        <span style="color:#ef5350;">❌ TIDAK LENGKAP: ${results.filter(r => r.status === '❌ TIDAK LENGKAP').length}</span>
-      </div>
-    `;
-
-    results.forEach(row => {
-        const diffClass = row.diff === 0 ? 'diff-cocok' : (row.diff > 0 ? 'diff-lebih' : 'diff-kurang');
-
+      results.forEach(row => {
         html += `
         <div class="user-card" style="border-left-color: ${row.bgColor};">
           <div class="user-header" style="background: ${row.bgColor};">
-            ${row.nama}
+            <span class="user-name-text">${row.nama}</span>
           </div>
+
           <div class="user-body">
             <div class="col">
-              <div class="col-title">📥 DEPOSIT (${row.depositEntries.length} entri)</div>
+              <div class="col-title">
+                <span>📥 DEPOSIT</span>
+                <small>(${row.depositEntries.length} entri)</small>
+              </div>
               <ul class="entry-list">
-                ${row.depositEntries.length > 0 
+                ${row.depositEntries.length > 0
                   ? row.depositEntries.map(e => `<li class="entry-item">${e.raw}</li>`).join('')
-                  : '<li class="entry-item" style="color:#666;">– Tidak ada –</li>'
+                  : '<li class="entry-item empty">– Tidak ada transaksi –</li>'
                 }
               </ul>
-              <div class="total-row">Total: <span style="color:#64b5f6;">${row.depoFmt}</span></div>
+              <div class="total-row">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-value deposit-color">${row.depoFmt}</span>
+              </div>
             </div>
 
             <div class="col">
-              <div class="col-title">📤 WITHDRAW (${row.withdrawEntries.length} entri)</div>
+              <div class="col-title">
+                <span>📤 WITHDRAW</span>
+                <small>(${row.withdrawEntries.length} entri)</small>
+              </div>
               <ul class="entry-list">
-                ${row.withdrawEntries.length > 0 
+                ${row.withdrawEntries.length > 0
                   ? row.withdrawEntries.map(e => `
                       <li class="entry-item">
-                        ${e.raw}
-                        ${e.note ? `<br><span style="color:#a5d6a7; font-size:12px;">💬 ${e.note}</span>` : ''}
+                        <span class="nominal">${e.raw}</span>
+                        ${e.note
+                          ? `<div class="withdraw-note">💬 ${e.note}</div>`
+                          : ''}
                       </li>
                     `).join('')
-                  : '<li class="entry-item" style="color:#666;">– Tidak ada –</li>'
+                  : '<li class="entry-item empty">– Tidak ada transaksi –</li>'
                 }
               </ul>
-              <div class="total-row">Total: <span style="color:#ab47bc;">${row.wdFmt}</span></div>
+              <div class="total-row">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-value withdraw-color">${row.wdFmt}</span>
+              </div>
             </div>
           </div>
-          <div style="padding: 12px 20px; background: rgba(0,0,0,0.2);">
-            <div>
-              <strong>SELISIH:</strong> 
-              <span class="${diffClass}" style="font-family:monospace; font-weight:bold;">${row.selisihDisplay}</span>
-              ${row.diff > 0 ? '<span style="color:#66bb6a;">(Deposit lebih besar)</span>' : 
-                row.diff < 0 ? '<span style="color:#ef5350;">(Withdraw lebih besar)</span>' : ''}
+
+          <div class="user-footer">
+            <div class="selisih-line">
+              <strong>SELISIH:</strong>
+              <span class="selisih-value ${row.diffClass}">${row.selisihDisplay}</span>
+              ${row.diff > 0
+                ? '<span class="selisih-desc deposit-bigger">(Deposit lebih besar)</span>'
+                : row.diff < 0
+                  ? '<span class="selisih-desc withdraw-bigger">(Withdraw lebih besar)</span>'
+                  : ''
+              }
             </div>
-            <div class="status-badge" style="background: ${row.bgColor}40; color: white;">${row.status}</div>
+            <div class="status-badge" style="background: ${row.bgColor}40; border-color: ${row.bgColor};">
+              ${row.status}
+            </div>
           </div>
         </div>
         `;
-    });
+      });
 
-    html += `</div>`;
-    document.getElementById('hasilDepoWd').innerHTML = html;
-}
-
-// Event listener untuk mode switching (jika ada)
-document.querySelectorAll('.sub-mode-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const mode = this.getAttribute('data-mode');
-        document.querySelectorAll('.sub-mode-btn').forEach(btn => btn.classList.remove('active'));
-        this.classList.add('active');
-        document.querySelectorAll('.sub-mode-content').forEach(el => el.style.display = 'none');
-        document.getElementById('sub-' + mode).style.display = 'block';
-    });
-});
-
-
-              </script>
-                        </body>
-                        </html>
+      html += `</div>`;
+      document.getElementById('hasilDepoWd').innerHTML = html;
+    }
+  </script>
+</body>
+</html>
