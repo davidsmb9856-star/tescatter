@@ -467,6 +467,26 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       document.getElementById('dataWithdraw').focus();
     }
 
+    // Fungsi parsing aman untuk respons Google Sheets
+    function parseSheetResponse(text) {
+      try {
+        const jsonStart = text.indexOf('{');
+        const jsonEnd = text.lastIndexOf('}') + 1;
+        const jsonString = text.substring(jsonStart, jsonEnd);
+        const data = JSON.parse(jsonString);
+        if (!data.table || !Array.isArray(data.table.rows)) return [];
+        
+        return data.table.rows.map(row => {
+          if (!row.c) return '';
+          return row.c.map(cell => cell?.v ?? '').join('\t');
+        });
+      } catch (e) {
+        console.error('Error parsing sheet response:', e);
+        return [];
+      }
+    }
+
+    // Fungsi utama: ambil data dari sheet Anda
     async function loadFromSheet() {
       const sheetId = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
       const depositGid = '1211507274';
@@ -475,19 +495,19 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       const loadingIcon = document.getElementById('loadingIcon');
       loadingIcon.style.display = 'inline-block';
       const btn = document.querySelector('.btn-sheet');
-      const originalText = btn.innerHTML;
       btn.disabled = true;
 
       const depositArea = document.getElementById('dataDeposit');
       const withdrawArea = document.getElementById('dataWithdraw');
 
       try {
-        // Ambil DEPOSIT: A101:B500 → offset 100, limit 400
-        const depoQuery = encodeURIComponent('select A,B offset 100 limit 400');
-        const depoUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${depositGid}&tq=${depoQuery}`;
+        // Ambil seluruh tab Deposit, lalu potong A101:B500 → baris 101-500 (indeks 100-499)
+        const depoUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${depositGid}&tq=select%20A,B`;
         const depoRes = await fetch(depoUrl);
         const depoText = await depoRes.text();
-        let depositData = parseSheetResponse(depoText)
+        let allDepositRows = parseSheetResponse(depoText);
+        let depositData = allDepositRows
+          .slice(100, 500)
           .filter(line => {
             const parts = line.split('\t');
             return parts[0]?.trim() && parts[1]?.trim();
@@ -495,12 +515,13 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
           .join('\n');
         depositArea.value = depositData;
 
-        // Ambil WITHDRAW: I8:K1809 → offset 7, limit 1802
-        const wdQuery = encodeURIComponent('select I,J,K offset 7 limit 1802');
-        const wdUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${withdrawGid}&tq=${wdQuery}`;
+        // Ambil seluruh tab Withdraw, lalu potong I8:K1809 → baris 8-1809 (indeks 7-1808)
+        const wdUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${withdrawGid}&tq=select%20I,J,K`;
         const wdRes = await fetch(wdUrl);
         const wdText = await wdRes.text();
-        let withdrawData = parseSheetResponse(wdText)
+        let allWithdrawRows = parseSheetResponse(wdText);
+        let withdrawData = allWithdrawRows
+          .slice(7, 1809)
           .filter(line => {
             const parts = line.split('\t');
             return parts[0]?.trim() && parts[1]?.trim();
@@ -511,28 +532,14 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         alert('✅ Data berhasil dimuat dari Google Sheet!');
       } catch (err) {
         console.error(err);
-        alert('❌ Gagal memuat data.\nPastikan sheet dipublish sebagai publik.');
+        alert('❌ Gagal memuat data.\nPastikan sheet dipublish publik dan file dibuka via server.');
       } finally {
         loadingIcon.style.display = 'none';
         btn.disabled = false;
       }
     }
 
-    function parseSheetResponse(text) {
-      try {
-        const jsonStart = text.indexOf('{');
-        const jsonEnd = text.lastIndexOf('}') + 1;
-        const jsonString = text.substring(jsonStart, jsonEnd);
-        const data = JSON.parse(jsonString);
-        return data.table.rows.map(row =>
-          row.c.map(cell => cell?.v ?? '').join('\t')
-        );
-      } catch (e) {
-        console.error('Gagal parsing sheet:', e);
-        return [];
-      }
-    }
-
+    // Fungsi utama analisis
     function prosesDepositWithdraw() {
       const rawDeposit = document.getElementById('dataDeposit').value;
       const rawWithdraw = document.getElementById('dataWithdraw').value;
