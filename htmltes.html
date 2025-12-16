@@ -120,6 +120,21 @@
       color: #00f3ff;
     }
 
+    .btn-sheet {
+      background: #00b0ff;
+      color: #001a2a;
+      padding: 10px 20px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-sheet:hover {
+      background: #00f3ff;
+      box-shadow: 0 0 12px rgba(0, 243, 255, 0.6);
+    }
+
     /* ==============================
        HASIL ANALISIS — NEON CARD
        ============================== */
@@ -387,6 +402,22 @@
       font-weight: bold;
       font-size: 16px;
     }
+
+    /* Loading indicator */
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0, 243, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #00f3ff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -415,7 +446,11 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
     </div>
   </div>
 
-  <div class="buttons" style="max-width:1200px; margin:0 auto 20px;">
+  <div class="buttons" style="max-width:1200px; margin:0 auto 20px; justify-content: center;">
+    <button class="btn-sheet" onclick="loadFromSheet()">
+      <span class="loading" id="loadingIcon" style="display:none;"></span>
+      📥 Muat Data dari Google Sheet
+    </button>
     <button id="btnProses" onclick="prosesDepositWithdraw()">⚡ PROSES ANALISIS</button>
   </div>
 
@@ -430,6 +465,72 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
     function clearWithdraw() {
       document.getElementById('dataWithdraw').value = '';
       document.getElementById('dataWithdraw').focus();
+    }
+
+    async function loadFromSheet() {
+      const sheetId = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
+      const depositGid = '1211507274';
+      const withdrawGid = '1694551844';
+      
+      const loadingIcon = document.getElementById('loadingIcon');
+      loadingIcon.style.display = 'inline-block';
+      const btn = document.querySelector('.btn-sheet');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+
+      const depositArea = document.getElementById('dataDeposit');
+      const withdrawArea = document.getElementById('dataWithdraw');
+
+      try {
+        // Ambil DEPOSIT: A101:B500 → offset 100, limit 400
+        const depoQuery = encodeURIComponent('select A,B offset 100 limit 400');
+        const depoUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${depositGid}&tq=${depoQuery}`;
+        const depoRes = await fetch(depoUrl);
+        const depoText = await depoRes.text();
+        let depositData = parseSheetResponse(depoText)
+          .filter(line => {
+            const parts = line.split('\t');
+            return parts[0]?.trim() && parts[1]?.trim();
+          })
+          .join('\n');
+        depositArea.value = depositData;
+
+        // Ambil WITHDRAW: I8:K1809 → offset 7, limit 1802
+        const wdQuery = encodeURIComponent('select I,J,K offset 7 limit 1802');
+        const wdUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${withdrawGid}&tq=${wdQuery}`;
+        const wdRes = await fetch(wdUrl);
+        const wdText = await wdRes.text();
+        let withdrawData = parseSheetResponse(wdText)
+          .filter(line => {
+            const parts = line.split('\t');
+            return parts[0]?.trim() && parts[1]?.trim();
+          })
+          .join('\n');
+        withdrawArea.value = withdrawData;
+
+        alert('✅ Data berhasil dimuat dari Google Sheet!');
+      } catch (err) {
+        console.error(err);
+        alert('❌ Gagal memuat data.\nPastikan sheet dipublish sebagai publik.');
+      } finally {
+        loadingIcon.style.display = 'none';
+        btn.disabled = false;
+      }
+    }
+
+    function parseSheetResponse(text) {
+      try {
+        const jsonStart = text.indexOf('{');
+        const jsonEnd = text.lastIndexOf('}') + 1;
+        const jsonString = text.substring(jsonStart, jsonEnd);
+        const data = JSON.parse(jsonString);
+        return data.table.rows.map(row =>
+          row.c.map(cell => cell?.v ?? '').join('\t')
+        );
+      } catch (e) {
+        console.error('Gagal parsing sheet:', e);
+        return [];
+      }
     }
 
     function prosesDepositWithdraw() {
