@@ -467,7 +467,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       document.getElementById('dataWithdraw').focus();
     }
 
-    // Fungsi parsing aman untuk respons Google Sheets
     function parseSheetResponse(text) {
       try {
         const jsonStart = text.indexOf('{');
@@ -475,7 +474,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         const jsonString = text.substring(jsonStart, jsonEnd);
         const data = JSON.parse(jsonString);
         if (!data.table || !Array.isArray(data.table.rows)) return [];
-        
         return data.table.rows.map(row => {
           if (!row.c) return '';
           return row.c.map(cell => cell?.v ?? '').join('\t');
@@ -486,7 +484,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     }
 
-    // Fungsi utama: ambil data dari sheet Anda
     async function loadFromSheet() {
       const sheetId = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
       const depositGid = '1211507274';
@@ -501,21 +498,21 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       const withdrawArea = document.getElementById('dataWithdraw');
 
       try {
-        // Ambil seluruh tab Deposit, lalu potong A101:B500 → baris 101-500 (indeks 100-499)
+        // === AMBIL DEPOSIT: A101:B250 (hanya data yang ada) ===
         const depoUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${depositGid}&tq=select%20A,B`;
         const depoRes = await fetch(depoUrl);
         const depoText = await depoRes.text();
         let allDepositRows = parseSheetResponse(depoText);
         let depositData = allDepositRows
-          .slice(100, 500)
+          .slice(100, 250) // A101 = indeks 100, B250 = indeks 249
           .filter(line => {
             const parts = line.split('\t');
-            return parts[0]?.trim() && parts[1]?.trim();
+            return (parts[0] || '').trim() !== '' && (parts[1] || '').trim() !== '';
           })
           .join('\n');
         depositArea.value = depositData;
 
-        // Ambil seluruh tab Withdraw, lalu potong I8:K1809 → baris 8-1809 (indeks 7-1808)
+        // === AMBIL WITHDRAW: I8:K1809 ===
         const wdUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${withdrawGid}&tq=select%20I,J,K`;
         const wdRes = await fetch(wdUrl);
         const wdText = await wdRes.text();
@@ -524,7 +521,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
           .slice(7, 1809)
           .filter(line => {
             const parts = line.split('\t');
-            return parts[0]?.trim() && parts[1]?.trim();
+            return (parts[0] || '').trim() !== '' && (parts[1] || '').trim() !== '';
           })
           .join('\n');
         withdrawArea.value = withdrawData;
@@ -539,7 +536,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     }
 
-    // Fungsi utama analisis
     function prosesDepositWithdraw() {
       const rawDeposit = document.getElementById('dataDeposit').value;
       const rawWithdraw = document.getElementById('dataWithdraw').value;
