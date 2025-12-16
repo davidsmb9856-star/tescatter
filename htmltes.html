@@ -495,7 +495,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     }
 
-    // === MUAT DATA DEPOSIT DARI A101:B320 ===
+    // === MUAT DATA DEPOSIT: A101:B500 ===
     async function loadDeposit() {
       const loading = document.getElementById('loadingDeposit');
       const btn = document.querySelector('.btn-action:nth-child(2)');
@@ -508,12 +508,15 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         const text = await res.text();
         const allRows = parseSheetResponse(text);
         
-        // Ambil baris 101–320 (indeks 100–319)
+        // Ambil baris 101–500 (indeks 100–499)
         const data = allRows
-          .slice(100, 320)
+          .slice(100, 500)
           .filter(line => {
             const [colA, colB] = line.split('\t');
-            return (colA || '').trim() !== '' && (colB || '').trim() !== '';
+            const a = (colA || '').trim();
+            const b = (colB || '').trim();
+            // Pastikan A tidak kosong dan B adalah angka valid
+            return a !== '' && b !== '' && !isNaN(b.replace(/[^0-9]/g, ''));
           })
           .join('\n');
 
@@ -526,7 +529,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     }
 
-    // === MUAT DATA WITHDRAW DARI I8:K1809 ===
+    // === MUAT DATA WITHDRAW: I8:K1809 ===
     async function loadWithdraw() {
       const loading = document.getElementById('loadingWithdraw');
       const btn = document.querySelector('.btn-action:nth-child(2)');
@@ -543,8 +546,12 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         const data = allRows
           .slice(7, 1809)
           .filter(line => {
-            const [colI, colJ] = line.split('\t');
-            return (colI || '').trim() !== '' && (colJ || '').trim() !== '';
+            const [colI, colJ, colK] = line.split('\t');
+            const i = (colI || '').trim();
+            const j = (colJ || '').trim();
+            const k = (colK || '').trim();
+            // Pastikan I, J, K tidak kosong dan J adalah angka
+            return i !== '' && j !== '' && k !== '' && !isNaN(j.replace(/[^0-9]/g, ''));
           })
           .join('\n');
 
