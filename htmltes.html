@@ -22,10 +22,78 @@
     h1 {
       text-align: center;
       color: #00f3ff;
-      margin: 8px 0 20px;
+      margin: 8px 0 16px;
       font-size: 24px;
       text-shadow: 0 0 8px rgba(0, 243, 255, 0.7);
       letter-spacing: 0.8px;
+    }
+
+    /* Toggle Mode */
+    .mode-toggle {
+      max-width: 1200px;
+      margin: 0 auto 16px;
+      text-align: center;
+      background: rgba(10, 18, 35, 0.85);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 200, 255, 0.25);
+    }
+
+    .toggle-label {
+      margin-right: 12px;
+      color: #00e5ff;
+      font-weight: 600;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 30px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #2c3e50;
+      transition: .3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #00b0ff;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(30px);
+    }
+
+    .mode-text {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #88b8e6;
     }
 
     .input-section {
@@ -134,7 +202,7 @@
       color: #00f3ff;
     }
 
-    /* === CARD HASIL: LEBIH KECIL TAPI LENGKAP === */
+    /* === CARD HASIL === */
     .depo-wd-container {
       max-width: 1200px;
       margin: 16px auto;
@@ -166,7 +234,7 @@
       border: 1px solid rgba(0, 200, 255, 0.15);
     }
 
-    .user-card {
+    .user-card, .bank-card {
       background: rgba(10, 18, 32, 0.92);
       border-radius: 10px;
       margin-bottom: 14px;
@@ -176,12 +244,12 @@
       transition: transform 0.1s ease;
     }
 
-    .user-card:hover {
+    .user-card:hover, .bank-card:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(0, 229, 255, 0.18);
     }
 
-    .user-header {
+    .card-header {
       padding: 10px 14px;
       font-weight: bold;
       font-size: 15px;
@@ -190,7 +258,7 @@
       text-shadow: 0 0 4px rgba(0, 243, 255, 0.4);
     }
 
-    .user-body {
+    .card-body {
       display: flex;
       flex-wrap: wrap;
       padding: 10px;
@@ -228,10 +296,10 @@
       list-style: none;
       padding: 0;
       margin: 0;
-      max-height: 70px; /* ✅ SANGAT DIPERKECIL */
+      max-height: 70px;
       overflow-y: auto;
       flex: 1;
-      font-size: 10px; /* ✅ FONT LEBIH KECIL */
+      font-size: 10px;
     }
 
     .entry-item {
@@ -299,7 +367,7 @@
     .deposit-color { color: #4fc3f7; }
     .withdraw-color { color: #ff8a80; }
 
-    .user-footer {
+    .card-footer {
       padding: 10px 14px;
       background: rgba(8, 18, 35, 0.7);
       border-top: 1px solid rgba(0, 150, 255, 0.15);
@@ -339,7 +407,6 @@
       text-align: center;
     }
 
-    /* Scrollbar kecil */
     .entry-list::-webkit-scrollbar {
       width: 6px;
     }
@@ -382,6 +449,16 @@
 <body>
   <h1>💰 Deposit vs Withdraw Analyzer</h1>
 
+  <!-- Toggle Mode -->
+  <div class="mode-toggle">
+    <span class="toggle-label">Mode Analisis:</span>
+    <label class="switch">
+      <input type="checkbox" id="modeToggle">
+      <span class="slider"></span>
+    </label>
+    <div class="mode-text" id="modeText">Saat ini: Per Pengguna</div>
+  </div>
+
   <div class="input-section">
     <div class="section">
       <div class="section-title">📥 DATA DEPOSIT</div>
@@ -423,6 +500,21 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
     const SHEET_ID = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
     const GID_DEPOSIT = '1211507274';
     const GID_WITHDRAW = '1694551844';
+
+    // Daftar bank/sumber yang didukung
+    const BANK_LIST = [
+      'BCA', 'BRI', 'BNI', 'CIMB', 'DANAMON', 'BSI', 'DANA', 'OVO',
+      'LINKAJA', 'GOPAY', 'JAGO', 'MAYBANK', 'SEABANK', 'MANDIRI', 'QRIS'
+    ];
+
+    let modePerBank = false;
+
+    // Setup toggle
+    document.getElementById('modeToggle').addEventListener('change', function() {
+      modePerBank = this.checked;
+      document.getElementById('modeText').textContent = 
+        modePerBank ? 'Saat ini: Per Bank' : 'Saat ini: Per Pengguna';
+    });
 
     function formatRupiah(angka) {
       if (angka == null || angka === 0) return '0';
@@ -516,6 +608,50 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     }
 
+    // Deteksi bank dari teks
+    function detectBank(text) {
+      const upper = (text || '').toUpperCase();
+      for (const bank of BANK_LIST) {
+        if (upper.includes(bank)) return bank;
+      }
+      return 'LAINNYA';
+    }
+
+    // Ekstrak nama seperti sebelumnya
+    function extractNameFromText(text) {
+      let cleaned = text.trim();
+      const depoIndex = cleaned.toUpperCase().indexOf('DEPO ');
+      if (depoIndex !== -1) cleaned = cleaned.substring(depoIndex + 5).trim();
+      const lastSlash = cleaned.lastIndexOf('/');
+      if (lastSlash !== -1) return cleaned.substring(lastSlash + 1).trim();
+      return cleaned;
+    }
+
+    function parseLine(line, isWithdraw = false) {
+      line = line.trim();
+      if (!line) return null;
+      const parts = line.split('\t').map(p => p.trim()).filter(p => p);
+      if (parts.length >= 2) {
+        if (isWithdraw) {
+          const keterangan = parts[0];
+          const nominalRaw = parts[1].replace(/,/g, '');
+          const sourceDesc = parts[2] || keterangan;
+          const nama = extractNameFromText(sourceDesc);
+          const bank = detectBank(sourceDesc);
+          const nominalClean = parseInt(nominalRaw) || 0;
+          return { nama, bank, nominalRaw: formatRupiah(nominalClean), nominalClean, asli: line, note: keterangan };
+        } else {
+          const desc = parts[0];
+          const nominalRaw = parts[1].replace(/,/g, '');
+          const nama = extractNameFromText(desc);
+          const bank = detectBank(desc);
+          const nominalClean = parseInt(nominalRaw) || 0;
+          return { nama, bank, nominalRaw: formatRupiah(nominalClean), nominalClean, asli: line, note: '' };
+        }
+      }
+      return null;
+    }
+
     function prosesDepositWithdraw() {
       const rawDeposit = document.getElementById('dataDeposit').value.trim();
       const rawWithdraw = document.getElementById('dataWithdraw').value.trim();
@@ -523,38 +659,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       if (!rawDeposit || !rawWithdraw) {
         document.getElementById('hasilDepoWd').innerHTML = '<div class="error-msg">⚠️ Harap isi kedua kolom!</div>';
         return;
-      }
-
-      function extractNameFromText(text) {
-        let cleaned = text.trim();
-        const depoIndex = cleaned.toUpperCase().indexOf('DEPO ');
-        if (depoIndex !== -1) cleaned = cleaned.substring(depoIndex + 5).trim();
-        const lastSlash = cleaned.lastIndexOf('/');
-        if (lastSlash !== -1) return cleaned.substring(lastSlash + 1).trim();
-        return cleaned;
-      }
-
-      function parseLine(line, isWithdraw = false) {
-        line = line.trim();
-        if (!line) return null;
-        const parts = line.split('\t').map(p => p.trim()).filter(p => p);
-        if (parts.length >= 2) {
-          if (isWithdraw) {
-            const keterangan = parts[0];
-            const nominalRaw = parts[1].replace(/,/g, '');
-            const sourceDesc = parts[2] || keterangan;
-            const nama = extractNameFromText(sourceDesc);
-            const nominalClean = parseInt(nominalRaw) || 0;
-            return { nama, nominalRaw: formatRupiah(nominalClean), nominalClean, asli: line, note: keterangan };
-          } else {
-            const desc = parts[0];
-            const nominalRaw = parts[1].replace(/,/g, '');
-            const nama = extractNameFromText(desc);
-            const nominalClean = parseInt(nominalRaw) || 0;
-            return { nama, nominalRaw: formatRupiah(nominalClean), nominalClean, asli: line, note: '' };
-          }
-        }
-        return null;
       }
 
       const depositList = rawDeposit.split('\n').map(l => parseLine(l, false)).filter(Boolean);
@@ -565,6 +669,14 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         return;
       }
 
+      if (modePerBank) {
+        analisisPerBank(depositList, withdrawList);
+      } else {
+        analisisPerPengguna(depositList, withdrawList);
+      }
+    }
+
+    function analisisPerPengguna(depositList, withdrawList) {
       const depositTotal = {}, withdrawTotal = {}, depositDetails = {}, withdrawDetails = {};
 
       depositList.forEach(item => {
@@ -623,9 +735,82 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         });
       });
 
+      renderPerPengguna(results, totalCocok);
+    }
+
+    function analisisPerBank(depositList, withdrawList) {
+      const depositByBank = {};
+      const withdrawByBank = {};
+      const depositEntriesByBank = {};
+      const withdrawEntriesByBank = {};
+
+      // Inisialisasi semua bank
+      BANK_LIST.forEach(bank => {
+        depositByBank[bank] = 0;
+        withdrawByBank[bank] = 0;
+        depositEntriesByBank[bank] = [];
+        withdrawEntriesByBank[bank] = [];
+      });
+      depositByBank['LAINNYA'] = 0;
+      withdrawByBank['LAINNYA'] = 0;
+      depositEntriesByBank['LAINNYA'] = [];
+      withdrawEntriesByBank['LAINNYA'] = [];
+
+      depositList.forEach(item => {
+        depositByBank[item.bank] += item.nominalClean;
+        depositEntriesByBank[item.bank].push({ raw: item.nominalRaw, clean: item.nominalClean, asli: item.asli });
+      });
+
+      withdrawList.forEach(item => {
+        withdrawByBank[item.bank] += item.nominalClean;
+        withdrawEntriesByBank[item.bank].push({ raw: item.nominalRaw, clean: item.nominalClean, asli: item.asli, note: item.note || '' });
+      });
+
+      const results = [];
+      let totalCocok = 0;
+
+      [...BANK_LIST, 'LAINNYA'].forEach(bank => {
+        const depo = depositByBank[bank] || 0;
+        const wd = withdrawByBank[bank] || 0;
+        const diff = depo - wd;
+
+        let status, bgColor;
+        if (depo > 0 && wd > 0) {
+          if (diff === 0) { status = '✅ COCOK'; bgColor = '#2e7d32'; totalCocok++; }
+          else { status = '⚠️ BEDA'; bgColor = '#ff8f00'; }
+        } else if (depo === 0 && wd === 0) {
+          return; // skip jika tidak ada data sama sekali
+        } else {
+          status = '❌ TIDAK LENGKAP';
+          bgColor = '#b71c1c';
+        }
+
+        const depoFmt = depo > 0 ? formatRupiah(depo) : '–';
+        const wdFmt = wd > 0 ? formatRupiah(wd) : '–';
+        const selisihDisplay = diff === 0 ? '0' : (diff > 0 ? `+${formatRupiah(diff)}` : `-${formatRupiah(Math.abs(diff))}`);
+        const diffClass = diff === 0 ? 'diff-cocok' : (diff > 0 ? 'diff-lebih' : 'diff-kurang');
+
+        results.push({
+          bank,
+          depoFmt,
+          wdFmt,
+          selisihDisplay,
+          diff,
+          diffClass,
+          status,
+          bgColor,
+          depositEntries: depositEntriesByBank[bank] || [],
+          withdrawEntries: withdrawEntriesByBank[bank] || []
+        });
+      });
+
+      renderPerBank(results, totalCocok);
+    }
+
+    function renderPerPengguna(results, totalCocok) {
       let html = `
       <div class="depo-wd-container">
-        <div class="depo-wd-title">💰 ANALISIS DEPOSIT vs WITHDRAW</div>
+        <div class="depo-wd-title">💰 ANALISIS DEPOSIT vs WITHDRAW (Per Pengguna)</div>
         <div class="summary-box">
           <strong>📊 Ringkasan:</strong> Total Pengguna: <strong>${results.length}</strong> | 
           <span style="color:#66bb6a;">✅ COCOK: ${totalCocok}</span> | 
@@ -637,8 +822,8 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       results.forEach(row => {
         html += `
         <div class="user-card" style="border-left-color: ${row.bgColor};">
-          <div class="user-header">${row.nama}</div>
-          <div class="user-body">
+          <div class="card-header">${row.nama}</div>
+          <div class="card-body">
             <div class="col">
               <div class="col-title">
                 <span>📥 DEP</span>
@@ -677,9 +862,80 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
               </div>
             </div>
           </div>
-          <div class="user-footer">
+          <div class="card-footer">
             <div>
               <strong>Δ:</strong> <span class="selisih-value ${row.diffClass}">${row.selisihDisplay}</span>
+            </div>
+            <div class="status-badge" style="background: ${row.bgColor}30; border-color: ${row.bgColor};">
+              ${row.status}
+            </div>
+          </div>
+        </div>
+        `;
+      });
+
+      html += `</div>`;
+      document.getElementById('hasilDepoWd').innerHTML = html;
+    }
+
+    function renderPerBank(results, totalCocok) {
+      let html = `
+      <div class="depo-wd-container">
+        <div class="depo-wd-title">🏦 ANALISIS DEPOSIT vs WITHDRAW (Per Bank / Sumber)</div>
+        <div class="summary-box">
+          <strong>📊 Ringkasan:</strong> Total Bank/Sumber: <strong>${results.length}</strong> | 
+          <span style="color:#66bb6a;">✅ COCOK: ${totalCocok}</span> | 
+          <span style="color:#ff8f00;">⚠️ BEDA: ${results.filter(r => r.status === '⚠️ BEDA').length}</span> | 
+          <span style="color:#ef5350;">❌ TIDAK LENGKAP: ${results.filter(r => r.status === '❌ TIDAK LENGKAP').length}</span>
+        </div>
+      `;
+
+      results.forEach(row => {
+        html += `
+        <div class="bank-card" style="border-left-color: ${row.bgColor};">
+          <div class="card-header">🏦 ${row.bank}</div>
+          <div class="card-body">
+            <div class="col">
+              <div class="col-title">
+                <span>📥 DEPOSIT</span>
+                <small>(${row.depositEntries.length})</small>
+              </div>
+              <ul class="entry-list">
+                ${row.depositEntries.length > 0
+                  ? row.depositEntries.map(e => `<li class="entry-item">${e.raw}</li>`).join('')
+                  : '<li class="entry-item empty">–</li>'
+                }
+              </ul>
+              <div class="total-row">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-value deposit-color">${row.depoFmt}</span>
+              </div>
+            </div>
+            <div class="col">
+              <div class="col-title">
+                <span>📤 WITHDRAW</span>
+                <small>(${row.withdrawEntries.length})</small>
+              </div>
+              <ul class="entry-list">
+                ${row.withdrawEntries.length > 0
+                  ? row.withdrawEntries.map(e => `
+                      <li class="entry-item">
+                        <span class="nominal">${e.raw}</span>
+                        ${e.note ? `<div class="withdraw-note">${e.note}</div>` : ''}
+                      </li>
+                    `).join('')
+                  : '<li class="entry-item empty">–</li>'
+                }
+              </ul>
+              <div class="total-row">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-value withdraw-color">${row.wdFmt}</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div>
+              <strong>SELISIH:</strong> <span class="selisih-value ${row.diffClass}">${row.selisihDisplay}</span>
             </div>
             <div class="status-badge" style="background: ${row.bgColor}30; border-color: ${row.bgColor};">
               ${row.status}
