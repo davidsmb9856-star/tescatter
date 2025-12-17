@@ -650,10 +650,8 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
   <div id="notification" class="notification"></div>
 
   <script>
-    // Google Sheets ID
     const SHEET_ID = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
     
-    // Load saved API key
     document.addEventListener('DOMContentLoaded', () => {
       const savedApiKey = localStorage.getItem('googleSheetsApiKey');
       if (savedApiKey) {
@@ -661,7 +659,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     });
     
-    // Save API key to localStorage
     document.getElementById('apiKeyInput').addEventListener('input', (e) => {
       localStorage.setItem('googleSheetsApiKey', e.target.value.trim());
     });
@@ -678,7 +675,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       setTimeout(() => notification.classList.remove('show'), 3000);
     }
 
-    // ✅ FETCH DEPOSIT DATA — A101:B500
+    // ✅ FETCH DEPOSIT — A101:B500
     async function fetchDepositData() {
       const apiKey = getApiKey();
       if (!apiKey) {
@@ -695,34 +692,33 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         const range = 'TRICARI!A101:B500';
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}?key=${apiKey}`;
         const response = await fetch(url);
-        
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
         
         if (data.values && data.values.length > 0) {
-          const validRows = data.values.filter(row => row.length >= 2 && String(row[1]).trim() !== '');
-          const formattedData = validRows.map(row => {
-            const nama = (row[0] && String(row[0]).trim()) || '(tanpa nama)';
-            const nominalClean = String(row[1]).replace(/[^0-9]/g, '');
-            const nominal = nominalClean ? new Intl.NumberFormat('id-ID').format(parseInt(nominalClean, 10)) : row[1];
-            return `${nama}\t${nominal}`;
+          const validRows = data.values.filter(row => row.length > 1 && String(row[1]).trim() !== '');
+          const formatted = validRows.map(row => {
+            const name = (row[0] && String(row[0]).trim()) || '(tanpa nama)';
+            const numStr = String(row[1]).replace(/[^0-9]/g, '');
+            const formattedNum = numStr ? new Intl.NumberFormat('id-ID').format(Number(numStr)) : row[1];
+            return `${name}\t${formattedNum}`;
           }).join('\n');
           
-          document.getElementById('dataDeposit').value = formattedData;
+          document.getElementById('dataDeposit').value = formatted;
           showNotification(`Berhasil mengambil ${validRows.length} baris data deposit!`, 'success');
         } else {
           showNotification('Tidak ada data deposit yang valid ditemukan', 'error');
         }
       } catch (error) {
-        console.error('Error fetching deposit data:', error);
-        showNotification(`Gagal mengambil data deposit: ${error.message}`, 'error');
+        console.error('Error:', error);
+        showNotification(`Gagal mengambil data: ${error.message}`, 'error');
       } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
       }
     }
 
-    // ✅ FETCH WITHDRAW DATA — I8:K1809
+    // ✅ FETCH WITHDRAW — I8:K1809
     async function fetchWithdrawData() {
       const apiKey = getApiKey();
       if (!apiKey) {
@@ -739,28 +735,27 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         const range = 'CROSSCHECK BUANG DANA!I8:K1809';
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}?key=${apiKey}`;
         const response = await fetch(url);
-        
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
         
         if (data.values && data.values.length > 0) {
-          const validRows = data.values.filter(row => row.length >= 2 && String(row[1]).trim() !== '');
-          const formattedData = validRows.map(row => {
-            const keterangan = (row[0] && String(row[0]).trim()) || '(tanpa keterangan)';
-            const nominalClean = String(row[1]).replace(/[^0-9]/g, '');
-            const nominal = nominalClean ? new Intl.NumberFormat('id-ID').format(parseInt(nominalClean, 10)) : row[1];
-            const sumber = (row[2] && String(row[2]).trim()) || '(tanpa sumber)';
-            return `${keterangan}\t${nominal}\t${sumber}`;
+          const validRows = data.values.filter(row => row.length > 1 && String(row[1]).trim() !== '');
+          const formatted = validRows.map(row => {
+            const desc = (row[0] && String(row[0]).trim()) || '(tanpa keterangan)';
+            const numStr = String(row[1]).replace(/[^0-9]/g, '');
+            const formattedNum = numStr ? new Intl.NumberFormat('id-ID').format(Number(numStr)) : row[1];
+            const source = (row[2] && String(row[2]).trim()) || '(tanpa sumber)';
+            return `${desc}\t${formattedNum}\t${source}`;
           }).join('\n');
           
-          document.getElementById('dataWithdraw').value = formattedData;
+          document.getElementById('dataWithdraw').value = formatted;
           showNotification(`Berhasil mengambil ${validRows.length} baris data withdraw!`, 'success');
         } else {
           showNotification('Tidak ada data withdraw yang valid ditemukan', 'error');
         }
       } catch (error) {
-        console.error('Error fetching withdraw data:', error);
-        showNotification(`Gagal mengambil data withdraw: ${error.message}`, 'error');
+        console.error('Error:', error);
+        showNotification(`Gagal mengambil data: ${error.message}`, 'error');
       } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
@@ -775,12 +770,12 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       document.getElementById('dataWithdraw').value = '';
     }
 
-    // Parsing & Analisis (tidak diubah karena sudah sesuai)
+    // ANALISIS (tidak diubah karena sudah sesuai)
     function prosesDepositWithdraw() {
-      const rawDeposit = document.getElementById('dataDeposit').value;
-      const rawWithdraw = document.getElementById('dataWithdraw').value;
+      const rawDeposit = document.getElementById('dataDeposit').value.trim();
+      const rawWithdraw = document.getElementById('dataWithdraw').value.trim();
 
-      if (!rawDeposit.trim() || !rawWithdraw.trim()) {
+      if (!rawDeposit || !rawWithdraw) {
         document.getElementById('hasilDepoWd').innerHTML = 
           '<div class="error-msg">⚠️ Harap isi kedua kolom DEPOSIT dan WITHDRAW!</div>';
         return;
@@ -789,14 +784,9 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       function extractNameFromText(text) {
         let cleaned = text.trim();
         const depoIndex = cleaned.indexOf('DEPO ');
-        if (depoIndex !== -1) {
-          cleaned = cleaned.substring(depoIndex + 5).trim();
-        }
+        if (depoIndex !== -1) cleaned = cleaned.substring(depoIndex + 5).trim();
         const lastSlash = cleaned.lastIndexOf('/');
-        if (lastSlash !== -1) {
-          return cleaned.substring(lastSlash + 1).trim();
-        }
-        return cleaned;
+        return lastSlash !== -1 ? cleaned.substring(lastSlash + 1).trim() : cleaned;
       }
 
       function parseLine(line, isWithdraw = false) {
@@ -849,15 +839,8 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         return null;
       }
 
-      const depositList = rawDeposit
-        .split('\n')
-        .map(line => parseLine(line, false))
-        .filter(item => item);
-
-      const withdrawList = rawWithdraw
-        .split('\n')
-        .map(line => parseLine(line, true))
-        .filter(item => item);
+      const depositList = rawDeposit.split('\n').map(line => parseLine(line, false)).filter(Boolean);
+      const withdrawList = rawWithdraw.split('\n').map(line => parseLine(line, true)).filter(Boolean);
 
       if (depositList.length === 0 || withdrawList.length === 0) {
         document.getElementById('hasilDepoWd').innerHTML = 
@@ -960,7 +943,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
           <div class="user-header" style="background: ${row.bgColor};">
             <span class="user-name-text">${row.nama}</span>
           </div>
-
           <div class="user-body">
             <div class="col">
               <div class="col-title">
@@ -978,7 +960,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
                 <span class="total-value deposit-color">${row.depoFmt}</span>
               </div>
             </div>
-
             <div class="col">
               <div class="col-title">
                 <span>📤 WITHDRAW</span>
@@ -989,9 +970,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
                   ? row.withdrawEntries.map(e => `
                       <li class="entry-item">
                         <span class="nominal">${e.raw}</span>
-                        ${e.note
-                          ? `<div class="withdraw-note">💬 ${e.note}</div>`
-                          : ''}
+                        ${e.note ? `<div class="withdraw-note">💬 ${e.note}</div>` : ''}
                       </li>
                     `).join('')
                   : '<li class="entry-item empty">– Tidak ada transaksi –</li>'
@@ -1003,7 +982,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
               </div>
             </div>
           </div>
-
           <div class="user-footer">
             <div class="selisih-line">
               <strong>SELISIH:</strong>
