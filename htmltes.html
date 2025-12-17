@@ -463,7 +463,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
     const SHEET_ID_WITHDRAW = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
     const GID_WITHDRAW = '1694551844';
 
-    // ✨ Format angka dengan koma (ribuan)
+    // ✨ Format angka dengan koma
     function formatRupiah(angka) {
       if (angka == null || angka === 0) return '0';
       return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -494,7 +494,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     }
 
-    // === MUAT DATA DEPOSIT: A51:B200 (baris 51–200) ===
+    // === MUAT DATA DEPOSIT: A51:B200 (tepat sesuai sel) ===
     async function loadDeposit() {
       const loading = document.getElementById('loadingDeposit');
       loading.style.display = 'inline-block';
@@ -502,15 +502,14 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       btn.disabled = true;
 
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID_DEPOSIT}/gviz/tq?gid=${GID_DEPOSIT}&tq=select%20A,B`;
+        // ✅ Gunakan `range` — ini kunci utamanya!
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID_DEPOSIT}/gviz/tq?gid=${GID_DEPOSIT}&range=A51:B200`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const text = await res.text();
-        const allRows = parseSheetResponse(text);
+        const allRows = parseSheetResponse(text); // array 150 baris (200 - 51 + 1)
 
-        // ✅ Ambil baris 51–200 → indeks 50 sampai 199
         const data = allRows
-          .slice(50, 200)
           .filter(line => {
             const [colA, colB] = line.split('\t');
             return (colA || '').trim() !== '' && (colB || '').trim() !== '';
@@ -525,14 +524,14 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         document.getElementById('dataDeposit').value = data;
       } catch (err) {
         console.error('Gagal muat Deposit:', err);
-        alert('❌ Gagal mengambil data Deposit.\nPastikan sheet di-set ke “Siapa saja dengan link bisa melihat”.');
+        alert('❌ Gagal mengambil data Deposit.\nPastikan:\n1. Sheet di-set ke “Siapa saja dengan link bisa melihat”\n2. Rentang A51:B200 memang berisi data.');
       } finally {
         loading.style.display = 'none';
         btn.disabled = false;
       }
     }
 
-    // === MUAT DATA WITHDRAW: I8:K1809 (baris 8–1809) ===
+    // === MUAT DATA WITHDRAW: I8:K1809 (tepat sesuai sel) ===
     async function loadWithdraw() {
       const loading = document.getElementById('loadingWithdraw');
       loading.style.display = 'inline-block';
@@ -540,15 +539,14 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       btn.disabled = true;
 
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID_WITHDRAW}/gviz/tq?gid=${GID_WITHDRAW}&tq=select%20I,J,K`;
+        // ✅ `range` menjamin ambil dari kolom I, J, K yang sebenarnya
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID_WITHDRAW}/gviz/tq?gid=${GID_WITHDRAW}&range=I8:K1809`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const text = await res.text();
-        const allRows = parseSheetResponse(text);
+        const allRows = parseSheetResponse(text); // ~1802 baris
 
-        // ✅ Ambil baris 8–1809 → indeks 7 sampai 1808
         const data = allRows
-          .slice(7, 1809)
           .filter(line => {
             const [colI, colJ] = line.split('\t');
             return (colI || '').trim() !== '' && (colJ || '').trim() !== '';
@@ -563,14 +561,14 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         document.getElementById('dataWithdraw').value = data;
       } catch (err) {
         console.error('Gagal muat Withdraw:', err);
-        alert('❌ Gagal mengambil data Withdraw.\nPastikan sheet di-set ke “Siapa saja dengan link bisa melihat”.');
+        alert('❌ Gagal mengambil data Withdraw.\nPastikan:\n1. Sheet di-set ke “Siapa saja dengan link bisa melihat”\n2. Rentang I8:K1809 berisi data.');
       } finally {
         loading.style.display = 'none';
         btn.disabled = false;
       }
     }
 
-    // === PROSES ANALISIS ===
+    // === PROSES ANALISIS (tidak diubah) ===
     function prosesDepositWithdraw() {
       const rawDeposit = document.getElementById('dataDeposit').value.trim();
       const rawWithdraw = document.getElementById('dataWithdraw').value.trim();
