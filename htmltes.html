@@ -503,14 +503,15 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       btn.disabled = true;
 
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_DEPOSIT}&tq=select%20A,B`;
+        // Menggunakan query untuk mengambil data dari range A101:B500
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_DEPOSIT}&tqx=out:json&tq=SELECT+A,B+WHERE+A+IS+NOT+NULL+AND+B+IS+NOT+NULL+LIMIT+400+OFFSET+100`;
+        
         const res = await fetch(url);
         const text = await res.text();
-        const allRows = parseSheetResponse(text);
+        const rows = parseSheetResponse(text);
         
-        // Ambil baris 101–500 (indeks 100–499)
-        const data = allRows
-          .slice(100, 500)
+        // Filter baris yang memiliki data di kedua kolom
+        const data = rows
           .filter(line => {
             const [colA, colB] = line.split('\t');
             const a = (colA || '').trim();
@@ -523,6 +524,8 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         document.getElementById('dataDeposit').value = data;
       } catch (err) {
         console.error('Gagal muat Deposit:', err);
+        // Tampilkan pesan error kepada pengguna
+        document.getElementById('dataDeposit').value = 'Error: ' + err.message;
       } finally {
         loading.style.display = 'none';
         btn.disabled = false;
@@ -532,19 +535,20 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
     // === MUAT DATA WITHDRAW: I8:K1809 ===
     async function loadWithdraw() {
       const loading = document.getElementById('loadingWithdraw');
-      const btn = document.querySelector('.btn-action:nth-child(2)');
+      const btn = document.querySelector('.section:nth-child(2) .btn-action');
       loading.style.display = 'inline-block';
       btn.disabled = true;
 
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_WITHDRAW}&tq=select%20I,J,K`;
+        // Menggunakan query untuk mengambil data dari range I8:K1809
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_WITHDRAW}&tqx=out:json&tq=SELECT+I,J,K+WHERE+I+IS+NOT+NULL+AND+J+IS+NOT+NULL+AND+K+IS+NOT+NULL+LIMIT+1802+OFFSET+7`;
+        
         const res = await fetch(url);
         const text = await res.text();
-        const allRows = parseSheetResponse(text);
+        const rows = parseSheetResponse(text);
         
-        // Ambil baris 8–1809 (indeks 7–1808)
-        const data = allRows
-          .slice(7, 1809)
+        // Filter baris yang memiliki data di ketiga kolom
+        const data = rows
           .filter(line => {
             const [colI, colJ, colK] = line.split('\t');
             const i = (colI || '').trim();
@@ -558,6 +562,8 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         document.getElementById('dataWithdraw').value = data;
       } catch (err) {
         console.error('Gagal muat Withdraw:', err);
+        // Tampilkan pesan error kepada pengguna
+        document.getElementById('dataWithdraw').value = 'Error: ' + err.message;
       } finally {
         loading.style.display = 'none';
         btn.disabled = false;
