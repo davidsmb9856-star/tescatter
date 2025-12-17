@@ -456,14 +456,14 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
   <div id="hasilDepoWd"></div>
 
   <script>
-    // 🔐 Konfigurasi Sheet (aman — hanya baca data publik)
+    // 🔐 Konfigurasi Sheet
     const SHEET_ID_DEPOSIT = '1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0';
     const GID_DEPOSIT = '743660352';
 
     const SHEET_ID_WITHDRAW = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
     const GID_WITHDRAW = '1694551844';
 
-    // ✨ Format angka dengan koma (sesuai preferensi Anda)
+    // ✨ Format angka dengan koma (ribuan)
     function formatRupiah(angka) {
       if (angka == null || angka === 0) return '0';
       return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -494,7 +494,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     }
 
-    // === MUAT DATA DEPOSIT: A51:B200 ===
+    // === MUAT DATA DEPOSIT: A51:B106 (baris 51–106) ===
     async function loadDeposit() {
       const loading = document.getElementById('loadingDeposit');
       loading.style.display = 'inline-block';
@@ -508,11 +508,12 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         const text = await res.text();
         const allRows = parseSheetResponse(text);
 
+        // ✅ Ambil hanya baris 51–106 → indeks 50 sampai 105
         const data = allRows
-          .slice(50, 200) // baris 51–200
+          .slice(50, 106)
           .filter(line => {
             const [colA, colB] = line.split('\t');
-            return colA?.trim() !== '' && colB?.trim() !== '';
+            return (colA || '').trim() !== '' && (colB || '').trim() !== '';
           })
           .map(line => {
             const [desc, nominal] = line.split('\t');
@@ -531,7 +532,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     }
 
-    // === MUAT DATA WITHDRAW: I8:K1809 ===
+    // === MUAT DATA WITHDRAW: I8:K1809 (baris 8–1809) ===
     async function loadWithdraw() {
       const loading = document.getElementById('loadingWithdraw');
       loading.style.display = 'inline-block';
@@ -545,11 +546,12 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         const text = await res.text();
         const allRows = parseSheetResponse(text);
 
+        // ✅ Ambil baris 8–1809 → indeks 7 sampai 1808
         const data = allRows
-          .slice(7, 1809) // baris 8–1809
+          .slice(7, 1809)
           .filter(line => {
             const [colI, colJ] = line.split('\t');
-            return colI?.trim() !== '' && colJ?.trim() !== '';
+            return (colI || '').trim() !== '' && (colJ || '').trim() !== '';
           })
           .map(line => {
             const [ket, nominal, sumber] = line.split('\t');
@@ -613,7 +615,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
             return { nama, nominalRaw: formatRupiah(nominalClean), nominalClean, asli: line, note: '' };
           }
         }
-
         return null;
       }
 
@@ -794,4 +795,3 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
   </script>
 </body>
 </html>
-
