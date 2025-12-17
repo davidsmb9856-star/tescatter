@@ -95,7 +95,7 @@
       transition: all 0.2s ease;
     }
 
-    #btnProses {
+    #btnProses, #btnFetch {
       background: #00b0ff;
       color: #001a2a;
       font-weight: bold;
@@ -104,24 +104,7 @@
       min-width: 120px;
     }
 
-    #btnProses:hover {
-      background: #00f3ff;
-      box-shadow: 0 0 12px rgba(0, 243, 255, 0.6);
-    }
-
-    .btn-action {
-      background: #00b0ff;
-      color: #001a2a;
-      padding: 10px 16px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex: 1;
-      min-width: 160px;
-    }
-
-    .btn-action:hover {
+    #btnProses:hover, #btnFetch:hover {
       background: #00f3ff;
       box-shadow: 0 0 12px rgba(0, 243, 255, 0.6);
     }
@@ -376,6 +359,53 @@
       box-shadow: 0 0 6px rgba(0, 200, 255, 0.2);
     }
 
+    /* Loading indicator */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 243, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #00f3ff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Notification message */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transform: translateX(150%);
+      transition: transform 0.3s ease;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      background: #4caf50;
+    }
+
+    .notification.error {
+      background: #f44336;
+    }
+
+    .notification.info {
+      background: #2196f3;
+    }
+
     /* Scrollbar */
     .entry-list::-webkit-scrollbar {
       width: 8px;
@@ -404,22 +434,6 @@
       font-weight: bold;
       font-size: 16px;
     }
-
-    /* Loading indicator */
-    .loading {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(0, 243, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #00f3ff;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 8px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
   </style>
 </head>
 <body>
@@ -432,11 +446,8 @@
 Depo BCA / ADIV ARYA ATMAJA	16,300,000
 DEPO MYBCA / MIA	2,900,000"></textarea>
       <div class="buttons">
+        <button id="btnFetchDeposit" onclick="fetchDepositData()">📥 Ambil Data dari Google Sheets</button>
         <button class="btn-clear" onclick="clearDeposit()">🗑️ Clear</button>
-        <button class="btn-action" onclick="loadDeposit()">
-          <span class="loading" id="loadingDeposit" style="display:none;"></span>
-          📥 Ambil Data Deposit
-        </button>
       </div>
     </div>
 
@@ -447,26 +458,121 @@ Contoh:
 PENGIRIMAN DANA...	16,300,000	Depo BCA / ADIV ARYA ATMAJA
 KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       <div class="buttons">
+        <button id="btnFetchWithdraw" onclick="fetchWithdrawData()">📤 Ambil Data dari Google Sheets</button>
         <button class="btn-clear" onclick="clearWithdraw()">🗑️ Clear</button>
-        <button class="btn-action" onclick="loadWithdraw()">
-          <span class="loading" id="loadingWithdraw" style="display:none;"></span>
-          📤 Ambil Data Withdraw
-        </button>
       </div>
     </div>
   </div>
 
-  <div class="buttons" style="max-width:1200px; margin:0 auto 20px; justify-content: center;">
+  <div class="buttons" style="max-width:1200px; margin:0 auto 20px;">
     <button id="btnProses" onclick="prosesDepositWithdraw()">⚡ PROSES ANALISIS</button>
   </div>
 
   <div id="hasilDepoWd"></div>
 
+  <!-- Notification container -->
+  <div id="notification" class="notification"></div>
+
   <script>
-    // Konfigurasi Sheet
+    // Google Sheets API configuration
     const SHEET_ID = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
-    const GID_DEPOSIT = '1211507274';
-    const GID_WITHDRAW = '1694551844';
+    const API_KEY = 'AIzaSyB7w8p5nYx1fN6LkW0Xv7d5q6r5t4s3z2a'; // Replace with your actual API key
+    
+    // Show notification function
+    function showNotification(message, type = 'info') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type}`;
+      notification.classList.add('show');
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
+
+    // Fetch deposit data from Google Sheets
+    async function fetchDepositData() {
+      const btn = document.getElementById('btnFetchDeposit');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span class="loading"></span>Mengambil data...';
+      btn.disabled = true;
+      
+      try {
+        const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/TRICARI!A101:B500?key=${API_KEY}`);
+        const data = await response.json();
+        
+        if (data.values && data.values.length > 0) {
+          // Format data with commas in nominal values
+          const formattedData = data.values
+            .filter(row => row[0] && row[1]) // Skip empty rows
+            .map(row => {
+              // Clean and format the nominal value with commas
+              let nominal = row[1].toString().replace(/[^0-9]/g, '');
+              nominal = parseInt(nominal);
+              if (!isNaN(nominal)) {
+                nominal = new Intl.NumberFormat('id-ID').format(nominal);
+              } else {
+                nominal = row[1]; // Keep original if not a number
+              }
+              return `${row[0]}\t${nominal}`;
+            })
+            .join('\n');
+          
+          document.getElementById('dataDeposit').value = formattedData;
+          showNotification('Data deposit berhasil diambil!', 'success');
+        } else {
+          showNotification('Tidak ada data deposit yang ditemukan', 'error');
+        }
+      } catch (error) {
+        console.error('Error fetching deposit data:', error);
+        showNotification('Gagal mengambil data deposit. Periksa koneksi Anda.', 'error');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // Fetch withdraw data from Google Sheets
+    async function fetchWithdrawData() {
+      const btn = document.getElementById('btnFetchWithdraw');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span class="loading"></span>Mengambil data...';
+      btn.disabled = true;
+      
+      try {
+        const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/CROSSCHECK BUANG DANA!I8:K1809?key=${API_KEY}`);
+        const data = await response.json();
+        
+        if (data.values && data.values.length > 0) {
+          // Format data with commas in nominal values
+          const formattedData = data.values
+            .filter(row => row[0] && row[1]) // Skip empty rows
+            .map(row => {
+              // Clean and format the nominal value with commas
+              let nominal = row[1].toString().replace(/[^0-9]/g, '');
+              nominal = parseInt(nominal);
+              if (!isNaN(nominal)) {
+                nominal = new Intl.NumberFormat('id-ID').format(nominal);
+              } else {
+                nominal = row[1]; // Keep original if not a number
+              }
+              return `${row[0]}\t${nominal}\t${row[2] || ''}`;
+            })
+            .join('\n');
+          
+          document.getElementById('dataWithdraw').value = formattedData;
+          showNotification('Data withdraw berhasil diambil!', 'success');
+        } else {
+          showNotification('Tidak ada data withdraw yang ditemukan', 'error');
+        }
+      } catch (error) {
+        console.error('Error fetching withdraw data:', error);
+        showNotification('Gagal mengambil data withdraw. Periksa koneksi Anda.', 'error');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
 
     function clearDeposit() {
       document.getElementById('dataDeposit').value = '';
@@ -478,99 +584,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       document.getElementById('dataWithdraw').focus();
     }
 
-    function parseSheetResponse(text) {
-      try {
-        const jsonStart = text.indexOf('{');
-        const jsonEnd = text.lastIndexOf('}') + 1;
-        const jsonString = text.substring(jsonStart, jsonEnd);
-        const data = JSON.parse(jsonString);
-        if (!data.table || !Array.isArray(data.table.rows)) return [];
-        return data.table.rows.map(row => {
-          if (!row.c) return '';
-          return row.c.map(cell => cell?.v ?? '').join('\t');
-        });
-      } catch (e) {
-        console.error('Error parsing sheet response:', e);
-        return [];
-      }
-    }
-
-    // === MUAT DATA DEPOSIT: A101:B500 ===
-    async function loadDeposit() {
-      const loading = document.getElementById('loadingDeposit');
-      const btn = document.querySelector('.btn-action:nth-child(2)');
-      loading.style.display = 'inline-block';
-      btn.disabled = true;
-
-      try {
-        // Menggunakan query untuk mengambil data dari range A101:B500
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_DEPOSIT}&tqx=out:json&tq=SELECT+A,B+WHERE+A+IS+NOT+NULL+AND+B+IS+NOT+NULL+LIMIT+400+OFFSET+100`;
-        
-        const res = await fetch(url);
-        const text = await res.text();
-        const rows = parseSheetResponse(text);
-        
-        // Filter baris yang memiliki data di kedua kolom
-        const data = rows
-          .filter(line => {
-            const [colA, colB] = line.split('\t');
-            const a = (colA || '').trim();
-            const b = (colB || '').trim();
-            // Pastikan A tidak kosong dan B adalah angka valid
-            return a !== '' && b !== '' && !isNaN(b.replace(/[^0-9]/g, ''));
-          })
-          .join('\n');
-
-        document.getElementById('dataDeposit').value = data;
-      } catch (err) {
-        console.error('Gagal muat Deposit:', err);
-        // Tampilkan pesan error kepada pengguna
-        document.getElementById('dataDeposit').value = 'Error: ' + err.message;
-      } finally {
-        loading.style.display = 'none';
-        btn.disabled = false;
-      }
-    }
-
-    // === MUAT DATA WITHDRAW: I8:K1809 ===
-    async function loadWithdraw() {
-      const loading = document.getElementById('loadingWithdraw');
-      const btn = document.querySelector('.section:nth-child(2) .btn-action');
-      loading.style.display = 'inline-block';
-      btn.disabled = true;
-
-      try {
-        // Menggunakan query untuk mengambil data dari range I8:K1809
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_WITHDRAW}&tqx=out:json&tq=SELECT+I,J,K+WHERE+I+IS+NOT+NULL+AND+J+IS+NOT+NULL+AND+K+IS+NOT+NULL+LIMIT+1802+OFFSET+7`;
-        
-        const res = await fetch(url);
-        const text = await res.text();
-        const rows = parseSheetResponse(text);
-        
-        // Filter baris yang memiliki data di ketiga kolom
-        const data = rows
-          .filter(line => {
-            const [colI, colJ, colK] = line.split('\t');
-            const i = (colI || '').trim();
-            const j = (colJ || '').trim();
-            const k = (colK || '').trim();
-            // Pastikan I, J, K tidak kosong dan J adalah angka
-            return i !== '' && j !== '' && k !== '' && !isNaN(j.replace(/[^0-9]/g, ''));
-          })
-          .join('\n');
-
-        document.getElementById('dataWithdraw').value = data;
-      } catch (err) {
-        console.error('Gagal muat Withdraw:', err);
-        // Tampilkan pesan error kepada pengguna
-        document.getElementById('dataWithdraw').value = 'Error: ' + err.message;
-      } finally {
-        loading.style.display = 'none';
-        btn.disabled = false;
-      }
-    }
-
-    // === FUNGSI ANALISIS (TIDAK DIUBAH) ===
     function prosesDepositWithdraw() {
       const rawDeposit = document.getElementById('dataDeposit').value;
       const rawWithdraw = document.getElementById('dataWithdraw').value;
@@ -606,13 +619,17 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
             const sourceDesc = parts.length >= 3 ? parts[2] : keterangan;
             const nama = extractNameFromText(sourceDesc);
             const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
-            return { nama, nominalRaw, nominalClean, asli: line, note: keterangan };
+            // Format nominal with commas if not already formatted
+            const nominalFormatted = nominalRaw.includes(',') ? nominalRaw : new Intl.NumberFormat('id-ID').format(nominalClean);
+            return { nama, nominalRaw: nominalFormatted, nominalClean, asli: line, note: keterangan };
           } else {
             const desc = parts[0];
             const nominalRaw = parts[1];
             const nama = extractNameFromText(desc);
             const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
-            return { nama, nominalRaw, nominalClean, asli: line, note: '' };
+            // Format nominal with commas if not already formatted
+            const nominalFormatted = nominalRaw.includes(',') ? nominalRaw : new Intl.NumberFormat('id-ID').format(nominalClean);
+            return { nama, nominalRaw: nominalFormatted, nominalClean, asli: line, note: '' };
           }
         }
 
@@ -624,7 +641,9 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
             const sourceDesc = match[3].trim();
             const nama = extractNameFromText(sourceDesc);
             const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
-            return { nama, nominalRaw, nominalClean, asli: line, note: keterangan };
+            // Format nominal with commas if not already formatted
+            const nominalFormatted = nominalRaw.includes(',') ? nominalRaw : new Intl.NumberFormat('id-ID').format(nominalClean);
+            return { nama, nominalRaw: nominalFormatted, nominalClean, asli: line, note: keterangan };
           }
         } else {
           const match = line.match(/(.+?)\s+([0-9,.]+)$/);
@@ -633,7 +652,9 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
             const nominalRaw = match[2].trim();
             const nama = extractNameFromText(desc);
             const nominalClean = parseInt(String(nominalRaw).replace(/[^0-9]/g, '')) || 0;
-            return { nama, nominalRaw, nominalClean, asli: line, note: '' };
+            // Format nominal with commas if not already formatted
+            const nominalFormatted = nominalRaw.includes(',') ? nominalRaw : new Intl.NumberFormat('id-ID').format(nominalClean);
+            return { nama, nominalRaw: nominalFormatted, nominalClean, asli: line, note: '' };
           }
         }
 
@@ -803,7 +824,8 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
                 ? '<span class="selisih-desc deposit-bigger">(Deposit lebih besar)</span>'
                 : row.diff < 0
                   ? '<span class="selisih-desc withdraw-bigger">(Withdraw lebih besar)</span>'
-                  : ''}
+                  : ''
+              }
             </div>
             <div class="status-badge" style="background: ${row.bgColor}40; border-color: ${row.bgColor};">
               ${row.status}
@@ -816,6 +838,13 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       html += `</div>`;
       document.getElementById('hasilDepoWd').innerHTML = html;
     }
+
+    // Auto-load data on page load
+    window.addEventListener('load', () => {
+      // You can uncomment these lines if you want to auto-load data when the page loads
+      // fetchDepositData();
+      // fetchWithdrawData();
+    });
   </script>
 </body>
 </html>
