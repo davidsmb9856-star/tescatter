@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Deposit vs Withdraw Analyzer — Neon Blue</title>
   <style>
-    /* (Tetap sama seperti sebelumnya — tidak diubah) */
+    /* ==============================
+       GLOBAL & NEON BLUE THEME
+       ============================== */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -454,25 +456,25 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
   <div id="hasilDepoWd"></div>
 
   <script>
-    // Konfigurasi Sheet
-    const SHEET_ID = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
-    const GID_DEPOSIT = '1211507274';
+    // 🔐 Konfigurasi Sheet (aman — hanya baca data publik)
+    const SHEET_ID_DEPOSIT = '1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0';
+    const GID_DEPOSIT = '743660352';
+
+    const SHEET_ID_WITHDRAW = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
     const GID_WITHDRAW = '1694551844';
 
-    // Fungsi format angka ke format dengan koma (ribuan)
+    // ✨ Format angka dengan koma (sesuai preferensi Anda)
     function formatRupiah(angka) {
-      if (!angka) return '0';
+      if (angka == null || angka === 0) return '0';
       return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
     function clearDeposit() {
       document.getElementById('dataDeposit').value = '';
-      document.getElementById('dataDeposit').focus();
     }
 
     function clearWithdraw() {
       document.getElementById('dataWithdraw').value = '';
-      document.getElementById('dataWithdraw').focus();
     }
 
     function parseSheetResponse(text) {
@@ -492,87 +494,86 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     }
 
-    // === MUAT DATA DEPOSIT DARI A101:B500 ===
+    // === MUAT DATA DEPOSIT: A51:B200 ===
     async function loadDeposit() {
       const loading = document.getElementById('loadingDeposit');
-      const btn = document.querySelectorAll('.btn-action')[0];
       loading.style.display = 'inline-block';
+      const btn = document.querySelectorAll('.btn-action')[0];
       btn.disabled = true;
 
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_DEPOSIT}&tq=select%20A,B`;
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID_DEPOSIT}/gviz/tq?gid=${GID_DEPOSIT}&tq=select%20A,B`;
         const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const text = await res.text();
         const allRows = parseSheetResponse(text);
-        
-        // Ambil baris 101–500 (indeks 100–499)
+
         const data = allRows
-          .slice(100, 500)
+          .slice(50, 200) // baris 51–200
           .filter(line => {
             const [colA, colB] = line.split('\t');
-            return (colA || '').trim() !== '' && (colB || '').trim() !== '';
+            return colA?.trim() !== '' && colB?.trim() !== '';
           })
           .map(line => {
             const [desc, nominal] = line.split('\t');
-            const cleanNominal = parseInt(String(nominal).replace(/[^0-9]/g, '')) || 0;
-            return `${desc}\t${formatRupiah(cleanNominal)}`;
+            const num = parseInt(String(nominal).replace(/[^0-9]/g, '')) || 0;
+            return `${desc}\t${formatRupiah(num)}`;
           })
           .join('\n');
 
         document.getElementById('dataDeposit').value = data;
       } catch (err) {
         console.error('Gagal muat Deposit:', err);
+        alert('❌ Gagal mengambil data Deposit.\nPastikan sheet di-set ke “Siapa saja dengan link bisa melihat”.');
       } finally {
         loading.style.display = 'none';
         btn.disabled = false;
       }
     }
 
-    // === MUAT DATA WITHDRAW DARI I8:K1809 ===
+    // === MUAT DATA WITHDRAW: I8:K1809 ===
     async function loadWithdraw() {
       const loading = document.getElementById('loadingWithdraw');
-      const btn = document.querySelectorAll('.btn-action')[1];
       loading.style.display = 'inline-block';
+      const btn = document.querySelectorAll('.btn-action')[1];
       btn.disabled = true;
 
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_WITHDRAW}&tq=select%20I,J,K`;
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID_WITHDRAW}/gviz/tq?gid=${GID_WITHDRAW}&tq=select%20I,J,K`;
         const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const text = await res.text();
         const allRows = parseSheetResponse(text);
-        
-        // Ambil baris 8–1809 (indeks 7–1808)
+
         const data = allRows
-          .slice(7, 1809)
+          .slice(7, 1809) // baris 8–1809
           .filter(line => {
             const [colI, colJ] = line.split('\t');
-            return (colI || '').trim() !== '' && (colJ || '').trim() !== '';
+            return colI?.trim() !== '' && colJ?.trim() !== '';
           })
           .map(line => {
-            const parts = line.split('\t');
-            const keterangan = parts[0];
-            const nominal = parts[1];
-            const sumber = parts[2] || '';
-            const cleanNominal = parseInt(String(nominal).replace(/[^0-9]/g, '')) || 0;
-            return `${keterangan}\t${formatRupiah(cleanNominal)}\t${sumber}`;
+            const [ket, nominal, sumber] = line.split('\t');
+            const num = parseInt(String(nominal).replace(/[^0-9]/g, '')) || 0;
+            return `${ket}\t${formatRupiah(num)}\t${sumber || ''}`;
           })
           .join('\n');
 
         document.getElementById('dataWithdraw').value = data;
       } catch (err) {
         console.error('Gagal muat Withdraw:', err);
+        alert('❌ Gagal mengambil data Withdraw.\nPastikan sheet di-set ke “Siapa saja dengan link bisa melihat”.');
       } finally {
         loading.style.display = 'none';
         btn.disabled = false;
       }
     }
 
-    // === FUNGSI ANALISIS ===
+    // === PROSES ANALISIS ===
     function prosesDepositWithdraw() {
-      const rawDeposit = document.getElementById('dataDeposit').value;
-      const rawWithdraw = document.getElementById('dataWithdraw').value;
+      const rawDeposit = document.getElementById('dataDeposit').value.trim();
+      const rawWithdraw = document.getElementById('dataWithdraw').value.trim();
 
-      if (!rawDeposit.trim() || !rawWithdraw.trim()) {
+      if (!rawDeposit || !rawWithdraw) {
         document.getElementById('hasilDepoWd').innerHTML = 
           '<div class="error-msg">⚠️ Harap isi kedua kolom DEPOSIT dan WITHDRAW!</div>';
         return;
@@ -580,7 +581,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
 
       function extractNameFromText(text) {
         let cleaned = text.trim();
-        const depoIndex = cleaned.indexOf('DEPO ');
+        const depoIndex = cleaned.toUpperCase().indexOf('DEPO ');
         if (depoIndex !== -1) {
           cleaned = cleaned.substring(depoIndex + 5).trim();
         }
@@ -600,7 +601,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
           if (isWithdraw) {
             const keterangan = parts[0];
             const nominalRaw = parts[1].replace(/,/g, '');
-            const sourceDesc = parts.length >= 3 ? parts[2] : keterangan;
+            const sourceDesc = parts[2] || keterangan;
             const nama = extractNameFromText(sourceDesc);
             const nominalClean = parseInt(nominalRaw) || 0;
             return { nama, nominalRaw: formatRupiah(nominalClean), nominalClean, asli: line, note: keterangan };
@@ -613,44 +614,22 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
           }
         }
 
-        // fallback regex
-        if (isWithdraw) {
-          const match = line.match(/^(.+?)\s+([0-9,.]+)\s+(.+)$/);
-          if (match) {
-            const keterangan = match[1].trim();
-            const nominalRaw = match[2].replace(/,/g, '');
-            const sourceDesc = match[3].trim();
-            const nama = extractNameFromText(sourceDesc);
-            const nominalClean = parseInt(nominalRaw) || 0;
-            return { nama, nominalRaw: formatRupiah(nominalClean), nominalClean, asli: line, note: keterangan };
-          }
-        } else {
-          const match = line.match(/(.+?)\s+([0-9,.]+)$/);
-          if (match) {
-            const desc = match[1].trim();
-            const nominalRaw = match[2].replace(/,/g, '');
-            const nama = extractNameFromText(desc);
-            const nominalClean = parseInt(nominalRaw) || 0;
-            return { nama, nominalRaw: formatRupiah(nominalClean), nominalClean, asli: line, note: '' };
-          }
-        }
-
         return null;
       }
 
       const depositList = rawDeposit
         .split('\n')
         .map(line => parseLine(line, false))
-        .filter(item => item);
+        .filter(Boolean);
 
       const withdrawList = rawWithdraw
         .split('\n')
         .map(line => parseLine(line, true))
-        .filter(item => item);
+        .filter(Boolean);
 
       if (depositList.length === 0 || withdrawList.length === 0) {
         document.getElementById('hasilDepoWd').innerHTML = 
-          '<div class="error-msg">❌ Format data tidak valid! Pastikan ada angka di akhir baris.</div>';
+          '<div class="error-msg">❌ Format data tidak valid! Pastikan format: [Nama] [Tab] [Nominal]</div>';
         return;
       }
 
@@ -713,7 +692,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
           ? '0' 
           : (diff > 0 
               ? `+${formatRupiah(diff)}` 
-              : formatRupiah(diff));
+              : `-${formatRupiah(Math.abs(diff))}`);
 
         const diffClass = diff === 0 ? 'diff-cocok' : (diff > 0 ? 'diff-lebih' : 'diff-kurang');
 
@@ -778,9 +757,7 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
                   ? row.withdrawEntries.map(e => `
                       <li class="entry-item">
                         <span class="nominal">${e.raw}</span>
-                        ${e.note
-                          ? `<div class="withdraw-note">💬 ${e.note}</div>`
-                          : ''}
+                        ${e.note ? `<div class="withdraw-note">💬 ${e.note}</div>` : ''}
                       </li>
                     `).join('')
                   : '<li class="entry-item empty">– Tidak ada transaksi –</li>'
