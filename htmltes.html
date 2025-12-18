@@ -11,13 +11,13 @@
       padding: 0;
     }
 
-    /* === BACKGROUND FOTO DEFAULT SAJA === */
+    /* === BACKGROUND FOTO DEFAULT === */
     body {
       background-image: url('https://linetogel.hokibgs.com/uploads/photos/linetogel/6853e648ad2ee.jpg');
       background-color: #0a0f1d;
       background-size: cover;
       background-position: center;
-      background-attachment: fixed;
+      background-attached: fixed;
       color: #e0f0ff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       padding: 10px;
@@ -26,7 +26,6 @@
       position: relative;
     }
 
-    /* Overlay gelap agar teks terbaca */
     body::before {
       content: "";
       position: fixed;
@@ -38,7 +37,7 @@
       z-index: -1;
     }
 
-    /* === SEMUA TEKS UTAMA: NEON BIRU + BOLD === */
+    /* === SEMUA TEKS UTAMA: NEON + BOLD === */
     h1,
     .section-title,
     .col-title,
@@ -55,12 +54,24 @@
       text-shadow: 0 0 6px rgba(0, 243, 255, 0.7) !important;
     }
 
-    /* Teks sekunder (nominal, entry) juga neon tapi sedikit redup */
     .entry-item,
     .withdraw-note,
     .summary-box {
       color: #a0e0ff !important;
       font-weight: 600;
+    }
+
+    /* === ANIMASI SELISIH KEDIP NEON === */
+    .selisih-animasi {
+      animation: neonBlink 1.8s infinite;
+      font-weight: bold;
+      color: #00f3ff;
+      text-shadow: 0 0 8px rgba(0, 243, 255, 0.9);
+    }
+
+    @keyframes neonBlink {
+      0%, 100% { opacity: 1; text-shadow: 0 0 8px rgba(0, 243, 255, 0.9); }
+      50% { opacity: 0.3; text-shadow: 0 0 4px rgba(0, 243, 255, 0.5); }
     }
 
     /* === JUDUL UTAMA === */
@@ -160,7 +171,7 @@
       color: #00f3ff;
     }
 
-    /* === CARD HASIL: LEBIH KECIL & RAPI === */
+    /* === CARD HASIL === */
     .depo-wd-container {
       max-width: 1100px;
       margin: 12px auto;
@@ -193,9 +204,15 @@
       border-radius: 8px;
       margin-bottom: 10px;
       overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 8px rgba(0, 243, 255, 0.7);
       border-left: 2px solid #00b0ff;
       font-size: 11px;
+      transition: transform 0.2s ease;
+    }
+
+    .user-card:hover, .bank-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 14px rgba(0, 243, 255, 1);
     }
 
     .card-header {
@@ -330,6 +347,8 @@
       text-align: center;
       background: rgba(0, 20, 40, 0.5);
       border: 1px solid currentColor;
+      color: #00f3ff;
+      text-shadow: 0 0 6px rgba(0, 243, 255, 0.8);
     }
 
     .entry-list::-webkit-scrollbar {
@@ -433,7 +452,6 @@
 <body>
   <h1>💰 Deposit vs Withdraw Analyzer</h1>
 
-  <!-- Toggle Mode -->
   <div class="mode-toggle">
     <span class="toggle-label">Mode Analisis:</span>
     <label class="switch">
@@ -443,7 +461,6 @@
     <div class="mode-text" id="modeText">Saat ini: Per Pengguna</div>
   </div>
 
-  <!-- INPUT SECTION -->
   <div class="input-section">
     <div class="section">
       <div class="section-title">📥 DATA DEPOSIT</div>
@@ -482,7 +499,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
   <div id="hasilDepoWd"></div>
 
   <script>
-    // === LOGIKA SAMA SEPERTI SEBELUMNYA ===
     const SHEET_ID = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
     const GID_DEPOSIT = '1211507274';
     const GID_WITHDRAW = '1694551844';
@@ -658,7 +674,6 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       }
     }
 
-    // === Fungsi analisis (tanpa perubahan logika) ===
     function analisisPerPengguna(depositList, withdrawList) {
       const depositTotal = {}, withdrawTotal = {}, depositDetails = {}, withdrawDetails = {};
 
@@ -796,14 +811,19 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         <div class="summary-box">
           <strong>📊 Ringkasan:</strong> Total Pengguna: <strong>${results.length}</strong> | 
           <span style="color:#66bb6a;">✅ COCOK: ${totalCocok}</span> | 
-          <span style="color:#ff8f00;">⚠️ BEDA: ${results.filter(r => r.status === '⚠️ BEDA').length}</span> | 
-          <span style="color:#ef5350;">❌ TIDAK LENGKAP: ${results.filter(r => r.status === '❌ TIDAK LENGKAP').length}</span>
+          <span style="color:#ff8f00;">⚠️ BEDA: ${results.filter(r => r.status.includes('BEDA')).length}</span> | 
+          <span style="color:#ef5350;">❌ TIDAK LENGKAP: ${results.filter(r => r.status.includes('TIDAK LENGKAP')).length}</span>
         </div>
       `;
 
       results.forEach(row => {
+        let selisihKet = "✅ COCOK";
+        if (row.diff > 0) selisihKet = "⚠️ KELEBIHAN DEPOSIT";
+        else if (row.diff < 0) selisihKet = "⚠️ KEKURANGAN DEPOSIT";
+        else if (row.depoFmt === '–' || row.wdFmt === '–') selisihKet = "❌ TIDAK LENGKAP";
+
         html += `
-        <div class="user-card" style="border-left-color: ${row.bgColor};">
+        <div class="user-card">
           <div class="card-header">${row.nama}</div>
           <div class="card-body">
             <div class="col">
@@ -846,11 +866,9 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
           </div>
           <div class="card-footer">
             <div>
-              <strong>Δ:</strong> <span class="selisih-value ${row.diffClass}">${row.selisihDisplay}</span>
+              <span class="selisih-animasi">${selisihKet}</span>
             </div>
-            <div class="status-badge" style="background: ${row.bgColor}30; border-color: ${row.bgColor};">
-              ${row.status}
-            </div>
+            <div class="selisih-value ${row.diffClass}">${row.selisihDisplay}</div>
           </div>
         </div>
         `;
@@ -867,14 +885,19 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
         <div class="summary-box">
           <strong>📊 Ringkasan:</strong> Total Bank/Sumber: <strong>${results.length}</strong> | 
           <span style="color:#66bb6a;">✅ COCOK: ${totalCocok}</span> | 
-          <span style="color:#ff8f00;">⚠️ BEDA: ${results.filter(r => r.status === '⚠️ BEDA').length}</span> | 
-          <span style="color:#ef5350;">❌ TIDAK LENGKAP: ${results.filter(r => r.status === '❌ TIDAK LENGKAP').length}</span>
+          <span style="color:#ff8f00;">⚠️ BEDA: ${results.filter(r => r.status.includes('BEDA')).length}</span> | 
+          <span style="color:#ef5350;">❌ TIDAK LENGKAP: ${results.filter(r => r.status.includes('TIDAK LENGKAP')).length}</span>
         </div>
       `;
 
       results.forEach(row => {
+        let selisihKet = "✅ COCOK";
+        if (row.diff > 0) selisihKet = "⚠️ KELEBIHAN DEPOSIT";
+        else if (row.diff < 0) selisihKet = "⚠️ KEKURANGAN DEPOSIT";
+        else if (row.depoFmt === '–' || row.wdFmt === '–') selisihKet = "❌ TIDAK LENGKAP";
+
         html += `
-        <div class="bank-card" style="border-left-color: ${row.bgColor};">
+        <div class="bank-card">
           <div class="card-header">🏦 ${row.bank}</div>
           <div class="card-body">
             <div class="col">
@@ -917,11 +940,9 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
           </div>
           <div class="card-footer">
             <div>
-              <strong>SELISIH:</strong> <span class="selisih-value ${row.diffClass}">${row.selisihDisplay}</span>
+              <span class="selisih-animasi">${selisihKet}</span>
             </div>
-            <div class="status-badge" style="background: ${row.bgColor}30; border-color: ${row.bgColor};">
-              ${row.status}
-            </div>
+            <div class="selisih-value ${row.diffClass}">${row.selisihDisplay}</div>
           </div>
         </div>
         `;
