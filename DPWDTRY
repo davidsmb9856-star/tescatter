@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Deposit vs Withdraw Analyzer — Neon Blue</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* === BACKGROUND FOTO DEFAULT === */
+    body {
+      background-image: url('https://linetogel.hokibgs.com/uploads/photos/linetogel/6853e648ad2ee.jpg');
+      background-color: #0a0f1d;
+      background-size: cover;
+      background-position: center;
+      background-attached: fixed;
+      color: #e0f0ff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 10px;
+      line-height: 1.3;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: -1;
+    }
+
+    /* === SEMUA TEKS UTAMA: NEON + BOLD === */
+    h1,
+    .section-title,
+    .col-title,
+    .card-header,
+    .total-label,
+    .total-value,
+    .nominal,
+    .selisih-value,
+    .status-badge,
+    .toggle-label,
+    .mode-text {
+      color: #00f3ff !important;
+      font-weight: bold !important;
+      text-shadow: 0 0 6px rgba(0, 243, 255, 0.7) !important;
+    }
+
+    .entry-item,
+    .withdraw-note,
+    .summary-box {
+      color: #a0e0ff !important;
+      font-weight: 600;
+    }
+
+    /* === ANIMASI SELISIH KEDIP NEON === */
+    .selisih-animasi {
+      animation: neonBlink 1.8s infinite;
+      font-weight: bold;
+      color: #00f3ff;
+      text-shadow: 0 0 8px rgba(0, 243, 255, 0.9);
+    }
+
+    @keyframes neonBlink {
+      0%, 100% { opacity: 1; text-shadow: 0 0 8px rgba(0, 243, 255, 0.9); }
+      50% { opacity: 0.3; text-shadow: 0 0 4px rgba(0, 243, 255, 0.5); }
+    }
+
+    /* === JUDUL UTAMA === */
+    h1 {
+      text-align: center;
+      margin: 6px 0 12px;
+      font-size: 22px;
+      letter-spacing: 0.6px;
+    }
+
+    /* === INPUT SECTION === */
+    .input-section {
+      max-width: 1100px;
+      margin: 0 auto 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .input-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section {
+      background: rgba(8, 16, 30, 0.92);
+      border: 1px solid rgba(0, 180, 255, 0.3);
+      border-radius: 6px;
+      padding: 10px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .section-title {
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 140px;
+      background: rgba(6, 12, 22, 0.85);
+      color: #b0e8ff;
+      border: 1px solid #00b0ff;
+      border-radius: 4px;
+      padding: 6px;
+      font-family: 'Consolas', monospace;
+      font-size: 11px;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #00f3ff;
+      box-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 11px;
+      background: #00b0ff;
+      color: #001525;
+    }
+
+    button:hover {
+      background: #00f3ff;
+      box-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
+    }
+
+    #btnProses {
+      padding: 8px 14px;
+      font-size: 12px;
+      flex: 1;
+      min-width: 100px;
+    }
+
+    .btn-clear {
+      background: #1a2a40;
+      color: #88b8e6;
+      border: 1px solid #00b0ff;
+    }
+
+    .btn-clear:hover {
+      background: #223550;
+      color: #00f3ff;
+    }
+
+    /* === CARD HASIL === */
+    .depo-wd-container {
+      max-width: 1100px;
+      margin: 12px auto;
+      background: rgba(8, 16, 30, 0.92);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 0 10px rgba(0, 243, 255, 0.08);
+      border: 1px solid rgba(0, 229, 255, 0.15);
+    }
+
+    .depo-wd-title {
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .summary-box {
+      background: rgba(6, 14, 28, 0.8);
+      padding: 8px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      font-size: 11px;
+      text-align: center;
+      border: 1px solid rgba(0, 200, 255, 0.15);
+    }
+
+    .user-card, .bank-card {
+      background: rgba(6, 14, 28, 0.9);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 8px rgba(0, 243, 255, 0.7);
+      border-left: 2px solid #00b0ff;
+      font-size: 11px;
+      transition: transform 0.2s ease;
+    }
+
+    .user-card:hover, .bank-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 14px rgba(0, 243, 255, 1);
+    }
+
+    .card-header {
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .card-body {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 8px;
+      gap: 10px;
+    }
+
+    .col {
+      flex: 1;
+      min-width: 170px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .col-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      margin-bottom: 4px;
+      padding-bottom: 2px;
+      border-bottom: 1px solid rgba(0, 180, 255, 0.4);
+    }
+
+    .col-title small {
+      color: #88b8e6;
+      font-weight: normal;
+      font-size: 9px;
+      opacity: 0.9;
+    }
+
+    .entry-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 60px;
+      overflow-y: auto;
+      flex: 1;
+      font-size: 10px;
+    }
+
+    .entry-item {
+      background: rgba(12, 22, 42, 0.7);
+      padding: 4px 6px;
+      margin-bottom: 3px;
+      border-radius: 4px;
+      font-family: 'Consolas', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid rgba(0, 180, 255, 0.1);
+    }
+
+    .entry-item:hover {
+      background: rgba(20, 35, 65, 0.9);
+      border-color: rgba(0, 229, 255, 0.3);
+    }
+
+    .entry-item.empty {
+      color: #555;
+      font-style: italic;
+      text-align: center;
+      font-size: 9px;
+    }
+
+    .nominal {
+      font-size: 11px;
+    }
+
+    .withdraw-note {
+      margin-top: 1px;
+      font-size: 8px;
+      padding-left: 2px;
+      border-left: 1px solid #4caf50;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(0, 180, 255, 0.4);
+    }
+
+    .total-label {
+      font-size: 11px;
+    }
+
+    .total-value {
+      font-family: 'Consolas', monospace;
+      font-size: 12px;
+    }
+
+    .deposit-color { color: #4fc3f7; }
+    .withdraw-color { color: #ff8a80; }
+
+    .card-footer {
+      padding: 8px 10px;
+      background: rgba(6, 14, 28, 0.8);
+      border-top: 1px solid rgba(0, 150, 255, 0.15);
+      font-size: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .selisih-value {
+      font-family: 'Consolas', monospace;
+      font-size: 11px;
+    }
+
+    .diff-cocok { color: #4dff4d; }
+    .diff-lebih { color: #ffcc00; }
+    .diff-kurang { color: #ff6666; }
+
+    .status-badge {
+      padding: 3px 10px;
+      border-radius: 14px;
+      font-size: 10px;
+      min-width: 85px;
+      text-align: center;
+      background: rgba(0, 20, 40, 0.5);
+      border: 1px solid currentColor;
+      color: #00f3ff;
+      text-shadow: 0 0 6px rgba(0, 243, 255, 0.8);
+    }
+
+    .entry-list::-webkit-scrollbar {
+      width: 5px;
+    }
+    .entry-list::-webkit-scrollbar-track {
+      background: rgba(6, 12, 22, 0.8);
+      border-radius: 2px;
+    }
+    .entry-list::-webkit-scrollbar-thumb {
+      background: #00b0ff;
+      border-radius: 2px;
+    }
+
+    .error-msg {
+      text-align: center;
+      padding: 10px;
+      color: #ff6b6b;
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border: 2px solid rgba(0, 243, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #00f3ff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 4px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* === TOGGLE === */
+    .mode-toggle {
+      max-width: 1100px;
+      margin: 0 auto 12px;
+      text-align: center;
+      background: rgba(8, 16, 30, 0.92);
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 200, 255, 0.25);
+    }
+
+    .toggle-label {
+      margin-right: 10px;
+      font-size: 13px;
+    }
+
+    .mode-text {
+      margin-top: 6px;
+      font-size: 11px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 54px;
+      height: 26px;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #2c3e50;
+      transition: .3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #00b0ff;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(28px);
+    }
+  </style>
+</head>
+<body>
+  <h1>💰 Deposit vs Withdraw Analyzer</h1>
+
+  <div class="mode-toggle">
+    <span class="toggle-label">Mode Analisis:</span>
+    <label class="switch">
+      <input type="checkbox" id="modeToggle">
+      <span class="slider"></span>
+    </label>
+    <div class="mode-text" id="modeText">Saat ini: Per Pengguna</div>
+  </div>
+
+  <div class="input-section">
+    <div class="section">
+      <div class="section-title">📥 DATA DEPOSIT</div>
+      <textarea id="dataDeposit" placeholder="Contoh:
+Depo BCA / ADIV ARYA ATMAJA	16,300,000
+DEPO MYBCA / MIA	2,900,000"></textarea>
+      <div class="buttons">
+        <button class="btn-clear" onclick="clearDeposit()">🗑️ Clear</button>
+        <button class="btn-action" onclick="loadDeposit()">
+          <span class="loading" id="loadingDeposit" style="display:none;"></span>
+          📥 Ambil Data Deposit
+        </button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📤 DATA WITHDRAW</div>
+      <textarea id="dataWithdraw" placeholder="Format: [Keterangan] [Nominal] [Sumber Deposit]
+Contoh:
+PENGIRIMAN DANA...	16,300,000	Depo BCA / ADIV ARYA ATMAJA
+KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
+      <div class="buttons">
+        <button class="btn-clear" onclick="clearWithdraw()">🗑️ Clear</button>
+        <button class="btn-action" onclick="loadWithdraw()">
+          <span class="loading" id="loadingWithdraw" style="display:none;"></span>
+          📤 Ambil Data Withdraw
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="buttons" style="max-width:1100px; margin:0 auto 14px; justify-content: center;">
+    <button id="btnProses" onclick="prosesDepositWithdraw()">⚡ PROSES ANALISIS</button>
+  </div>
+
+  <div id="hasilDepoWd"></div>
+
+  <script>
+    const SHEET_ID = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
+    const GID_DEPOSIT = '1211507274';
+    const GID_WITHDRAW = '1694551844';
+
+    const BANK_LIST = [
+      'BCA', 'BRI', 'BNI', 'CIMB', 'DANAMON', 'BSI', 'DANA', 'OVO',
+      'LINKAJA', 'GOPAY', 'JAGO', 'MAYBANK', 'SEABANK', 'MANDIRI', 'QRIS'
+    ];
+
+    let modePerBank = false;
+
+    document.getElementById('modeToggle').addEventListener('change', function() {
+      modePerBank = this.checked;
+      document.getElementById('modeText').textContent = 
+        modePerBank ? 'Saat ini: Per Bank' : 'Saat ini: Per Pengguna';
+    });
+
+    function formatRupiah(angka) {
+      if (angka == null || angka === 0) return '0';
+      return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function clearDeposit() { document.getElementById('dataDeposit').value = ''; }
+    function clearWithdraw() { document.getElementById('dataWithdraw').value = ''; }
+
+    function parseSheetResponse(text) {
+      try {
+        const jsonStart = text.indexOf('{');
+        const jsonEnd = text.lastIndexOf('}') + 1;
+        const jsonString = text.substring(jsonStart, jsonEnd);
+        const data = JSON.parse(jsonString);
+        if (!data.table || !Array.isArray(data.table.rows)) return [];
+        return data.table.rows.map(row => row.c ? row.c.map(cell => cell?.v ?? '').join('\t') : '');
+      } catch (e) {
+        console.error('Error parsing sheet response:', e);
+        return [];
+      }
+    }
+
+    async function loadDeposit() {
+      const loading = document.getElementById('loadingDeposit');
+      loading.style.display = 'inline-block';
+      const btn = document.querySelectorAll('.btn-action')[0];
+      btn.disabled = true;
+
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_DEPOSIT}&range=A102:B250`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        const allRows = parseSheetResponse(text);
+
+        const data = allRows
+          .filter(line => {
+            const [colA, colB] = line.split('\t');
+            return (colA || '').trim() !== '' && (colB || '').trim() !== '';
+          })
+          .map(line => {
+            const [desc, nominal] = line.split('\t');
+            const num = parseInt(String(nominal).replace(/[^0-9]/g, '')) || 0;
+            return `${desc}\t${formatRupiah(num)}`;
+          })
+          .join('\n');
+
+        document.getElementById('dataDeposit').value = data;
+      } catch (err) {
+        console.error('Gagal muat Deposit:', err);
+        alert('❌ Gagal mengambil data Deposit.\nPastikan sheet di-set ke “Siapa saja dengan link bisa melihat”.');
+      } finally {
+        loading.style.display = 'none';
+        btn.disabled = false;
+      }
+    }
+
+    async function loadWithdraw() {
+      const loading = document.getElementById('loadingWithdraw');
+      loading.style.display = 'inline-block';
+      const btn = document.querySelectorAll('.btn-action')[1];
+      btn.disabled = true;
+
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_WITHDRAW}&range=I8:K1809`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        const allRows = parseSheetResponse(text);
+
+        const data = allRows
+          .filter(line => {
+            const [colI, colJ] = line.split('\t');
+            return (colI || '').trim() !== '' && (colJ || '').trim() !== '';
+          })
+          .map(line => {
+            const [ket, nominal, sumber] = line.split('\t');
+            const num = parseInt(String(nominal).replace(/[^0-9]/g, '')) || 0;
+            return `${ket}\t${formatRupiah(num)}\t${sumber || ''}`;
+          })
+          .join('\n');
+
+        document.getElementById('dataWithdraw').value = data;
+      } catch (err) {
+        console.error('Gagal muat Withdraw:', err);
+        alert('❌ Gagal mengambil data Withdraw.\nPastikan sheet di-set ke “Siapa saja dengan link bisa melihat”.');
+      } finally {
+        loading.style.display = 'none';
+        btn.disabled = false;
+      }
+    }
+
+    function detectBank(text) {
+      const upper = (text || '').toUpperCase();
+      for (const bank of BANK_LIST) {
+        if (upper.includes(bank)) return bank;
+      }
+      return 'LAINNYA';
+    }
+
+    function extractNameFromText(text) {
+      let cleaned = text.trim();
+      const depoIndex = cleaned.toUpperCase().indexOf('DEPO ');
+      if (depoIndex !== -1) cleaned = cleaned.substring(depoIndex + 5).trim();
+      const lastSlash = cleaned.lastIndexOf('/');
+      if (lastSlash !== -1) return cleaned.substring(lastSlash + 1).trim();
+      return cleaned;
+    }
+
+    function parseLine(line, isWithdraw = false) {
+      line = line.trim();
+      if (!line) return null;
+      const parts = line.split('\t').map(p => p.trim()).filter(p => p);
+      if (parts.length >= 2) {
+        if (isWithdraw) {
+          const keterangan = parts[0];
+          const nominalRaw = parts[1].replace(/,/g, '');
+          const sourceDesc = parts[2] || keterangan;
+          const nama = extractNameFromText(sourceDesc);
+          const bank = detectBank(sourceDesc);
+          const nominalClean = parseInt(nominalRaw) || 0;
+          return { nama, bank, nominalRaw: formatRupiah(nominalClean), nominalClean, asli: line, note: keterangan };
+        } else {
+          const desc = parts[0];
+          const nominalRaw = parts[1].replace(/,/g, '');
+          const nama = extractNameFromText(desc);
+          const bank = detectBank(desc);
+          const nominalClean = parseInt(nominalRaw) || 0;
+          return { nama, bank, nominalRaw: formatRupiah(nominalClean), nominalClean, asli: line, note: '' };
+        }
+      }
+      return null;
+    }
+
+    function prosesDepositWithdraw() {
+      const rawDeposit = document.getElementById('dataDeposit').value.trim();
+      const rawWithdraw = document.getElementById('dataWithdraw').value.trim();
+
+      if (!rawDeposit || !rawWithdraw) {
+        document.getElementById('hasilDepoWd').innerHTML = '<div class="error-msg">⚠️ Harap isi kedua kolom!</div>';
+        return;
+      }
+
+      const depositList = rawDeposit.split('\n').map(l => parseLine(l, false)).filter(Boolean);
+      const withdrawList = rawWithdraw.split('\n').map(l => parseLine(l, true)).filter(Boolean);
+
+      if (depositList.length === 0 || withdrawList.length === 0) {
+        document.getElementById('hasilDepoWd').innerHTML = '<div class="error-msg">❌ Format data tidak valid!</div>';
+        return;
+      }
+
+      if (modePerBank) {
+        analisisPerBank(depositList, withdrawList);
+      } else {
+        analisisPerPengguna(depositList, withdrawList);
+      }
+    }
+
+    function analisisPerPengguna(depositList, withdrawList) {
+      const depositTotal = {}, withdrawTotal = {}, depositDetails = {}, withdrawDetails = {};
+
+      depositList.forEach(item => {
+        const key = item.nama.toLowerCase().trim();
+        depositTotal[key] = (depositTotal[key] || 0) + item.nominalClean;
+        if (!depositDetails[key]) depositDetails[key] = [];
+        depositDetails[key].push({ raw: item.nominalRaw, clean: item.nominalClean, asli: item.asli });
+      });
+
+      withdrawList.forEach(item => {
+        const key = item.nama.toLowerCase().trim();
+        withdrawTotal[key] = (withdrawTotal[key] || 0) + item.nominalClean;
+        if (!withdrawDetails[key]) withdrawDetails[key] = [];
+        withdrawDetails[key].push({ raw: item.nominalRaw, clean: item.nominalClean, asli: item.asli, note: item.note || '' });
+      });
+
+      const allNames = new Set([...Object.keys(depositTotal), ...Object.keys(withdrawTotal)]);
+      const results = [];
+      let totalCocok = 0;
+
+      allNames.forEach(key => {
+        const namaAsli = depositDetails[key] 
+          ? depositList.find(d => d.nama.toLowerCase().trim() === key)?.nama
+          : withdrawList.find(w => w.nama.toLowerCase().trim() === key)?.nama
+          || key;
+
+        const depo = depositTotal[key] || 0;
+        const wd = withdrawTotal[key] || 0;
+        const diff = depo - wd;
+
+        let status, bgColor;
+        if (depo > 0 && wd > 0) {
+          if (diff === 0) { status = '✅ COCOK'; bgColor = '#2e7d32'; totalCocok++; }
+          else { status = '⚠️ BEDA'; bgColor = '#ff8f00'; }
+        } else {
+          status = '❌ TIDAK LENGKAP';
+          bgColor = '#b71c1c';
+        }
+
+        const depoFmt = depo > 0 ? formatRupiah(depo) : '–';
+        const wdFmt = wd > 0 ? formatRupiah(wd) : '–';
+        const selisihDisplay = diff === 0 ? '0' : (diff > 0 ? `+${formatRupiah(diff)}` : `-${formatRupiah(Math.abs(diff))}`);
+        const diffClass = diff === 0 ? 'diff-cocok' : (diff > 0 ? 'diff-lebih' : 'diff-kurang');
+
+        results.push({
+          nama: namaAsli,
+          depoFmt,
+          wdFmt,
+          selisihDisplay,
+          diff,
+          diffClass,
+          status,
+          bgColor,
+          depositEntries: depositDetails[key] || [],
+          withdrawEntries: withdrawDetails[key] || []
+        });
+      });
+
+      renderPerPengguna(results, totalCocok);
+    }
+
+    function analisisPerBank(depositList, withdrawList) {
+      const depositByBank = {};
+      const withdrawByBank = {};
+      const depositEntriesByBank = {};
+      const withdrawEntriesByBank = {};
+
+      BANK_LIST.forEach(bank => {
+        depositByBank[bank] = 0;
+        withdrawByBank[bank] = 0;
+        depositEntriesByBank[bank] = [];
+        withdrawEntriesByBank[bank] = [];
+      });
+      depositByBank['LAINNYA'] = 0;
+      withdrawByBank['LAINNYA'] = 0;
+      depositEntriesByBank['LAINNYA'] = [];
+      withdrawEntriesByBank['LAINNYA'] = [];
+
+      depositList.forEach(item => {
+        depositByBank[item.bank] += item.nominalClean;
+        depositEntriesByBank[item.bank].push({ raw: item.nominalRaw, clean: item.nominalClean, asli: item.asli });
+      });
+
+      withdrawList.forEach(item => {
+        withdrawByBank[item.bank] += item.nominalClean;
+        withdrawEntriesByBank[item.bank].push({ raw: item.nominalRaw, clean: item.nominalClean, asli: item.asli, note: item.note || '' });
+      });
+
+      const results = [];
+      let totalCocok = 0;
+
+      [...BANK_LIST, 'LAINNYA'].forEach(bank => {
+        const depo = depositByBank[bank] || 0;
+        const wd = withdrawByBank[bank] || 0;
+        const diff = depo - wd;
+
+        let status, bgColor;
+        if (depo > 0 && wd > 0) {
+          if (diff === 0) { status = '✅ COCOK'; bgColor = '#2e7d32'; totalCocok++; }
+          else { status = '⚠️ BEDA'; bgColor = '#ff8f00'; }
+        } else if (depo === 0 && wd === 0) {
+          return;
+        } else {
+          status = '❌ TIDAK LENGKAP';
+          bgColor = '#b71c1c';
+        }
+
+        const depoFmt = depo > 0 ? formatRupiah(depo) : '–';
+        const wdFmt = wd > 0 ? formatRupiah(wd) : '–';
+        const selisihDisplay = diff === 0 ? '0' : (diff > 0 ? `+${formatRupiah(diff)}` : `-${formatRupiah(Math.abs(diff))}`);
+        const diffClass = diff === 0 ? 'diff-cocok' : (diff > 0 ? 'diff-lebih' : 'diff-kurang');
+
+        results.push({
+          bank,
+          depoFmt,
+          wdFmt,
+          selisihDisplay,
+          diff,
+          diffClass,
+          status,
+          bgColor,
+          depositEntries: depositEntriesByBank[bank] || [],
+          withdrawEntries: withdrawEntriesByBank[bank] || []
+        });
+      });
+
+      renderPerBank(results, totalCocok);
+    }
+
+    function renderPerPengguna(results, totalCocok) {
+      let html = `
+      <div class="depo-wd-container">
+        <div class="depo-wd-title">💰 ANALISIS DEPOSIT vs WITHDRAW (Per Pengguna)</div>
+        <div class="summary-box">
+          <strong>📊 Ringkasan:</strong> Total Pengguna: <strong>${results.length}</strong> | 
+          <span style="color:#66bb6a;">✅ COCOK: ${totalCocok}</span> | 
+          <span style="color:#ff8f00;">⚠️ BEDA: ${results.filter(r => r.status.includes('BEDA')).length}</span> | 
+          <span style="color:#ef5350;">❌ TIDAK LENGKAP: ${results.filter(r => r.status.includes('TIDAK LENGKAP')).length}</span>
+        </div>
+      `;
+
+      results.forEach(row => {
+        let selisihKet = "✅ COCOK";
+        if (row.diff > 0) selisihKet = "⚠️ KELEBIHAN DEPOSIT";
+        else if (row.diff < 0) selisihKet = "⚠️ KEKURANGAN DEPOSIT";
+        else if (row.depoFmt === '–' || row.wdFmt === '–') selisihKet = "❌ TIDAK LENGKAP";
+
+        html += `
+        <div class="user-card">
+          <div class="card-header">${row.nama}</div>
+          <div class="card-body">
+            <div class="col">
+              <div class="col-title">
+                <span>📥 DEP</span>
+                <small>(${row.depositEntries.length})</small>
+              </div>
+              <ul class="entry-list">
+                ${row.depositEntries.length > 0
+                  ? row.depositEntries.map(e => `<li class="entry-item">${e.raw}</li>`).join('')
+                  : '<li class="entry-item empty">–</li>'
+                }
+              </ul>
+              <div class="total-row">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-value deposit-color">${row.depoFmt}</span>
+              </div>
+            </div>
+            <div class="col">
+              <div class="col-title">
+                <span>📤 WD</span>
+                <small>(${row.withdrawEntries.length})</small>
+              </div>
+              <ul class="entry-list">
+                ${row.withdrawEntries.length > 0
+                  ? row.withdrawEntries.map(e => `
+                      <li class="entry-item">
+                        <span class="nominal">${e.raw}</span>
+                        ${e.note ? `<div class="withdraw-note">${e.note}</div>` : ''}
+                      </li>
+                    `).join('')
+                  : '<li class="entry-item empty">–</li>'
+                }
+              </ul>
+              <div class="total-row">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-value withdraw-color">${row.wdFmt}</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div>
+              <span class="selisih-animasi">${selisihKet}</span>
+            </div>
+            <div class="selisih-value ${row.diffClass}">${row.selisihDisplay}</div>
+          </div>
+        </div>
+        `;
+      });
+
+      html += `</div>`;
+      document.getElementById('hasilDepoWd').innerHTML = html;
+    }
+
+    function renderPerBank(results, totalCocok) {
+      let html = `
+      <div class="depo-wd-container">
+        <div class="depo-wd-title">🏦 ANALISIS DEPOSIT vs WITHDRAW (Per Bank / Sumber)</div>
+        <div class="summary-box">
+          <strong>📊 Ringkasan:</strong> Total Bank/Sumber: <strong>${results.length}</strong> | 
+          <span style="color:#66bb6a;">✅ COCOK: ${totalCocok}</span> | 
+          <span style="color:#ff8f00;">⚠️ BEDA: ${results.filter(r => r.status.includes('BEDA')).length}</span> | 
+          <span style="color:#ef5350;">❌ TIDAK LENGKAP: ${results.filter(r => r.status.includes('TIDAK LENGKAP')).length}</span>
+        </div>
+      `;
+
+      results.forEach(row => {
+        let selisihKet = "✅ COCOK";
+        if (row.diff > 0) selisihKet = "⚠️ KELEBIHAN DEPOSIT";
+        else if (row.diff < 0) selisihKet = "⚠️ KEKURANGAN DEPOSIT";
+        else if (row.depoFmt === '–' || row.wdFmt === '–') selisihKet = "❌ TIDAK LENGKAP";
+
+        html += `
+        <div class="bank-card">
+          <div class="card-header">🏦 ${row.bank}</div>
+          <div class="card-body">
+            <div class="col">
+              <div class="col-title">
+                <span>📥 DEPOSIT</span>
+                <small>(${row.depositEntries.length})</small>
+              </div>
+              <ul class="entry-list">
+                ${row.depositEntries.length > 0
+                  ? row.depositEntries.map(e => `<li class="entry-item">${e.raw}</li>`).join('')
+                  : '<li class="entry-item empty">–</li>'
+                }
+              </ul>
+              <div class="total-row">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-value deposit-color">${row.depoFmt}</span>
+              </div>
+            </div>
+            <div class="col">
+              <div class="col-title">
+                <span>📤 WITHDRAW</span>
+                <small>(${row.withdrawEntries.length})</small>
+              </div>
+              <ul class="entry-list">
+                ${row.withdrawEntries.length > 0
+                  ? row.withdrawEntries.map(e => `
+                      <li class="entry-item">
+                        <span class="nominal">${e.raw}</span>
+                        ${e.note ? `<div class="withdraw-note">${e.note}</div>` : ''}
+                      </li>
+                    `).join('')
+                  : '<li class="entry-item empty">–</li>'
+                }
+              </ul>
+              <div class="total-row">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-value withdraw-color">${row.wdFmt}</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div>
+              <span class="selisih-animasi">${selisihKet}</span>
+            </div>
+            <div class="selisih-value ${row.diffClass}">${row.selisihDisplay}</div>
+          </div>
+        </div>
+        `;
+      });
+
+      html += `</div>`;
+      document.getElementById('hasilDepoWd').innerHTML = html;
+    }
+  </script>
+</body>
+</html>
+
