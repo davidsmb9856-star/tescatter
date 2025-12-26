@@ -848,57 +848,89 @@ GOPAY, 888"></textarea>
     }
 
     function parseSingleWithdrawBlock(lines) {
-      const fullText = lines.join(' ').toUpperCase();
-      let username = '', nominal = '', account = '', name = '';
+  const fullText = lines.join(' ').toUpperCase();
+  let username = '', nominal = '', account = '', name = '';
 
-      // Username: dari baris pertama setelah angka
-      if (lines[0]) {
-        const first = lines[0].trim();
-        const userMatch = first.match(/^\d+\s*([a-zA-Z0-9_]+)/);
-        if (userMatch) username = userMatch[1];
-      }
+  // === 1. Ambil username dari baris pertama ===
+  if (lines[0]) {
+    const first = lines[0].trim();
+    const userMatch = first.match(/^\d+\s*([a-zA-Z0-9_]+)/);
+    if (userMatch) username = userMatch[1];
+  }
 
-      // Nominal: cari angka dengan koma
-      const numRegex = /[\d,]{5,}/;
-      for (const line of lines) {
-        const m = line.match(numRegex);
-        if (m) {
-          nominal = m[0].replace(/\./g, '').replace(/,/g, ',');
-          break;
-        }
-      }
-
-      // Account & Nama: dari baris terakhir
-      const lastLine = lines[lines.length - 1] || '';
-      if (lastLine.includes(',')) {
-        const parts = lastLine.split(',').map(p => p.trim());
-        if (parts.length >= 3) {
-          account = parts[1];
-          name = parts[2].toUpperCase();
-        } else if (parts.length === 2) {
-          account = parts[0].replace(/\D/g, '');
-          name = parts[1].toUpperCase();
-        }
-      }
-
-      // E-wallet detection
-      let finalAccount = account;
-      for (const [wallet, code] of Object.entries(E_WALLET_CODES)) {
-        if (fullText.includes(wallet)) {
-          const lastNumMatch = lines.join(' ').match(/\d+$/);
-          const lastNum = lastNumMatch ? lastNumMatch[0] : '';
-          finalAccount = code + lastNum;
-          break;
-        }
-      }
-
-      return {
-        account: finalAccount || '–',
-        username: username || '–',
-        name: name || '–',
-        nominal: nominal || '–'
-      };
+  // === 2. Ambil nominal (angka dengan koma) ===
+  const numRegex = /[\d,]{5,}/;
+  for (const line of lines) {
+    const m = line.match(numRegex);
+    if (m) {
+      nominal = m[0].replace(/\./g, '').replace(/,/g, ',');
+      break;
     }
+  }
+
+  // === 3. Cari baris yang berisi e-wallet (DANA, OVO, dll) atau rekening bank ===
+  let isEWallet = false;
+  let eWalletType = '';
+  let extractedNumber = '';
+
+  // Cek setiap baris dari bawah (biasanya data rekening di akhir)
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // Cek apakah mengandung e-wallet
+    if (line.toUpperCase().includes('DANA') ||
+        line.toUpperCase().includes('OVO') ||
+        line.toUpperCase().includes('LINKAJA') ||
+        line.toUpperCase().includes('GOPAY')) {
+
+      isEWallet = true;
+      // Tentukan jenis e-wallet
+      if (line.toUpperCase().includes('DANA')) eWalletType = 'DANA';
+      else if (line.toUpperCase().includes('OVO')) eWalletType = 'OVO';
+      else if (line.toUpperCase().includes('LINKAJA')) eWalletType = 'LINKAJA';
+      else if (line.toUpperCase().includes('GOPAY')) eWalletType = 'GOPAY';
+
+      // Format: "DANA, 085784480822, Edi hariyanto"
+      const parts = line.split(',').map(p => p.trim());
+      if (parts.length >= 2) {
+        extractedNumber = parts[1].replace(/\D/g, ''); // hanya angka
+        if (parts.length >= 3) {
+          name = parts[2].toUpperCase();
+        }
+      }
+      break;
+    }
+    // Jika bukan e-wallet, coba deteksi rekening bank biasa
+    else if (line.includes(',')) {
+      const parts = line.split(',').map(p => p.trim());
+      if (parts.length >= 3) {
+        account = parts[1].replace(/\D/g, '');
+        name = parts[2].toUpperCase();
+      } else if (parts.length === 2) {
+        account = parts[0].replace(/\D/g, '');
+        name = parts[1].toUpperCase();
+      }
+      break;
+    }
+  }
+
+  // === 4. Tentukan nilai akhir kolom 1 ===
+  let finalAccount = '–';
+  if (isEWallet && extractedNumber) {
+    const code = E_WALLET_CODES[eWalletType];
+    finalAccount = code + extractedNumber;
+  } else if (account) {
+    finalAccount = account;
+  }
+
+  return {
+    account: finalAccount,
+    username: username || '–',
+    name: name || '–',
+    nominal: nominal || '–'
+  };
+}
 
     function splitIntoBlocks(text) {
       const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
@@ -964,3 +996,4 @@ GOPAY, 888"></textarea>
   </script>
 </body>
 </html>
+
