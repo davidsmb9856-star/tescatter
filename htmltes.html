@@ -365,6 +365,84 @@
       font-weight: bold;
       font-size: 14px;
     }
+    /* === WITHDRAW EXTRACTOR NEON === */
+.withdraw-extractor {
+  max-width: 1100px;
+  margin: 20px auto;
+  background: rgba(0, 10, 20, 0.75);
+  border: 1px solid rgba(0, 200, 255, 0.5);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+}
+
+.extractor-title {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: var(--neon-blue);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.9);
+}
+
+.extract-input {
+  width: 100%;
+  height: 100px;
+  background: rgba(0, 5, 15, 0.9);
+  color: #b0f0ff;
+  border: 1px solid var(--neon-blue);
+  border-radius: 6px;
+  padding: 8px;
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  resize: vertical;
+  margin-bottom: 10px;
+}
+
+.extract-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.extract-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.extract-col {
+  background: rgba(0, 20, 40, 0.8);
+  border: 1px solid rgba(0, 200, 255, 0.4);
+  border-radius: 6px;
+  padding: 8px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+}
+
+.extract-col-title {
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: var(--neon-blue);
+  text-shadow: 0 0 6px rgba(0, 255, 255, 0.7);
+}
+
+.extract-col-content {
+  font-family: 'Consolas', monospace;
+  font-size: 12px;
+  word-break: break-all;
+  flex: 1;
+  color: #e0f0ff;
+}
+
+.extract-col-content.empty {
+  color: #555;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
   </style>
 </head>
 <body>
@@ -419,6 +497,44 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
   </div>
 
   <div id="hasilDepoWd"></div>
+  <!-- === WITHDRAW EXTRACTOR SECTION === -->
+<div class="withdraw-extractor">
+  <div class="extractor-title">📤 EXTRACT DATA WITHDRAW (FORMAT KHUSUS)</div>
+  <textarea id="extractInput" class="extract-input" placeholder="Tempel data mentah di sini, contoh:
+1		nisa197
+Withdraw	2025-12-26 13:33:00	2,227,000 	703
+G2
+BRI, 486001013589536, MOCHAMMAD BAHA UDIN MAKY"></textarea>
+  <div class="extract-buttons">
+    <button class="neon-btn" onclick="clearExtract()">
+      <i>🗑️</i> Hapus Semua
+    </button>
+    <button class="neon-btn" onclick="processExtract()">
+      <i>🔍</i> Ambil Data
+    </button>
+    <button class="neon-btn" onclick="copyExtracted()">
+      <i>📋</i> Copy Semua
+    </button>
+  </div>
+  <div class="extract-grid">
+    <div class="extract-col">
+      <div class="extract-col-title">Kolom 1<br><small>(No. + Kode E-Wallet)</small></div>
+      <div class="extract-col-content" id="col1">–</div>
+    </div>
+    <div class="extract-col">
+      <div class="extract-col-title">Kolom 2<br><small>(Username)</small></div>
+      <div class="extract-col-content" id="col2">–</div>
+    </div>
+    <div class="extract-col">
+      <div class="extract-col-title">Kolom 3<br><small>(Nama Pemilik)</small></div>
+      <div class="extract-col-content" id="col3">–</div>
+    </div>
+    <div class="extract-col">
+      <div class="extract-col-title">Kolom 4<br><small>(Nominal)</small></div>
+      <div class="extract-col-content" id="col4">–</div>
+    </div>
+  </div>
+</div>
 
   <script>
     const SHEET_ID = '1JF1Mp58d4q6m3D0BLAxaQxxEUduXLFsp5em8Ww6MaNo';
@@ -666,7 +782,111 @@ KIRIM KE USER	2,900,000	DEPO MYBCA / MIA"></textarea>
       html += '</div>';
       document.getElementById('hasilDepoWd').innerHTML = html;
     }
+    // === EXTRACTOR UNTUK WITHDRAW KHUSUS ===
+const E_WALLET_CODES = {
+  'DANA': '3901',
+  'OVO': '39358',
+  'LINKAJA': '09110',
+  'GOPAY': '70001'
+};
+
+function clearExtract() {
+  document.getElementById('extractInput').value = '';
+  ['col1', 'col2', 'col3', 'col4'].forEach(id => {
+    document.getElementById(id).textContent = '–';
+    document.getElementById(id).classList.remove('empty');
+  });
+}
+
+function copyExtracted() {
+  const c1 = document.getElementById('col1').textContent;
+  const c2 = document.getElementById('col2').textContent;
+  const c3 = document.getElementById('col3').textContent;
+  const c4 = document.getElementById('col4').textContent;
+  if (c1 === '–' || c2 === '–' || c3 === '–' || c4 === '–') {
+    alert('⚠️ Belum ada data untuk disalin!');
+    return;
+  }
+  const text = `${c1}\n${c2}\n${c3}\n${c4}`;
+  navigator.clipboard.writeText(text).then(() => {
+    // Opsional: beri feedback visual (bisa pakai notif neon kecil)
+  });
+}
+
+function processExtract() {
+  const input = document.getElementById('extractInput').value.trim();
+  if (!input) return clearExtract();
+
+  const lines = input.split('\n').map(l => l.trim()).filter(l => l);
+
+  // --- Cari username (biasanya di baris pertama, setelah angka/tab)
+  let username = '';
+  if (lines[0]) {
+    const firstLine = lines[0];
+    // Coba ekstrak username setelah angka awal atau tab
+    const matchUser = firstLine.match(/\d+\s*([\w\d_]+)/);
+    if (matchUser) username = matchUser[1];
+  }
+
+  // --- Cari nominal (format angka dengan koma)
+  let nominal = '';
+  const nominalRegex = /[\d,]{4,}/;
+  for (const line of lines) {
+    const m = line.match(nominalRegex);
+    if (m) {
+      // Pastikan koma sebagai separator (sesuai preferensi)
+      nominal = m[0].replace(/\./g, '').replace(/,/g, ','); // jaga koma, hapus titik
+      break;
+    }
+  }
+
+  // --- Cari nama dan nomor (biasanya di baris terakhir, format: [Bank], [Nomor], [Nama])
+  let account = '', name = '';
+  const lastLine = lines[lines.length - 1] || '';
+  if (lastLine.includes(',')) {
+    const parts = lastLine.split(',').map(p => p.trim());
+    if (parts.length >= 3) {
+      account = parts[1];
+      name = parts[2].toUpperCase();
+    } else if (parts.length === 2) {
+      // fallback: mungkin [Nomor], [Nama]
+      account = parts[0].replace(/\D/g, '');
+      name = parts[1].toUpperCase();
+    }
+  }
+
+  // --- Deteksi e-wallet dari seluruh teks
+  let accountFinal = account;
+  const fullText = input.toUpperCase();
+  for (const [wallet, code] of Object.entries(E_WALLET_CODES)) {
+    if (fullText.includes(wallet)) {
+      // Ambil angka dari akhir (misal: 703) → jadi kode + angka
+      const numMatch = input.match(/\d+$/m);
+      const num = numMatch ? numMatch[0] : '';
+      accountFinal = code + num;
+      break;
+    }
+  }
+
+  // --- Tampilkan
+  const setCol = (id, val) => {
+    const el = document.getElementById(id);
+    if (val) {
+      el.textContent = val;
+      el.classList.remove('empty');
+    } else {
+      el.textContent = '–';
+      el.classList.add('empty');
+    }
+  };
+
+  setCol('col1', accountFinal);
+  setCol('col2', username);
+  setCol('col3', name);
+  setCol('col4', nominal);
+}
   </script>
 </body>
 </html>
+
 
