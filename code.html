@@ -3,26 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri Keyboard Navigasi & Zoom Otomatis</title>
-    
+    <title>Galeri Keyboard Navigasi & Zoom Otomatis + Scan OCR</title>
+
+    <!-- Muat Tesseract.js (wajib untuk OCR) -->
+    <script src="https://unpkg.com/tesseract.js@v5/dist/tesseract.min.js"></script>
+
     <style>
 :root {
-    --neon-blue: #00ffff; /* Biru Neon Cerah */
-    --dark-background: #121212; /* Latar Belakang Sangat Gelap */
-    --card-background: #1e1e1e; /* Latar Belakang Card Gelap */
-    --input-background: #2a2a2a; /* Latar Belakang Input Gelap */
-    --border-color: #00bfff; /* Biru Neon Sekunder untuk batas */
-    --text-color: #e0f7fa; /* Teks Putih Kebiruan */
-    --secondary-neon: #00bfff; /* Biru Neon Sekunder untuk highlight */
-    --danger-color: #ff4d4d; /* Merah Neon untuk bahaya */
-    --success-color: #39ff14; /* Hijau Neon untuk sukses */
-    --warning-color: #f1c40f; /* Kuning Neon untuk peringatan/caption */
-    --primary-button: #00bfff; /* Warna utama tombol */
+    --neon-blue: #00ffff;
+    --dark-background: #121212;
+    --card-background: #1e1e1e;
+    --input-background: #2a2a2a;
+    --border-color: #00bfff;
+    --text-color: #e0f7fa;
+    --secondary-neon: #00bfff;
+    --danger-color: #ff4d4d;
+    --success-color: #39ff14;
+    --warning-color: #f1c40f;
+    --primary-button: #00bfff;
     --primary-button-hover: #00e5ff;
 }
 
-/* * --- Global & Container --- 
- */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--dark-background);
@@ -30,6 +31,7 @@ body {
     padding: 20px;
     margin: 0;
     line-height: 1.6;
+    font-size: 16px; /* Lebih besar untuk readability */
 }
 
 .container, 
@@ -39,7 +41,6 @@ body {
     background: var(--card-background); 
     padding: 30px;
     border-radius: 12px;
-    /* Efek glow biru neon */
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), 0 0 10px rgba(0, 255, 255, 0.1); 
     border: 1px solid var(--secondary-neon);
 }
@@ -49,13 +50,10 @@ body {
     margin-bottom: 25px;
 }
 
-/* * --- Judul --- 
- */
 h1 {
     text-align: center;
     color: var(--neon-blue);
     margin-bottom: 25px;
-    /* Efek neon */
     text-shadow: 0 0 8px var(--neon-blue), 0 0 15px var(--secondary-neon); 
     font-size: 2.5em;
 }
@@ -69,46 +67,41 @@ h2 {
 
 .judul-glow {
     text-align: center;
-    color: var(--success-color); /* Menggunakan warna sukses neon */
+    color: var(--success-color);
     text-shadow: 0 0 10px var(--success-color), 0 0 20px var(--success-color);
     margin-bottom: 20px;
-    font-size: 2.5em; /* Konsisten dengan h1 */
+    font-size: 2.5em;
 }
 
-/* * --- Form, Input & Tombol --- 
- */
-textarea {
+textarea, input[type="text"] {
     width: 100%;
     padding: 12px;
     margin-bottom: 15px;
-    border: 1px solid var(--secondary-neon); /* Border neon */
+    border: 1px solid var(--secondary-neon);
     box-sizing: border-box;
-    background-color: var(--input-background); /* Latar belakang gelap */
+    background-color: var(--input-background);
     color: var(--text-color);
     border-radius: 6px;
     resize: vertical;
-    /* Efek glow ringan saat fokus */
     transition: box-shadow 0.3s;
 }
 
-textarea:focus {
+textarea:focus, input[type="text"]:focus {
     outline: none;
     box-shadow: 0 0 8px rgba(0, 191, 255, 0.8);
 }
 
-/* Style untuk semua button yang tidak spesifik */
 button,
 .btn {
     padding: 10px 18px;
     color: var(--dark-background);
-    background-color: var(--primary-button); /* Biru neon sebagai warna primer */
+    background-color: var(--primary-button);
     border: none;
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.3s, box-shadow 0.3s;
     font-weight: bold;
     margin-right: 10px;
-    /* Efek neon ringan */
     box-shadow: 0 0 5px rgba(0, 191, 255, 0.5);
 }
 
@@ -118,28 +111,25 @@ button:hover,
     box-shadow: 0 0 10px var(--primary-button-hover);
 }
 
-/* Tombol Danger */
 #clearDataBtn,
 .btn.danger {
-    background-color: var(--danger-color); /* Merah Neon */
+    background-color: var(--danger-color);
     color: var(--text-color);
     box-shadow: 0 0 5px var(--danger-color);
 }
 #clearDataBtn:hover,
 .btn.danger:hover {
-    background-color: #ff8080; /* Merah yang lebih terang saat hover */
+    background-color: #ff8080;
     box-shadow: 0 0 10px var(--danger-color);
 }
 
 .button-group {
     display: flex;
-    justify-content: flex-end; /* Posisikan tombol Hapus di kanan */
+    justify-content: flex-end;
     margin-bottom: 15px;
-    margin-top: 10px; /* Diperbarui agar lebih konsisten */
-    text-align: unset; /* override center dari style lama */
+    margin-top: 10px;
 }
 
-/* Style untuk textarea spesifik */
 .input-textarea {
     height: 100px;
     background: var(--input-background);
@@ -149,7 +139,6 @@ button:hover,
     margin: 10px 0;
 }
 
-/* Style untuk toggle */
 .ts-toggle {
     background: var(--input-background);
     color: var(--text-color);
@@ -162,13 +151,11 @@ button:hover,
 }
 .ts-toggle.on {
     background: var(--success-color);
-    color: var(--dark-background); /* Teks gelap di atas hijau neon */
+    color: var(--dark-background);
     border-color: var(--success-color);
     box-shadow: 0 0 8px var(--success-color);
 }
 
-/* * --- Hasil Transaksi & Copy Button --- 
- */
 .hasil-transaksi {
     border: 1px solid var(--secondary-neon);
     border-radius: 8px;
@@ -188,7 +175,7 @@ button:hover,
 }
 .hasil-item label {
     width: 110px;
-    color: var(--warning-color); /* Kuning neon */
+    color: var(--warning-color);
     font-weight: bold;
 }
 .hasil-text {
@@ -212,24 +199,18 @@ button:hover,
     background: var(--primary-button-hover);
 }
 
-/* Efek background merah setelah copy */
 .hasil-item.red-bg {
     background: var(--danger-color);
     transition: background 0.3s;
 }
 
-/* * --- Garis Pembatas --- 
- */
 hr {
     border: 0;
     height: 1px;
-    /* Garis gradien neon */
     background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--secondary-neon), rgba(0, 0, 0, 0));
     margin: 25px 0;
 }
 
-/* * --- Galeri dan Slot Gambar Utama --- 
- */
 .gallery-container {
     display: flex;
     align-items: center;
@@ -237,7 +218,6 @@ hr {
     margin-top: 20px;
 }
 
-/* ----- Tampilan Gabungan (Slot) ----- */
 .combined-image-slot {
     flex-grow: 0;
     width: 80%;
@@ -257,7 +237,6 @@ hr {
 
 .combined-image-slot:hover {
     transform: scale(1.03);
-    /* Efek glow saat hover */
     box-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 20px rgba(0, 191, 255, 0.4); 
 }
 
@@ -278,7 +257,7 @@ hr {
     color: var(--warning-color);
     font-size: 1.5em;
     font-weight: bold;
-    background-color: rgba(0,0,0,0.8); /* Background yang lebih gelap untuk kontras */
+    background-color: rgba(0,0,0,0.8);
     padding: 5px 10px;
     border-radius: 5px;
     display: none; 
@@ -294,18 +273,16 @@ hr {
     margin-top: 20px;
     font-weight: bold;
     font-size: 1.1em;
-    color: var(--neon-blue); /* Warna neon yang konsisten */
+    color: var(--neon-blue);
     text-shadow: 0 0 5px var(--neon-blue);
 }
 
-/* * --- Galeri Multi Gambar (Thumbnail) ---
- */
 .gambar-container-multi {
     margin-top: 12px;
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-    justify-content: center; /* Dipusatkan agar rapi */
+    justify-content: center;
 }
 .gambar-slot-multi {
     text-align: center;
@@ -317,7 +294,7 @@ hr {
 }
 .gambar-slot-multi img {
     max-width: 100%;
-    height: auto; /* Agar tidak terpotong */
+    height: auto;
     border-radius: 4px;
     cursor: pointer;
     border: 1px solid var(--secondary-neon);
@@ -330,13 +307,11 @@ hr {
 }
 .userid-label {
     margin-top: 6px;
-    font-size: 12px;
-    color: var(--warning-color); /* Kuning neon */
+    font-size: 14px; /* Dinaikkan dari 12px */
+    color: var(--warning-color);
 }
 
-
-/* * --- Modal/Zoom Styling (Lightbox) --- 
- */
+/* === MODAL ZOOM + SCAN === */
 .modal,
 .lightbox-modal {
     display: none;
@@ -361,42 +336,29 @@ hr {
     width: 100%;
 }
 
-.zoom-nav-button,
-.nav-btn {
-    background-color: transparent;
+/* Tombol navigasi kecil */
+.zoom-nav-button.small {
+    font-size: 1.8em;
+    padding: 8px 14px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    width: auto;
+    height: auto;
     color: var(--secondary-neon);
     border: none;
-    font-size: 3em;
-    padding: 0 20px;
     cursor: pointer;
-    transition: color 0.3s, background-color 0.3s;
-    z-index: 10000;
-    user-select: none;
+    transition: color 0.3s;
 }
-
-.zoom-nav-button:hover:not(:disabled),
-.nav-btn:hover {
+.zoom-nav-button.small:hover:not(:disabled) {
     color: var(--neon-blue);
-    background: rgba(0, 191, 255, 0.1); /* Efek hover ringan */
+    background: rgba(0, 191, 255, 0.15);
 }
-/* Nav button spesifik untuk lightbox */
-.nav-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 40px;
-    padding: 10px 15px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.5);
-}
-.prev { left: 20px; }
-.next { right: 20px; }
 
 .zoomed-content-wrapper {
     display: flex; 
     justify-content: center;
     align-items: center;
-    gap: 10px; /* Jarak yang lebih besar agar jelas */
+    gap: 10px;
     width: 90%;
     max-width: 1200px; 
     max-height: 80vh;
@@ -404,20 +366,14 @@ hr {
     overflow: hidden; 
 }
 
-.zoomed-content-wrapper img,
-.lightbox-modal img {
-    max-width: calc(33.33% - 10px); /* Disesuaikan dengan gap */
+.zoomed-content-wrapper img {
+    max-width: calc(33.33% - 10px);
     height: auto;
     max-height: 80vh;
     border-radius: 8px;
-    /* Efek glow yang lebih menonjol untuk gambar utama */
     box-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 25px rgba(0, 191, 255, 0.5); 
     object-fit: contain;
     min-width: 0;
-}
-.lightbox-modal img {
-    max-width: 90%;
-    box-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 30px var(--neon-blue);
 }
 
 .zoomed-userid {
@@ -429,8 +385,6 @@ hr {
     margin-bottom: 15px;
     text-shadow: 0 0 10px var(--warning-color);
 }
- 
-.zoom-link-input-area { display: none; } /* Tetap disembunyikan */
 
 .close-btn,
 .close {
@@ -449,10 +403,49 @@ hr {
 .close-btn:hover,
 .close-btn:focus,
 .close:hover {
-    color: #ff8080; /* Merah terang saat hover */
-    text-decoration: none;
+    color: #ff8080;
 }
 
+/* === SCAN SECTION DI DALAM ZOOM === */
+.scan-section {
+    margin-top: 15px;
+    padding: 12px;
+    background: rgba(0, 30, 40, 0.6);
+    border-radius: 8px;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.scan-btn {
+    background: linear-gradient(135deg, #00bfff, #0088ff);
+    color: #000;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    box-shadow: 0 0 8px rgba(0, 191, 255, 0.6);
+    font-size: 14px;
+}
+.scan-btn:hover {
+    background: linear-gradient(135deg, #00ffff, #00bfff);
+    transform: scale(1.05);
+}
+
+.bonus-result {
+    color: var(--warning-color);
+    font-size: 14px;
+    min-height: 20px;
+    margin-top: 6px;
+}
+
+/* Lightbox lama (opsional, bisa dihapus jika tidak dipakai) */
+.lightbox-modal img {
+    max-width: 90%;
+    box-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 30px var(--neon-blue);
+}
 .lightbox-caption {
     margin-top: 10px;
     color: var(--text-color);
@@ -462,13 +455,33 @@ hr {
     border-radius: 4px;
     text-shadow: 0 0 5px var(--warning-color);
 }
-</style>
+
+/* === NOTIFIKASI TOAST === */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: var(--neon-blue);
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--secondary-neon);
+    box-shadow: 0 0 15px var(--secondary-neon);
+    z-index: 10001;
+    font-weight: bold;
+    display: none;
+}
+    </style>
 </head>
 <body>
 
+    <!-- Toast Notifikasi -->
+    <div id="toast" class="toast"></div>
+
     <div class="container">
         <h1>📸 Galeri Gambar Otomatis & Zoom Navigasi</h1>
-        <p style="text-align: center; color: #3498db;">**Tempel/Ketik** data. Format: **USERID link_gambar1 link_gambar2 link_gambar3**</p>
+        <p class="instruction-note" style="text-align: center; color: #3498db;">**Tempel/Ketik** data. Format: **USERID link_gambar1 link_gambar2 link_gambar3**</p>
 
         <textarea id="linkInput" 
                   placeholder="Tempelkan data paket di sini. Setiap baris adalah satu paket." 
@@ -483,96 +496,92 @@ hr {
         <hr>
 
         <div class="gallery-container">
-            
             <div class="combined-image-slot" id="combinedImageSlot" onclick="openZoom()">
-                
                 <p class="caption-userid" id="combinedSlotUserid">USER ID</p>
-                
                 <img id="imgSlot1" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+1" alt="Slot 1">
                 <img id="imgSlot2" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+2" alt="Slot 2">
                 <img id="imgSlot3" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+3" alt="Slot 3">
             </div>
-            
         </div>
 
         <p class="package-info">
             Paket: <span id="currentPackageNum">0</span> / <span id="maxPackageNum">0</span>
         </p>
-
     </div>
 
+    <!-- MODAL ZOOM BARU (dengan SCAN) -->
     <div id="zoomModal" class="modal" onclick="closeZoom(event)">
         <span class="close-btn">&times;</span>
         <span id="zoomedUserid" class="zoomed-userid"></span> 
         
         <div class="zoomed-content-area">
-            
-            <button class="zoom-nav-button" id="prevZoomBtn" onclick="navigatePackage('prev')">&#9664;</button>
-            
-            <div class="zoomed-content-wrapper" id="zoomedContentWrapper">
-                </div>
+            <button class="zoom-nav-button small" id="prevZoomBtn" onclick="navigatePackage('prev')">&#9664;</button>
+            <div class="zoomed-content-wrapper" id="zoomedContentWrapper"></div>
+            <button class="zoom-nav-button small" id="nextZoomBtn" onclick="navigatePackage('next')">&#9654;</button>
+        </div>
 
-            <button class="zoom-nav-button" id="nextZoomBtn" onclick="navigatePackage('next')">&#9654;</button>
+        <!-- AREA SCAN -->
+        <div class="scan-section">
+            <button class="scan-btn" onclick="triggerScanFromZoom()">🔍 Scan Gambar Transaksi</button>
+            <div id="bonusHasil" class="bonus-result"></div>
+            <label for="imageUrl" style="color:#00ffff; margin-top:10px; display: block;">🔗 Link Gambar Transaksi:</label>
+            <input type="text" id="imageUrl" class="bonus-input" placeholder="Tempel link gambar di sini..." style="width: 100%; margin-top: 4px; padding: 8px; background: var(--input-background); color: var(--text-color); border: 1px solid var(--secondary-neon); border-radius: 4px;">
         </div>
         
-        <textarea id="zoomLinkInput" class="zoom-link-input-area"></textarea>
-               
         <div id="caption">Geser paket menggunakan tombol navigasi (&#9664; / &#9654;) atau tombol panah Kiri/Kanan pada keyboard.</div>
     </div>
 
+    <!-- Bagian Scatter (tidak diubah) -->
     <div class="scatter-section">
-  <h3 class="judul-glow">💫 LINE TOGEL 💫</h3>
-  <h2>💣 DATA SCATTER MAHJONG</h2>
+        <h3 class="judul-glow">💫 LINE TOGEL 💫</h3>
+        <h2>💣 DATA SCATTER MAHJONG</h2>
+        <div class="button-group" style="margin: 10px 0;">
+            <button id="tsToggleBtn" onclick="toggleTSMode()" class="ts-toggle">TS: OFF</button>
+        </div>
+        <textarea id="scatterTextarea" class="input-textarea" placeholder="Tempelkan 1–7 baris data (satu baris = satu transaksi)..."></textarea>
+        <div class="button-group">
+            <button onclick="hapusScatter()" class="btn danger">🧹 Hapus</button>
+        </div>
+        <div id="hasilScatterContainer"></div>
+    </div>
 
-  <!-- Tombol TS ON/OFF -->
-  <div class="button-group" style="margin: 10px 0;">
-    <button id="tsToggleBtn" onclick="toggleTSMode()" class="ts-toggle">TS: OFF</button>
-  </div>
-
-  <textarea id="scatterTextarea" class="input-textarea" placeholder="Tempelkan 1–7 baris data (satu baris = satu transaksi)..."></textarea>
-
-  <div class="button-group">
-    <button onclick="hapusScatter()" class="btn danger">🧹 Hapus</button>
-  </div>
-
-  <!-- Wadah hasil multi-transaksi -->
-  <div id="hasilScatterContainer"></div>
-</div>
-
-<!-- Modal Zoom Lightbox -->
-<div id="lightboxModal" class="lightbox-modal" style="display:none;">
-  <span class="close" onclick="closeLightbox()">&times;</span>
-  <span class="nav-btn prev" onclick="prevImage()">&lsaquo;</span>
-  <span class="nav-btn next" onclick="nextImage()">&rsaquo;</span>
-  <img id="lightboxImg" src="" alt="Zoomed Image" />
-  <div id="lightboxCaption" class="lightbox-caption">User ID: -</div>
-</div>
+    <!-- Modal Lightbox Lama (opsional) -->
+    <div id="lightboxModal" class="lightbox-modal" style="display:none;">
+        <span class="close" onclick="closeLightbox()">&times;</span>
+        <span class="nav-btn prev" onclick="prevImage()">&lsaquo;</span>
+        <span class="nav-btn next" onclick="nextImage()">&rsaquo;</span>
+        <img id="lightboxImg" src="" alt="Zoomed Image" />
+        <div id="lightboxCaption" class="lightbox-caption">User ID: -</div>
+    </div>
     
     <script>
-        /* ======================== JAVASCRIPT ======================== */
+        /* ======================== GLOBAL ======================== */
         let allPackagesData = []; 
         let currentPackageIndex = 0; 
         const packageSize = 3; 
         const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong"; 
         let isZoomOpen = false;
+        let currentDataIndex = 1;
 
-        // Data contoh (tetap dipertahankan untuk inisialisasi awal yang mudah)
-        const initialData = [
-        ];
-        
-        // --- Handler Input Utama Otomatis ---
+        /* ======================== UTILITIES ======================== */
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        /* ======================== GALLERY UTAMA ======================== */
         let inputTimeout;
         function handleInput() {
             clearTimeout(inputTimeout);
-            inputTimeout = setTimeout(() => {
-                loadImages();
-            }, 50);
+            inputTimeout = setTimeout(loadImages, 50);
         }
 
-        // --- Fungsi Utama untuk Memuat Gambar (dari Textarea) ---
         function loadImages() {
             const inputArea = document.getElementById('linkInput');
-            
             const rawLines = inputArea.value
                 .split('\n')
                 .map(line => line.trim())
@@ -583,31 +592,19 @@ hr {
 
             rawLines.forEach((line) => {
                 const urls = line.match(urlRegex) || [];
-                
                 const words = line.split(/\s+/).filter(w => w.length > 0);
                 let userid = 'N/A';
-                
                 if (words.length > 0 && !words[0].startsWith('http')) {
                     userid = words[0];
                 }
-
-                if (urls.length >= 1) { 
+                if (urls.length >= 1) {
                     const links = urls.slice(0, packageSize); 
-                    
-                    while (links.length < packageSize) {
-                        links.push(""); 
-                    }
-                    
-                    allPackagesData.push({ userid: userid, links: links });
+                    while (links.length < packageSize) links.push("");
+                    allPackagesData.push({ userid, links });
                 }
             });
 
-            if (allPackagesData.length === 0) {
-                 // Tidak melakukan apa-apa, biarkan updateGallery(-1) membersihkan
-            }
-            
             document.getElementById('maxPackageNum').textContent = allPackagesData.length;
-            
             if (allPackagesData.length > 0) {
                 currentPackageIndex = Math.min(currentPackageIndex, allPackagesData.length - 1);
                 currentPackageIndex = Math.max(0, currentPackageIndex);
@@ -615,30 +612,23 @@ hr {
             } else {
                 currentPackageIndex = 0;
                 document.getElementById('currentPackageNum').textContent = 0;
-                updateGallery(-1); // Bersihkan tampilan
+                updateGallery(-1);
             }
         }
 
-        // --- Fungsi untuk Mengupdate Tampilan Galeri ---
         function updateGallery(index) {
-            const imgSlots = [
-                document.getElementById('imgSlot1'),
-                document.getElementById('imgSlot2'),
-                document.getElementById('imgSlot3')
-            ];
-            
+            const imgSlots = ['imgSlot1', 'imgSlot2', 'imgSlot3'].map(id => document.getElementById(id));
             const combinedSlot = document.getElementById('combinedImageSlot');
             const useridCaption = document.getElementById('combinedSlotUserid');
             const validPackages = allPackagesData.length;
             
             let currentPackage = { userid: 'N/A', links: ["", "", ""] };
-            
             if (index >= 0 && index < validPackages) {
                 currentPackage = allPackagesData[index];
-                combinedSlot.style.pointerEvents = 'auto'; // Dapat diklik
+                combinedSlot.style.pointerEvents = 'auto';
             } else {
-                combinedSlot.style.pointerEvents = 'none'; // Tidak dapat diklik
-                currentPackage.userid = 'N/A'; // Pastikan kondisi default saat kosong
+                combinedSlot.style.pointerEvents = 'none';
+                currentPackage.userid = 'N/A';
             }
 
             combinedSlot.setAttribute('data-userid', currentPackage.userid);
@@ -647,7 +637,6 @@ hr {
             let validLinkCount = 0;
             for (let i = 0; i < packageSize; i++) {
                 const link = currentPackage.links[i] || "";
-
                 if (link) {
                     imgSlots[i].src = link;
                     imgSlots[i].style.display = 'block'; 
@@ -655,18 +644,12 @@ hr {
                     validLinkCount++;
                 } else {
                     imgSlots[i].src = placeholderImage;
-                    // Tampilkan placeholder tengah saja jika tidak ada data sama sekali
                     imgSlots[i].style.display = (index === -1 && i === 1) ? 'block' : 'none'; 
                     imgSlots[i].setAttribute('data-link', "");
                 }
             }
             
-            if (validLinkCount > 0) {
-                combinedSlot.style.opacity = 1;
-            } else {
-                combinedSlot.style.opacity = 0.5;
-            }
-
+            combinedSlot.style.opacity = validLinkCount > 0 ? 1 : 0.5;
             document.getElementById('currentPackageNum').textContent = validPackages > 0 ? index + 1 : 0;
             
             if (isZoomOpen) {
@@ -675,7 +658,6 @@ hr {
             }
         }
 
-        // --- Fungsi Navigasi (Untuk Tombol Fisik & Keyboard) ---
         function navigatePackage(direction) {
             let newIndex = currentPackageIndex;
             if (direction === 'next' && currentPackageIndex < allPackagesData.length - 1) {
@@ -683,20 +665,16 @@ hr {
             } else if (direction === 'prev' && currentPackageIndex > 0) {
                 newIndex--;
             }
-            
             if (newIndex !== currentPackageIndex) {
                 currentPackageIndex = newIndex;
                 updateGallery(currentPackageIndex); 
             }
         }
-        
-        // --- Update Tampilan Zoom ---
+
         function updateZoomDisplay(userid, links) {
             const wrapper = document.getElementById("zoomedContentWrapper");
             const zoomedUserid = document.getElementById("zoomedUserid");
-            
             wrapper.innerHTML = '';
-            
             links.forEach(link => {
                 if (link) {
                     const img = document.createElement('img');
@@ -705,77 +683,45 @@ hr {
                     wrapper.appendChild(img);
                 }
             });
-            
             zoomedUserid.textContent = userid; 
         }
-        
-        // --- Update Status Tombol Navigasi Zoom ---
+
         function updateZoomNavButtons() {
             const prevBtn = document.getElementById('prevZoomBtn');
             const nextBtn = document.getElementById('nextZoomBtn');
-            
-            if (allPackagesData.length <= 1) {
-                prevBtn.disabled = true;
-                nextBtn.disabled = true;
-            } else {
-                prevBtn.disabled = (currentPackageIndex === 0);
-                nextBtn.disabled = (currentPackageIndex >= allPackagesData.length - 1);
-            }
+            prevBtn.disabled = (currentPackageIndex === 0);
+            nextBtn.disabled = (currentPackageIndex >= allPackagesData.length - 1);
+            prevBtn.style.opacity = prevBtn.disabled ? '0.4' : '1';
+            nextBtn.style.opacity = nextBtn.disabled ? '0.4' : '1';
         }
 
-        // --- Fungsi Zoom Gambar ---
         function openZoom() {
-            if (allPackagesData.length === 0 || allPackagesData[currentPackageIndex].links.filter(l => l.length > 0).length === 0) {
-                 return;
-            }
-            
+            if (allPackagesData.length === 0 || allPackagesData[currentPackageIndex].links.filter(l => l).length === 0) return;
             isZoomOpen = true;
-            
             const currentPackage = allPackagesData[currentPackageIndex];
             updateZoomDisplay(currentPackage.userid, currentPackage.links);
             updateZoomNavButtons();
-            
             document.getElementById("zoomModal").style.display = "flex"; 
         }
-        
-        // --- Fungsi Tutup Zoom ---
+
         function closeZoom(event) {
             const modal = document.getElementById("zoomModal");
-            
-            if (event.target.classList.contains('zoom-nav-button') || event.target.tagName === 'IMG') {
-                event.stopPropagation();
-                return;
-            }
-            
             if (event.target === modal || event.target.classList.contains('close-btn')) {
                 modal.style.display = "none";
                 isZoomOpen = false;
             }
         }
-        
-        // --- Fungsi Hapus Semua Data (TANPA NOTIFIKASI) ---
+
         function clearAllData() {
-            // 1. Kosongkan array data utama
             allPackagesData = [];
-            // 2. Kosongkan Textarea
             document.getElementById('linkInput').value = '';
-            // 3. Reset status tampilan
             currentPackageIndex = 0;
             document.getElementById('maxPackageNum').textContent = 0;
-            // 4. Perbarui galeri ke kondisi kosong
             updateGallery(-1); 
-            
-            // Tambahkan notifikasi cepat (opsional) atau biarkan tanpa notif sama sekali
-            console.log("Semua data berhasil dihapus.");
         }
 
-        // --- Event Listener Keyboard (Untuk Navigasi Zoom) ---
         document.addEventListener('keydown', (event) => {
             if (isZoomOpen) {
-                if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-                    event.preventDefault(); 
-                }
-
                 if (event.key === "ArrowLeft") {
                     navigatePackage('prev');
                 } else if (event.key === "ArrowRight") {
@@ -786,266 +732,278 @@ hr {
             }
         });
 
-        // Inisialisasi: Muat data contoh saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
-            // Isi Textarea dengan contoh data
-            const initialText = initialData.map(p => 
-                `${p.userid} ${p.links.join(' ')}`
-            ).join('\n');
-            
-            document.getElementById('linkInput').value = initialText;
-            
             loadImages(); 
         });
 
-        let tsModeActive = false;
+        /* ======================== SCAN OCR DI ZOOM ======================== */
+        function triggerScanFromZoom() {
+            const imageUrlInput = document.getElementById('imageUrl');
+            const link = imageUrlInput.value.trim();
+            
+            if (!link) {
+                showToast("❌ Masukkan link gambar terlebih dahulu!");
+                return;
+            }
 
-function toggleTSMode() {
-  tsModeActive = !tsModeActive;
-  const btn = document.getElementById("tsToggleBtn");
-  if (tsModeActive) {
-    btn.textContent = "TS: ON";
-    btn.classList.add("on");
-  } else {
-    btn.textContent = "TS: OFF";
-    btn.classList.remove("on");
-  }
-  if (document.getElementById("scatterTextarea").value.trim()) {
-    hitungScatter();
-  }
-}
+            const bonusHasil = document.getElementById('bonusHasil');
+            bonusHasil.innerHTML = '<span style="color:yellow;">⏳ Memproses OCR...</span>';
 
-// Ekstrak data dari satu baris
-function extractFromLine(line) {
-  let userId = "-";
+            Tesseract.recognize(link, 'eng', { logger: m => console.log(m) })
+                .then(result => {
+                    const text = result.data.text;
+                    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                    const hasil = [];
 
-  // Parsing User ID
-  const parts = line.split(/\s+/);
-  for (let i = 0; i < parts.length; i++) {
-    if (/^20\d{2}$/.test(parts[i]) && i + 1 < parts.length) {
-      const calon = parts[i + 1].trim();
-      if (calon.length >= 3 && !/^\d+$/.test(calon)) {
-        userId = calon;
-        break;
-      }
-    }
-  }
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        const match1 = line.match(/\b\d{9,10}\b/);
+                        if (match1 && i + 1 < lines.length) {
+                            const match2 = lines[i + 1].match(/\b\d{8,}\b/);
+                            if (match2) {
+                                hasil.push(match1[0] + match2[0]);
+                                i++;
+                            }
+                        }
+                    }
 
-  // Jika mode TS aktif, tambahkan " TS" di akhir
-  if (tsModeActive && userId !== "-") {
-    userId += " TS";
-  }
-
-  const gambarRegex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg|png|gif|webp|bmp|svg)|https?:\/\/(?:prnt\.sc|imghostr\.com)\/[^\s]+)/gi;
-  const gambarLinks = line.match(gambarRegex) || [];
-
-  const kodeTiketMatch = line.match(/\b\d{17,20}\b/);
-  const kodeTiket = kodeTiketMatch ? kodeTiketMatch[0] : "-";
-
-  const betMatch = line.match(/BET\s+([0-9.,\- ]+)/i);
-  let bettingan = "-";
-  if (betMatch) {
-    const parts = betMatch[1].split("-");
-    bettingan = parts[0].trim();
-  }
-
-  return { userId, kodeTiket, gambarLinks, bettingan };
-}
-
-// Render semua hasil
-function renderHasil(transaksiList) {
-  const container = document.getElementById("hasilScatterContainer");
-  container.innerHTML = "";
-
-  transaksiList.forEach((trans, idx) => {
-    const { userId, kodeTiket, gambarLinks, bettingan } = trans;
-    const prefix = `t${idx}_`;
-
-    let gambarHTML = '';
-    for (let i = 1; i <= 3; i++) {
-      const link = gambarLinks[i - 1];
-      let content = '<div>-</div>';
-      if (link) {
-        if (link.includes('prnt.sc') || link.includes('imghostr.com')) {
-          content = `<a href="${link}" target="_blank" style="color:#ffcc00;">Lihat Gambar ${i}</a>`;
-        } else {
-          content = `<img src="${link}" onclick="openLightbox('${link}', '${userId}')" />`;
+                    const unique = [...new Set(hasil)];
+                    if (unique.length === 0) {
+                        bonusHasil.innerHTML = '<span style="color:orange;">❌ Tidak ditemukan pasangan kode 2 baris.</span>';
+                    } else {
+                        let html = '<div style="color:deepskyblue; font-weight:bold; margin-bottom:8px;">📘 Kode Ditemukan:</div>';
+                        unique.forEach(kode => {
+                            html += `
+                                <div style="margin:6px 0; padding:8px; background:rgba(0,100,200,0.3); border-left:3px solid #00bfff; border-radius:4px;">
+                                    <span style="font-family:monospace; font-size:14px;">${kode}</span>
+                                    <button type="button" 
+                                            onclick="gunakanKodeDariZoom('${kode}')" 
+                                            style="margin-top:4px; background:#00ffff; color:#000; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">
+                                        Gunakan
+                                    </button>
+                                </div>
+                            `;
+                        });
+                        bonusHasil.innerHTML = html;
+                    }
+                })
+                .catch(err => {
+                    console.error("OCR Error:", err);
+                    bonusHasil.innerHTML = `<span style="color:red;">❗ Gagal membaca gambar.<br><small>${err.message || ''}</small></span>`;
+                });
         }
-      }
-      gambarHTML += `
-        <div class="gambar-slot-multi">
-          <h4 style="margin:4px 0;font-size:14px;">Gambar ${i}</h4>
-          ${content}
-          <div class="userid-label">User ID: ${userId}</div>
-        </div>
-      `;
-    }
 
-    const block = document.createElement("div");
-    block.className = "hasil-transaksi";
-    block.innerHTML = `
-      <div class="hasil-item" id="${prefix}uidItem">
-        <label>User ID:</label>
-        <div class="hasil-text" id="${prefix}uid">${userId}</div>
-        <button class="copy-btn" onclick="copyText('${prefix}uid', '${prefix}uidItem')">💫</button>
-      </div>
-      <div class="hasil-item" id="${prefix}ktItem">
-        <label>Kode Tiket:</label>
-        <div class="hasil-text" id="${prefix}kt">${kodeTiket}</div>
-        <button class="copy-btn" onclick="copyText('${prefix}kt', '${prefix}ktItem')">💫</button>
-      </div>
-      <div class="hasil-item" id="${prefix}lbItem">
-        <label>Link Bukti:</label>
-        <div class="hasil-text" id="${prefix}lb">${gambarLinks.join(", ") || "-"}</div>
-        <button class="copy-btn" onclick="copyText('${prefix}lb', '${prefix}lbItem')">💫</button>
-      </div>
-      <div class="hasil-item" id="${prefix}betItem">
-        <label>Bettingan:</label>
-        <div class="hasil-text" id="${prefix}bet">${bettingan}</div>
-        <button class="copy-btn" onclick="copyText('${prefix}bet', '${prefix}betItem')">💫</button>
-      </div>
-      <div class="gambar-container-multi">
-        ${gambarHTML}
-      </div>
-    `;
-    container.appendChild(block);
-  });
-}
+        function gunakanKodeDariZoom(kode) {
+            showToast(`✅ Kode digunakan: ${kode}`);
+            // Di sini Anda bisa kirim kode ke form lain, localStorage, dll.
+        }
 
-// Fungsi utama
-function hitungScatter() {
-  const input = document.getElementById("scatterTextarea").value.trim();
-  if (!input) {
-    document.getElementById("hasilScatterContainer").innerHTML = "";
-    return;
-  }
+        /* ======================== SCATTER SECTION (tidak diubah) ======================== */
+        let tsModeActive = false;
+        function toggleTSMode() {
+            tsModeActive = !tsModeActive;
+            const btn = document.getElementById("tsToggleBtn");
+            btn.textContent = tsModeActive ? "TS: ON" : "TS: OFF";
+            btn.classList.toggle("on", tsModeActive);
+            if (document.getElementById("scatterTextarea").value.trim()) {
+                hitungScatter();
+            }
+        }
 
-  const lines = input.split("\n").slice(0, 7); // Ambil maks 7 baris
-  const transList = lines.map(line => extractFromLine(line.trim()));
-  renderHasil(transList);
-}
+        function extractFromLine(line) {
+            let userId = "-";
+            const parts = line.split(/\s+/);
+            for (let i = 0; i < parts.length; i++) {
+                if (/^20\d{2}$/.test(parts[i]) && i + 1 < parts.length) {
+                    const calon = parts[i + 1].trim();
+                    if (calon.length >= 3 && !/^\d+$/.test(calon)) {
+                        userId = calon;
+                        break;
+                    }
+                }
+            }
+            if (tsModeActive && userId !== "-") {
+                userId += " TS";
+            }
+            const gambarRegex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg|png|gif|webp|bmp|svg)|https?:\/\/(?:prnt\.sc|imghostr\.com)\/[^\s]+)/gi;
+            const gambarLinks = line.match(gambarRegex) || [];
+            const kodeTiketMatch = line.match(/\b\d{17,20}\b/);
+            const kodeTiket = kodeTiketMatch ? kodeTiketMatch[0] : "-";
+            const betMatch = line.match(/BET\s+([0-9.,\- ]+)/i);
+            let bettingan = "-";
+            if (betMatch) {
+                const parts = betMatch[1].split("-");
+                bettingan = parts[0].trim();
+            }
+            return { userId, kodeTiket, gambarLinks, bettingan };
+        }
 
-function hapusScatter() {
-  document.getElementById("scatterTextarea").value = "";
-  document.getElementById("hasilScatterContainer").innerHTML = "";
-}
+        function renderHasil(transaksiList) {
+            const container = document.getElementById("hasilScatterContainer");
+            container.innerHTML = "";
+            transaksiList.forEach((trans, idx) => {
+                const { userId, kodeTiket, gambarLinks, bettingan } = trans;
+                const prefix = `t${idx}_`;
+                let gambarHTML = '';
+                for (let i = 1; i <= 3; i++) {
+                    const link = gambarLinks[i - 1];
+                    let content = '<div>-</div>';
+                    if (link) {
+                        if (link.includes('prnt.sc') || link.includes('imghostr.com')) {
+                            content = `<a href="${link}" target="_blank" style="color:#ffcc00;">Lihat Gambar ${i}</a>`;
+                        } else {
+                            content = `<img src="${link}" onclick="openLightbox('${link}', '${userId}')" />`;
+                        }
+                    }
+                    gambarHTML += `
+                        <div class="gambar-slot-multi">
+                            <h4 style="margin:4px 0;font-size:14px;">Gambar ${i}</h4>
+                            ${content}
+                            <div class="userid-label">User ID: ${userId}</div>
+                        </div>
+                    `;
+                }
+                const block = document.createElement("div");
+                block.className = "hasil-transaksi";
+                block.innerHTML = `
+                    <div class="hasil-item" id="${prefix}uidItem">
+                        <label>User ID:</label>
+                        <div class="hasil-text" id="${prefix}uid">${userId}</div>
+                        <button class="copy-btn" onclick="copyText('${prefix}uid', '${prefix}uidItem')">💫</button>
+                    </div>
+                    <div class="hasil-item" id="${prefix}ktItem">
+                        <label>Kode Tiket:</label>
+                        <div class="hasil-text" id="${prefix}kt">${kodeTiket}</div>
+                        <button class="copy-btn" onclick="copyText('${prefix}kt', '${prefix}ktItem')">💫</button>
+                    </div>
+                    <div class="hasil-item" id="${prefix}lbItem">
+                        <label>Link Bukti:</label>
+                        <div class="hasil-text" id="${prefix}lb">${gambarLinks.join(", ") || "-"}</div>
+                        <button class="copy-btn" onclick="copyText('${prefix}lb', '${prefix}lbItem')">💫</button>
+                    </div>
+                    <div class="hasil-item" id="${prefix}betItem">
+                        <label>Bettingan:</label>
+                        <div class="hasil-text" id="${prefix}bet">${bettingan}</div>
+                        <button class="copy-btn" onclick="copyText('${prefix}bet', '${prefix}betItem')">💫</button>
+                    </div>
+                    <div class="gambar-container-multi">
+                        ${gambarHTML}
+                    </div>
+                `;
+                container.appendChild(block);
+            });
+        }
 
-// Copy dengan efek background merah
-function copyText(elementId, itemContainerId) {
-  const el = document.getElementById(elementId);
-  const container = document.getElementById(itemContainerId);
-  if (!el || el.innerText === "-") return;
+        function hitungScatter() {
+            const input = document.getElementById("scatterTextarea").value.trim();
+            if (!input) {
+                document.getElementById("hasilScatterContainer").innerHTML = "";
+                return;
+            }
+            const lines = input.split("\n").slice(0, 7);
+            const transList = lines.map(line => extractFromLine(line.trim()));
+            renderHasil(transList);
+        }
 
-  navigator.clipboard.writeText(el.innerText).then(() => {
-    container.classList.add("red-bg");
-    setTimeout(() => {
-      container.classList.remove("red-bg");
-    }, 1000);
-  }).catch(err => {
-    console.warn("Gagal menyalin:", err);
-  });
-}
+        function hapusScatter() {
+            document.getElementById("scatterTextarea").value = "";
+            document.getElementById("hasilScatterContainer").innerHTML = "";
+        }
 
-// === LIGHTBOX DENGAN NAVIGASI ===
-let currentLightboxIndex = 0;
-let currentLightboxImages = [];
-let currentLightboxUserId = "";
+        function copyText(elementId, itemContainerId) {
+            const el = document.getElementById(elementId);
+            const container = document.getElementById(itemContainerId);
+            if (!el || el.innerText === "-") return;
+            navigator.clipboard.writeText(el.innerText).then(() => {
+                container.classList.add("red-bg");
+                setTimeout(() => container.classList.remove("red-bg"), 1000);
+            }).catch(err => console.warn("Gagal menyalin:", err));
+        }
 
-function openLightbox(imgUrl, userId) {
-  const modal = document.getElementById("lightboxModal");
-  const img = document.getElementById("lightboxImg");
-  const caption = document.getElementById("lightboxCaption");
+        /* ======================== LIGHTBOX LAMA (opsional) ======================== */
+        let currentLightboxIndex = 0;
+        let currentLightboxImages = [];
+        let currentLightboxUserId = "";
 
-  currentLightboxImages = getCurrentTransaksiImages(userId);
-  currentLightboxUserId = userId;
-  currentLightboxIndex = currentLightboxImages.findIndex(img => img === imgUrl);
-  if (currentLightboxIndex === -1) currentLightboxIndex = 0;
+        function openLightbox(imgUrl, userId) {
+            const modal = document.getElementById("lightboxModal");
+            const img = document.getElementById("lightboxImg");
+            const caption = document.getElementById("lightboxCaption");
+            currentLightboxImages = getCurrentTransaksiImages(userId);
+            currentLightboxUserId = userId;
+            currentLightboxIndex = currentLightboxImages.findIndex(img => img === imgUrl);
+            if (currentLightboxIndex === -1) currentLightboxIndex = 0;
+            img.src = currentLightboxImages[currentLightboxIndex];
+            caption.innerText = `User ID: ${userId}`;
+            modal.style.display = "flex";
+            updateNavButtons();
+        }
 
-  img.src = currentLightboxImages[currentLightboxIndex];
-  caption.innerText = `User ID: ${userId}`;
-  modal.style.display = "flex";
+        function getCurrentTransaksiImages(userId) {
+            const allItems = document.querySelectorAll('.hasil-transaksi');
+            for (let item of allItems) {
+                const uidEl = item.querySelector('.hasil-text[id$="uid"]');
+                if (uidEl && uidEl.innerText === userId) {
+                    const imgEls = item.querySelectorAll('.gambar-slot-multi img');
+                    return Array.from(imgEls).map(el => el.src).filter(src => src);
+                }
+            }
+            return [];
+        }
 
-  updateNavButtons();
-}
+        function prevImage() {
+            if (currentLightboxImages.length <= 1) return;
+            currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+            updateLightboxImage();
+        }
 
-function getCurrentTransaksiImages(userId) {
-  const allItems = document.querySelectorAll('.hasil-transaksi');
-  for (let item of allItems) {
-    const uidEl = item.querySelector('.hasil-text[id$="uid"]');
-    if (uidEl && uidEl.innerText === userId) {
-      const imgEls = item.querySelectorAll('.gambar-slot-multi img');
-      return Array.from(imgEls).map(el => el.src).filter(src => src);
-    }
-  }
-  return [];
-}
+        function nextImage() {
+            if (currentLightboxImages.length <= 1) return;
+            currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+            updateLightboxImage();
+        }
 
-function prevImage() {
-  if (currentLightboxImages.length <= 1) return;
-  currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
-  updateLightboxImage();
-}
+        function updateLightboxImage() {
+            const img = document.getElementById("lightboxImg");
+            const caption = document.getElementById("lightboxCaption");
+            img.src = currentLightboxImages[currentLightboxIndex];
+            caption.innerText = `User ID: ${currentLightboxUserId}`;
+            updateNavButtons();
+        }
 
-function nextImage() {
-  if (currentLightboxImages.length <= 1) return;
-  currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
-  updateLightboxImage();
-}
+        function updateNavButtons() {
+            const prevBtn = document.querySelector('.prev');
+            const nextBtn = document.querySelector('.next');
+            const disabled = currentLightboxImages.length <= 1;
+            prevBtn.style.opacity = disabled ? '0.3' : '1';
+            nextBtn.style.opacity = disabled ? '0.3' : '1';
+            prevBtn.style.pointerEvents = disabled ? 'none' : 'auto';
+            nextBtn.style.pointerEvents = disabled ? 'none' : 'auto';
+        }
 
-function updateLightboxImage() {
-  const img = document.getElementById("lightboxImg");
-  const caption = document.getElementById("lightboxCaption");
-  img.src = currentLightboxImages[currentLightboxIndex];
-  caption.innerText = `User ID: ${currentLightboxUserId}`;
-  updateNavButtons();
-}
+        function closeLightbox() {
+            document.getElementById("lightboxModal").style.display = "none";
+            currentLightboxImages = [];
+            currentLightboxUserId = "";
+            currentLightboxIndex = 0;
+        }
 
-function updateNavButtons() {
-  const prevBtn = document.querySelector('.prev');
-  const nextBtn = document.querySelector('.next');
+        document.addEventListener('keydown', (e) => {
+            const lightbox = document.getElementById('lightboxModal');
+            if (lightbox.style.display === 'flex') {
+                if (e.key === 'ArrowLeft') prevImage();
+                else if (e.key === 'ArrowRight') nextImage();
+                else if (e.key === 'Escape') closeLightbox();
+            }
+        });
 
-  if (currentLightboxImages.length <= 1) {
-    prevBtn.style.opacity = '0.3';
-    nextBtn.style.opacity = '0.3';
-    prevBtn.style.pointerEvents = 'none';
-    nextBtn.style.pointerEvents = 'none';
-  } else {
-    prevBtn.style.opacity = '1';
-    nextBtn.style.opacity = '1';
-    prevBtn.style.pointerEvents = 'auto';
-    nextBtn.style.pointerEvents = 'auto';
-  }
-}
-
-function closeLightbox() {
-  document.getElementById("lightboxModal").style.display = "none";
-  currentLightboxImages = [];
-  currentLightboxUserId = "";
-  currentLightboxIndex = 0;
-}
-
-// Navigasi keyboard
-document.addEventListener('keydown', (e) => {
-  const lightbox = document.getElementById('lightboxModal');
-  if (lightbox.style.display !== 'flex') return;
-
-  if (e.key === 'ArrowLeft') {
-    prevImage();
-  } else if (e.key === 'ArrowRight') {
-    nextImage();
-  } else if (e.key === 'Escape') {
-    closeLightbox();
-  }
-});
-
-// Event listener input
-document.addEventListener("DOMContentLoaded", () => {
-  const ta = document.getElementById("scatterTextarea");
-  if (ta) {
-    ta.addEventListener("paste", () => setTimeout(hitungScatter, 50));
-    ta.addEventListener("input", hitungScatter);
-  }
-});
+        document.addEventListener("DOMContentLoaded", () => {
+            const ta = document.getElementById("scatterTextarea");
+            if (ta) {
+                ta.addEventListener("paste", () => setTimeout(hitungScatter, 50));
+                ta.addEventListener("input", hitungScatter);
+            }
+        });
     </script>
 </body>
 </html>
