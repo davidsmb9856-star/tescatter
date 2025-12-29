@@ -3,578 +3,505 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri & Scan OCR – Neon Halus</title>
+    <title>Galeri & Scan OCR – Zoom Asli + Salin</title>
     <script src="https://unpkg.com/tesseract.js@v5/dist/tesseract.min.js"></script>
 
     <style>
         :root {
-            --neon-blue: #00e5ff;
-            --neon-cyan: #00d1ff;
-            --dark-bg-1: #0a0a12;
-            --dark-bg-2: #0f0f1a;
-            --card-bg: rgba(20, 20, 30, 0.75);
-            --input-bg: rgba(28, 28, 42, 0.6);
-            --text-primary: #e0f7fa;
-            --text-secondary: #a0d2e8;
+            --neon-blue: #00e0ff;
+            --neon-cyan: #00d0e0;
+            --dark-bg: #0c0c16;
+            --card-bg: rgba(18, 18, 30, 0.75);
+            --input-bg: rgba(25, 25, 40, 0.7);
+            --text: #e0f0ff;
             --warning: #ffd166;
-            --success: #5eff85;
-            --danger: #ff6b6b;
-            --glow-soft: rgba(0, 229, 255, 0.22);
-            --glow-faint: rgba(0, 200, 255, 0.1);
+            --success: #50ff80;
+            --danger: #ff6060;
+            --glow-faint: rgba(0, 224, 255, 0.15);
+            --border-faint: rgba(0, 200, 220, 0.2);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--dark-bg-1), var(--dark-bg-2));
-            color: var(--text-primary);
-            padding: 16px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #080812, #10101c);
+            color: var(--text);
             margin: 0;
-            line-height: 1.5;
+            padding: 16px;
             font-size: 15px;
             min-height: 100vh;
         }
 
         .container, .scatter-section {
             max-width: 920px;
-            margin: 18px auto;
+            margin: 16px auto;
             background: var(--card-bg);
-            padding: 24px;
+            padding: 22px;
             border-radius: 12px;
-            box-shadow:
-                0 0 0 1px rgba(0, 200, 255, 0.18),
-                0 0 16px var(--glow-faint),
-                0 0 8px var(--glow-soft);
             backdrop-filter: blur(6px);
-            border: 1px solid rgba(0, 200, 255, 0.15);
+            border: 1px solid var(--border-faint);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
         }
 
-        /* === ⚡ Card SCATTER lebih kecil & rapi === */
         .scatter-section {
             padding: 18px;
             margin-bottom: 20px;
-            font-size: 14px;
-        }
-        .scatter-section h2 {
-            margin: 10px 0 14px;
-            font-size: 1.6em;
-        }
-        .scatter-section .button-group {
-            margin: 8px 0 12px;
-        }
-        textarea.input-textarea {
-            height: 80px;
-            padding: 8px 10px;
-            font-size: 14px;
         }
 
         h1 {
             text-align: center;
             color: var(--neon-blue);
-            margin: 16px 0 20px;
-            text-shadow: 0 0 6px var(--glow-faint), 0 0 12px var(--glow-soft);
-            font-size: 2.2em;
+            margin: 10px 0 20px;
+            font-size: 2.1em;
+            text-shadow: 0 0 6px var(--glow-faint);
+        }
+
+        h2.judul-scatter {
+            text-align: center;
+            color: var(--neon-cyan);
+            margin: 12px 0;
+            font-size: 1.5em;
+            text-shadow: 0 0 4px var(--glow-faint);
         }
 
         textarea, input[type="text"] {
             width: 100%;
             padding: 10px;
-            margin-bottom: 14px;
-            border: 1px solid rgba(0, 200, 255, 0.2);
             background: var(--input-bg);
-            color: var(--text-primary);
+            border: 1px solid var(--border-faint);
             border-radius: 6px;
-            resize: vertical;
+            color: var(--text);
+            margin: 8px 0 12px;
+            font-size: 14px;
         }
 
-        button, .btn {
+        button {
             padding: 8px 14px;
-            color: #000;
             background: linear-gradient(135deg, var(--neon-blue), var(--neon-cyan));
+            color: #000;
             border: none;
             border-radius: 6px;
-            cursor: pointer;
             font-weight: bold;
+            cursor: pointer;
             font-size: 14px;
-            transition: all 0.25s;
-        }
-        button:hover { transform: translateY(-1px); }
-
-        .btn.danger {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
         }
 
         .button-group {
             display: flex;
             justify-content: flex-end;
-            margin: 8px 0 14px;
+            margin: 8px 0;
         }
 
-        hr {
-            border: 0;
-            height: 1px;
-            background: linear-gradient(to right, transparent, var(--neon-cyan), transparent);
-            margin: 24px 0;
-        }
-
-        /* === 🖼️ Galeri Utama === */
-        .combined-image-slot {
-            width: 100%;
-            max-width: 650px;
+        .gallery-container {
             display: flex;
             justify-content: center;
-            gap: 8px;
-            padding: 8px;
-            background: rgba(15,15,25,0.5);
-            border-radius: 10px;
-            cursor: pointer;
-            min-height: 160px;
+            margin: 16px 0;
         }
+
+        .combined-image-slot {
+            display: flex;
+            gap: 8px;
+            background: rgba(10, 10, 20, 0.5);
+            padding: 6px;
+            border-radius: 10px;
+            border: 1px solid var(--border-faint);
+        }
+
         .combined-image-slot img {
-            height: 150px;
+            height: 140px;
             object-fit: contain;
             border-radius: 6px;
         }
 
-        /* === 📸 MODAL ZOOM BARU === */
-        .modal {
+        /* === 🔍 MODAL ZOOM (UKURAN ASLI) === */
+        .zoom-modal {
             display: none;
             position: fixed;
-            z-index: 9999;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(6, 6, 14, 0.93);
             backdrop-filter: blur(4px);
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
+            z-index: 10000;
+            overflow: auto;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        /* Tombol navigasi kecil di pojok */
-        .nav-corner {
-            position: absolute;
+        .zoom-header {
+            text-align: center;
+            margin-bottom: 16px;
+            color: var(--warning);
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+        .zoom-images {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .zoom-img-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 100%;
+        }
+
+        /* ✅ Gambar tampil sesuai ukuran asli (maks tinggi 80vh) */
+        .zoom-img-container img {
+            max-height: 80vh;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 0 1px var(--border-faint), 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .scan-trigger-btn {
+            margin-top: 8px;
+            padding: 5px 12px;
+            font-size: 13px;
+            background: rgba(0, 200, 255, 0.25);
+            color: var(--neon-blue);
+            border: 1px solid var(--border-faint);
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+        .zoom-img-container:hover .scan-trigger-btn {
+            opacity: 1;
+        }
+
+        .close-zoom {
+            position: fixed;
             top: 20px;
-            font-size: 1.4em;
-            background: rgba(10, 10, 20, 0.7);
-            color: var(--neon-cyan);
-            width: 36px;
-            height: 36px;
+            right: 20px;
+            color: var(--danger);
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 10001;
+            background: rgba(0,0,0,0.3);
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 0 6px var(--glow-faint);
-            transition: all 0.2s;
-        }
-        .nav-corner:hover {
-            background: rgba(0, 30, 50, 0.8);
-            color: var(--neon-blue);
-            box-shadow: 0 0 10px var(--glow-soft);
-            transform: scale(1.1);
-        }
-        .prev { left: 20px; }
-        .next { right: 20px; }
-
-        .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 36px;
-            color: var(--danger);
-            cursor: pointer;
-            z-index: 10000;
-        }
-        .close-btn:hover { color: #ff9e9e; }
-
-        .zoomed-userid {
-            position: absolute;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: var(--warning);
-            font-size: 1.4em;
-            font-weight: bold;
-            background: rgba(0,0,0,0.6);
-            padding: 4px 12px;
-            border-radius: 6px;
-            text-shadow: 0 0 6px rgba(255,209,102,0.4);
         }
 
-        .zoomed-content-wrapper {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            max-width: 1000px;
-        }
-        .zoomed-content-wrapper img {
-            max-width: 280px;
-            max-height: 400px;
-            border-radius: 8px;
-            box-shadow: 0 0 0 1px rgba(0,200,255,0.2), 0 0 12px var(--glow-faint);
-            object-fit: contain;
-        }
-
-        /* Tombol Scan di bawah tiap gambar */
-        .scan-trigger-btn {
-            display: block;
-            width: 100%;
-            margin-top: 6px;
-            padding: 5px;
-            font-size: 12px;
-            background: rgba(0, 200, 255, 0.2);
-            color: var(--neon-cyan);
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .scan-trigger-btn:hover {
-            background: rgba(0, 229, 255, 0.35);
-        }
-
-        /* === 🧾 Modal Hasil Scan Kecil === */
+        /* === 📋 MODAL HASIL SCAN (SALIN OTOMATIS) === */
         .scan-result-modal {
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(15, 15, 28, 0.85);
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            background: rgba(15, 15, 28, 0.92);
             border: 1px solid var(--neon-cyan);
             border-radius: 10px;
             padding: 14px;
-            max-width: 90vw;
-            width: 340px;
-            box-shadow: 0 0 16px var(--glow-soft);
-            z-index: 10000;
-            backdrop-filter: blur(4px);
+            z-index: 10001;
+            box-shadow: 0 0 16px var(--glow-faint);
+            backdrop-filter: blur(6px);
+            max-height: 300px;
+            overflow-y: auto;
         }
+
         .scan-result-modal h4 {
             margin: 0 0 10px;
-            color: var(--neon-blue);
-            font-size: 14px;
+            color: var(--neon-cyan);
+            font-size: 1.1em;
         }
-        .scan-result-modal .kode-item {
+
+        .scan-result-item {
+            padding: 8px;
             margin: 6px 0;
-            padding: 6px;
-            background: rgba(0, 30, 50, 0.5);
-            border-radius: 5px;
+            background: rgba(0, 30, 50, 0.4);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 13px;
         }
-        .scan-result-modal button {
-            padding: 4px 8px;
-            font-size: 12px;
-            margin-left: 6px;
+
+        .copy-code-btn {
+            padding: 3px 10px;
+            background: var(--success);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
         }
-        .scan-result-modal .close-small {
+
+        .close-scan-result {
             position: absolute;
             top: 8px;
             right: 10px;
-            font-size: 18px;
             color: var(--danger);
+            font-size: 18px;
             cursor: pointer;
         }
 
-        /* === 🍞 Toast === */
         .toast {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(10,10,20,0.85);
+            background: rgba(10, 10, 20, 0.85);
             color: var(--neon-blue);
-            padding: 10px 20px;
+            padding: 10px 18px;
             border-radius: 8px;
             border: 1px solid var(--neon-cyan);
-            box-shadow: 0 0 10px var(--glow-faint);
-            z-index: 10001;
-            display: none;
             font-size: 14px;
+            z-index: 10002;
+            display: none;
         }
     </style>
 </head>
 <body>
 
-<div id="toast" class="toast"></div>
+    <div id="toast" class="toast"></div>
 
-<!-- Galeri Utama -->
-<div class="container">
-    <h1>📸 Galeri & Zoom Navigasi</h1>
-    <textarea id="linkInput" placeholder="Tempelkan data: USERID link1 link2 link3" rows="6" oninput="handleInput()" onpaste="handleInput()"></textarea>
-    <div class="button-group">
-        <button onclick="clearAllData()">🗑️ Hapus</button>
-    </div>
-    <hr>
-    <div class="combined-image-slot" id="combinedImageSlot" onclick="openZoom()">
-        <img id="imgSlot1" src="https://via.placeholder.com/200x150/1a1a2e/ffffff?text=1">
-        <img id="imgSlot2" src="https://via.placeholder.com/200x150/1a1a2e/ffffff?text=2">
-        <img id="imgSlot3" src="https://via.placeholder.com/200x150/1a1a2e/ffffff?text=3">
-    </div>
-    <p style="text-align:center; margin-top:12px; color:var(--neon-cyan);">
-        Paket: <span id="currentPackageNum">0</span> / <span id="maxPackageNum">0</span>
-    </p>
-</div>
+    <!-- Galeri Utama -->
+    <div class="container">
+        <h1>📸 Galeri & Zoom Navigasi</h1>
+        <textarea id="linkInput" placeholder="USERID link1 link2 link3" rows="5" oninput="handleInput()"></textarea>
+        <div class="button-group">
+            <button onclick="clearAllData()">🗑️ Hapus</button>
+        </div>
 
-<!-- Modal Zoom -->
-<div id="zoomModal" class="modal" onclick="event.target.id === 'zoomModal' && closeZoom()">
-    <span class="close-btn" onclick="closeZoom()">&times;</span>
-    <span class="nav-corner prev" onclick="navigatePackage('prev')">&#8249;</span>
-    <span class="nav-corner next" onclick="navigatePackage('next')">&#8250;</span>
-    <div id="zoomedUserid" class="zoomed-userid"></div>
-    <div class="zoomed-content-wrapper" id="zoomedContentWrapper"></div>
-</div>
-
-<!-- Modal Hasil Scan -->
-<div id="scanResultModal" class="scan-result-modal" style="display:none;">
-    <span class="close-small" onclick="closeScanResultModal()">&times;</span>
-    <h4>🔍 Hasil OCR</h4>
-    <div id="scanResultContent"></div>
-</div>
-
-<!-- Scatter Section -->
-<div class="scatter-section">
-    <h2>💣 DATA SCATTER MAHJONG</h2>
-    <div class="button-group">
-        <button id="tsToggleBtn" onclick="toggleTSMode()">TS: OFF</button>
-    </div>
-    <textarea id="scatterTextarea" class="input-textarea" placeholder="1–7 baris data..."></textarea>
-    <div class="button-group">
-        <button class="btn danger" onclick="hapusScatter()">🧹 Hapus</button>
-    </div>
-    <div id="hasilScatterContainer"></div>
-</div>
-
-<script>
-let allPackagesData = [], currentPackageIndex = 0, isZoomOpen = false;
-
-// =============== UTIL ===============
-function showToast(msg) {
-    const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block';
-    setTimeout(() => t.style.display = 'none', 2500);
-}
-
-// =============== GALLERY ===============
-function handleInput() { setTimeout(loadImages, 50); }
-function loadImages() {
-    const lines = document.getElementById('linkInput').value.split('\n').map(l => l.trim()).filter(l => l);
-    allPackagesData = [];
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    lines.forEach(line => {
-        const urls = line.match(urlRegex) || [];
-        const words = line.split(/\s+/).filter(w => w);
-        const userid = words.length && !words[0].startsWith('http') ? words[0] : 'N/A';
-        if (urls.length) {
-            const links = urls.slice(0,3); while(links.length<3)links.push('');
-            allPackagesData.push({userid, links});
-        }
-    });
-    document.getElementById('maxPackageNum').textContent = allPackagesData.length;
-    if (allPackagesData.length > 0) {
-        currentPackageIndex = Math.max(0, Math.min(currentPackageIndex, allPackagesData.length - 1));
-        updateGallery(currentPackageIndex);
-    } else {
-        currentPackageIndex = 0;
-        document.getElementById('currentPackageNum').textContent = 0;
-        updateGallery(-1);
-    }
-}
-function updateGallery(idx) {
-    const slots = ['imgSlot1','imgSlot2','imgSlot3'].map(id => document.getElementById(id));
-    let pkg = {userid:'N/A', links:['','','']};
-    if (idx >= 0 && idx < allPackagesData.length) pkg = allPackagesData[idx];
-    slots.forEach((img,i) => {
-        const link = pkg.links[i] || '';
-        img.src = link || `https://via.placeholder.com/200x150/1a1a2e/ffffff?text=${i+1}`;
-        img.style.display = (link || (idx === -1 && i === 1)) ? 'block' : 'none';
-    });
-    document.getElementById('currentPackageNum').textContent = allPackagesData.length > 0 ? idx + 1 : 0;
-    if (isZoomOpen) {
-        document.getElementById('zoomedUserid').textContent = pkg.userid;
-        updateZoomImages(pkg.links);
-    }
-}
-function openZoom() {
-    if (allPackagesData.length === 0) return;
-    const pkg = allPackagesData[currentPackageIndex];
-    if (!pkg.links.some(l => l)) return;
-    isZoomOpen = true;
-    document.getElementById('zoomedUserid').textContent = pkg.userid;
-    updateZoomImages(pkg.links);
-    document.getElementById('zoomModal').style.display = 'flex';
-}
-function updateZoomImages(links) {
-    const wrapper = document.getElementById('zoomedContentWrapper');
-    wrapper.innerHTML = '';
-    links.forEach(link => {
-        if (link) {
-            const div = document.createElement('div');
-            div.style.textAlign = 'center';
-            div.innerHTML = `
-                <img src="${link}" />
-                <button class="scan-trigger-btn" onclick="scanThisImage('${link}')">🔍 Scan</button>
-            `;
-            wrapper.appendChild(div);
-        }
-    });
-}
-function navigatePackage(dir) {
-    if (dir === 'next' && currentPackageIndex < allPackagesData.length - 1) currentPackageIndex++;
-    else if (dir === 'prev' && currentPackageIndex > 0) currentPackageIndex--;
-    else return;
-    updateGallery(currentPackageIndex);
-}
-function closeZoom() {
-    document.getElementById('zoomModal').style.display = 'none';
-    isZoomOpen = false;
-}
-function clearAllData() {
-    allPackagesData = [];
-    document.getElementById('linkInput').value = '';
-    currentPackageIndex = 0;
-    document.getElementById('maxPackageNum').textContent = 0;
-    updateGallery(-1);
-}
-
-// =============== SCAN ===============
-function scanThisImage(url) {
-    const res = document.getElementById('scanResultContent');
-    const modal = document.getElementById('scanResultModal');
-    res.innerHTML = '<div style="color:var(--warning);">⏳ Memproses...</div>';
-    modal.style.display = 'block';
-
-    Tesseract.recognize(url, 'eng', { logger: m => {} })
-        .then(({ data }) => {
-            const lines = data.text.split('\n').map(l => l.trim()).filter(l => l);
-            const hasil = [];
-            for (let i = 0; i < lines.length; i++) {
-                const m1 = lines[i].match(/\b\d{9,10}\b/);
-                if (m1 && i + 1 < lines.length) {
-                    const m2 = lines[i + 1].match(/\b\d{8,}\b/);
-                    if (m2) {
-                        hasil.push(m1[0] + m2[0]);
-                        i++;
-                    }
-                }
-            }
-            const unique = [...new Set(hasil)];
-            if (unique.length === 0) {
-                res.innerHTML = '<div style="color:orange;">❌ Tidak ditemukan kode.</div>';
-            } else {
-                let html = '';
-                unique.forEach(kode => {
-                    html += `
-                        <div class="kode-item">
-                            <span>${kode}</span>
-                            <button onclick="useScannedCode('${kode}')">Gunakan</button>
-                        </div>
-                    `;
-                });
-                res.innerHTML = html;
-            }
-        })
-        .catch(err => {
-            res.innerHTML = `<div style="color:var(--danger);">❗ Gagal: ${err.message?.substring(0,50) || 'Error'}</div>`;
-        });
-}
-function useScannedCode(kode) {
-    showToast(`✅ Kode: ${kode}`);
-    closeScanResultModal();
-}
-function closeScanResultModal() {
-    document.getElementById('scanResultModal').style.display = 'none';
-}
-
-// =============== KEYBOARD ===============
-document.addEventListener('keydown', e => {
-    if (document.getElementById('zoomModal').style.display === 'flex') {
-        if (e.key === 'ArrowLeft') navigatePackage('prev');
-        else if (e.key === 'ArrowRight') navigatePackage('next');
-        else if (e.key === 'Escape') closeZoom();
-    }
-});
-
-// =============== SCATTER (ringkas) ===============
-let tsMode = false;
-function toggleTSMode() {
-    tsMode = !tsMode;
-    document.getElementById('tsToggleBtn').textContent = `TS: ${tsMode ? 'ON' : 'OFF'}`;
-    if (document.getElementById('scatterTextarea').value.trim()) hitungScatter();
-}
-function extractFromLine(line) {
-    let userId = "-";
-    const parts = line.split(/\s+/);
-    for (let i = 0; i < parts.length; i++) {
-        if (/^20\d{2}$/.test(parts[i]) && i + 1 < parts.length) {
-            const calon = parts[i + 1].trim();
-            if (calon.length >= 3 && !/^\d+$/.test(calon)) {
-                userId = calon;
-                break;
-            }
-        }
-    }
-    if (tsMode && userId !== "-") userId += " TS";
-    const gambarRegex = /(https?:\/\/[^\s]+?\.(?:jpg|png|jpeg|webp)|https?:\/\/(?:prnt\.sc|imghostr\.com)\/[^\s]+)/gi;
-    const gambarLinks = line.match(gambarRegex) || [];
-    const kodeTiket = line.match(/\b\d{17,20}\b/) ? line.match(/\b\d{17,20}\b/)[0] : "-";
-    const bettingan = line.match(/BET\s+([0-9.,\- ]+)/i)?.[1].split("-")[0].trim() || "-";
-    return { userId, kodeTiket, gambarLinks, bettingan };
-}
-function renderHasil(list) {
-    const cont = document.getElementById('hasilScatterContainer');
-    cont.innerHTML = '';
-    list.forEach((t, i) => {
-        const p = `t${i}_`;
-        let imgHtml = '';
-        for (let j = 0; j < 3; j++) {
-            const link = t.gambarLinks[j] || '';
-            let content = '-';
-            if (link) {
-                if (link.includes('prnt.sc') || link.includes('imghostr.com')) {
-                    content = `<a href="${link}" target="_blank" style="color:var(--warning); font-size:12px;">Lihat ${j+1}</a>`;
-                } else {
-                    content = `<img src="${link}" style="width:80px; height:60px; object-fit:cover; border-radius:4px;" />`;
-                }
-            }
-            imgHtml += `<div style="text-align:center; margin:4px;">${content}<div style="font-size:11px; color:var(--warning); margin-top:2px;">${t.userId}</div></div>`;
-        }
-        const div = document.createElement('div');
-        div.style.display = 'flex';
-        div.style.justifyContent = 'space-between';
-        div.style.marginBottom = '14px';
-        div.innerHTML = `
-            <div>
-                <div><b>ID:</b> ${t.userId}</div>
-                <div><b>Kode:</b> ${t.kodeTiket}</div>
+        <div class="gallery-container">
+            <div class="combined-image-slot">
+                <img id="imgSlot1" src="https://via.placeholder.com/140x140/1a1a2e/ffffff?text=1">
+                <img id="imgSlot2" src="https://via.placeholder.com/140x140/1a1a2e/ffffff?text=2">
+                <img id="imgSlot3" src="https://via.placeholder.com/140x140/1a1a2e/ffffff?text=3">
             </div>
-            <div style="display:flex; gap:8px;">${imgHtml}</div>
-        `;
-        cont.appendChild(div);
-    });
-}
-function hitungScatter() {
-    const v = document.getElementById('scatterTextarea').value.trim();
-    if (!v) return document.getElementById('hasilScatterContainer').innerHTML = '';
-    const lines = v.split('\n').slice(0, 7);
-    const list = lines.map(l => extractFromLine(l.trim()));
-    renderHasil(list);
-}
-function hapusScatter() {
-    document.getElementById('scatterTextarea').value = '';
-    document.getElementById('hasilScatterContainer').innerHTML = '';
-}
+        </div>
+        <p style="text-align:center; color:var(--neon-cyan); margin-top:10px;">
+            Paket: <span id="currentPackageNum">0</span> / <span id="maxPackageNum">0</span>
+        </p>
+    </div>
 
-// =============== INIT ===============
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('scatterTextarea').addEventListener('input', hitungScatter);
-    document.getElementById('scatterTextarea').addEventListener('paste', () => setTimeout(hitungScatter, 50));
-});
-</script>
+    <!-- Modal Zoom (Ukuran Asli) -->
+    <div id="zoomModal" class="zoom-modal">
+        <div class="close-zoom" onclick="closeZoom()">&times;</div>
+        <div class="zoom-header" id="zoomedUserid">USER ID</div>
+        <div class="zoom-images" id="zoomedImages"></div>
+    </div>
+
+    <!-- Modal Hasil Scan -->
+    <div id="scanResultModal" class="scan-result-modal">
+        <span class="close-scan-result" onclick="this.parentElement.style.display='none'">&times;</span>
+        <h4>📄 Hasil OCR</h4>
+        <div id="scanResultList"></div>
+    </div>
+
+    <!-- Scatter Section -->
+    <div class="scatter-section">
+        <h2 class="judul-scatter">💣 DATA SCATTER MAHJONG</h2>
+        <textarea id="scatterTextarea" placeholder="Tempel 1–7 baris data..." rows="4"></textarea>
+        <div class="button-group">
+            <button onclick="toggleTSMode()" id="tsToggleBtn">TS: OFF</button>
+            <button style="background:linear-gradient(135deg, #ff6060, #ff8080);" onclick="hapusScatter()">🧹 Hapus</button>
+        </div>
+        <div id="hasilScatterContainer" style="margin-top:12px;"></div>
+    </div>
+
+    <script>
+        let allPackages = [];
+        let currentIndex = 0;
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2500);
+        }
+
+        function handleInput() {
+            const lines = document.getElementById('linkInput').value.split('\n').map(l => l.trim()).filter(l => l);
+            allPackages = [];
+            const urlRegex = /https?:\/\/[^\s]+/g;
+            lines.forEach(line => {
+                const urls = line.match(urlRegex) || [];
+                const words = line.split(/\s+/).filter(w => w);
+                const uid = words.length && !words[0].startsWith('http') ? words[0] : 'N/A';
+                if (urls.length) {
+                    while (urls.length < 3) urls.push('');
+                    allPackages.push({ userid: uid, links: urls.slice(0,3) });
+                }
+            });
+            document.getElementById('maxPackageNum').textContent = allPackages.length;
+            if (allPackages.length > 0) {
+                currentIndex = Math.min(currentIndex, allPackages.length - 1);
+                updateGallery(currentIndex);
+            } else {
+                currentIndex = 0;
+                document.getElementById('currentPackageNum').textContent = 0;
+                updateGallery(-1);
+            }
+        }
+
+        function updateGallery(idx) {
+            const slots = ['imgSlot1','imgSlot2','imgSlot3'].map(id => document.getElementById(id));
+            let pkg = { userid: 'N/A', links: ['','',''] };
+            if (idx >= 0 && idx < allPackages.length) pkg = allPackages[idx];
+            document.getElementById('currentPackageNum').textContent = allPackages.length ? idx + 1 : 0;
+            slots.forEach((img, i) => {
+                const src = pkg.links[i] || `https://via.placeholder.com/140x140/1a1a2e/ffffff?text=${i+1}`;
+                img.src = src;
+            });
+        }
+
+        function openZoom() {
+            if (allPackages.length === 0) return;
+            const pkg = allPackages[currentIndex];
+            if (!pkg.links.some(l => l)) return;
+            document.getElementById('zoomedUserid').textContent = pkg.userid;
+            renderZoomImages(pkg);
+            document.getElementById('zoomModal').style.display = 'flex';
+        }
+
+        function renderZoomImages(pkg) {
+            const container = document.getElementById('zoomedImages');
+            container.innerHTML = '';
+            pkg.links.forEach(link => {
+                if (!link) return;
+                const div = document.createElement('div');
+                div.className = 'zoom-img-container';
+                const img = document.createElement('img');
+                img.src = link;
+                img.alt = "Foto transaksi";
+                img.style.display = 'block';
+                const btn = document.createElement('button');
+                btn.className = 'scan-trigger-btn';
+                btn.textContent = 'Scan';
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    scanThisImage(link);
+                };
+                div.appendChild(img);
+                div.appendChild(btn);
+                container.appendChild(div);
+            });
+        }
+
+        function scanThisImage(imgUrl) {
+            document.getElementById('scanResultList').innerHTML = '<div style="color:var(--warning);">⏳ Memindai...</div>';
+            document.getElementById('scanResultModal').style.display = 'block';
+
+            Tesseract.recognize(imgUrl, 'eng', { logger: m => {} })
+                .then(({ data }) => {
+                    const lines = data.text.split('\n').map(l => l.trim()).filter(l => l);
+                    const hasil = [];
+                    for (let i = 0; i < lines.length; i++) {
+                        const m1 = lines[i].match(/\b\d{9,10}\b/);
+                        if (m1 && i+1 < lines.length) {
+                            const m2 = lines[i+1].match(/\b\d{8,}\b/);
+                            if (m2) {
+                                hasil.push(m1[0] + m2[0]);
+                                i++;
+                            }
+                        }
+                    }
+                    const unique = [...new Set(hasil)];
+                    const listEl = document.getElementById('scanResultList');
+                    if (unique.length === 0) {
+                        listEl.innerHTML = '<div style="color:orange;">❌ Tidak ada kode ditemukan.</div>';
+                    } else {
+                        listEl.innerHTML = unique.map(kode => `
+                            <div class="scan-result-item">
+                                <span>${kode}</span>
+                                <button class="copy-code-btn" onclick="copyCode('${kode}')">Salin</button>
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('scanResultList').innerHTML = `<div style="color:var(--danger);">❗ Gagal: ${err.message || ''}</div>`;
+                });
+        }
+
+        function copyCode(kode) {
+            navigator.clipboard.writeText(kode).then(() => {
+                showToast(`✅ Berhasil disalin: ${kode}`);
+                document.getElementById('scanResultModal').style.display = 'none';
+            }).catch(() => {
+                showToast('❌ Gagal menyalin');
+            });
+        }
+
+        function closeZoom() {
+            document.getElementById('zoomModal').style.display = 'none';
+        }
+
+        function clearAllData() {
+            allPackages = [];
+            document.getElementById('linkInput').value = '';
+            document.getElementById('maxPackageNum').textContent = 0;
+            updateGallery(-1);
+        }
+
+        // Buka zoom saat klik container
+        document.querySelector('.combined-image-slot').addEventListener('click', openZoom);
+
+        // === SCATTER ===
+        let tsMode = false;
+        function toggleTSMode() {
+            tsMode = !tsMode;
+            document.getElementById('tsToggleBtn').textContent = `TS: ${tsMode ? 'ON' : 'OFF'}`;
+            if (document.getElementById('scatterTextarea').value.trim()) hitungScatter();
+        }
+
+        function extractLine(line) {
+            let uid = "-";
+            const parts = line.split(/\s+/);
+            for (let i = 0; i < parts.length; i++) {
+                if (/^20\d{2}$/.test(parts[i]) && i+1 < parts.length) {
+                    const c = parts[i+1].trim();
+                    if (c.length >= 3 && !/^\d+$/.test(c)) { uid = c; break; }
+                }
+            }
+            if (tsMode && uid !== "-") uid += " TS";
+            const imgLinks = line.match(/https?:\/\/[^\s]+?\.(?:jpg|png|jpeg|webp)/gi) || [];
+            const tiket = line.match(/\b\d{17,20}\b/) ? line.match(/\b\d{17,20}\b/)[0] : "-";
+            return { uid, imgLinks, tiket };
+        }
+
+        function hitungScatter() {
+            const txt = document.getElementById('scatterTextarea').value.trim();
+            const container = document.getElementById('hasilScatterContainer');
+            if (!txt) return container.innerHTML = '';
+            const lines = txt.split('\n').slice(0,7);
+            const data = lines.map(l => extractLine(l.trim()));
+            container.innerHTML = data.map(d => `
+                <div style="background:rgba(20,20,35,0.6); padding:10px; border-radius:8px; margin-bottom:10px; font-size:13px;">
+                    <div><b>User ID:</b> ${d.uid}</div>
+                    <div><b>Kode Tiket:</b> ${d.tiket}</div>
+                    <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+                        ${d.imgLinks.slice(0,3).map((link, j) => `
+                            <div style="text-align:center;">
+                                <a href="${link}" target="_blank" style="color:var(--warning); font-size:12px;">Gambar ${j+1}</a>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function hapusScatter() {
+            document.getElementById('scatterTextarea').value = '';
+            document.getElementById('hasilScatterContainer').innerHTML = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('scatterTextarea').addEventListener('input', hitungScatter);
+        });
+    </script>
 </body>
 </html>
 
