@@ -3,360 +3,610 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri & Scan OCR – Zoom Identik Kode Pertama</title>
+    <title>Galeri Keyboard Navigasi & Zoom Otomatis + Scan OCR</title>
+
+    <!-- Muat Tesseract.js (wajib untuk OCR) -->
     <script src="https://unpkg.com/tesseract.js@v5/dist/tesseract.min.js"></script>
 
     <style>
-        :root {
-            --neon-blue: #00e0ff;
-            --neon-cyan: #00d0e0;
-            --dark-bg: #0c0c16;
-            --card-bg: rgba(18, 18, 30, 0.75);
-            --input-bg: rgba(25, 25, 40, 0.7);
-            --text: #e0f0ff;
-            --warning: #ffd166;
-            --success: #50ff80;
-            --danger: #ff6060;
-            --glow-faint: rgba(0, 224, 255, 0.15);
-            --border-faint: rgba(0, 200, 220, 0.2);
-        }
+:root {
+    --neon-blue: #00ffff;
+    --dark-background: #121212;
+    --card-background: #1e1e1e;
+    --input-background: #2a2a2a;
+    --border-color: #00bfff;
+    --text-color: #e0f7fa;
+    --secondary-neon: #00bfff;
+    --danger-color: #ff4d4d;
+    --success-color: #39ff14;
+    --warning-color: #f1c40f;
+    --primary-button: #00bfff;
+    --primary-button-hover: #00e5ff;
+}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #080812, #10101c);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            font-size: 16px;
-            line-height: 1.6;
-        }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--dark-background);
+    color: var(--text-color);
+    padding: 20px;
+    margin: 0;
+    line-height: 1.6;
+    font-size: 16px; /* Lebih besar untuk readability */
+}
 
-        .container, .scatter-section {
-            max-width: 960px;
-            margin: 20px auto;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            backdrop-filter: blur(6px);
-            border: 1px solid var(--border-faint);
-            box-shadow: 0 0 20px var(--glow-faint), 0 0 10px rgba(0, 224, 255, 0.1);
-        }
+.container, 
+.scatter-section {
+    max-width: 960px;
+    margin: 20px auto;
+    background: var(--card-background); 
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), 0 0 10px rgba(0, 255, 255, 0.1); 
+    border: 1px solid var(--secondary-neon);
+}
 
-        .scatter-section {
-            padding: 20px;
-            margin-bottom: 25px;
-        }
+.scatter-section {
+    padding: 20px;
+    margin-bottom: 25px;
+}
 
-        h1 {
-            text-align: center;
-            color: var(--neon-blue);
-            margin-bottom: 25px;
-            text-shadow: 0 0 8px var(--neon-blue), 0 0 15px var(--neon-cyan);
-            font-size: 2.5em;
-        }
+h1 {
+    text-align: center;
+    color: var(--neon-blue);
+    margin-bottom: 25px;
+    text-shadow: 0 0 8px var(--neon-blue), 0 0 15px var(--secondary-neon); 
+    font-size: 2.5em;
+}
 
-        h2.judul-scatter {
-            text-align: center;
-            color: var(--neon-cyan);
-            margin-top: 20px;
-            text-shadow: 0 0 5px rgba(0, 191, 255, 0.7);
-            font-size: 1.8em;
-        }
+h2 {
+    text-align: center;
+    color: var(--secondary-neon);
+    margin-top: 20px;
+    text-shadow: 0 0 5px rgba(0, 191, 255, 0.7);
+}
 
-        textarea, input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-faint);
-            background: var(--input-bg);
-            color: var(--text);
-            border-radius: 6px;
-            resize: vertical;
-        }
+.judul-glow {
+    text-align: center;
+    color: var(--success-color);
+    text-shadow: 0 0 10px var(--success-color), 0 0 20px var(--success-color);
+    margin-bottom: 20px;
+    font-size: 2.5em;
+}
 
-        button {
-            padding: 10px 18px;
-            color: #000;
-            background: linear-gradient(135deg, var(--neon-blue), var(--neon-cyan));
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-right: 10px;
-            box-shadow: 0 0 5px var(--glow-faint);
-        }
+textarea, input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--secondary-neon);
+    box-sizing: border-box;
+    background-color: var(--input-background);
+    color: var(--text-color);
+    border-radius: 6px;
+    resize: vertical;
+    transition: box-shadow 0.3s;
+}
 
-        .button-group {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 15px;
-            margin-top: 10px;
-        }
+textarea:focus, input[type="text"]:focus {
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 191, 255, 0.8);
+}
 
-        /* === GALLERY UTAMA === */
-        .gallery-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 20px;
-        }
+button,
+.btn {
+    padding: 10px 18px;
+    color: var(--dark-background);
+    background-color: var(--primary-button);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    font-weight: bold;
+    margin-right: 10px;
+    box-shadow: 0 0 5px rgba(0, 191, 255, 0.5);
+}
 
-        .combined-image-slot {
-            width: 80%;
-            max-width: 700px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            border: 2px solid var(--neon-cyan);
-            padding: 5px;
-            border-radius: 8px;
-            cursor: pointer;
-            background: var(--input-bg);
-            min-height: 200px;
-        }
+button:hover,
+.btn:hover {
+    background-color: var(--primary-button-hover);
+    box-shadow: 0 0 10px var(--primary-button-hover);
+}
 
-        .combined-image-slot img {
-            max-width: 33.33%;
-            height: 180px;
-            object-fit: contain;
-            display: block;
-            margin: 0;
-            border-radius: 4px;
-        }
+#clearDataBtn,
+.btn.danger {
+    background-color: var(--danger-color);
+    color: var(--text-color);
+    box-shadow: 0 0 5px var(--danger-color);
+}
+#clearDataBtn:hover,
+.btn.danger:hover {
+    background-color: #ff8080;
+    box-shadow: 0 0 10px var(--danger-color);
+}
 
-        /* === MODAL ZOOM — IDENTIK DENGAN KODE PERTAMA === */
-        .zoom-modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.95);
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            padding: 20px;
-        }
+.button-group {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+    margin-top: 10px;
+}
 
-        .zoom-nav-button {
-            background-color: transparent;
-            color: var(--neon-cyan);
-            border: none;
-            font-size: 3em;
-            padding: 0 20px;
-            cursor: pointer;
-            transition: color 0.3s;
-            z-index: 10000;
-            user-select: none;
-        }
+.input-textarea {
+    height: 100px;
+    background: var(--input-background);
+    color: var(--text-color);
+    border: 1px solid var(--secondary-neon);
+    padding: 10px;
+    margin: 10px 0;
+}
 
-        .zoom-nav-button:hover:not(:disabled) {
-            color: var(--neon-blue);
-            background: rgba(0, 191, 255, 0.1);
-        }
+.ts-toggle {
+    background: var(--input-background);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.ts-toggle.on {
+    background: var(--success-color);
+    color: var(--dark-background);
+    border-color: var(--success-color);
+    box-shadow: 0 0 8px var(--success-color);
+}
 
-        .zoomed-content-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            width: 90%;
-            max-width: 1200px;
-            max-height: 80vh;
-            margin: 10px 0;
-            overflow: hidden;
-        }
+.hasil-transaksi {
+    border: 1px solid var(--secondary-neon);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    background: var(--card-background);
+    box-shadow: 0 0 10px rgba(0, 191, 255, 0.2);
+}
 
-        /* ✅ UKURAN SAMA PERSIS DENGAN KODE PERTAMA */
-        .zoomed-content-wrapper img {
-            max-width: calc(33.33% - 10px);
-            height: 180px; /* ← TINGGI TETAP 180px */
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 25px rgba(0, 191, 255, 0.5);
-            display: block;
-        }
+.hasil-item {
+    display: flex;
+    align-items: center;
+    margin: 6px 0;
+    padding: 6px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+.hasil-item label {
+    width: 110px;
+    color: var(--warning-color);
+    font-weight: bold;
+}
+.hasil-text {
+    flex: 1;
+    color: var(--text-color);
+    word-break: break-all;
+}
+.copy-btn {
+    margin-left: 8px;
+    padding: 4px 8px;
+    background: var(--secondary-neon);
+    color: var(--dark-background);
+    border: 1px solid var(--secondary-neon);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+.copy-btn:hover {
+    background: var(--primary-button-hover);
+}
 
-        .zoomed-userid {
-            color: var(--warning);
-            font-size: 2.2em;
-            font-weight: bold;
-            margin-bottom: 15px;
-            text-shadow: 0 0 10px var(--warning);
-        }
+.hasil-item.red-bg {
+    background: var(--danger-color);
+    transition: background 0.3s;
+}
 
-        .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: var(--danger);
-            font-size: 45px;
-            font-weight: bold;
-            cursor: pointer;
-            text-shadow: 0 0 10px var(--danger);
-            z-index: 10000;
-        }
+hr {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--secondary-neon), rgba(0, 0, 0, 0));
+    margin: 25px 0;
+}
 
-        /* === TOMBOL SCAN DI BAWAH SETIAP GAMBAR === */
-        .zoom-img-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+.gallery-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
 
-        .scan-btn-small {
-            margin-top: 6px;
-            padding: 4px 10px;
-            font-size: 12px;
-            background: rgba(0, 200, 255, 0.3);
-            color: var(--neon-blue);
-            border: 1px solid var(--border-faint);
-            border-radius: 20px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            cursor: pointer;
-        }
-        .zoom-img-container:hover .scan-btn-small {
-            opacity: 1;
-        }
+.combined-image-slot {
+    flex-grow: 0;
+    width: 80%;
+    max-width: 700px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border: 2px solid var(--secondary-neon);
+    padding: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s;
+    background-color: var(--input-background);
+    min-height: 200px;
+}
 
-        /* === MODAL HASIL SCAN === */
-        .scan-result-modal {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 320px;
-            background: rgba(15, 15, 28, 0.9);
-            border: 1px solid var(--neon-cyan);
-            border-radius: 10px;
-            padding: 14px;
-            z-index: 10001;
-            box-shadow: 0 0 16px var(--glow-faint);
-        }
+.combined-image-slot:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 20px rgba(0, 191, 255, 0.4); 
+}
 
-        .scan-result-item {
-            padding: 8px;
-            margin: 6px 0;
-            background: rgba(0, 30, 50, 0.4);
-            border-radius: 6px;
-            font-family: monospace;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.combined-image-slot img {
+    max-width: 33.33%; 
+    height: 180px; 
+    object-fit: contain; 
+    display: block;
+    margin: 0;
+    border-radius: 4px; 
+}
+ 
+.combined-image-slot .caption-userid {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--warning-color);
+    font-size: 1.5em;
+    font-weight: bold;
+    background-color: rgba(0,0,0,0.8);
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: none; 
+    pointer-events: none; 
+    z-index: 10;
+}
+.combined-image-slot:hover .caption-userid {
+    display: block;
+}
 
-        .copy-code-btn {
-            padding: 4px 10px;
-            background: var(--success);
-            color: #000;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+.package-info {
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
 
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(10, 10, 20, 0.85);
-            color: var(--neon-blue);
-            padding: 12px 24px;
-            border-radius: 8px;
-            border: 1px solid var(--neon-cyan);
-            z-index: 10002;
-            display: none;
-        }
+.gambar-container-multi {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.gambar-slot-multi {
+    text-align: center;
+    width: 110px;
+    transition: transform 0.2s;
+}
+.gambar-slot-multi:hover {
+    transform: translateY(-3px);
+}
+.gambar-slot-multi img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--secondary-neon);
+    box-shadow: 0 0 5px rgba(0, 191, 255, 0.3);
+    transition: border 0.3s, box-shadow 0.3s;
+}
+.gambar-slot-multi img:hover {
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+.userid-label {
+    margin-top: 6px;
+    font-size: 14px; /* Dinaikkan dari 12px */
+    color: var(--warning-color);
+}
+
+/* === MODAL ZOOM + SCAN === */
+.modal,
+.lightbox-modal {
+    display: none;
+    position: fixed; 
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.95);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.zoomed-content-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Tombol navigasi kecil */
+.zoom-nav-button.small {
+    font-size: 1.8em;
+    padding: 8px 14px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    width: auto;
+    height: auto;
+    color: var(--secondary-neon);
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+.zoom-nav-button.small:hover:not(:disabled) {
+    color: var(--neon-blue);
+    background: rgba(0, 191, 255, 0.15);
+}
+
+.zoomed-content-wrapper {
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 90%;
+    max-width: 1200px; 
+    max-height: 80vh;
+    margin: 10px 0;
+    overflow: hidden; 
+}
+
+.zoomed-content-wrapper img {
+    max-width: calc(33.33% - 10px);
+    height: auto;
+    max-height: 80vh;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 25px rgba(0, 191, 255, 0.5); 
+    object-fit: contain;
+    min-width: 0;
+}
+
+.zoomed-userid {
+    display: block;
+    text-align: center;
+    color: var(--warning-color);
+    font-size: 2.2em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px var(--warning-color);
+}
+
+.close-btn,
+.close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: var(--danger-color);
+    font-size: 45px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+    text-shadow: 0 0 10px var(--danger-color);
+    z-index: 10000;
+}
+
+.close-btn:hover,
+.close-btn:focus,
+.close:hover {
+    color: #ff8080;
+}
+
+/* === SCAN SECTION DI DALAM ZOOM === */
+.scan-section {
+    margin-top: 15px;
+    padding: 12px;
+    background: rgba(0, 30, 40, 0.6);
+    border-radius: 8px;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.scan-btn {
+    background: linear-gradient(135deg, #00bfff, #0088ff);
+    color: #000;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    box-shadow: 0 0 8px rgba(0, 191, 255, 0.6);
+    font-size: 14px;
+}
+.scan-btn:hover {
+    background: linear-gradient(135deg, #00ffff, #00bfff);
+    transform: scale(1.05);
+}
+
+.bonus-result {
+    color: var(--warning-color);
+    font-size: 14px;
+    min-height: 20px;
+    margin-top: 6px;
+}
+
+/* Lightbox lama (opsional, bisa dihapus jika tidak dipakai) */
+.lightbox-modal img {
+    max-width: 90%;
+    box-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 30px var(--neon-blue);
+}
+.lightbox-caption {
+    margin-top: 10px;
+    color: var(--text-color);
+    font-size: 14px;
+    background: rgba(0,0,0,0.7);
+    padding: 8px 12px;
+    border-radius: 4px;
+    text-shadow: 0 0 5px var(--warning-color);
+}
+
+/* === NOTIFIKASI TOAST === */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: var(--neon-blue);
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--secondary-neon);
+    box-shadow: 0 0 15px var(--secondary-neon);
+    z-index: 10001;
+    font-weight: bold;
+    display: none;
+}
     </style>
 </head>
 <body>
 
+    <!-- Toast Notifikasi -->
     <div id="toast" class="toast"></div>
 
     <div class="container">
         <h1>📸 Galeri Gambar Otomatis & Zoom Navigasi</h1>
-        <textarea id="linkInput" placeholder="USERID link1 link2 link3" rows="8" oninput="handleInput()"></textarea>
+        <p class="instruction-note" style="text-align: center; color: #3498db;">**Tempel/Ketik** data. Format: **USERID link_gambar1 link_gambar2 link_gambar3**</p>
+
+        <textarea id="linkInput" 
+                  placeholder="Tempelkan data paket di sini. Setiap baris adalah satu paket." 
+                  rows="8" 
+                  oninput="handleInput()"
+                  onpaste="handleInput()"></textarea>
+        
         <div class="button-group">
-            <button onclick="clearAllData()">🗑️ Hapus Semua Data</button>
+            <button id="clearDataBtn" onclick="clearAllData()">🗑️ Hapus Semua Data</button>
         </div>
+
+        <hr>
 
         <div class="gallery-container">
             <div class="combined-image-slot" id="combinedImageSlot" onclick="openZoom()">
-                <img id="imgSlot1" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+1">
-                <img id="imgSlot2" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+2">
-                <img id="imgSlot3" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+3">
+                <p class="caption-userid" id="combinedSlotUserid">USER ID</p>
+                <img id="imgSlot1" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+1" alt="Slot 1">
+                <img id="imgSlot2" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+2" alt="Slot 2">
+                <img id="imgSlot3" data-link="" src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Slot+3" alt="Slot 3">
             </div>
         </div>
 
-        <p style="text-align:center; color:var(--neon-blue); margin-top:20px; font-size:1.1em;">
+        <p class="package-info">
             Paket: <span id="currentPackageNum">0</span> / <span id="maxPackageNum">0</span>
         </p>
     </div>
 
-    <!-- MODAL ZOOM — IDENTIK DENGAN KODE PERTAMA -->
-    <div id="zoomModal" class="zoom-modal" onclick="closeZoom(event)">
-        <span class="close-btn" onclick="closeZoom({target:document.getElementById('zoomModal')})">&times;</span>
-        <span id="zoomedUserid" class="zoomed-userid"></span>
-
+    <!-- MODAL ZOOM BARU (dengan SCAN) -->
+    <div id="zoomModal" class="modal" onclick="closeZoom(event)">
+        <span class="close-btn">&times;</span>
+        <span id="zoomedUserid" class="zoomed-userid"></span> 
+        
         <div class="zoomed-content-area">
-            <button class="zoom-nav-button" id="prevZoomBtn" onclick="navigatePackage('prev')">&#9664;</button>
+            <button class="zoom-nav-button small" id="prevZoomBtn" onclick="navigatePackage('prev')">&#9664;</button>
             <div class="zoomed-content-wrapper" id="zoomedContentWrapper"></div>
-            <button class="zoom-nav-button" id="nextZoomBtn" onclick="navigatePackage('next')">&#9654;</button>
+            <button class="zoom-nav-button small" id="nextZoomBtn" onclick="navigatePackage('next')">&#9654;</button>
         </div>
+
+        <!-- AREA SCAN -->
+        <div class="scan-section">
+            <button class="scan-btn" onclick="triggerScanFromZoom()">🔍 Scan Gambar Transaksi</button>
+            <div id="bonusHasil" class="bonus-result"></div>
+            <label for="imageUrl" style="color:#00ffff; margin-top:10px; display: block;">🔗 Link Gambar Transaksi:</label>
+            <input type="text" id="imageUrl" class="bonus-input" placeholder="Tempel link gambar di sini..." style="width: 100%; margin-top: 4px; padding: 8px; background: var(--input-background); color: var(--text-color); border: 1px solid var(--secondary-neon); border-radius: 4px;">
+        </div>
+        
+        <div id="caption">Geser paket menggunakan tombol navigasi (&#9664; / &#9654;) atau tombol panah Kiri/Kanan pada keyboard.</div>
     </div>
 
-    <!-- MODAL HASIL SCAN -->
-    <div id="scanResultModal" class="scan-result-modal">
-        <h4 style="color:var(--neon-cyan); margin:0 0 10px;">📄 Hasil OCR</h4>
-        <div id="scanResultList"></div>
-    </div>
-
-    <!-- Bagian Scatter (tetap ringkas) -->
+    <!-- Bagian Scatter (tidak diubah) -->
     <div class="scatter-section">
-        <h2 class="judul-scatter">💣 DATA SCATTER MAHJONG</h2>
-        <textarea id="scatterTextarea" rows="4" placeholder="Tempelkan data..."></textarea>
+        <h3 class="judul-glow">💫 LINE TOGEL 💫</h3>
+        <h2>💣 DATA SCATTER MAHJONG</h2>
+        <div class="button-group" style="margin: 10px 0;">
+            <button id="tsToggleBtn" onclick="toggleTSMode()" class="ts-toggle">TS: OFF</button>
+        </div>
+        <textarea id="scatterTextarea" class="input-textarea" placeholder="Tempelkan 1–7 baris data (satu baris = satu transaksi)..."></textarea>
         <div class="button-group">
-            <button onclick="hapusScatter()" style="background:linear-gradient(135deg, #ff6060, #ff8080);">🧹 Hapus</button>
+            <button onclick="hapusScatter()" class="btn danger">🧹 Hapus</button>
         </div>
         <div id="hasilScatterContainer"></div>
     </div>
 
+    <!-- Modal Lightbox Lama (opsional) -->
+    <div id="lightboxModal" class="lightbox-modal" style="display:none;">
+        <span class="close" onclick="closeLightbox()">&times;</span>
+        <span class="nav-btn prev" onclick="prevImage()">&lsaquo;</span>
+        <span class="nav-btn next" onclick="nextImage()">&rsaquo;</span>
+        <img id="lightboxImg" src="" alt="Zoomed Image" />
+        <div id="lightboxCaption" class="lightbox-caption">User ID: -</div>
+    </div>
+    
     <script>
-        let allPackages = [];
-        let currentPackageIndex = 0;
+        /* ======================== GLOBAL ======================== */
+        let allPackagesData = []; 
+        let currentPackageIndex = 0; 
+        const packageSize = 3; 
+        const placeholderImage = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong"; 
         let isZoomOpen = false;
+        let currentDataIndex = 1;
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 2500);
+        /* ======================== UTILITIES ======================== */
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
         }
 
+        /* ======================== GALLERY UTAMA ======================== */
+        let inputTimeout;
         function handleInput() {
-            const lines = document.getElementById('linkInput').value.split('\n').map(l => l.trim()).filter(l => l);
-            allPackages = [];
-            const urlRegex = /https?:\/\/[^\s]+/g;
-            lines.forEach(line => {
+            clearTimeout(inputTimeout);
+            inputTimeout = setTimeout(loadImages, 50);
+        }
+
+        function loadImages() {
+            const inputArea = document.getElementById('linkInput');
+            const rawLines = inputArea.value
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            allPackagesData = [];
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+            rawLines.forEach((line) => {
                 const urls = line.match(urlRegex) || [];
-                const words = line.split(/\s+/).filter(w => w);
-                const userid = words.length && !words[0].startsWith('http') ? words[0] : 'N/A';
+                const words = line.split(/\s+/).filter(w => w.length > 0);
+                let userid = 'N/A';
+                if (words.length > 0 && !words[0].startsWith('http')) {
+                    userid = words[0];
+                }
                 if (urls.length >= 1) {
-                    const links = urls.slice(0, 3);
-                    while (links.length < 3) links.push("");
-                    allPackages.push({ userid, links });
+                    const links = urls.slice(0, packageSize); 
+                    while (links.length < packageSize) links.push("");
+                    allPackagesData.push({ userid, links });
                 }
             });
-            document.getElementById('maxPackageNum').textContent = allPackages.length;
-            if (allPackages.length > 0) {
-                currentPackageIndex = Math.min(currentPackageIndex, allPackages.length - 1);
+
+            document.getElementById('maxPackageNum').textContent = allPackagesData.length;
+            if (allPackagesData.length > 0) {
+                currentPackageIndex = Math.min(currentPackageIndex, allPackagesData.length - 1);
                 currentPackageIndex = Math.max(0, currentPackageIndex);
                 updateGallery(currentPackageIndex);
             } else {
@@ -368,193 +618,392 @@
 
         function updateGallery(index) {
             const imgSlots = ['imgSlot1', 'imgSlot2', 'imgSlot3'].map(id => document.getElementById(id));
+            const combinedSlot = document.getElementById('combinedImageSlot');
+            const useridCaption = document.getElementById('combinedSlotUserid');
+            const validPackages = allPackagesData.length;
+            
             let currentPackage = { userid: 'N/A', links: ["", "", ""] };
-            if (index >= 0 && index < allPackages.length) {
-                currentPackage = allPackages[index];
+            if (index >= 0 && index < validPackages) {
+                currentPackage = allPackagesData[index];
+                combinedSlot.style.pointerEvents = 'auto';
+            } else {
+                combinedSlot.style.pointerEvents = 'none';
+                currentPackage.userid = 'N/A';
             }
-            imgSlots.forEach((img, i) => {
+
+            combinedSlot.setAttribute('data-userid', currentPackage.userid);
+            useridCaption.textContent = currentPackage.userid === 'N/A' ? 'Belum Ada Data' : `USER ID: ${currentPackage.userid}`;
+
+            let validLinkCount = 0;
+            for (let i = 0; i < packageSize; i++) {
                 const link = currentPackage.links[i] || "";
                 if (link) {
-                    img.src = link;
-                    img.style.display = 'block';
+                    imgSlots[i].src = link;
+                    imgSlots[i].style.display = 'block'; 
+                    imgSlots[i].setAttribute('data-link', link);
+                    validLinkCount++;
                 } else {
-                    img.src = "https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong";
-                    img.style.display = (index === -1 && i === 1) ? 'block' : 'none';
+                    imgSlots[i].src = placeholderImage;
+                    imgSlots[i].style.display = (index === -1 && i === 1) ? 'block' : 'none'; 
+                    imgSlots[i].setAttribute('data-link', "");
                 }
-            });
-        }
-
-        function openZoom() {
-            if (allPackages.length === 0) return;
-            const pkg = allPackages[currentPackageIndex];
-            if (!pkg.links.some(l => l)) return;
-            isZoomOpen = true;
-            updateZoomDisplay(pkg.userid, pkg.links);
-            updateZoomNavButtons();
-            document.getElementById("zoomModal").style.display = "flex";
-        }
-
-        function updateZoomDisplay(userid, links) {
-            const wrapper = document.getElementById("zoomedContentWrapper");
-            document.getElementById("zoomedUserid").textContent = userid;
-            wrapper.innerHTML = '';
-            links.forEach(link => {
-                if (!link) {
-                    const container = document.createElement('div');
-                    container.className = 'zoom-img-container';
-                    container.innerHTML = `<img src="https://via.placeholder.com/200x180/2c3e50/ffffff?text=Kosong">`;
-                    wrapper.appendChild(container);
-                    return;
-                }
-                const container = document.createElement('div');
-                container.className = 'zoom-img-container';
-                container.innerHTML = `
-                    <img src="${link}" alt="Zoomed Image">
-                    <button class="scan-btn-small" onclick="scanThisImage(event, '${link}')">Scan</button>
-                `;
-                wrapper.appendChild(container);
-            });
-        }
-
-        function scanThisImage(e, imgUrl) {
-            e.stopPropagation();
-            document.getElementById('scanResultList').innerHTML = '<div style="color:var(--warning);">⏳ Memindai...</div>';
-            document.getElementById('scanResultModal').style.display = 'block';
-
-            Tesseract.recognize(imgUrl, 'eng', { logger: m => {} })
-                .then(({ data }) => {
-                    const lines = data.text.split('\n').map(l => l.trim()).filter(l => l);
-                    const hasil = [];
-                    for (let i = 0; i < lines.length; i++) {
-                        const m1 = lines[i].match(/\b\d{9,10}\b/);
-                        if (m1 && i+1 < lines.length) {
-                            const m2 = lines[i+1].match(/\b\d{8,}\b/);
-                            if (m2) {
-                                hasil.push(m1[0] + m2[0]);
-                                i++;
-                            }
-                        }
-                    }
-                    const unique = [...new Set(hasil)];
-                    const listEl = document.getElementById('scanResultList');
-                    if (unique.length === 0) {
-                        listEl.innerHTML = '<div style="color:orange;">❌ Tidak ada kode ditemukan.</div>';
-                    } else {
-                        listEl.innerHTML = unique.map(kode => `
-                            <div class="scan-result-item">
-                                <span>${kode}</span>
-                                <button class="copy-code-btn" onclick="copyCode('${kode}')">Salin</button>
-                            </div>
-                        `).join('');
-                    }
-                })
-                .catch(err => {
-                    document.getElementById('scanResultList').innerHTML = `<div style="color:var(--danger);">❗ Gagal: ${err.message || ''}</div>`;
-                });
-        }
-
-        function copyCode(kode) {
-            navigator.clipboard.writeText(kode).then(() => {
-                showToast(`✅ Berhasil disalin: ${kode}`);
-                document.getElementById('scanResultModal').style.display = 'none';
-            }).catch(() => {
-                showToast('❌ Gagal menyalin');
-            });
+            }
+            
+            combinedSlot.style.opacity = validLinkCount > 0 ? 1 : 0.5;
+            document.getElementById('currentPackageNum').textContent = validPackages > 0 ? index + 1 : 0;
+            
+            if (isZoomOpen) {
+                updateZoomDisplay(currentPackage.userid, currentPackage.links);
+                updateZoomNavButtons();
+            }
         }
 
         function navigatePackage(direction) {
             let newIndex = currentPackageIndex;
-            if (direction === 'next' && currentPackageIndex < allPackages.length - 1) {
+            if (direction === 'next' && currentPackageIndex < allPackagesData.length - 1) {
                 newIndex++;
             } else if (direction === 'prev' && currentPackageIndex > 0) {
                 newIndex--;
             }
             if (newIndex !== currentPackageIndex) {
                 currentPackageIndex = newIndex;
-                const pkg = allPackages[currentPackageIndex];
-                updateZoomDisplay(pkg.userid, pkg.links);
-                updateZoomNavButtons();
+                updateGallery(currentPackageIndex); 
             }
+        }
+
+        function updateZoomDisplay(userid, links) {
+            const wrapper = document.getElementById("zoomedContentWrapper");
+            const zoomedUserid = document.getElementById("zoomedUserid");
+            wrapper.innerHTML = '';
+            links.forEach(link => {
+                if (link) {
+                    const img = document.createElement('img');
+                    img.src = link;
+                    img.alt = 'Zoomed Image';
+                    wrapper.appendChild(img);
+                }
+            });
+            zoomedUserid.textContent = userid; 
         }
 
         function updateZoomNavButtons() {
             const prevBtn = document.getElementById('prevZoomBtn');
             const nextBtn = document.getElementById('nextZoomBtn');
             prevBtn.disabled = (currentPackageIndex === 0);
-            nextBtn.disabled = (currentPackageIndex >= allPackages.length - 1);
-            prevBtn.style.opacity = prevBtn.disabled ? '0.3' : '1';
-            nextBtn.style.opacity = nextBtn.disabled ? '0.3' : '1';
+            nextBtn.disabled = (currentPackageIndex >= allPackagesData.length - 1);
+            prevBtn.style.opacity = prevBtn.disabled ? '0.4' : '1';
+            nextBtn.style.opacity = nextBtn.disabled ? '0.4' : '1';
+        }
+
+        function openZoom() {
+            if (allPackagesData.length === 0 || allPackagesData[currentPackageIndex].links.filter(l => l).length === 0) return;
+            isZoomOpen = true;
+            const currentPackage = allPackagesData[currentPackageIndex];
+            updateZoomDisplay(currentPackage.userid, currentPackage.links);
+            updateZoomNavButtons();
+            document.getElementById("zoomModal").style.display = "flex"; 
         }
 
         function closeZoom(event) {
-            if (event.target === document.getElementById("zoomModal") || event.target.classList.contains('close-btn')) {
-                document.getElementById("zoomModal").style.display = "none";
+            const modal = document.getElementById("zoomModal");
+            if (event.target === modal || event.target.classList.contains('close-btn')) {
+                modal.style.display = "none";
                 isZoomOpen = false;
             }
         }
 
         function clearAllData() {
-            allPackages = [];
+            allPackagesData = [];
             document.getElementById('linkInput').value = '';
             currentPackageIndex = 0;
             document.getElementById('maxPackageNum').textContent = 0;
-            updateGallery(-1);
+            updateGallery(-1); 
         }
 
-        // === KEYBOARD NAVIGATION ===
-        document.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', (event) => {
             if (isZoomOpen) {
-                if (e.key === "ArrowLeft") {
-                    e.preventDefault();
+                if (event.key === "ArrowLeft") {
                     navigatePackage('prev');
-                } else if (e.key === "ArrowRight") {
-                    e.preventDefault();
+                } else if (event.key === "ArrowRight") {
                     navigatePackage('next');
-                } else if (e.key === "Escape") {
-                    e.preventDefault();
+                } else if (event.key === "Escape") {
                     closeZoom({ target: document.getElementById("zoomModal") });
                 }
             }
         });
 
-        // === SCATTER SEDERHANA ===
-        function extractLine(line) {
-            let uid = line.split(/\s+/)[0] || "-";
-            const imgLinks = line.match(/https?:\/\/[^\s]+?\.(?:jpg|png|jpeg|webp)/gi) || [];
-            const tiket = line.match(/\b\d{17,20}\b/) ? line.match(/\b\d{17,20}\b/)[0] : "-";
-            return { uid, imgLinks, tiket };
+        document.addEventListener('DOMContentLoaded', () => {
+            loadImages(); 
+        });
+
+        /* ======================== SCAN OCR DI ZOOM ======================== */
+        function triggerScanFromZoom() {
+            const imageUrlInput = document.getElementById('imageUrl');
+            const link = imageUrlInput.value.trim();
+            
+            if (!link) {
+                showToast("❌ Masukkan link gambar terlebih dahulu!");
+                return;
+            }
+
+            const bonusHasil = document.getElementById('bonusHasil');
+            bonusHasil.innerHTML = '<span style="color:yellow;">⏳ Memproses OCR...</span>';
+
+            Tesseract.recognize(link, 'eng', { logger: m => console.log(m) })
+                .then(result => {
+                    const text = result.data.text;
+                    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                    const hasil = [];
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        const match1 = line.match(/\b\d{9,10}\b/);
+                        if (match1 && i + 1 < lines.length) {
+                            const match2 = lines[i + 1].match(/\b\d{8,}\b/);
+                            if (match2) {
+                                hasil.push(match1[0] + match2[0]);
+                                i++;
+                            }
+                        }
+                    }
+
+                    const unique = [...new Set(hasil)];
+                    if (unique.length === 0) {
+                        bonusHasil.innerHTML = '<span style="color:orange;">❌ Tidak ditemukan pasangan kode 2 baris.</span>';
+                    } else {
+                        let html = '<div style="color:deepskyblue; font-weight:bold; margin-bottom:8px;">📘 Kode Ditemukan:</div>';
+                        unique.forEach(kode => {
+                            html += `
+                                <div style="margin:6px 0; padding:8px; background:rgba(0,100,200,0.3); border-left:3px solid #00bfff; border-radius:4px;">
+                                    <span style="font-family:monospace; font-size:14px;">${kode}</span>
+                                    <button type="button" 
+                                            onclick="gunakanKodeDariZoom('${kode}')" 
+                                            style="margin-top:4px; background:#00ffff; color:#000; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">
+                                        Gunakan
+                                    </button>
+                                </div>
+                            `;
+                        });
+                        bonusHasil.innerHTML = html;
+                    }
+                })
+                .catch(err => {
+                    console.error("OCR Error:", err);
+                    bonusHasil.innerHTML = `<span style="color:red;">❗ Gagal membaca gambar.<br><small>${err.message || ''}</small></span>`;
+                });
+        }
+
+        function gunakanKodeDariZoom(kode) {
+            showToast(`✅ Kode digunakan: ${kode}`);
+            // Di sini Anda bisa kirim kode ke form lain, localStorage, dll.
+        }
+
+        /* ======================== SCATTER SECTION (tidak diubah) ======================== */
+        let tsModeActive = false;
+        function toggleTSMode() {
+            tsModeActive = !tsModeActive;
+            const btn = document.getElementById("tsToggleBtn");
+            btn.textContent = tsModeActive ? "TS: ON" : "TS: OFF";
+            btn.classList.toggle("on", tsModeActive);
+            if (document.getElementById("scatterTextarea").value.trim()) {
+                hitungScatter();
+            }
+        }
+
+        function extractFromLine(line) {
+            let userId = "-";
+            const parts = line.split(/\s+/);
+            for (let i = 0; i < parts.length; i++) {
+                if (/^20\d{2}$/.test(parts[i]) && i + 1 < parts.length) {
+                    const calon = parts[i + 1].trim();
+                    if (calon.length >= 3 && !/^\d+$/.test(calon)) {
+                        userId = calon;
+                        break;
+                    }
+                }
+            }
+            if (tsModeActive && userId !== "-") {
+                userId += " TS";
+            }
+            const gambarRegex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg|png|gif|webp|bmp|svg)|https?:\/\/(?:prnt\.sc|imghostr\.com)\/[^\s]+)/gi;
+            const gambarLinks = line.match(gambarRegex) || [];
+            const kodeTiketMatch = line.match(/\b\d{17,20}\b/);
+            const kodeTiket = kodeTiketMatch ? kodeTiketMatch[0] : "-";
+            const betMatch = line.match(/BET\s+([0-9.,\- ]+)/i);
+            let bettingan = "-";
+            if (betMatch) {
+                const parts = betMatch[1].split("-");
+                bettingan = parts[0].trim();
+            }
+            return { userId, kodeTiket, gambarLinks, bettingan };
+        }
+
+        function renderHasil(transaksiList) {
+            const container = document.getElementById("hasilScatterContainer");
+            container.innerHTML = "";
+            transaksiList.forEach((trans, idx) => {
+                const { userId, kodeTiket, gambarLinks, bettingan } = trans;
+                const prefix = `t${idx}_`;
+                let gambarHTML = '';
+                for (let i = 1; i <= 3; i++) {
+                    const link = gambarLinks[i - 1];
+                    let content = '<div>-</div>';
+                    if (link) {
+                        if (link.includes('prnt.sc') || link.includes('imghostr.com')) {
+                            content = `<a href="${link}" target="_blank" style="color:#ffcc00;">Lihat Gambar ${i}</a>`;
+                        } else {
+                            content = `<img src="${link}" onclick="openLightbox('${link}', '${userId}')" />`;
+                        }
+                    }
+                    gambarHTML += `
+                        <div class="gambar-slot-multi">
+                            <h4 style="margin:4px 0;font-size:14px;">Gambar ${i}</h4>
+                            ${content}
+                            <div class="userid-label">User ID: ${userId}</div>
+                        </div>
+                    `;
+                }
+                const block = document.createElement("div");
+                block.className = "hasil-transaksi";
+                block.innerHTML = `
+                    <div class="hasil-item" id="${prefix}uidItem">
+                        <label>User ID:</label>
+                        <div class="hasil-text" id="${prefix}uid">${userId}</div>
+                        <button class="copy-btn" onclick="copyText('${prefix}uid', '${prefix}uidItem')">💫</button>
+                    </div>
+                    <div class="hasil-item" id="${prefix}ktItem">
+                        <label>Kode Tiket:</label>
+                        <div class="hasil-text" id="${prefix}kt">${kodeTiket}</div>
+                        <button class="copy-btn" onclick="copyText('${prefix}kt', '${prefix}ktItem')">💫</button>
+                    </div>
+                    <div class="hasil-item" id="${prefix}lbItem">
+                        <label>Link Bukti:</label>
+                        <div class="hasil-text" id="${prefix}lb">${gambarLinks.join(", ") || "-"}</div>
+                        <button class="copy-btn" onclick="copyText('${prefix}lb', '${prefix}lbItem')">💫</button>
+                    </div>
+                    <div class="hasil-item" id="${prefix}betItem">
+                        <label>Bettingan:</label>
+                        <div class="hasil-text" id="${prefix}bet">${bettingan}</div>
+                        <button class="copy-btn" onclick="copyText('${prefix}bet', '${prefix}betItem')">💫</button>
+                    </div>
+                    <div class="gambar-container-multi">
+                        ${gambarHTML}
+                    </div>
+                `;
+                container.appendChild(block);
+            });
         }
 
         function hitungScatter() {
-            const txt = document.getElementById('scatterTextarea').value.trim();
-            const cont = document.getElementById('hasilScatterContainer');
-            if (!txt) return cont.innerHTML = '';
-            const lines = txt.split('\n').slice(0, 7);
-            cont.innerHTML = lines.map((line, i) => {
-                const { uid, imgLinks, tiket } = extractLine(line.trim());
-                return `
-                    <div style="background:rgba(20,20,35,0.6); padding:10px; border-radius:8px; margin:8px 0; font-size:13px;">
-                        <div><b>User ID:</b> ${uid}</div>
-                        <div><b>Kode Tiket:</b> ${tiket}</div>
-                        <div style="margin-top:6px;">
-                            ${imgLinks.slice(0,3).map((link, j) => 
-                                `<a href="${link}" target="_blank" style="color:var(--warning); display:inline-block; margin-right:10px;">Gambar ${j+1}</a>`
-                            ).join('')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            const input = document.getElementById("scatterTextarea").value.trim();
+            if (!input) {
+                document.getElementById("hasilScatterContainer").innerHTML = "";
+                return;
+            }
+            const lines = input.split("\n").slice(0, 7);
+            const transList = lines.map(line => extractFromLine(line.trim()));
+            renderHasil(transList);
         }
 
         function hapusScatter() {
-            document.getElementById('scatterTextarea').value = '';
-            document.getElementById('hasilScatterContainer').innerHTML = '';
+            document.getElementById("scatterTextarea").value = "";
+            document.getElementById("hasilScatterContainer").innerHTML = "";
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('scatterTextarea').addEventListener('input', hitungScatter);
+        function copyText(elementId, itemContainerId) {
+            const el = document.getElementById(elementId);
+            const container = document.getElementById(itemContainerId);
+            if (!el || el.innerText === "-") return;
+            navigator.clipboard.writeText(el.innerText).then(() => {
+                container.classList.add("red-bg");
+                setTimeout(() => container.classList.remove("red-bg"), 1000);
+            }).catch(err => console.warn("Gagal menyalin:", err));
+        }
+
+        /* ======================== LIGHTBOX LAMA (opsional) ======================== */
+        let currentLightboxIndex = 0;
+        let currentLightboxImages = [];
+        let currentLightboxUserId = "";
+
+        function openLightbox(imgUrl, userId) {
+            const modal = document.getElementById("lightboxModal");
+            const img = document.getElementById("lightboxImg");
+            const caption = document.getElementById("lightboxCaption");
+            currentLightboxImages = getCurrentTransaksiImages(userId);
+            currentLightboxUserId = userId;
+            currentLightboxIndex = currentLightboxImages.findIndex(img => img === imgUrl);
+            if (currentLightboxIndex === -1) currentLightboxIndex = 0;
+            img.src = currentLightboxImages[currentLightboxIndex];
+            caption.innerText = `User ID: ${userId}`;
+            modal.style.display = "flex";
+            updateNavButtons();
+        }
+
+        function getCurrentTransaksiImages(userId) {
+            const allItems = document.querySelectorAll('.hasil-transaksi');
+            for (let item of allItems) {
+                const uidEl = item.querySelector('.hasil-text[id$="uid"]');
+                if (uidEl && uidEl.innerText === userId) {
+                    const imgEls = item.querySelectorAll('.gambar-slot-multi img');
+                    return Array.from(imgEls).map(el => el.src).filter(src => src);
+                }
+            }
+            return [];
+        }
+
+        function prevImage() {
+            if (currentLightboxImages.length <= 1) return;
+            currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+            updateLightboxImage();
+        }
+
+        function nextImage() {
+            if (currentLightboxImages.length <= 1) return;
+            currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+            updateLightboxImage();
+        }
+
+        function updateLightboxImage() {
+            const img = document.getElementById("lightboxImg");
+            const caption = document.getElementById("lightboxCaption");
+            img.src = currentLightboxImages[currentLightboxIndex];
+            caption.innerText = `User ID: ${currentLightboxUserId}`;
+            updateNavButtons();
+        }
+
+        function updateNavButtons() {
+            const prevBtn = document.querySelector('.prev');
+            const nextBtn = document.querySelector('.next');
+            const disabled = currentLightboxImages.length <= 1;
+            prevBtn.style.opacity = disabled ? '0.3' : '1';
+            nextBtn.style.opacity = disabled ? '0.3' : '1';
+            prevBtn.style.pointerEvents = disabled ? 'none' : 'auto';
+            nextBtn.style.pointerEvents = disabled ? 'none' : 'auto';
+        }
+
+        function closeLightbox() {
+            document.getElementById("lightboxModal").style.display = "none";
+            currentLightboxImages = [];
+            currentLightboxUserId = "";
+            currentLightboxIndex = 0;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const lightbox = document.getElementById('lightboxModal');
+            if (lightbox.style.display === 'flex') {
+                if (e.key === 'ArrowLeft') prevImage();
+                else if (e.key === 'ArrowRight') nextImage();
+                else if (e.key === 'Escape') closeLightbox();
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const ta = document.getElementById("scatterTextarea");
+            if (ta) {
+                ta.addEventListener("paste", () => setTimeout(hitungScatter, 50));
+                ta.addEventListener("input", hitungScatter);
+            }
         });
     </script>
 </body>
 </html>
-
