@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri & Scan OCR – Zoom Asli + Salin</title>
+    <title>Galeri & Scan OCR – Navigasi Paket</title>
     <script src="https://unpkg.com/tesseract.js@v5/dist/tesseract.min.js"></script>
 
     <style>
@@ -104,15 +104,18 @@
             padding: 6px;
             border-radius: 10px;
             border: 1px solid var(--border-faint);
+            width: 80%;
+            max-width: 700px;
         }
 
         .combined-image-slot img {
             height: 140px;
             object-fit: contain;
             border-radius: 6px;
+            flex: 1;
         }
 
-        /* === 🔍 MODAL ZOOM (UKURAN ASLI) === */
+        /* === 🔍 MODAL ZOOM (Seperti Awal) === */
         .zoom-modal {
             display: none;
             position: fixed;
@@ -121,46 +124,57 @@
             background: rgba(6, 6, 14, 0.93);
             backdrop-filter: blur(4px);
             z-index: 10000;
-            overflow: auto;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
             box-sizing: border-box;
         }
 
-        .zoom-header {
-            text-align: center;
-            margin-bottom: 16px;
-            color: var(--warning);
-            font-weight: bold;
-            font-size: 1.3em;
-        }
-
-        .zoom-images {
+        .zoom-content-area {
             display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .zoom-img-container {
-            display: flex;
-            flex-direction: column;
             align-items: center;
-            max-width: 100%;
+            justify-content: center;
+            width: 100%;
+            max-width: 1000px;
+            gap: 20px;
         }
 
-        /* ✅ Gambar tampil sesuai ukuran asli (maks tinggi 80vh) */
-        .zoom-img-container img {
-            max-height: 80vh;
-            max-width: 100%;
+        .zoomed-userid {
+            color: var(--warning);
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.8em;
+            margin-bottom: 16px;
+        }
+
+        /* ✅ 3 foto berdampingan seperti versi awal */
+        .zoomed-content-wrapper {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .zoomed-content-wrapper img {
+            height: 180px;          /* Tinggi tetap seperti awal */
+            max-width: calc(33.33% - 8px);
             object-fit: contain;
             border-radius: 8px;
             box-shadow: 0 0 0 1px var(--border-faint), 0 4px 12px rgba(0,0,0,0.4);
         }
 
-        .scan-trigger-btn {
-            margin-top: 8px;
-            padding: 5px 12px;
-            font-size: 13px;
+        /* Tombol scan kecil di bawah setiap foto di zoom */
+        .scan-overlay {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .scan-btn-small {
+            margin-top: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
             background: rgba(0, 200, 255, 0.25);
             color: var(--neon-blue);
             border: 1px solid var(--border-faint);
@@ -169,28 +183,43 @@
             transition: opacity 0.2s;
             cursor: pointer;
         }
-        .zoom-img-container:hover .scan-trigger-btn {
+        .scan-overlay:hover .scan-btn-small {
             opacity: 1;
         }
 
+        /* Tombol navigasi super kecil */
+        .zoom-nav-btn {
+            background: rgba(10, 10, 20, 0.6);
+            color: var(--neon-cyan);
+            border: 1px solid var(--border-faint);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .zoom-nav-btn:hover {
+            background: rgba(0, 30, 50, 0.8);
+            color: var(--neon-blue);
+            box-shadow: 0 0 8px var(--glow-faint);
+        }
+
         .close-zoom {
-            position: fixed;
+            position: absolute;
             top: 20px;
             right: 20px;
             color: var(--danger);
             font-size: 28px;
             cursor: pointer;
             z-index: 10001;
-            background: rgba(0,0,0,0.3);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        /* === 📋 MODAL HASIL SCAN (SALIN OTOMATIS) === */
+        /* === 📋 MODAL HASIL SCAN === */
         .scan-result-modal {
             display: none;
             position: fixed;
@@ -237,15 +266,6 @@
             font-weight: bold;
         }
 
-        .close-scan-result {
-            position: absolute;
-            top: 8px;
-            right: 10px;
-            color: var(--danger);
-            font-size: 18px;
-            cursor: pointer;
-        }
-
         .toast {
             position: fixed;
             bottom: 20px;
@@ -266,7 +286,6 @@
 
     <div id="toast" class="toast"></div>
 
-    <!-- Galeri Utama -->
     <div class="container">
         <h1>📸 Galeri & Zoom Navigasi</h1>
         <textarea id="linkInput" placeholder="USERID link1 link2 link3" rows="5" oninput="handleInput()"></textarea>
@@ -275,10 +294,10 @@
         </div>
 
         <div class="gallery-container">
-            <div class="combined-image-slot">
-                <img id="imgSlot1" src="https://via.placeholder.com/140x140/1a1a2e/ffffff?text=1">
-                <img id="imgSlot2" src="https://via.placeholder.com/140x140/1a1a2e/ffffff?text=2">
-                <img id="imgSlot3" src="https://via.placeholder.com/140x140/1a1a2e/ffffff?text=3">
+            <div class="combined-image-slot" id="combinedImageSlot" onclick="openZoom()">
+                <img id="imgSlot1" src="https://via.placeholder.com/200x180/1a1a2e/ffffff?text=1">
+                <img id="imgSlot2" src="https://via.placeholder.com/200x180/1a1a2e/ffffff?text=2">
+                <img id="imgSlot3" src="https://via.placeholder.com/200x180/1a1a2e/ffffff?text=3">
             </div>
         </div>
         <p style="text-align:center; color:var(--neon-cyan); margin-top:10px;">
@@ -286,21 +305,27 @@
         </p>
     </div>
 
-    <!-- Modal Zoom (Ukuran Asli) -->
+    <!-- MODAL ZOOM (3 FOTO + NAVIGASI PAKET) -->
     <div id="zoomModal" class="zoom-modal">
-        <div class="close-zoom" onclick="closeZoom()">&times;</div>
-        <div class="zoom-header" id="zoomedUserid">USER ID</div>
-        <div class="zoom-images" id="zoomedImages"></div>
+        <span class="close-zoom" onclick="closeZoom()">&times;</span>
+        <div class="zoomed-userid" id="zoomedUserid">USER ID</div>
+
+        <div class="zoom-content-area">
+            <button class="zoom-nav-btn" onclick="navigatePackage('prev')">&#8249;</button>
+            
+            <div class="zoomed-content-wrapper" id="zoomedContentWrapper"></div>
+            
+            <button class="zoom-nav-btn" onclick="navigatePackage('next')">&#8250;</button>
+        </div>
     </div>
 
-    <!-- Modal Hasil Scan -->
+    <!-- MODAL HASIL SCAN -->
     <div id="scanResultModal" class="scan-result-modal">
-        <span class="close-scan-result" onclick="this.parentElement.style.display='none'">&times;</span>
         <h4>📄 Hasil OCR</h4>
         <div id="scanResultList"></div>
     </div>
 
-    <!-- Scatter Section -->
+    <!-- SCATTER -->
     <div class="scatter-section">
         <h2 class="judul-scatter">💣 DATA SCATTER MAHJONG</h2>
         <textarea id="scatterTextarea" placeholder="Tempel 1–7 baris data..." rows="4"></textarea>
@@ -313,7 +338,8 @@
 
     <script>
         let allPackages = [];
-        let currentIndex = 0;
+        let currentPackageIndex = 0;
+        let isZoomOpen = false;
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -337,10 +363,10 @@
             });
             document.getElementById('maxPackageNum').textContent = allPackages.length;
             if (allPackages.length > 0) {
-                currentIndex = Math.min(currentIndex, allPackages.length - 1);
-                updateGallery(currentIndex);
+                currentPackageIndex = Math.min(currentPackageIndex, allPackages.length - 1);
+                updateGallery(currentPackageIndex);
             } else {
-                currentIndex = 0;
+                currentPackageIndex = 0;
                 document.getElementById('currentPackageNum').textContent = 0;
                 updateGallery(-1);
             }
@@ -352,41 +378,40 @@
             if (idx >= 0 && idx < allPackages.length) pkg = allPackages[idx];
             document.getElementById('currentPackageNum').textContent = allPackages.length ? idx + 1 : 0;
             slots.forEach((img, i) => {
-                const src = pkg.links[i] || `https://via.placeholder.com/140x140/1a1a2e/ffffff?text=${i+1}`;
+                const src = pkg.links[i] || `https://via.placeholder.com/200x180/1a1a2e/ffffff?text=Kosong`;
                 img.src = src;
             });
-        }
-
-        function openZoom() {
-            if (allPackages.length === 0) return;
-            const pkg = allPackages[currentIndex];
-            if (!pkg.links.some(l => l)) return;
-            document.getElementById('zoomedUserid').textContent = pkg.userid;
-            renderZoomImages(pkg);
-            document.getElementById('zoomModal').style.display = 'flex';
+            if (isZoomOpen) {
+                renderZoomImages(pkg);
+                updateNavButtons();
+            }
         }
 
         function renderZoomImages(pkg) {
-            const container = document.getElementById('zoomedImages');
-            container.innerHTML = '';
+            const wrapper = document.getElementById('zoomedContentWrapper');
+            document.getElementById('zoomedUserid').textContent = pkg.userid;
+            wrapper.innerHTML = '';
             pkg.links.forEach(link => {
-                if (!link) return;
-                const div = document.createElement('div');
-                div.className = 'zoom-img-container';
-                const img = document.createElement('img');
-                img.src = link;
-                img.alt = "Foto transaksi";
-                img.style.display = 'block';
-                const btn = document.createElement('button');
-                btn.className = 'scan-trigger-btn';
-                btn.textContent = 'Scan';
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    scanThisImage(link);
-                };
-                div.appendChild(img);
-                div.appendChild(btn);
-                container.appendChild(div);
+                const container = document.createElement('div');
+                container.className = 'scan-overlay';
+                if (link) {
+                    const img = document.createElement('img');
+                    img.src = link;
+                    const btn = document.createElement('button');
+                    btn.className = 'scan-btn-small';
+                    btn.textContent = 'Scan';
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        scanThisImage(link);
+                    };
+                    container.appendChild(img);
+                    container.appendChild(btn);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = 'https://via.placeholder.com/200x180/1a1a2e/ffffff?text=Kosong';
+                    container.appendChild(img);
+                }
+                wrapper.appendChild(container);
             });
         }
 
@@ -435,8 +460,29 @@
             });
         }
 
+        function navigatePackage(dir) {
+            if (dir === 'next' && currentPackageIndex < allPackages.length - 1) currentPackageIndex++;
+            else if (dir === 'prev' && currentPackageIndex > 0) currentPackageIndex--;
+            else return;
+            updateGallery(currentPackageIndex);
+        }
+
+        function updateNavButtons() {
+            // Opsional: nonaktifkan tombol jika di ujung
+        }
+
+        function openZoom() {
+            if (allPackages.length === 0) return;
+            const pkg = allPackages[currentPackageIndex];
+            if (!pkg.links.some(l => l)) return;
+            isZoomOpen = true;
+            renderZoomImages(pkg);
+            document.getElementById('zoomModal').style.display = 'flex';
+        }
+
         function closeZoom() {
             document.getElementById('zoomModal').style.display = 'none';
+            isZoomOpen = false;
         }
 
         function clearAllData() {
@@ -446,10 +492,22 @@
             updateGallery(-1);
         }
 
-        // Buka zoom saat klik container
-        document.querySelector('.combined-image-slot').addEventListener('click', openZoom);
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (isZoomOpen) {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    navigatePackage('prev');
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    navigatePackage('next');
+                } else if (e.key === 'Escape') {
+                    closeZoom();
+                }
+            }
+        });
 
-        // === SCATTER ===
+        // SCATTER (sama seperti sebelumnya)
         let tsMode = false;
         function toggleTSMode() {
             tsMode = !tsMode;
