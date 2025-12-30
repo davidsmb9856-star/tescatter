@@ -288,8 +288,6 @@ textarea { min-height: 120px; resize: vertical; }
     display: inline-flex; align-items: center; gap: 8px;
 }
 .btn:hover { background: var(--neon-cyan); color: #000; box-shadow: var(--glow-cyan); }
-.btn-danger { border-color: var(--status-offline); color: var(--status-offline); }
-.btn-danger:hover { background: var(--status-offline); color: #fff; box-shadow: 0 0 15px var(--status-offline); }
 
 /* Data Grid */
 .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
@@ -337,9 +335,7 @@ textarea { min-height: 120px; resize: vertical; }
     transform: scale(1.1);
 }
 
-.text-content {
-    word-wrap: break-word;
-}
+.text-content { word-wrap: break-word; }
 
 .data-tag {
     font-size: 0.7rem; background: rgba(0, 102, 255, 0.2); color: var(--neon-cyan);
@@ -418,7 +414,7 @@ textarea { min-height: 120px; resize: vertical; }
     <aside class="sidebar" id="sidebar">
         <div class="logo-area">
             <h2><i class="fas fa-network-wired"></i> NEO SYS</h2>
-            <span>Dashboard V.5</span>
+            <span>Dashboard V.6</span>
         </div>
 
         <div class="menu-label">Main Menu</div>
@@ -534,11 +530,10 @@ textarea { min-height: 120px; resize: vertical; }
 
         <!-- Data List View -->
         <div class="card" id="listCard" style="display: none;">
-            <div class="card-header" style="justify-content: space-between;">
+            <div class="card-header">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <i class="fas fa-list"></i> <h3 id="listTitle">Database</h3>
                 </div>
-                <button class="btn btn-danger" id="btnDelAll"><i class="fas fa-trash"></i> Hapus Semua</button>
             </div>
             
             <div class="search-bar">
@@ -711,7 +706,6 @@ function renderData() {
         const tagColor = item.category === 'report' ? 'border-color:var(--status-offline); color:var(--status-offline)' : '';
         const tagText = item.category === 'report' ? 'REPORT' : 'MEMO';
         
-        // --- SEPARATED COPY & EDIT ---
         return `
         <div class="data-card">
             <span class="data-tag" style="${tagColor}">${tagText}</span>
@@ -760,7 +754,7 @@ function showNotify(msg) {
     setTimeout(() => els.notify.classList.remove('show'), 3000);
 }
 
-// --- NEW: COPY FUNCTION ---
+// --- COPY FUNCTION ---
 window.copyText = function(text, type) {
     navigator.clipboard.writeText(text).then(() => {
         showNotify(`${type} Berhasil Disalin!`);
@@ -769,7 +763,7 @@ window.copyText = function(text, type) {
     });
 };
 
-// --- NEW: EDIT FUNCTION ---
+// --- EDIT FUNCTION ---
 window.openEdit = function(id, focusField) {
     const item = DB.find(i => i.id === id);
     if(!item) return;
@@ -780,7 +774,6 @@ window.openEdit = function(id, focusField) {
 
     els.editModal.classList.add('show');
 
-    // Focus logic
     setTimeout(() => {
         if(focusField === 'judul') {
             els.editJudul.focus();
@@ -899,20 +892,6 @@ els.inpForm.addEventListener('submit', (e) => {
     els.inpForm.reset();
     updateBadges();
     showNotify("Data Berhasil Disimpan");
-});
-
-document.getElementById('btnDelAll').addEventListener('click', () => {
-    if(confirm("Hapus semua data di kategori ini?")) {
-        if (currentView === 'memo' && currentCat) {
-            DB = DB.filter(i => !(i.category === 'memo' && i.subcategory === currentCat));
-        } else {
-            DB = DB.filter(i => i.category !== 'report');
-        }
-        localStorage.setItem('neoMemoDB', JSON.stringify(DB));
-        updateBadges();
-        renderData();
-        showNotify("Data Dihapus");
-    }
 });
 
 document.getElementById('searchBox').addEventListener('input', (e) => {
