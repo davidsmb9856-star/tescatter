@@ -308,34 +308,47 @@ textarea { min-height: 120px; resize: vertical; }
     box-shadow: 0 5px 15px rgba(0, 243, 255, 0.1);
 }
 
-/* Action Buttons on Card */
-.card-actions {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    display: flex;
-    gap: 8px;
-    opacity: 0.6;
-    transition: 0.3s;
+/* --- SEPARATED ACTIONS STYLES --- */
+.row-wrapper {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+    margin-bottom: 10px; width: 100%;
 }
 
-.data-card:hover .card-actions { opacity: 1; }
-
-.action-btn {
-    background: rgba(0,0,0,0.5); border: 1px solid var(--neon-blue); color: var(--neon-blue);
-    width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: 0.2s;
+.inline-actions {
+    display: flex; gap: 5px; opacity: 0.3; transition: opacity 0.3s;
 }
-.action-btn:hover { background: var(--neon-blue); color: white; transform: scale(1.1); }
+
+/* Show actions on hover over card or specific row */
+.data-card:hover .inline-actions, .row-wrapper:hover .inline-actions {
+    opacity: 1;
+}
+
+.action-icon {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 2px;
+    transition: 0.2s;
+}
+
+.action-icon:hover {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--neon-cyan);
+    transform: scale(1.1);
+}
+
+.text-content {
+    word-wrap: break-word;
+}
 
 .data-tag {
     font-size: 0.7rem; background: rgba(0, 102, 255, 0.2); color: var(--neon-cyan);
     padding: 2px 8px; border-radius: 4px; border: 1px solid var(--neon-blue);
     display: inline-block; margin-bottom: 10px; text-transform: uppercase;
 }
-.data-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #fff; padding-right: 40px; } /* Padding for buttons */
-.data-body { font-size: 0.9rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 15px; max-height: 80px; overflow: hidden; }
-.data-footer { font-size: 0.75rem; color: var(--neon-blue); display: flex; align-items: center; gap: 5px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
+.data-title-text { font-size: 1.1rem; font-weight: 700; color: #fff; line-height: 1.3; }
+.data-body-text { font-size: 0.9rem; color: var(--text-dim); line-height: 1.5; max-height: 100px; overflow: hidden; }
+.data-footer { font-size: 0.75rem; color: var(--neon-blue); display: flex; align-items: center; gap: 5px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; margin-top: 10px;}
 
 .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
 .search-input { flex: 1; }
@@ -390,6 +403,7 @@ textarea { min-height: 120px; resize: vertical; }
     .hud-bar { flex-direction: column; }
     .header-section { flex-direction: column; text-align: center; gap: 20px; }
     .header-info { text-align: center; }
+    .inline-actions { opacity: 1; } /* Always show on mobile */
 }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -404,7 +418,7 @@ textarea { min-height: 120px; resize: vertical; }
     <aside class="sidebar" id="sidebar">
         <div class="logo-area">
             <h2><i class="fas fa-network-wired"></i> NEO SYS</h2>
-            <span>Dashboard V.4</span>
+            <span>Dashboard V.5</span>
         </div>
 
         <div class="menu-label">Main Menu</div>
@@ -574,10 +588,9 @@ textarea { min-height: 120px; resize: vertical; }
 <script>
 // --- DATA & STATE ---
 let DB = JSON.parse(localStorage.getItem('neoMemoDB')) || [];
-let currentView = 'memo'; // 'memo' or 'report'
+let currentView = 'memo';
 let currentCat = '';
 let searchQuery = '';
-let editingId = null;
 
 // --- DOM ELEMENTS ---
 const els = {
@@ -698,15 +711,29 @@ function renderData() {
         const tagColor = item.category === 'report' ? 'border-color:var(--status-offline); color:var(--status-offline)' : '';
         const tagText = item.category === 'report' ? 'REPORT' : 'MEMO';
         
+        // --- SEPARATED COPY & EDIT ---
         return `
         <div class="data-card">
-            <div class="card-actions">
-                <button class="action-btn" onclick="copyData(${item.id})" title="Copy Data"><i class="fas fa-copy"></i></button>
-                <button class="action-btn" onclick="openEdit(${item.id})" title="Edit Data"><i class="fas fa-pen"></i></button>
-            </div>
             <span class="data-tag" style="${tagColor}">${tagText}</span>
-            <div class="data-title">${item.judul}</div>
-            <div class="data-body">${item.isi}</div>
+            
+            <!-- TITLE ROW -->
+            <div class="row-wrapper">
+                <div class="text-content data-title-text">${item.judul}</div>
+                <div class="inline-actions">
+                    <i class="fas fa-copy action-icon" onclick="copyText('${item.judul}', 'Judul')" title="Copy Judul"></i>
+                    <i class="fas fa-pen action-icon" onclick="openEdit(${item.id}, 'judul')" title="Edit Judul"></i>
+                </div>
+            </div>
+
+            <!-- CONTENT ROW -->
+            <div class="row-wrapper" style="align-items: flex-start;">
+                <div class="text-content data-body-text">${item.isi}</div>
+                <div class="inline-actions" style="margin-top: 3px;">
+                    <i class="fas fa-copy action-icon" onclick="copyText(\`${item.isi}\`, 'Isi')" title="Copy Isi"></i>
+                    <i class="fas fa-pen action-icon" onclick="openEdit(${item.id}, 'isi')" title="Edit Isi"></i>
+                </div>
+            </div>
+
             <div class="data-footer"><i class="far fa-clock"></i> ${date}</div>
         </div>
         `;
@@ -734,36 +761,41 @@ function showNotify(msg) {
 }
 
 // --- NEW: COPY FUNCTION ---
-window.copyData = function(id) {
-    const item = DB.find(i => i.id === id);
-    if(!item) return;
-
-    // Format rapi untuk di paste ke WA/Telegram
-    const textToCopy = `*${item.judul}*\n\n${item.isi}`;
-
-    navigator.clipboard.writeText(textToCopy).then(() => {
-        showNotify("Berhasil Disalin ke Clipboard!");
+window.copyText = function(text, type) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotify(`${type} Berhasil Disalin!`);
     }).catch(err => {
         showNotify("Gagal menyalin text");
     });
 };
 
 // --- NEW: EDIT FUNCTION ---
-window.openEdit = function(id) {
+window.openEdit = function(id, focusField) {
     const item = DB.find(i => i.id === id);
     if(!item) return;
 
-    editingId = id;
     document.getElementById('editId').value = id;
     els.editJudul.value = item.judul;
     els.editIsi.value = item.isi;
 
     els.editModal.classList.add('show');
+
+    // Focus logic
+    setTimeout(() => {
+        if(focusField === 'judul') {
+            els.editJudul.focus();
+            els.editJudul.select();
+        } else if (focusField === 'isi') {
+            els.editIsi.focus();
+            els.editIsi.select();
+        } else {
+            els.editJudul.focus();
+        }
+    }, 100);
 };
 
 function closeEditModal() {
     els.editModal.classList.remove('show');
-    editingId = null;
     els.editForm.reset();
 }
 
@@ -773,8 +805,9 @@ els.cancelEdit.addEventListener('click', closeEditModal);
 // Save Edit
 els.editForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    const id = parseInt(document.getElementById('editId').value);
+    const itemIndex = DB.findIndex(i => i.id === id);
     
-    const itemIndex = DB.findIndex(i => i.id === editingId);
     if (itemIndex !== -1) {
         DB[itemIndex].judul = els.editJudul.value;
         DB[itemIndex].isi = els.editIsi.value;
