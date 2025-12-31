@@ -685,93 +685,62 @@ hr {
             loadImages(); 
         });
 
+// === SCAN OCR ===
         function scanThisImage(e, imgUrl) {
-    e.stopPropagation();
-    const resList = document.getElementById('scanResultList');
-    resList.innerHTML = '<div style="color:var(--warning-color);">⏳ Memindai... (menyaring pola kode)</div>';
-    document.getElementById('scanResultModal').style.display = 'block';
+            e.stopPropagation();
+            const resList = document.getElementById('scanResultList');
+            resList.innerHTML = '<div style="color:var(--warning-color);">⏳ Memindai...</div>';
+            document.getElementById('scanResultModal').style.display = 'block';
 
-    // Preprocessing: gunakan whitelist karakter hanya angka
-    Tesseract.recognize(
-        imgUrl,
-        'eng',
-        {
-            logger: m => {},
-            tessedit_char_whitelist: '0123456789', // ✅ Hanya izinkan angka!
+            Tesseract.recognize(imgUrl, 'eng', { logger: m => {} })
+                .then(result => {
+                    const text = result.data.text;
+                    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+                    const hasil = [];
+                    for (let i = 0; i < lines.length; i++) {
+                        const m1 = lines[i].match(/\b\d{9,10}\b/);
+                        if (m1 && i+1 < lines.length) {
+                            const m2 = lines[i+1].match(/\b\d{8,}\b/);
+                            if (m2) {
+                                hasil.push(m1[0] + m2[0]);
+                                i++;
+                            }
+                        }
+                    }
+                    const unique = [...new Set(hasil)];
+                    if (unique.length === 0) {
+                        resList.innerHTML = '<div style="color:orange;">❌ Tidak ditemukan kode.</div>';
+                    } else {
+                        let html = '';
+                        unique.forEach(kode => {
+                            html += `
+                                <div class="scan-result-item">
+                                    <span>${kode}</span>
+                                    <button class="copy-code-btn" onclick="copyScannedCode('${kode}')">Salin</button>
+                                </div>
+                            `;
+                        });
+                        resList.innerHTML = html;
+                    }
+                })
+                .catch(err => {
+                    resList.innerHTML = `<div style="color:var(--danger-color);">❗ Gagal: ${err.message || ''}</div>`;
+                });
         }
-    )
-    .then(result => {
-        let rawText = result.data.text || '';
-        // Bersihkan semua non-digit → pastikan hanya angka tersisa
-        let cleaned = rawText.replace(/\D/g, '');
 
-        // Cari semua urutan angka dengan panjang 17–20 digit
-        const validCodes = [];
-        for (let i = 0; i <= cleaned.length - 17; i++) {
-            for (let len = 17; len <= 20 && i + len <= cleaned.length; len++) {
-                const candidate = cleaned.substring(i, i + len);
-                // Pastikan diawali tahun 20xx atau 21xx (opsional tapi valid)
-                if (/^20\d{2}|21\d{2}/.test(candidate)) {
-                    validCodes.push(candidate);
-                }
-            }
-        }
-
-        // Hilangkan duplikat
-        const uniqueCodes = [...new Set(validCodes)];
-
-        if (uniqueCodes.length === 0) {
-            // Fallback: cari angka panjang tanpa syarat tahun (jika sangat dibutuhkan)
-            const fallback = cleaned.match(/\d{17,20}/g) || [];
-            const fallbackUnique = [...new Set(fallback)];
-            if (fallbackUnique.length > 0) {
-                resList.innerHTML = `
-                    <div style="color:orange;">⚠️ Tidak ada kode valid (20xx...), menampilkan semua angka panjang:</div>
-                    ${fallbackUnique.map(kode => `
-                        <div class="scan-result-item">
-                            <span>${kode}</span>
-                            <button class="copy-code-btn" onclick="copyScannedCode('${kode}')">Salin</button>
-                        </div>
-                    `).join('')}
-                `;
-                return;
-            }
-
-            resList.innerHTML = '<div style="color:var(--danger-color);">❌ Tidak ditemukan kode 17–20 digit.</div>';
-        } else {
-            let html = '';
-            uniqueCodes.forEach(kode => {
-                html += `
-                    <div class="scan-result-item">
-                        <span>${kode}</span>
-                        <button class="copy-code-btn" onclick="copyScannedCode('${kode}')">Salin</button>
-                    </div>
-                `;
+        function copyScannedCode(kode) {
+            navigator.clipboard.writeText(kode).then(() => {
+                document.getElementById('toast').textContent = `✅ Disalin: ${kode}`;
+                document.getElementById('toast').style.display = 'block';
+                setTimeout(() => document.getElementById('toast').style.display = 'none', 2000);
+                document.getElementById('scanResultModal').style.display = 'none';
+            }).catch(() => {
+                document.getElementById('toast').textContent = '❌ Gagal menyalin';
+                document.getElementById('toast').style.display = 'block';
+                setTimeout(() => document.getElementById('toast').style.display = 'none', 2000);
             });
-            resList.innerHTML = html;
         }
-    })
-    .catch(err => {
-        console.error('OCR Error:', err);
-        resList.innerHTML = `<div style="color:var(--danger-color);">❗ Gagal memindai: ${err.message || 'Error tidak dikenal'}</div>`;
-    });
-}
 
-// Fungsi salin tetap sama (tidak perlu diubah)
-function copyScannedCode(kode) {
-    navigator.clipboard.writeText(kode).then(() => {
-        const toast = document.getElementById('toast');
-        toast.textContent = `✅ Disalin: ${kode}`;
-        toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', 2500);
-        document.getElementById('scanResultModal').style.display = 'none';
-    }).catch(() => {
-        const toast = document.getElementById('toast');
-        toast.textContent = '❌ Gagal menyalin';
-        toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', 2500);
-    });
-}
 
         // =============== SCATTER SECTION ===============
         let tsModeActive = false;
