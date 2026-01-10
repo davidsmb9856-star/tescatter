@@ -570,8 +570,8 @@ KIRIM KE USER"></textarea>
 <div class="common-panel">
 <div class="extract-h-title">📤 EXTRACT 100 DATA WITHDRAW (HORIZONTAL)</div>
 <textarea id="bulkExtractInput" class="extract-h-input" placeholder="Tempel data. Setiap entri dimulai dengan angka. Contoh:
-3
-Withdraw
+3		45454545
+Withdraw	2026-01-10 13:43:31	370,000 	215.50
 G13
 DANA, 081367683555, fimi"></textarea>
 <div class="extract-h-buttons">
@@ -896,10 +896,10 @@ document.getElementById('hasilDepoWd').innerHTML = html;
 
 // === EXTRACTOR LOGIC ===
 const E_WALLET_CODES = {
-DANA': '3901',
-OVO': '39358',
-LINKAJA': '09110',
-GOPAY': '70001'
+'DANA': '3901',
+'OVO': '39358',
+'LINKAJA': '09110',
+'GOPAY': '70001'
 };
 
 function clearBulkExtract() {
@@ -952,124 +952,124 @@ return blocks;
 
 // === PERBAIKAN BUG: Fungsi parseSingleWithdrawBlock untuk ekstraksi data sesuai format baru ===
 function parseSingleWithdrawBlock(lines) {
-// Bersihkan baris dari spasi yang tidak perlu
-lines = lines.map(l => l.trim()).filter(l => l !== '');
-
-let account = '–';     // Kolom 1: Nomor Rekening
-let username = '–';    // Kolom 2: User ID
-let name = '–';        // Kolom 3: Nama Rekening
-let nominal = '–';     // Kolom 4: Nominal
-
-// === 1. CARI USER ID (Kolom 2) ===
-// User ID biasanya di baris kedua setelah nomor urut
-// Format: "3
-if (lines.length > 0) {
-const firstLine = lines[0];
-// Cek apakah baris pertama mengandung tab dan ada teks setelah tab
-if (firstLine.includes('\t')) {
-const parts = firstLine.split('\t').filter(p => p.trim() !== '');
-if (parts.length >= 2) {
-// Bagian pertama adalah nomor urut, bagian kedua adalah User ID
-username = parts[1].trim();
-}
-} else {
-// Jika tidak ada tab, coba split berdasarkan spasi
-const parts = firstLine.split(/\s+/);
-if (parts.length >= 2) {
-username = parts[1].trim();
-}
-}
-}
-
-// === 2. CARI NOMINAL (Kolom 4) ===
-// Cari baris yang mengandung "Withdraw"
-for (let i = 0; i < lines.length; i++) {
-if (lines[i].toUpperCase().includes('WITHDRAW')) {
-const withdrawLine = lines[i];
-// Split berdasarkan tab untuk mendapatkan kolom
-const parts = withdrawLine.split('\t').filter(p => p.trim() !== '');
-
-// Format: "Withdraw\t2026-01-10 13:43:31\t370,000 \t215.50"
-// Kolom: 0=Withdraw, 1=tanggal, 2=nominal, 3=biaya admin
-if (parts.length >= 3) {
-// Ambil kolom ke-3 sebagai nominal (indeks 2)
-nominal = parts[2].trim();
-// Hapus spasi berlebih dan pastikan format konsisten
-nominal = nominal.replace(/\s+/g, '');
-}
-break;
-}
-}
-
-// === 3. CARI INFORMASI REKENING (Kolom 1 & 3) ===
-// Cari baris yang mengandung koma (untuk info rekening/bank)
-for (let i = lines.length - 1; i >= 0; i--) {
-const line = lines[i];
-if (line.includes(',')) {
-// Format: "DANA, 081367683555, fimi"
-const parts = line.split(',').map(p => p.trim());
-
-// === Kolom 3: NAMA REKENING ===
-if (parts.length >= 3) {
-name = parts[2].toUpperCase();
-} else if (parts.length === 2) {
-name = parts[1].toUpperCase();
-}
-
-// === Kolom 1: NOMOR REKENING ===
-const bankType = parts[0].toUpperCase();
-let accountNumber = '';
-
-// Cari nomor rekening/telepon
-if (parts.length >= 2) {
-accountNumber = parts[1].replace(/\D/g, ''); // Hanya angka
-}
-
-// Untuk e-wallet, gabungkan kode dengan nomor
-if (E_WALLET_CODES.hasOwnProperty(bankType)) {
-account = E_WALLET_CODES[bankType] + accountNumber;
-} else {
-// Untuk bank biasa, gunakan nomor rekening
-account = accountNumber || '–';
-}
-break;
-}
-}
-
-// === FALLBACK: Jika tidak menemukan info rekening, coba cari pola lain ===
-if (account === '–') {
-// Coba cari baris yang mengandung nomor telepon/rekening panjang
-for (let i = 0; i < lines.length; i++) {
-const line = lines[i];
-// Cari pola nomor telepon (10-13 digit) atau nomor rekening
-const phoneMatch = line.match(/\b\d{10,13}\b/);
-if (phoneMatch) {
-account = phoneMatch[0];
-break;
-}
-}
-}
-
-// === VALIDASI AKHIR ===
-// Pastikan nominal dalam format yang benar
-if (nominal !== '–') {
-// Hapus karakter non-digit kecuali koma dan titik
-nominal = nominal.replace(/[^\d,.]/g, '');
-// Jika tidak mengandung koma, tambahkan pemisah ribuan jika panjang > 3
-if (!nominal.includes(',') && !nominal.includes('.')) {
-const num = parseInt(nominal.replace(/\D/g, ''));
-if (!isNaN(num) && num > 0) {
-nominal = formatRupiah(num);
-}
-}
-}
-
-return {
-account: account || '–',
-username: username || '–',
-name: name || '–',
-nominal: nominal || '–'
-};
+    // Bersihkan baris dari spasi yang tidak perlu
+    lines = lines.map(l => l.trim()).filter(l => l !== '');
+    
+    let account = '–';     // Kolom 1: Nomor Rekening
+    let username = '–';    // Kolom 2: User ID
+    let name = '–';        // Kolom 3: Nama Rekening
+    let nominal = '–';     // Kolom 4: Nominal
+    
+    // === 1. CARI USER ID (Kolom 2) ===
+    // User ID biasanya di baris kedua setelah nomor urut
+    // Format: "3		45454545" atau "3\t\t45454545"
+    if (lines.length > 0) {
+        const firstLine = lines[0];
+        // Cek apakah baris pertama mengandung tab dan ada teks setelah tab
+        if (firstLine.includes('\t')) {
+            const parts = firstLine.split('\t').filter(p => p.trim() !== '');
+            if (parts.length >= 2) {
+                // Bagian pertama adalah nomor urut, bagian kedua adalah User ID
+                username = parts[1].trim();
+            }
+        } else {
+            // Jika tidak ada tab, coba split berdasarkan spasi
+            const parts = firstLine.split(/\s+/);
+            if (parts.length >= 2) {
+                username = parts[1].trim();
+            }
+        }
+    }
+    
+    // === 2. CARI NOMINAL (Kolom 4) ===
+    // Cari baris yang mengandung "Withdraw"
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].toUpperCase().includes('WITHDRAW')) {
+            const withdrawLine = lines[i];
+            // Split berdasarkan tab untuk mendapatkan kolom
+            const parts = withdrawLine.split('\t').filter(p => p.trim() !== '');
+            
+            // Format: "Withdraw\t2026-01-10 13:43:31\t370,000 \t215.50"
+            // Kolom: 0=Withdraw, 1=tanggal, 2=nominal, 3=biaya admin
+            if (parts.length >= 3) {
+                // Ambil kolom ke-3 sebagai nominal (indeks 2)
+                nominal = parts[2].trim();
+                // Hapus spasi berlebih dan pastikan format konsisten
+                nominal = nominal.replace(/\s+/g, '');
+            }
+            break;
+        }
+    }
+    
+    // === 3. CARI INFORMASI REKENING (Kolom 1 & 3) ===
+    // Cari baris yang mengandung koma (untuk info rekening/bank)
+    for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i];
+        if (line.includes(',')) {
+            // Format: "DANA, 081367683555, fimi"
+            const parts = line.split(',').map(p => p.trim());
+            
+            // === Kolom 3: NAMA REKENING ===
+            if (parts.length >= 3) {
+                name = parts[2].toUpperCase();
+            } else if (parts.length === 2) {
+                name = parts[1].toUpperCase();
+            }
+            
+            // === Kolom 1: NOMOR REKENING ===
+            const bankType = parts[0].toUpperCase();
+            let accountNumber = '';
+            
+            // Cari nomor rekening/telepon
+            if (parts.length >= 2) {
+                accountNumber = parts[1].replace(/\D/g, ''); // Hanya angka
+            }
+            
+            // Untuk e-wallet, gabungkan kode dengan nomor
+            if (E_WALLET_CODES.hasOwnProperty(bankType)) {
+                account = E_WALLET_CODES[bankType] + accountNumber;
+            } else {
+                // Untuk bank biasa, gunakan nomor rekening
+                account = accountNumber || '–';
+            }
+            break;
+        }
+    }
+    
+    // === FALLBACK: Jika tidak menemukan info rekening, coba cari pola lain ===
+    if (account === '–') {
+        // Coba cari baris yang mengandung nomor telepon/rekening panjang
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            // Cari pola nomor telepon (10-13 digit) atau nomor rekening
+            const phoneMatch = line.match(/\b\d{10,13}\b/);
+            if (phoneMatch) {
+                account = phoneMatch[0];
+                break;
+            }
+        }
+    }
+    
+    // === VALIDASI AKHIR ===
+    // Pastikan nominal dalam format yang benar
+    if (nominal !== '–') {
+        // Hapus karakter non-digit kecuali koma dan titik
+        nominal = nominal.replace(/[^\d,.]/g, '');
+        // Jika tidak mengandung koma, tambahkan pemisah ribuan jika panjang > 3
+        if (!nominal.includes(',') && !nominal.includes('.')) {
+            const num = parseInt(nominal.replace(/\D/g, ''));
+            if (!isNaN(num) && num > 0) {
+                nominal = formatRupiah(num);
+            }
+        }
+    }
+    
+    return {
+        account: account || '–',
+        username: username || '–',
+        name: name || '–',
+        nominal: nominal || '–'
+    };
 }
 
 function processBulkExtract() {
