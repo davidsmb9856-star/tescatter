@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LINETOGEL PRO • REAL-TIME ZOOM</title>
+  <title>LINETOGEL PRO • DETAIL STATS</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -262,10 +262,35 @@
       to { opacity: 0; }
     }
 
+    /* === STAT CARD === */
+    .stat-card {
+      background: rgba(0, 224, 255, 0.06);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 24px;
+      border-left: 3px solid var(--neon-cyan);
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+
+    .stat-label {
+      color: #aaa;
+    }
+
+    .stat-value {
+      font-weight: bold;
+      color: var(--neon-cyan);
+    }
+
     @media (max-width: 650px) {
       .nav-links { flex-direction: column; }
       .nav-links li a { justify-content: center; }
       .user-badge { text-align: center; margin: 0; }
+      .stat-row { flex-direction: column; gap: 4px; }
     }
 
     #pdf-export-area {
@@ -301,8 +326,8 @@
   <div id="login-screen" class="fade-in">
     <div class="container">
       <div class="card" style="text-align: center;">
-        <h1><i class="fas fa-bolt"></i> LINETOGEL PRO REAL-TIME</h1>
-        <p style="margin: 26px 0; color: #aaa;">Zoom Melayang • Update Instan • Neon Futuristik</p>
+        <h1><i class="fas fa-bolt"></i> LINETOGEL PRO DETAIL</h1>
+        <p style="margin: 26px 0; color: #aaa;">Statistik Lengkap • Zoom Melayang • Real-Time</p>
         <select id="staff-select">
           <option value="">— Pilih Nama Staf —</option>
           <option value="CHARLIE">CHARLIE (CS LINE)</option>
@@ -355,6 +380,27 @@
           </button>
           <div id="permission-status"></div>
           <div id="timer-display" class="timer hidden"></div>
+
+          <!-- ✅ DETAIL STATISTIK PRIBADI -->
+          <div class="stat-card" id="personal-stats">
+            <h3 style="margin-bottom: 16px; color: var(--neon-cyan);"><i class="fas fa-chart-bar"></i> Statistik Izin Anda</h3>
+            <div class="stat-row">
+              <span class="stat-label">Total Izin:</span>
+              <span class="stat-value" id="total-count">0 kali</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Total Waktu:</span>
+              <span class="stat-value" id="total-minutes">0 menit</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Rata-rata:</span>
+              <span class="stat-value" id="avg-duration">0 menit/izin</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Terakhir:</span>
+              <span class="stat-value" id="last-permission">-</span>
+            </div>
+          </div>
         </div>
 
         <div id="admin-panel" class="hidden">
@@ -433,7 +479,7 @@
   </div>
 
   <div class="footer">
-    LINETOGEL PRO REAL-TIME • Zoom Melayang • Update Instan • © 2026
+    LINETOGEL PRO DETAIL • Statistik Lengkap • © 2026
   </div>
 
   <audio id="beep-audio" preload="auto">
@@ -462,12 +508,11 @@
     let alarmPlayed = false;
     let beepPlayed = false;
 
-    // === REAL-TIME SYNC VIA LOCALSTORAGE EVENT ===
     window.addEventListener('storage', (e) => {
-      if (e.key === 'linetogel_active' || e.key === 'linetogel_start_*') {
-        // Reload active permissions when another tab changes
+      if (e.key === 'linetogel_active' || e.key === 'linetogel_zoom_trigger') {
         setTimeout(() => {
           loadActivePermissions();
+          if (currentUser) loadPersonalStats();
         }, 100);
       }
     });
@@ -482,24 +527,16 @@
       return Math.abs(hash).toString();
     }
 
-    // === FLOATING FLOWER ZOOM ===
     function showFloatingFlower(staffName, role) {
       const flower = document.createElement('div');
       flower.className = 'floating-flower';
       flower.innerHTML = '🌸';
-      
-      // Random direction
       const tx = (Math.random() - 0.5) * window.innerWidth * 0.6;
       const ty = (Math.random() - 0.5) * window.innerHeight * 0.6;
       flower.style.setProperty('--tx', `${tx}px`);
       flower.style.setProperty('--ty', `${ty}px`);
-      
       document.body.appendChild(flower);
-      
-      // Auto remove after animation
-      setTimeout(() => {
-        flower.remove();
-      }, 2600);
+      setTimeout(() => flower.remove(), 2600);
     }
 
     function showToast(message, type = 'info') {
@@ -528,6 +565,10 @@
     const lastNightHistory = document.getElementById('last-night-history');
     const noLastNight = document.getElementById('no-last-night');
     const dateDisplay = document.getElementById('date-display');
+    const totalCountEl = document.getElementById('total-count');
+    const totalMinutesEl = document.getElementById('total-minutes');
+    const avgDurationEl = document.getElementById('avg-duration');
+    const lastPermissionEl = document.getElementById('last-permission');
 
     window.addEventListener('DOMContentLoaded', () => {
       loadAllData();
@@ -584,6 +625,7 @@
             }
 
             loadActivePermissions();
+            loadPersonalStats();
             checkActivePermission();
 
             if (staff.role === "CS" || staff.role === "CS LINE") {
@@ -597,9 +639,35 @@
       }
     }
 
+    // ✅ FUNGSI BARU: MUAT STATISTIK PRIBADI
+    function loadPersonalStats() {
+      if (!currentUser) return;
+
+      const records = history[currentUser.name] || [];
+      const count = records.length;
+      let totalMinutes = 0;
+      let lastInfo = "-";
+
+      if (count > 0) {
+        // Hitung total menit
+        records.forEach(r => {
+          const parts = r.duration.match(/(\d+)m/);
+          if (parts) totalMinutes += parseInt(parts[1], 10);
+        });
+
+        // Ambil yang terakhir
+        const last = records[records.length - 1];
+        lastInfo = `${last.start} – ${last.end} (${last.duration})`;
+      }
+
+      totalCountEl.textContent = `${count} kali`;
+      totalMinutesEl.textContent = `${totalMinutes} menit`;
+      avgDurationEl.textContent = count > 0 ? `${Math.round(totalMinutes / count)} menit/izin` : "0 menit/izin";
+      lastPermissionEl.textContent = lastInfo;
+    }
+
     // ... (fungsi lain seperti saveSession, handleLogin, dll)
 
-    // ✅ PERUBAHAN UTAMA: SIMPAN & TRIGGER REAL-TIME
     function requestPermission() {
       const role = currentUser.role;
       if (activePermissions[role]) {
@@ -610,8 +678,6 @@
       activePermissions[role] = currentUser.name;
       startTime = new Date();
       localStorage.setItem(`linetogel_start_${currentUser.name}`, startTime.getTime().toString());
-      
-      // ✅ SIMPAN KE LOCALSTORAGE & TRIGGER UPDATE DI TAB LAIN
       saveSession();
 
       const staffInfo = `${currentUser.name} (${currentUser.role})`;
@@ -620,19 +686,16 @@
       startTimer();
       loadActivePermissions();
       
-      // ✅ TAMPILKAN ZOOM KE SEMUA TAB
       localStorage.setItem('linetogel_zoom_trigger', JSON.stringify({
         staff: currentUser.name,
         role: currentUser.role,
         time: Date.now()
       }));
 
-      // Tampilkan di tab ini
       showFloatingFlower(currentUser.name, currentUser.role);
       showToast(`Izin keluar dimulai untuk ${staffInfo}`, 'success');
     }
 
-    // ✅ DETEKSI TRIGGER DARI TAB LAIN
     window.addEventListener('storage', (e) => {
       if (e.key === 'linetogel_zoom_trigger' && e.newValue) {
         try {
@@ -641,7 +704,6 @@
             showFloatingFlower(data.staff, data.role);
             showToast(`${data.staff} (${data.role}) sedang izin keluar!`, 'info');
           }
-          // Auto-clear trigger
           setTimeout(() => {
             if (localStorage.getItem('linetogel_zoom_trigger') === e.newValue) {
               localStorage.removeItem('linetogel_zoom_trigger');
@@ -653,9 +715,8 @@
       }
     });
 
-    // ... (sisa fungsi seperti returnFromPermission, handlePermissionExpired, loadActivePermissions, dll tetap sama)
+    // ... (sisa fungsi seperti returnFromPermission, handlePermissionExpired, loadActivePermissions, dll)
 
-    // === SISA FUNGSI DIPERTAHANKAN ===
     function saveStaffPasswords() {
       localStorage.setItem('linetogel_passwords', JSON.stringify(staffPasswords));
     }
@@ -699,6 +760,7 @@
       app.classList.remove('hidden');
 
       loadActivePermissions();
+      loadPersonalStats();
       checkActivePermission();
 
       if (staff.role === "CS" || staff.role === "CS LINE") {
@@ -889,6 +951,7 @@
         : `<div class="notification success"><i class="fas fa-thumbs-up"></i> ✅ Kembali tepat waktu: ${staffInfo}.</div>`;
 
       loadActivePermissions();
+      loadPersonalStats(); // ✅ UPDATE STAT SETELAH KEMBALI
       checkActivePermission();
     }
 
@@ -923,6 +986,7 @@
       returnBtn.classList.add('hidden');
       permissionStatus.innerHTML = `<div class="notification error"><i class="fas fa-skull"></i> ❌ Waktu habis! Denda untuk ${staffInfo}.</div>`;
       loadActivePermissions();
+      loadPersonalStats(); // ✅ UPDATE STAT
     }
 
     function loadLastNightHistory() {
