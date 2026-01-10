@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LINETOGEL PRO • ULTIMATE</title>
-  <!-- Font Awesome -->
+  <title>LINETOGEL PRO • FIXED</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <!-- jsPDF & html2canvas for PDF export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
@@ -199,14 +197,12 @@
       margin-top: 32px;
     }
 
-    /* MOBILE */
     @media (max-width: 650px) {
       .nav-links { flex-direction: column; }
       .nav-links li a { justify-content: center; }
       .user-badge { text-align: center; margin: 0; }
     }
 
-    /* PDF EXPORT PREVIEW STYLE (HIDDEN IN APP) */
     #pdf-export-area {
       position: absolute;
       left: -9999px;
@@ -240,8 +236,8 @@
   <div id="login-screen" class="fade-in">
     <div class="container">
       <div class="card" style="text-align: center;">
-        <h1 style="margin-bottom: 24px; font-size: 36px;"><i class="fas fa-bolt"></i> LINETOGEL PRO ULTIMATE</h1>
-        <p style="margin-bottom: 28px;">Neon Dashboard • Notifikasi Desktop • Alarm Suara • Ekspor PDF</p>
+        <h1 style="margin-bottom: 24px; font-size: 36px;"><i class="fas fa-bolt"></i> LINETOGEL PRO FIXED</h1>
+        <p style="margin-bottom: 28px;">Timer Akurat • Notifikasi Keren • PDF Export</p>
         <select id="staff-select">
           <option value="">— Pilih Nama Staf —</option>
           <option value="CHARLIE">CHARLIE (CS LINE)</option>
@@ -373,10 +369,9 @@
   </div>
 
   <div class="footer">
-    LINETOGEL PRO ULTIMATE • Notifikasi • Alarm • PDF • © 2026
+    LINETOGEL PRO FIXED • Timer Akurat • Notifikasi Keren • © 2026
   </div>
 
-  <!-- AUDIO ELEMENTS (HIDDEN) -->
   <audio id="beep-audio" preload="auto">
     <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmszLlNLV0IyLjE3MzQ4OTU1MjUAV0FWRXhtcDpDb3JlIDEuMC4xMAAA//uQxAADwAABp3ZpbmWHVnljbGFzcwoJCgsMDQ4PEBESEw==" type="audio/mpeg">
   </audio>
@@ -385,7 +380,6 @@
   </audio>
 
   <script>
-    // === DATA ===
     const STAFF_LIST = [
       { name: "CHARLIE", role: "CS LINE" },
       { name: "DAVID", role: "CS" },
@@ -404,7 +398,6 @@
     let alarmPlayed = false;
     let beepPlayed = false;
 
-    // === SIMPLE HASH ===
     function simpleHash(str) {
       let hash = 0;
       for (let i = 0; i < str.length; i++) {
@@ -415,7 +408,7 @@
       return Math.abs(hash).toString();
     }
 
-    // === NOTIFICATION & SOUND ===
+    // === NOTIFIKASI DENGAN NAMA & ROLE ===
     function showDesktopNotification(title, body) {
       if (Notification.permission === "granted") {
         new Notification(title, { body, icon: "https://cdn-icons-png.flaticon.com/512/2555/2555459.png" });
@@ -460,7 +453,6 @@
     const noLastNight = document.getElementById('no-last-night');
     const dateDisplay = document.getElementById('date-display');
 
-    // === INIT ===
     window.addEventListener('DOMContentLoaded', () => {
       if (Notification.permission !== "denied") {
         Notification.requestPermission();
@@ -499,17 +491,26 @@
             loginScreen.classList.add('hidden');
             app.classList.remove('hidden');
 
+            // ✅ PERBAIKAN: CEK APAKAH IZIN SUDAH SELESAI
             if (session.startTime) {
               const start = new Date(session.startTime);
-              const elapsed = Date.now() - start.getTime();
-              if (elapsed < 15 * 60 * 1000) {
-                startTime = start;
-                startTimer();
-                returnBtn.classList.remove('hidden');
-                permissionStatus.innerHTML = `<div class="notification success"><i class="fas fa-clock"></i> Izin aktif sejak ${start.toLocaleTimeString('id-ID')}</div>`;
-                showDesktopNotification("Izin Dimulai", `Anda sedang izin keluar. Waktu: 15 menit.`);
+              const endStr = localStorage.getItem(`linetogel_end_${currentUser.name}`);
+              
+              if (endStr) {
+                // Sudah selesai → jangan lanjutkan
+                startTime = null;
               } else {
-                handlePermissionExpired(start);
+                const elapsed = Date.now() - start.getTime();
+                if (elapsed < 15 * 60 * 1000) {
+                  startTime = start;
+                  startTimer();
+                  returnBtn.classList.remove('hidden');
+                  const staffInfo = `${currentUser.name} (${currentUser.role})`;
+                  permissionStatus.innerHTML = `<div class="notification success"><i class="fas fa-clock"></i> Izin aktif: ${staffInfo}</div>`;
+                  showDesktopNotification("Izin Dimulai", `Izin keluar dimulai untuk ${staffInfo}. Waktu: 15 menit.`);
+                } else {
+                  handlePermissionExpired(start);
+                }
               }
             }
 
@@ -549,7 +550,6 @@
       clearInterval(permissionTimer);
     }
 
-    // === LOGIN ===
     function handleLogin() {
       const name = document.getElementById('staff-select').value;
       const pass = document.getElementById('password-input').value.trim();
@@ -588,7 +588,6 @@
       setTimeout(() => el.classList.add('hidden'), 3000);
     }
 
-    // === NAVIGATION ===
     function showPage(page) {
       document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
       document.getElementById(`page-${page}`).classList.remove('hidden');
@@ -600,18 +599,21 @@
       }
     }
 
-    // === ACTIVE PERMISSIONS ===
     function loadActivePermissions() {
       activeList.innerHTML = '';
       let count = 0;
 
       for (const [role, name] of Object.entries(activePermissions)) {
         if (!name) continue;
-        count++;
         const staff = STAFF_LIST.find(s => s.name === name);
-        const roleDisplay = staff ? staff.role : role;
+        if (!staff) continue;
 
         const startStr = localStorage.getItem(`linetogel_start_${name}`);
+        const endStr = localStorage.getItem(`linetogel_end_${name}`);
+        if (endStr) continue; // Sudah selesai
+
+        count++;
+        const roleDisplay = staff.role;
         let remainingText = "–";
         let remainingSec = 999;
         if (startStr) {
@@ -631,8 +633,7 @@
         card.className = 'card';
         card.style.marginBottom = '18px';
         card.innerHTML = `
-          <h3 style="color: var(--neon-cyan);">${name}</h3>
-          <p><strong>Role:</strong> ${roleDisplay}</p>
+          <h3 style="color: var(--neon-cyan);">${name} <span style="font-size:16px; color:#aaa;">(${roleDisplay})</span></h3>
           <p><strong>Sisa Waktu:</strong> <span class="timer ${remainingSec <= 0 ? 'late' : remainingSec <= 300 ? 'warning' : ''}">${remainingText}</span></p>
         `;
         activeList.appendChild(card);
@@ -641,7 +642,6 @@
       noActiveEl.classList.toggle('hidden', count > 0);
     }
 
-    // === PERMISSION LOGIC WITH NOTIFICATION & SOUND ===
     function checkActivePermission() {
       const role = currentUser.role;
       const activeUser = activePermissions[role];
@@ -671,12 +671,13 @@
       activePermissions[role] = currentUser.name;
       startTime = new Date();
       localStorage.setItem(`linetogel_start_${currentUser.name}`, startTime.getTime().toString());
-      permissionStatus.innerHTML = `<div class="notification success"><i class="fas fa-check-circle"></i> Izin dimulai: ${startTime.toLocaleTimeString('id-ID')}</div>`;
+      const staffInfo = `${currentUser.name} (${currentUser.role})`;
+      permissionStatus.innerHTML = `<div class="notification success"><i class="fas fa-check-circle"></i> Izin dimulai: ${staffInfo}</div>`;
       returnBtn.classList.remove('hidden');
       startTimer();
       saveSession();
       loadActivePermissions();
-      showDesktopNotification("Izin Dimulai", `Waktu izin: 15 menit. Jangan lupa kembali!`);
+      showDesktopNotification("Izin Dimulai", `Izin keluar dimulai untuk ${staffInfo}. Waktu: 15 menit.`);
     }
 
     function startTimer() {
@@ -696,17 +697,18 @@
         const secs = remainingSec % 60;
         timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-        // Sound & notification logic
+        const staffInfo = `${currentUser.name} (${currentUser.role})`;
+
         if (remainingSec <= 0) {
           timerDisplay.classList.add('late');
           timerDisplay.textContent = "⏰ WAKTU HABIS!";
           playAlarm();
-          showDesktopNotification("WAKTU IZIN HABIS!", "Segera kembali ke posisi Anda!");
+          showDesktopNotification("WAKTU IZIN HABIS!", `Izin ${staffInfo} telah habis! Segera kembali.`);
           handlePermissionExpired(startTime);
         } else if (remainingSec <= 60 && !beepPlayed) {
           timerDisplay.classList.add('warning');
           playBeep();
-          showDesktopNotification("Hampir Habis!", `Sisa waktu: ${remainingSec} detik.`);
+          showDesktopNotification("Hampir Habis!", `Izin ${staffInfo}: sisa ${remainingSec} detik.`);
         } else if (remainingSec <= 300) {
           timerDisplay.classList.add('warning');
           timerDisplay.classList.remove('late');
@@ -716,8 +718,12 @@
       }, 1000);
     }
 
+    // ✅ PERBAIKAN: SIMPAN endTime SAAT SELESAI
     function handlePermissionExpired(start) {
       const endTime = new Date(start.getTime() + 15 * 60 * 1000);
+      const staff = STAFF_LIST.find(s => s.name === activePermissions[currentUser?.role || '']);
+      const staffInfo = staff ? `${staff.name} (${staff.role})` : "Staf";
+      
       const record = {
         date: endTime.toLocaleDateString('id-ID'),
         start: start.toLocaleTimeString('id-ID'),
@@ -726,17 +732,23 @@
         status: 'late'
       };
 
-      if (!history[currentUser.name]) history[currentUser.name] = [];
-      history[currentUser.name].push(record);
-      delete activePermissions[currentUser.role];
-      localStorage.removeItem(`linetogel_start_${currentUser.name}`);
+      const name = staff?.name || (currentUser?.name);
+      if (name && !history[name]) history[name] = [];
+      if (name) history[name].push(record);
+      
+      if (currentUser?.role) delete activePermissions[currentUser.role];
+      if (name) {
+        localStorage.setItem(`linetogel_end_${name}`, endTime.getTime().toString());
+        localStorage.removeItem(`linetogel_start_${name}`);
+      }
+      
       saveSession();
 
       startTime = null;
       clearInterval(permissionTimer);
       timerDisplay.classList.add('hidden');
       returnBtn.classList.add('hidden');
-      permissionStatus.innerHTML = `<div class="notification error"><i class="fas fa-skull"></i> ❌ Waktu habis! Denda dikenakan.</div>`;
+      permissionStatus.innerHTML = `<div class="notification error"><i class="fas fa-skull"></i> ❌ Waktu habis! Denda untuk ${staffInfo}.</div>`;
       loadActivePermissions();
     }
 
@@ -744,21 +756,24 @@
       const now = new Date();
       const elapsedMin = Math.ceil((now - startTime) / 60000);
       const isLate = elapsedMin > 15;
+      const staffInfo = `${currentUser.name} (${currentUser.role})`;
       const msg = isLate 
-        ? `Anda telah izin selama ${elapsedMin} menit (>15m).\nDenda akan dikenakan.\n\nLanjutkan?`
-        : `Anda izin selama ${elapsedMin} menit.\nKembali sekarang?`;
+        ? `Izin ${staffInfo} telah berlangsung ${elapsedMin} menit (>15m).\nDenda akan dikenakan.\n\nLanjutkan?`
+        : `Izin ${staffInfo} berlangsung ${elapsedMin} menit.\nKembali sekarang?`;
 
       if (confirm(msg)) {
         returnFromPermission();
       }
     }
 
+    // ✅ PERBAIKAN: SIMPAN endTime SAAT KEMBALI
     function returnFromPermission() {
       const endTime = new Date();
       const durationMs = endTime - startTime;
       const durationMin = Math.floor(durationMs / 60000);
       const durationSec = Math.floor((durationMs % 60000) / 1000);
       const isLate = durationMin > 15 || (durationMin === 15 && durationSec > 0);
+      const staffInfo = `${currentUser.name} (${currentUser.role})`;
 
       const record = {
         date: new Date().toLocaleDateString('id-ID'),
@@ -771,7 +786,11 @@
       if (!history[currentUser.name]) history[currentUser.name] = [];
       history[currentUser.name].push(record);
       delete activePermissions[currentUser.role];
+      
+      // ✅ SIMPAN endTime
+      localStorage.setItem(`linetogel_end_${currentUser.name}`, endTime.getTime().toString());
       localStorage.removeItem(`linetogel_start_${currentUser.name}`);
+      
       saveSession();
 
       startTime = null;
@@ -779,14 +798,13 @@
       timerDisplay.classList.add('hidden');
       returnBtn.classList.add('hidden');
       permissionStatus.innerHTML = isLate 
-        ? `<div class="notification error"><i class="fas fa-exclamation-triangle"></i> ❌ Melebihi batas! Denda dikenakan.</div>`
-        : `<div class="notification success"><i class="fas fa-thumbs-up"></i> ✅ Kembali tepat waktu.</div>`;
+        ? `<div class="notification error"><i class="fas fa-exclamation-triangle"></i> ❌ Denda untuk ${staffInfo}!</div>`
+        : `<div class="notification success"><i class="fas fa-thumbs-up"></i> ✅ Kembali tepat waktu: ${staffInfo}.</div>`;
 
       loadActivePermissions();
       checkActivePermission();
     }
 
-    // === LAST NIGHT HISTORY ===
     function loadLastNightHistory() {
       const today = new Date();
       const yesterday = new Date(today);
@@ -823,14 +841,12 @@
       noLastNight.classList.toggle('hidden', found);
     }
 
-    // === PDF EXPORT ===
     async function exportToPDF() {
       const today = new Date();
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toLocaleDateString('id-ID');
 
-      // Prepare PDF content
       document.getElementById('pdf-date').textContent = yesterdayStr;
       const pdfBody = document.getElementById('pdf-body');
       pdfBody.innerHTML = '';
@@ -863,7 +879,6 @@
 
       const { jsPDF } = window.jspdf;
       const element = document.getElementById('pdf-export-area');
-
       const canvas = await html2canvas(element, { scale: 2 });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -886,7 +901,6 @@
       pdf.save(`Linetogel_Riwayat_Semalam_${yesterdayStr.replace(/\//g, '-')}.pdf`);
     }
 
-    // === PASSWORD & ADMIN ===
     function showChangePassword() {
       document.getElementById('new-password').value = '';
       document.getElementById('confirm-password').value = '';
