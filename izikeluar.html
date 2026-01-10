@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LINETOGEL</title>
+  <style>
+    /* === GLOBAL NEON DARK THEME === */
+    :root {
+      --bg: #0b0b12;
+      --card-bg: rgba(15, 15, 25, 0.85);
+      --text: #ffffff;
+      --neon-cyan: #00e0ff;
+      --neon-purple: #b026ff;
+      --neon-yellow: #ffe000;
+      --neon-red: #ff3366;
+      --neon-green: #00ffaa;
+      --border-neon: #00e0ff40;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1, h2, h3 {
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    /* === CARD STYLE === */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-neon);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 10px rgba(0, 224, 255, 0.2);
+    }
+
+    /* === BUTTONS === */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--neon-cyan);
+      color: #000;
+      font-weight: bold;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 12px var(--neon-cyan);
+    }
+
+    .btn-danger {
+      background: var(--neon-red);
+      color: white;
+    }
+
+    .btn-warning {
+      background: var(--neon-yellow);
+      color: #000;
+      font-weight: bold;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* === FORM === */
+    select, input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid var(--border-neon);
+      background: rgba(30, 30, 40, 0.7);
+      color: white;
+      border-radius: 6px;
+      font-size: 18px;
+    }
+
+    /* === TABLE === */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+
+    th {
+      color: var(--neon-cyan);
+    }
+
+    .status-ok { color: var(--neon-green); }
+    .status-late { color: var(--neon-red); }
+    .status-wait { color: var(--neon-yellow); }
+
+    /* === TIMER ANIMATION === */
+    .timer {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 16px 0;
+      text-align: center;
+    }
+
+    .timer.late {
+      animation: pulseRed 1.5s infinite;
+    }
+
+    @keyframes pulseRed {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* === NOTIFICATION === */
+    .notification {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    .notification.error {
+      background: rgba(255, 51, 102, 0.2);
+      border-left: 4px solid var(--neon-red);
+    }
+
+    /* === HIDDEN === */
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+      <div class="card" style="text-align: center;">
+        <h1>🌌 LINETOGEL</h1>
+        <p>Sistem Izin Keluar – Neon Dark Mode</p>
+        <br/>
+        <select id="staff-select">
+          <option value="">— Pilih Nama Staf —</option>
+          <option value="CHARLIE">CHARLIE (CS LINE)</option>
+          <option value="DAVID">DAVID (CS)</option>
+          <option value="AMRUL">AMRUL (KAPTEN)</option>
+          <option value="DIMAS ADHITYA">DIMAS ADHITYA (KAPTEN)</option>
+          <option value="ROY DILEN">ROY DILEN (KASIR)</option>
+          <option value="ARJUN PRAISYA">ARJUN PRAISYA (KASIR)</option>
+        </select>
+        <input type="password" id="password-input" placeholder="Password (default: 1)" />
+        <button class="btn btn-primary" onclick="login()">MASUK</button>
+        <div id="login-error" class="notification error hidden"></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="hidden">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 id="welcome-text">Selamat datang, [Nama]</h2>
+            <p id="role-text">Role: [Role]</p>
+          </div>
+          <button class="btn" style="background: #444;" onclick="logout()">Logout</button>
+        </div>
+        <p>Jam Sistem: <span id="current-time">--:--:--</span></p>
+      </div>
+
+      <!-- PERMISSION PANEL -->
+      <div class="card">
+        <h3>Izin Keluar</h3>
+        <button id="request-btn" class="btn btn-primary" onclick="requestPermission()">AJUKAN IZIN KELUAR</button>
+        <button id="return-btn" class="btn btn-danger hidden" onclick="returnFromPermission()">KEMBALI</button>
+        <div id="permission-status"></div>
+        <div id="timer-display" class="timer hidden"></div>
+        <div id="wait-message" class="notification status-wait hidden">
+          ⚠️ Tunggu staf sebelumnya kembali. Hanya 1 izin aktif per role.
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="card">
+        <h3>Riwayat Izin Keluar Anda</h3>
+        <table id="history-table">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Mulai</th>
+              <th>Selesai</th>
+              <th>Durasi</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <!-- filled by JS -->
+          </tbody>
+        </table>
+        <p id="no-history" class="hidden">Belum ada riwayat izin.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === DATA STAF ===
+    const STAFF_LIST = [
+      { name: "CHARLIE", role: "CS LINE" },
+      { name: "DAVID", role: "CS" },
+      { name: "AMRUL", role: "KAPTEN" },
+      { name: "DIMAS ADHITYA", role: "KAPTEN" },
+      { name: "ROY DILEN", role: "KASIR" },
+      { name: "ARJUN PRAISYA", role: "KASIR" }
+    ];
+
+    // === STATE ===
+    let currentUser = null;
+    let activePermissions = {}; // { "CS LINE": "CHARLIE", ... }
+    let permissionTimer = null;
+    let startTime = null;
+    let history = JSON.parse(localStorage.getItem('linetogel_history') || '{}');
+
+    // === DOM ELEMENTS ===
+    const loginScreen = document.getElementById('login-screen');
+    const dashboard = document.getElementById('dashboard');
+    const staffSelect = document.getElementById('staff-select');
+    const passwordInput = document.getElementById('password-input');
+    const loginError = document.getElementById('login-error');
+    const welcomeText = document.getElementById('welcome-text');
+    const roleText = document.getElementById('role-text');
+    const currentTimeEl = document.getElementById('current-time');
+    const requestBtn = document.getElementById('request-btn');
+    const returnBtn = document.getElementById('return-btn');
+    const permissionStatus = document.getElementById('permission-status');
+    const timerDisplay = document.getElementById('timer-display');
+    const waitMessage = document.getElementById('wait-message');
+    const historyBody = document.getElementById('history-body');
+    const noHistory = document.getElementById('no-history');
+
+    // === INIT ===
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    function updateClock() {
+      const now = new Date();
+      currentTimeEl.textContent = now.toLocaleTimeString('id-ID', { hour12: false });
+    }
+
+    // === LOGIN ===
+    function login() {
+      const name = staffSelect.value;
+      const pass = passwordInput.value.trim();
+
+      if (!name || pass !== "1") {
+        showError("Nama atau password salah.");
+        return;
+      }
+
+      const staff = STAFF_LIST.find(s => s.name === name);
+      if (!staff) {
+        showError("Staf tidak ditemukan.");
+        return;
+      }
+
+      currentUser = staff;
+      loginScreen.classList.add('hidden');
+      dashboard.classList.remove('hidden');
+      welcomeText.textContent = `Selamat datang, ${name}`;
+      roleText.textContent = `Role: ${staff.role}`;
+
+      loadHistory();
+      checkActivePermission();
+    }
+
+    function showError(msg) {
+      loginError.textContent = msg;
+      loginError.classList.remove('hidden');
+      setTimeout(() => loginError.classList.add('hidden'), 3000);
+    }
+
+    function logout() {
+      if (startTime) {
+        alert("Anda sedang dalam izin! Harap kembali terlebih dahulu.");
+        return;
+      }
+      currentUser = null;
+      startTime = null;
+      clearInterval(permissionTimer);
+      loginScreen.classList.remove('hidden');
+      dashboard.classList.add('hidden');
+      staffSelect.value = "";
+      passwordInput.value = "";
+    }
+
+    // === PERMISSION LOGIC ===
+    function checkActivePermission() {
+      const role = currentUser.role;
+      const activeUser = activePermissions[role];
+
+      if (activeUser && activeUser !== currentUser.name) {
+        requestBtn.disabled = true;
+        waitMessage.classList.remove('hidden');
+        returnBtn.classList.add('hidden');
+        timerDisplay.classList.add('hidden');
+      } else {
+        requestBtn.disabled = false;
+        waitMessage.classList.add('hidden');
+        if (startTime) {
+          returnBtn.classList.remove('hidden');
+          startTimer();
+        }
+      }
+    }
+
+    function requestPermission() {
+      const role = currentUser.role;
+      if (activePermissions[role]) {
+        alert("Sudah ada yang sedang izin di role ini.");
+        return;
+      }
+
+      activePermissions[role] = currentUser.name;
+      startTime = new Date();
+      permissionStatus.innerHTML = `<p>🟢 Izin dimulai pada ${startTime.toLocaleTimeString('id-ID')}</p>`;
+      returnBtn.classList.remove('hidden');
+      startTimer();
+    }
+
+    function startTimer() {
+      clearInterval(permissionTimer);
+      timerDisplay.classList.remove('hidden');
+      timerDisplay.classList.remove('late');
+
+      permissionTimer = setInterval(() => {
+        if (!startTime) return;
+        const now = new Date();
+        const diffMs = now - startTime;
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffSec = Math.floor((diffMs % 60000) / 1000);
+        const totalSec = 15 * 60;
+        const remainingSec = Math.max(0, totalSec - Math.floor(diffMs / 1000));
+
+        const mins = Math.floor(remainingSec / 60);
+        const secs = remainingSec % 60;
+        timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')} tersisa`;
+
+        if (remainingSec <= 0) {
+          timerDisplay.classList.add('late');
+          timerDisplay.textContent = "WAKTU HABIS!";
+        }
+
+        // Warna peringatan
+        if (remainingSec < 300 && remainingSec > 0) { // <5 menit
+          timerDisplay.style.color = '#ff9e00';
+        } else if (remainingSec > 0) {
+          timerDisplay.style.color = '#00e0ff';
+        }
+      }, 1000);
+    }
+
+    function returnFromPermission() {
+      if (!startTime) return;
+
+      const endTime = new Date();
+      const durationMs = endTime - startTime;
+      const durationMin = Math.ceil(durationMs / 60000);
+      const isLate = durationMin > 15;
+
+      // Simpan ke riwayat
+      const record = {
+        date: new Date().toLocaleDateString('id-ID'),
+        start: startTime.toLocaleTimeString('id-ID'),
+        end: endTime.toLocaleTimeString('id-ID'),
+        duration: `${durationMin}m`,
+        status: isLate ? 'late' : 'ok'
+      };
+
+      if (!history[currentUser.name]) history[currentUser.name] = [];
+      history[currentUser.name].push(record);
+      localStorage.setItem('linetogel_history', JSON.stringify(history));
+
+      // Reset state
+      delete activePermissions[currentUser.role];
+      startTime = null;
+      clearInterval(permissionTimer);
+      timerDisplay.classList.add('hidden');
+      returnBtn.classList.add('hidden');
+      permissionStatus.innerHTML = `<p>${isLate ? '❌ Melebihi 15 menit! Denda dikenakan.' : '✅ Kembali tepat waktu.'}</p>`;
+
+      loadHistory();
+      checkActivePermission();
+    }
+
+    // === HISTORY ===
+    function loadHistory() {
+      const userHistory = history[currentUser?.name] || [];
+      historyBody.innerHTML = '';
+      if (userHistory.length === 0) {
+        noHistory.classList.remove('hidden');
+        return;
+      }
+      noHistory.classList.add('hidden');
+      userHistory.slice(-10).reverse().forEach(rec => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${rec.date}</td>
+          <td>${rec.start}</td>
+          <td>${rec.end}</td>
+          <td>${rec.duration}</td>
+          <td class="${rec.status === 'ok' ? 'status-ok' : 'status-late'}">${rec.status === 'ok' ? '✅' : '❌'}</td>
+        `;
+        historyBody.appendChild(row);
+      });
+    }
+  </script>
+</body>
+</html>
+
