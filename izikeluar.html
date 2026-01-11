@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LINETOGEL PRO • SETTING PER STAFF</title>
+  <title>LINETOGEL PRO • SETTING LENGKAP</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -242,36 +242,27 @@
       50% { transform: translateY(-15px); }
     }
 
-    /* === SETTING GROUP === */
-    .setting-group {
-      margin: 20px 0;
-      padding: 16px;
-      background: rgba(0, 224, 255, 0.05);
-      border-radius: 12px;
-      border-left: 3px solid var(--neon-cyan);
-    }
-
-    .role-checkbox {
+    /* === SETTING PER STAFF === */
+    .staff-setting-row {
       display: flex;
-      align-items: center;
       gap: 10px;
-      margin: 8px 0;
+      margin-top: 8px;
+      align-items: center;
     }
 
-    .role-checkbox input {
-      width: auto;
-      margin: 0;
+    .staff-setting-row input {
+      width: 80px;
+      padding: 8px;
+      font-size: 16px;
     }
 
-    /* === STATUS BORDER === */
-    .staff-name.punctual {
-      border-bottom: 3px solid var(--neon-green);
-      padding-bottom: 4px;
-    }
-
-    .staff-name.late {
-      border-bottom: 3px solid var(--neon-red);
-      padding-bottom: 4px;
+    .history-log {
+      background: rgba(0, 224, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #aaa;
     }
 
     @media (max-width: 650px) {
@@ -286,8 +277,8 @@
   <div id="login-screen" class="fade-in">
     <div class="container">
       <div class="card" style="text-align: center;">
-        <h1><i class="fas fa-bolt"></i> LINETOGEL PRO SETTING</h1>
-        <p style="margin: 28px 0; color: #aaa;">Setting Per Staff • Neon Futuristik</p>
+        <h1><i class="fas fa-bolt"></i> LINETOGEL PRO SETTING LENGKAP</h1>
+        <p style="margin: 28px 0; color: #aaa;">Setting Per Staff • Emoticon Istirahat • Riwayat</p>
         <select id="staff-select">
           <option value="">— Pilih Nama Staf —</option>
           <option value="CHARLIE">CHARLIE (CS LINE)</option>
@@ -308,7 +299,6 @@
 
   <!-- MAIN APP -->
   <div id="app" class="hidden">
-    <!-- NAVBAR -->
     <nav class="navbar">
       <div class="nav-brand"><i class="fas fa-chart-line"></i> LINETOGEL</div>
       <ul class="nav-links">
@@ -322,7 +312,7 @@
     <div class="container">
       <!-- DASHBOARD -->
       <div id="page-dashboard" class="page-content">
-        <!-- STAF YANG SEDANG IZIN -->
+        <!-- ✅ STAF YANG SEDANG IZIN + EMOJI -->
         <div class="card">
           <h2><i class="fas fa-users"></i> Staf yang Sedang Izin Keluar</h2>
           <p id="no-active-permission" class="hidden" style="text-align:center; color:#777;">Tidak ada staf yang sedang izin.</p>
@@ -387,7 +377,6 @@
           </div>
         </div>
 
-        <!-- AKSI CEPAT -->
         <div class="card">
           <h3><i class="fas fa-cogs"></i> Aksi Cepat</h3>
           <button class="btn" style="background:#444; color:white;" onclick="logout()">
@@ -449,24 +438,15 @@
           </button>
         </div>
 
-        <!-- ✅ MANAJEMEN STAF PER STAFF -->
-        <div id="staff-management-section" class="hidden">
+        <!-- ✅ SETTING PER STAFF -->
+        <div id="staff-setting-section" class="hidden">
           <div class="card">
-            <h2><i class="fas fa-tools"></i> Manajemen Staf</h2>
-            <table id="staff-management-table">
-              <thead>
-                <tr>
-                  <th>Staf</th>
-                  <th>Role Saat Ini</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="staff-management-body"></tbody>
-            </table>
+            <h2><i class="fas fa-tools"></i> Pengaturan Per Staf</h2>
+            <div id="staff-setting-container"></div>
           </div>
         </div>
 
-        <!-- ✅ RESET DATA LOKAL & EKSPOR PDF -->
+        <!-- RESET DATA & EKSPOR -->
         <div class="card">
           <h2><i class="fas fa-database"></i> Data & Ekspor</h2>
           <button class="btn btn-warning" onclick="resetAllData()" style="margin-top: 10px; width: 100%;">
@@ -536,10 +516,8 @@
     let staffPasswords = {};
     let alarmPlayed = false;
     let beepPlayed = false;
-    let systemConfig = {
-      maxPermissionsPerDay: 1,
-      maxDurationMinutes: 15
-    };
+    let staffSettings = {}; // { "CHARLIE": { maxDuration: 15, maxPermissions: 1 }, ... }
+    let settingHistory = []; // [{ timestamp, admin, action, target }]
 
     // === REAL-TIME SYNC ===
     window.addEventListener('storage', (e) => {
@@ -606,8 +584,8 @@
     const waitMessage = document.getElementById('wait-message');
     const activeList = document.getElementById('active-permissions-list');
     const noActiveEl = document.getElementById('no-active-permission');
-    const staffManagementSection = document.getElementById('staff-management-section');
-    const staffManagementBody = document.getElementById('staff-management-body');
+    const staffSettingSection = document.getElementById('staff-setting-section');
+    const staffSettingContainer = document.getElementById('staff-setting-container');
     const activeStaffTable = document.getElementById('active-staff-table');
     const riwayatTable = document.getElementById('riwayat-table');
     const totalCountEl = document.getElementById('total-count');
@@ -644,15 +622,18 @@
       history = JSON.parse(localStorage.getItem('linetogel_history') || '{}');
       activePermissions = JSON.parse(localStorage.getItem('linetogel_active') || '{}');
       staffPasswords = JSON.parse(localStorage.getItem('linetogel_passwords') || '{}');
+      staffSettings = JSON.parse(localStorage.getItem('linetogel_staff_settings') || '{}');
+      settingHistory = JSON.parse(localStorage.getItem('linetogel_setting_history') || []);
 
       STAFF_LIST.forEach(staff => {
         if (!staffPasswords[staff.name]) {
           staffPasswords[staff.name] = simpleHash("1");
         }
+        if (!staffSettings[staff.name]) {
+          staffSettings[staff.name] = { maxDuration: 15, maxPermissions: 1 };
+        }
       });
-      saveStaffPasswords();
-
-      loadSystemConfig();
+      saveStaffData();
 
       const saved = localStorage.getItem('linetogel_session');
       if (saved) {
@@ -666,9 +647,10 @@
             app.classList.remove('hidden');
 
             if (staff.role === "CS" || staff.role === "CS LINE") {
-              staffManagementSection.classList.remove('hidden');
+              staffSettingSection.classList.remove('hidden');
+              renderStaffSettings();
             } else {
-              staffManagementSection.classList.add('hidden');
+              staffSettingSection.classList.add('hidden');
             }
 
             if (session.startTime) {
@@ -678,7 +660,7 @@
                 startTime = null;
               } else {
                 const elapsed = Date.now() - start.getTime();
-                const maxSec = systemConfig.maxDurationMinutes * 60;
+                const maxSec = staffSettings[currentUser.name].maxDuration * 60;
                 if (elapsed < maxSec) {
                   startTime = start;
                   startTimer();
@@ -695,7 +677,6 @@
             loadIzinHariIni();
             loadPersonalStats();
             checkActivePermission();
-            renderStaffManagement();
           }
         } catch (e) {
           clearSession();
@@ -703,53 +684,73 @@
       }
     }
 
-    function loadSystemConfig() {
-      const saved = localStorage.getItem('linetogel_system_config');
-      if (saved) {
-        try {
-          systemConfig = JSON.parse(saved);
-        } catch (e) {
-          console.warn("Invalid system config", e);
+    function saveStaffData() {
+      localStorage.setItem('linetogel_passwords', JSON.stringify(staffPasswords));
+      localStorage.setItem('linetogel_staff_settings', JSON.stringify(staffSettings));
+      localStorage.setItem('linetogel_setting_history', JSON.stringify(settingHistory));
+    }
+
+    function addSettingHistory(action, target) {
+      const log = {
+        timestamp: new Date().toLocaleString('id-ID'),
+        admin: currentUser.name,
+        action: action,
+        target: target
+      };
+      settingHistory.unshift(log);
+      if (settingHistory.length > 50) settingHistory.pop(); // Batasi 50 log
+      saveStaffData();
+    }
+
+    // ✅ RENDER SETTING PER STAFF
+    function renderStaffSettings() {
+      staffSettingContainer.innerHTML = '';
+      
+      STAFF_LIST.forEach(staff => {
+        const div = document.createElement('div');
+        div.className = 'staff-setting-row';
+        div.innerHTML = `
+          <div style="flex:1;">
+            <strong>${staff.name}</strong> <span style="color:#aaa;">(${staff.role})</span>
+          </div>
+          <div>
+            <input type="number" id="duration-${staff.name}" min="5" max="60" value="${staffSettings[staff.name].maxDuration}" style="width:80px; padding:8px; font-size:16px; border-radius:6px; border:1px solid var(--border-neon); background:rgba(10,10,20,0.8); color:white;" />
+            <small style="color:#aaa; margin-left:5px;">menit</small>
+          </div>
+          <button class="btn btn-warning" style="padding:6px 10px; font-size:14px; margin-left:6px;" onclick="resetJamKeluar('${staff.name}')">
+            <i class="fas fa-clock"></i> Reset Jam
+          </button>
+          <button class="btn btn-warning" style="padding:6px 10px; font-size:14px; margin-left:6px;" onclick="resetPassword('${staff.name}')">
+            <i class="fas fa-redo"></i> Reset PW
+          </button>
+          <button class="btn btn-purple" style="padding:6px 10px; font-size:14px; margin-left:6px;" onclick="changeRole('${staff.name}')">
+            <i class="fas fa-user-edit"></i> Ubah Role
+          </button>
+        `;
+        staffSettingContainer.appendChild(div);
+
+        // Riwayat pengaturan untuk staf ini
+        const staffLogs = settingHistory.filter(log => log.target === staff.name).slice(0, 3);
+        if (staffLogs.length > 0) {
+          const logDiv = document.createElement('div');
+          logDiv.className = 'history-log';
+          logDiv.innerHTML = `<strong>Riwayat:</strong><br>` + 
+            staffLogs.map(log => 
+              `[${log.timestamp}] ${log.admin} → ${log.action}`
+            ).join('<br>');
+          staffSettingContainer.appendChild(logDiv);
         }
-      }
+
+        // Tambahkan garis pemisah
+        const hr = document.createElement('hr');
+        hr.style.border = '0';
+        hr.style.borderTop = '1px solid var(--border-neon)';
+        hr.style.margin = '20px 0';
+        staffSettingContainer.appendChild(hr);
+      });
     }
 
-    function loadIzinHariIni() {
-      const today = new Date().toLocaleDateString('id-ID');
-      let found = false;
-      izinHariIniBody.innerHTML = '';
-
-      for (const [name, records] of Object.entries(history)) {
-        const staff = STAFF_LIST.find(s => s.name === name);
-        if (!staff) continue;
-
-        const todayRecords = records.filter(r => r.date === today);
-        todayRecords.forEach(rec => {
-          found = true;
-          const durationParts = rec.duration.match(/(\d+)m (\d+)s/);
-          const minutes = durationParts ? durationParts[1] : "0";
-          const seconds = durationParts ? durationParts[2] : "0";
-          const totalIzin = records.length;
-          const statusText = `Sudah ${totalIzin}x Keluar`;
-
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${name} (${staff.role})</td>
-            <td>${staff.role}</td>
-            <td>${rec.date}</td>
-            <td>${rec.start}</td>
-            <td>${rec.end}</td>
-            <td>${minutes} menit ${seconds} detik</td>
-            <td>Tepat Waktu</td>
-            <td class="status-cell ${rec.status === 'late' ? 'late' : ''}">${statusText}</td>
-          `;
-          izinHariIniBody.appendChild(row);
-        });
-      }
-
-      noIzinHariIni.classList.toggle('hidden', found);
-    }
-
+    // ✅ MUAT DAFTAR IZIN AKTIF + EMOJI 😴
     function loadActivePermissions() {
       activeList.innerHTML = '';
       let count = 0;
@@ -771,7 +772,7 @@
         if (startStr) {
           const start = new Date(parseInt(startStr));
           const elapsed = Date.now() - start.getTime();
-          const maxSec = systemConfig.maxDurationMinutes * 60;
+          const maxSec = staffSettings[name].maxDuration * 60;
           remainingSec = Math.max(0, maxSec - Math.floor(elapsed / 1000));
           if (remainingSec > 0) {
             const mins = Math.floor(remainingSec / 60);
@@ -787,8 +788,11 @@
         card.className = 'card';
         card.style.marginBottom = '24px';
         const nameClass = isLate ? 'late' : 'punctual';
+        // ✅ TAMBAHKAN EMOJI "SEDANG ISTIRAHAT"
         card.innerHTML = `
-          <h3 class="staff-name ${nameClass}" style="color: var(--neon-cyan);">${name} <span style="font-size:16px; color:#aaa;">(${roleDisplay})</span></h3>
+          <h3 class="staff-name ${nameClass}" style="color: var(--neon-cyan);">
+            😴 ${name} <span style="font-size:16px; color:#aaa;">(${roleDisplay})</span>
+          </h3>
           <p><strong>Sisa Waktu:</strong> <span class="timer ${remainingSec <= 0 ? 'late' : remainingSec <= 300 ? 'warning' : ''}">${remainingText}</span></p>
         `;
         activeList.appendChild(card);
@@ -798,34 +802,7 @@
       updateActiveStaffTable();
     }
 
-    function updateActiveStaffTable() {
-      activeStaffTable.innerHTML = '';
-      for (const [role, name] of Object.entries(activePermissions)) {
-        if (!name) continue;
-        const staff = STAFF_LIST.find(s => s.name === name);
-        if (!staff) continue;
-
-        const startStr = localStorage.getItem(`linetogel_start_${name}`);
-        if (!startStr) continue;
-
-        const start = new Date(parseInt(startStr));
-        const time = start.toLocaleTimeString('id-ID');
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${name} (${staff.role})</td>
-          <td>${staff.role}</td>
-          <td>${time}</td>
-        `;
-        activeStaffTable.appendChild(row);
-      }
-
-      if (activeStaffTable.children.length === 0) {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td colspan="3" style="text-align:center; color:#aaa;">Tidak ada staf yang sedang izin.</td>`;
-        activeStaffTable.appendChild(row);
-      }
-    }
+    // ... (fungsi lain seperti requestPermission, startTimer, dll)
 
     function requestPermission() {
       const role = currentUser.role;
@@ -836,8 +813,9 @@
       const today = new Date().toLocaleDateString('id-ID');
       const records = history[currentUser.name] || [];
       const todayRecords = records.filter(r => r.date === today);
-      if (todayRecords.length >= systemConfig.maxPermissionsPerDay) {
-        showToast(`Anda sudah mencapai batas ${systemConfig.maxPermissionsPerDay} izin hari ini.`, 'error');
+      const maxPerm = staffSettings[currentUser.name].maxPermissions;
+      if (todayRecords.length >= maxPerm) {
+        showToast(`Anda sudah mencapai batas ${maxPerm} izin hari ini.`, 'error');
         return;
       }
       activePermissions[role] = currentUser.name;
@@ -858,9 +836,97 @@
       showToast(`Izin keluar dimulai untuk ${staffInfo}`, 'success');
     }
 
-    function saveStaffPasswords() {
-      localStorage.setItem('linetogel_passwords', JSON.stringify(staffPasswords));
+    function startTimer() {
+      clearInterval(permissionTimer);
+      timerDisplay.classList.remove('hidden', 'warning', 'late');
+      alarmPlayed = false;
+      beepPlayed = false;
+      const totalSec = staffSettings[currentUser.name].maxDuration * 60;
+      permissionTimer = setInterval(() => {
+        if (!startTime) return;
+        const now = new Date();
+        const elapsedMs = now - startTime;
+        const remainingSec = Math.max(0, totalSec - Math.floor(elapsedMs / 1000));
+        const mins = Math.floor(remainingSec / 60);
+        const secs = remainingSec % 60;
+        timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        const staffInfo = `${currentUser.name} (${currentUser.role})`;
+        if (remainingSec <= 0) {
+          timerDisplay.classList.add('late');
+          timerDisplay.textContent = "⏰ WAKTU HABIS!";
+          playAlarm();
+          showToast(`Waktu izin ${staffInfo} habis!`, 'error');
+          handlePermissionExpired(startTime);
+        } else if (remainingSec <= 60 && !beepPlayed) {
+          timerDisplay.classList.add('warning');
+          playBeep();
+          showToast(`Izin ${staffInfo}: sisa ${remainingSec} detik!`, 'warning');
+        } else if (remainingSec <= 300) {
+          timerDisplay.classList.add('warning');
+          timerDisplay.classList.remove('late');
+        } else {
+          timerDisplay.classList.remove('warning', 'late');
+        }
+      }, 1000);
     }
+
+    // ✅ FUNGSI BARU: RESET JAM KELUAR PER STAF
+    function resetJamKeluar(staffName) {
+      if (!confirm(`Reset jam keluar untuk ${staffName}? Ini akan menghapus sesi aktifnya.`)) return;
+      
+      // Hapus sesi aktif
+      for (const [role, name] of Object.entries(activePermissions)) {
+        if (name === staffName) {
+          delete activePermissions[role];
+          break;
+        }
+      }
+      localStorage.removeItem(`linetogel_start_${staffName}`);
+      localStorage.removeItem(`linetogel_end_${staffName}`);
+      
+      // Hapus riwayat hari ini untuk staf ini
+      const today = new Date().toLocaleDateString('id-ID');
+      if (history[staffName]) {
+        history[staffName] = history[staffName].filter(r => r.date !== today);
+      }
+      
+      saveSession();
+      addSettingHistory("Reset Jam Keluar", staffName);
+      loadActivePermissions();
+      loadIzinHariIni();
+      showToast(`✅ Sesi izin ${staffName} berhasil direset!`, 'success');
+    }
+
+    function resetPassword(staffName) {
+      if (!confirm(`Reset password ${staffName} ke default ("1")?`)) return;
+      staffPasswords[staffName] = simpleHash("1");
+      saveStaffData();
+      addSettingHistory("Reset Password", staffName);
+      showToast(`Password ${staffName} berhasil direset.`, 'success');
+    }
+
+    function changeRole(staffName) {
+      const current = STAFF_LIST.find(s => s.name === staffName);
+      const newRole = prompt(`Ubah role ${staffName} (${current.role}) menjadi:`, current.role);
+      if (!newRole || !newRole.trim()) return;
+      const role = newRole.trim().toUpperCase();
+      const idx = STAFF_LIST.findIndex(s => s.name === staffName);
+      if (idx !== -1) {
+        STAFF_LIST[idx].role = role;
+      }
+      if (activePermissions[current.role] === staffName) {
+        delete activePermissions[current.role];
+        activePermissions[role] = staffName;
+      }
+      addSettingHistory(`Ubah Role ke ${role}`, staffName);
+      renderStaffSettings();
+      loadActivePermissions();
+      loadIzinHariIni();
+      showToast(`Role ${staffName} diubah menjadi: ${role}`, 'success');
+      saveSession();
+    }
+
+    // ... (sisa fungsi seperti saveSession, handleLogin, showPage, dll)
 
     function saveSession() {
       const session = {
@@ -871,13 +937,6 @@
       localStorage.setItem('linetogel_session', JSON.stringify(session));
       localStorage.setItem('linetogel_history', JSON.stringify(history));
       localStorage.setItem('linetogel_active', JSON.stringify(activePermissions));
-    }
-
-    function clearSession() {
-      localStorage.removeItem('linetogel_session');
-      currentUser = null;
-      startTime = null;
-      clearInterval(permissionTimer);
     }
 
     function handleLogin() {
@@ -898,17 +957,17 @@
       app.classList.remove('hidden');
 
       if (staff.role === "CS" || staff.role === "CS LINE") {
-        staffManagementSection.classList.remove('hidden');
+        staffSettingSection.classList.remove('hidden');
+        renderStaffSettings();
       } else {
-        staffManagementSection.classList.add('hidden');
+        staffSettingSection.classList.add('hidden');
       }
 
       loadActivePermissions();
       loadIzinHariIni();
       loadPersonalStats();
       checkActivePermission();
-      renderStaffManagement();
-      loadSystemConfig();
+      saveStaffData();
       saveSession();
     }
 
@@ -943,76 +1002,14 @@
       }
     }
 
-    // ... (fungsi lain seperti startTimer, returnFromPermission, dll)
-
-    function startTimer() {
-      clearInterval(permissionTimer);
-      timerDisplay.classList.remove('hidden', 'warning', 'late');
-      alarmPlayed = false;
-      beepPlayed = false;
-      const totalSec = systemConfig.maxDurationMinutes * 60;
-      permissionTimer = setInterval(() => {
-        if (!startTime) return;
-        const now = new Date();
-        const elapsedMs = now - startTime;
-        const remainingSec = Math.max(0, totalSec - Math.floor(elapsedMs / 1000));
-        const mins = Math.floor(remainingSec / 60);
-        const secs = remainingSec % 60;
-        timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        const staffInfo = `${currentUser.name} (${currentUser.role})`;
-        if (remainingSec <= 0) {
-          timerDisplay.classList.add('late');
-          timerDisplay.textContent = "⏰ WAKTU HABIS!";
-          playAlarm();
-          showToast(`Waktu izin ${staffInfo} habis!`, 'error');
-          handlePermissionExpired(startTime);
-        } else if (remainingSec <= 60 && !beepPlayed) {
-          timerDisplay.classList.add('warning');
-          playBeep();
-          showToast(`Izin ${staffInfo}: sisa ${remainingSec} detik!`, 'warning');
-        } else if (remainingSec <= 300) {
-          timerDisplay.classList.add('warning');
-          timerDisplay.classList.remove('late');
-        } else {
-          timerDisplay.classList.remove('warning', 'late');
-        }
-      }, 1000);
-    }
-
-    function playBeep() {
-      if (!beepPlayed) {
-        document.getElementById('beep-audio').play().catch(e => console.log("Audio play blocked:", e));
-        beepPlayed = true;
-      }
-    }
-
-    function playAlarm() {
-      if (!alarmPlayed) {
-        document.getElementById('alarm-audio').play().catch(e => console.log("Audio play blocked:", e));
-        alarmPlayed = true;
-      }
-    }
-
-    function confirmReturn() {
-      const now = new Date();
-      const elapsedMin = Math.ceil((now - startTime) / 60000);
-      const maxMin = systemConfig.maxDurationMinutes;
-      const isLate = elapsedMin > maxMin;
-      const staffInfo = `${currentUser.name} (${currentUser.role})`;
-      const msg = isLate 
-        ? `Izin ${staffInfo} telah berlangsung ${elapsedMin} menit (>${maxMin}m).\nDenda akan dikenakan.\n\nLanjutkan?`
-        : `Izin ${staffInfo} berlangsung ${elapsedMin} menit.\nKembali sekarang?`;
-      if (confirm(msg)) {
-        returnFromPermission();
-      }
-    }
+    // ... (sisa fungsi seperti returnFromPermission, handlePermissionExpired, loadLastNightHistory, exportToPDF, showChangePassword, hideChangePassword, submitChangePassword, logout, resetAllData)
 
     function returnFromPermission() {
       const endTime = new Date();
       const durationMs = endTime - startTime;
       const durationMin = Math.floor(durationMs / 60000);
       const durationSec = Math.floor((durationMs % 60000) / 1000);
-      const maxMin = systemConfig.maxDurationMinutes;
+      const maxMin = staffSettings[currentUser.name].maxDuration;
       const isLate = durationMin > maxMin || (durationMin === maxMin && durationSec > 0);
       const staffInfo = `${currentUser.name} (${currentUser.role})`;
       const record = {
@@ -1042,7 +1039,8 @@
     }
 
     function handlePermissionExpired(start) {
-      const maxMs = systemConfig.maxDurationMinutes * 60 * 1000;
+      const staffName = currentUser.name;
+      const maxMs = staffSettings[staffName].maxDuration * 60 * 1000;
       const endTime = new Date(start.getTime() + maxMs);
       const staff = STAFF_LIST.find(s => s.name === activePermissions[currentUser?.role || '']);
       const staffInfo = staff ? `${staff.name} (${staff.role})` : "Staf";
@@ -1050,10 +1048,10 @@
         date: endTime.toLocaleDateString('id-ID'),
         start: start.toLocaleTimeString('id-ID'),
         end: endTime.toLocaleTimeString('id-ID'),
-        duration: `${systemConfig.maxDurationMinutes}m 00s`,
+        duration: `${staffSettings[staffName].maxDuration}m 00s`,
         status: 'late'
       };
-      const name = staff?.name || (currentUser?.name);
+      const name = staff?.name || staffName;
       if (name && !history[name]) history[name] = [];
       if (name) history[name].push(record);
       if (currentUser?.role) delete activePermissions[currentUser.role];
@@ -1188,57 +1186,10 @@
         return;
       }
       staffPasswords[currentUser.name] = simpleHash(newPass);
-      saveStaffPasswords();
+      saveStaffData();
+      addSettingHistory("Ganti Password", currentUser.name);
       showToast("Password berhasil diubah!", 'success');
       hideChangePassword();
-    }
-
-    // ✅ RENDER MANAJEMEN STAF PER STAFF
-    function renderStaffManagement() {
-      staffManagementBody.innerHTML = '';
-      STAFF_LIST.forEach(staff => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${staff.name}</td>
-          <td>${staff.role}</td>
-          <td>
-            <button class="btn btn-warning" style="padding:6px 10px; font-size:14px; margin-right:6px;" onclick="resetPassword('${staff.name}')">
-              <i class="fas fa-redo"></i> Reset PW
-            </button>
-            <button class="btn btn-purple" style="padding:6px 10px; font-size:14px;" onclick="changeRole('${staff.name}')">
-              <i class="fas fa-user-edit"></i> Ubah Role
-            </button>
-          </td>
-        `;
-        staffManagementBody.appendChild(row);
-      });
-    }
-
-    function resetPassword(staffName) {
-      if (!confirm(`Reset password ${staffName} ke default ("1")?`)) return;
-      staffPasswords[staffName] = simpleHash("1");
-      saveStaffPasswords();
-      showToast(`Password ${staffName} berhasil direset.`, 'success');
-    }
-
-    function changeRole(staffName) {
-      const current = STAFF_LIST.find(s => s.name === staffName);
-      const newRole = prompt(`Ubah role ${staffName} (${current.role}) menjadi:`, current.role);
-      if (!newRole || !newRole.trim()) return;
-      const role = newRole.trim().toUpperCase();
-      const idx = STAFF_LIST.findIndex(s => s.name === staffName);
-      if (idx !== -1) {
-        STAFF_LIST[idx].role = role;
-      }
-      if (activePermissions[current.role] === staffName) {
-        delete activePermissions[current.role];
-        activePermissions[role] = staffName;
-      }
-      renderStaffManagement();
-      loadActivePermissions();
-      loadIzinHariIni();
-      showToast(`Role ${staffName} diubah menjadi: ${role}`, 'success');
-      saveSession();
     }
 
     function logout() {
@@ -1259,6 +1210,117 @@
         setTimeout(() => location.reload(), 1000);
       }
     }
+
+    function clearSession() {
+      localStorage.removeItem('linetogel_session');
+      currentUser = null;
+      startTime = null;
+      clearInterval(permissionTimer);
+    }
+
+    function loadIzinHariIni() {
+      const today = new Date().toLocaleDateString('id-ID');
+      let found = false;
+      izinHariIniBody.innerHTML = '';
+
+      for (const [name, records] of Object.entries(history)) {
+        const staff = STAFF_LIST.find(s => s.name === name);
+        if (!staff) continue;
+
+        const todayRecords = records.filter(r => r.date === today);
+        todayRecords.forEach(rec => {
+          found = true;
+          const durationParts = rec.duration.match(/(\d+)m (\d+)s/);
+          const minutes = durationParts ? durationParts[1] : "0";
+          const seconds = durationParts ? durationParts[2] : "0";
+          const totalIzin = records.length;
+          const statusText = `Sudah ${totalIzin}x Keluar`;
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${name} (${staff.role})</td>
+            <td>${staff.role}</td>
+            <td>${rec.date}</td>
+            <td>${rec.start}</td>
+            <td>${rec.end}</td>
+            <td>${minutes} menit ${seconds} detik</td>
+            <td>Tepat Waktu</td>
+            <td class="status-cell ${rec.status === 'late' ? 'late' : ''}">${statusText}</td>
+          `;
+          izinHariIniBody.appendChild(row);
+        });
+      }
+
+      noIzinHariIni.classList.toggle('hidden', found);
+    }
+
+    function updateActiveStaffTable() {
+      activeStaffTable.innerHTML = '';
+      for (const [role, name] of Object.entries(activePermissions)) {
+        if (!name) continue;
+        const staff = STAFF_LIST.find(s => s.name === name);
+        if (!staff) continue;
+
+        const startStr = localStorage.getItem(`linetogel_start_${name}`);
+        if (!startStr) continue;
+
+        const start = new Date(parseInt(startStr));
+        const time = start.toLocaleTimeString('id-ID');
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>😴 ${name} (${staff.role})</td>
+          <td>${staff.role}</td>
+          <td>${time}</td>
+        `;
+        activeStaffTable.appendChild(row);
+      }
+
+      if (activeStaffTable.children.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="3" style="text-align:center; color:#aaa;">Tidak ada staf yang sedang izin.</td>`;
+        activeStaffTable.appendChild(row);
+      }
+    }
+
+    function loadPersonalStats() {
+      if (!currentUser) return;
+      const records = history[currentUser.name] || [];
+      const count = records.length;
+      let totalMinutes = 0;
+      let lastInfo = "-";
+      if (count > 0) {
+        records.forEach(r => {
+          const parts = r.duration.match(/(\d+)m/);
+          if (parts) totalMinutes += parseInt(parts[1], 10);
+        });
+        const last = records[records.length - 1];
+        lastInfo = `${last.start} – ${last.end} (${last.duration})`;
+      }
+      totalCountEl.textContent = `${count} kali`;
+      totalMinutesEl.textContent = `${totalMinutes} menit`;
+      avgDurationEl.textContent = count > 0 ? `${Math.round(totalMinutes / count)} menit/izin` : "0 menit/izin";
+      lastPermissionEl.textContent = lastInfo;
+    }
+
+    function checkActivePermission() {
+      const role = currentUser.role;
+      const activeUser = activePermissions[role];
+
+      if (activeUser && activeUser !== currentUser.name) {
+        requestBtn.disabled = true;
+        waitMessage.classList.remove('hidden');
+        returnBtn.classList.add('hidden');
+        timerDisplay.classList.add('hidden');
+      } else {
+        requestBtn.disabled = false;
+        waitMessage.classList.add('hidden');
+        if (startTime) {
+          returnBtn.classList.remove('hidden');
+          if (!permissionTimer) startTimer();
+        }
+      }
+    }
   </script>
 
   <audio id="beep-audio" preload="auto">
@@ -1269,7 +1331,7 @@
   </audio>
 
   <div class="footer">
-    LINETOGEL PRO SETTING • Per Staff • © 2026
+    LINETOGEL PRO SETTING LENGKAP • Emoticon Istirahat • © 2026
   </div>
 </body>
 </html>
