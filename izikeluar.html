@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LINETOGEL PRO • REAL-TIME DASHBOARD</title>
+  <title>LINETOGEL PRO • IZIN HARI INI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -286,8 +286,8 @@
   <div id="login-screen" class="fade-in">
     <div class="container">
       <div class="card" style="text-align: center;">
-        <h1><i class="fas fa-bolt"></i> LINETOGEL PRO REAL-TIME</h1>
-        <p style="margin: 28px 0; color: #aaa;">Dashboard Otomatis • Neon Futuristik • Akses Terbatas</p>
+        <h1><i class="fas fa-bolt"></i> LINETOGEL PRO HARI INI</h1>
+        <p style="margin: 28px 0; color: #aaa;">Dashboard Izin Hari Ini • Neon Futuristik</p>
         <select id="staff-select">
           <option value="">— Pilih Nama Staf —</option>
           <option value="CHARLIE">CHARLIE (CS LINE)</option>
@@ -308,7 +308,7 @@
 
   <!-- MAIN APP -->
   <div id="app" class="hidden">
-    <!-- NAVBAR: SETTING SELALU TAMPIL -->
+    <!-- NAVBAR -->
     <nav class="navbar">
       <div class="nav-brand"><i class="fas fa-chart-line"></i> LINETOGEL</div>
       <ul class="nav-links">
@@ -322,13 +322,35 @@
     <div class="container">
       <!-- DASHBOARD -->
       <div id="page-dashboard" class="page-content">
-        <!-- ✅ DAFTAR STAF YANG SEDANG IZIN (OTOMATIS UPDATE) -->
+        <!-- STAF YANG SEDANG IZIN -->
         <div class="card">
           <h2><i class="fas fa-users"></i> Staf yang Sedang Izin Keluar</h2>
           <p id="no-active-permission" class="hidden" style="text-align:center; color:#777;">Tidak ada staf yang sedang izin.</p>
           <div id="active-permissions-list"></div>
         </div>
 
+        <!-- ✅ TABEL IZIN HARI INI -->
+        <div class="card">
+          <h2><i class="fas fa-calendar-day"></i> Izin Hari Ini</h2>
+          <table id="izin-hari-ini-table">
+            <thead>
+              <tr>
+                <th><i class="fas fa-user"></i> NAMA STAFF</th>
+                <th><i class="fas fa-briefcase"></i> JOBDESK</th>
+                <th><i class="fas fa-calendar"></i> TANGGAL</th>
+                <th><i class="fas fa-clock"></i> JAM MASUK</th>
+                <th><i class="fas fa-clock"></i> JAM KELUAR</th>
+                <th><i class="fas fa-stopwatch"></i> DURASI</th>
+                <th><i class="fas fa-comment"></i> KET</th>
+                <th><i class="fas fa-check"></i> STATUS</th>
+              </tr>
+            </thead>
+            <tbody id="izin-hari-ini-body"></tbody>
+          </table>
+          <p id="no-izin-hari-ini" class="hidden" style="text-align:center; color:#777; margin-top:16px;">Belum ada staf yang izin hari ini.</p>
+        </div>
+
+        <!-- KELOLA IZIN ANDA -->
         <div class="card">
           <h2><i class="fas fa-door-open"></i> Kelola Izin Anda</h2>
           <p>Jam Server: <strong id="current-time">--:--:--</strong></p>
@@ -344,7 +366,7 @@
           <div id="permission-status"></div>
           <div id="timer-display" class="timer hidden"></div>
 
-          <div class="stat-card" id="personal-stats" style="background: rgba(0, 224, 255, 0.07); border-radius: 18px; padding: 22px; margin-top: 26px; border-left: 3px solid var(--neon-cyan);">
+          <div class="stat-card" style="background: rgba(0, 224, 255, 0.07); border-radius: 18px; padding: 22px; margin-top: 26px; border-left: 3px solid var(--neon-cyan);">
             <h3 style="margin-bottom: 18px; color: var(--neon-cyan);"><i class="fas fa-chart-bar"></i> Statistik Izin Anda</h3>
             <div class="stat-row" style="display: flex; justify-content: space-between; margin: 12px 0;">
               <span class="stat-label" style="color: #bbb;">Total Izin:</span>
@@ -365,14 +387,13 @@
           </div>
         </div>
 
+        <!-- AKSI CEPAT (TANPA RESET DATA LOKAL) -->
         <div class="card">
           <h3><i class="fas fa-cogs"></i> Aksi Cepat</h3>
           <button class="btn" style="background:#444; color:white;" onclick="logout()">
             <i class="fas fa-sign-out-alt"></i> Logout
           </button>
-          <button class="btn btn-warning" style="margin-left:10px;" onclick="resetAllData()">
-            <i class="fas fa-sync-alt"></i> Reset Data Lokal
-          </button>
+          <!-- Reset Data Lokal dipindah ke Setting -->
         </div>
       </div>
 
@@ -411,12 +432,6 @@
             </thead>
             <tbody id="riwayat-table"></tbody>
           </table>
-        </div>
-
-        <div class="card">
-          <button class="btn btn-purple" onclick="exportToPDF()">
-            <i class="fas fa-file-pdf"></i> Ekspor ke PDF
-          </button>
         </div>
 
         <div class="card">
@@ -464,6 +479,16 @@
               <i class="fas fa-clock"></i> Reset Jam Keluar (Hapus Semua Sesi Aktif)
             </button>
             
+            <!-- ✅ RESET DATA LOKAL DIPINDAH KE SINI -->
+            <button class="btn btn-warning" onclick="resetAllData()" style="margin-top: 10px; width: 100%;">
+              <i class="fas fa-trash-alt"></i> Reset Data Lokal
+            </button>
+            
+            <!-- ✅ EKSPOR PDF DIPINDAH KE SINI -->
+            <button class="btn btn-purple" onclick="exportToPDF()" style="margin-top: 10px; width: 100%;">
+              <i class="fas fa-file-pdf"></i> Ekspor ke PDF
+            </button>
+            
             <div style="margin-top: 15px; padding: 12px; background: rgba(255, 51, 102, 0.1); border-radius: 8px; color: #ff9999;">
               <i class="fas fa-exclamation-triangle"></i> 
               <strong>Peringatan:</strong> Aksi ini tidak bisa dikembalikan!
@@ -508,7 +533,7 @@
 
   <!-- HIDDEN PDF AREA -->
   <div id="pdf-export-area" style="position:absolute;left:-9999px;top:-9999px;width:800px;background:white;padding:40px;font-family:Arial,sans-serif;">
-    <h1 style="color:#007acc;text-align:center;margin-bottom:20px;">LINETOGEL PRO • Riwayat Izin Semalam</h1>
+    <h1 style="color:#007acc;text-align:center;margin-bottom:20px;">LINETOGEL PRO • Riwayat Izin Hari Ini</h1>
     <p>Tanggal: <span id="pdf-date">-</span></p>
     <table id="pdf-table" style="width:100%;border-collapse:collapse;">
       <thead><tr><th>Staf</th><th>Role</th><th>Mulai</th><th>Selesai</th><th>Durasi</th><th>Status</th></tr></thead>
@@ -551,6 +576,7 @@
       if (e.key === 'linetogel_active' || e.key === 'linetogel_zoom_trigger') {
         setTimeout(() => {
           loadActivePermissions();
+          loadIzinHariIni();
           if (currentUser) {
             loadPersonalStats();
             if (!document.getElementById('page-riwayat-semalam').classList.contains('hidden')) {
@@ -590,7 +616,6 @@
       container.appendChild(toast);
       setTimeout(() => toast.remove(), 4000);
       
-      // Animasi CSS inline
       const style = document.createElement('style');
       style.textContent = `
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -620,9 +645,10 @@
     const totalMinutesEl = document.getElementById('total-minutes');
     const avgDurationEl = document.getElementById('avg-duration');
     const lastPermissionEl = document.getElementById('last-permission');
+    const izinHariIniBody = document.getElementById('izin-hari-ini-body');
+    const noIzinHariIni = document.getElementById('no-izin-hari-ini');
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Tampilkan notifikasi setiap kali halaman dimuat
       document.getElementById('full-screen-notice').classList.remove('hidden');
       
       setTimeout(() => {
@@ -670,7 +696,6 @@
             loginScreen.classList.add('hidden');
             app.classList.remove('hidden');
 
-            // Tampilkan konten setting sesuai role
             if (staff.role === "CS") {
               adminSetting.classList.remove('hidden');
               staffManagementSection.classList.remove('hidden');
@@ -703,6 +728,7 @@
             }
 
             loadActivePermissions();
+            loadIzinHariIni();
             loadPersonalStats();
             checkActivePermission();
             renderStaffManagement();
@@ -724,7 +750,45 @@
       }
     }
 
-    // ✅ MUAT DAFTAR IZIN AKTIF (UNTUK SEMUA ROLE)
+    // ✅ MUAT IZIN HARI INI
+    function loadIzinHariIni() {
+      const today = new Date().toLocaleDateString('id-ID');
+      let found = false;
+      izinHariIniBody.innerHTML = '';
+
+      for (const [name, records] of Object.entries(history)) {
+        const staff = STAFF_LIST.find(s => s.name === name);
+        if (!staff) continue;
+
+        const todayRecords = records.filter(r => r.date === today);
+        todayRecords.forEach(rec => {
+          found = true;
+          const durationParts = rec.duration.match(/(\d+)m (\d+)s/);
+          const minutes = durationParts ? durationParts[1] : "0";
+          const seconds = durationParts ? durationParts[2] : "0";
+          const totalIzin = records.length;
+          const statusText = `Sudah ${totalIzin}x Keluar`;
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${name} (${staff.role})</td>
+            <td>${staff.role}</td>
+            <td>${rec.date}</td>
+            <td>${rec.start}</td>
+            <td>${rec.end}</td>
+            <td>${minutes} menit ${seconds} detik</td>
+            <td>Tepat Waktu</td>
+            <td class="status-cell ${rec.status === 'late' ? 'late' : ''}">${statusText}</td>
+          `;
+          izinHariIniBody.appendChild(row);
+        });
+      }
+
+      noIzinHariIni.classList.toggle('hidden', found);
+    }
+
+    // ... (fungsi lain seperti loadActivePermissions, requestPermission, dll)
+
     function loadActivePermissions() {
       activeList.innerHTML = '';
       let count = 0;
@@ -802,8 +866,6 @@
       }
     }
 
-    // ... (fungsi lain seperti requestPermission, startTimer, dll tetap sama)
-
     function requestPermission() {
       const role = currentUser.role;
       if (activePermissions[role]) {
@@ -826,6 +888,7 @@
       returnBtn.classList.remove('hidden');
       startTimer();
       loadActivePermissions();
+      loadIzinHariIni();
       localStorage.setItem('linetogel_zoom_trigger', JSON.stringify({
         staff: currentUser.name,
         role: currentUser.role,
@@ -875,7 +938,6 @@
       loginScreen.classList.add('hidden');
       app.classList.remove('hidden');
 
-      // Tampilkan konten setting sesuai role
       if (staff.role === "CS") {
         adminSetting.classList.remove('hidden');
         staffManagementSection.classList.remove('hidden');
@@ -888,6 +950,7 @@
       }
 
       loadActivePermissions();
+      loadIzinHariIni();
       loadPersonalStats();
       checkActivePermission();
       renderStaffManagement();
@@ -902,7 +965,6 @@
       setTimeout(() => el.classList.add('hidden'), 3000);
     }
 
-    // ✅ FUNGSI UTAMA: BATASI AKSES SETTING
     function showPage(page) {
       document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
@@ -917,7 +979,6 @@
         loadLastNightHistory();
       } 
       else if (page === 'setting') {
-        // ✅ CEK: HANYA CS DAN CS LINE BOLEH MASUK
         if (currentUser && (currentUser.role === "CS" || currentUser.role === "CS LINE")) {
           document.getElementById('page-setting').classList.remove('hidden');
           document.getElementById('nav-setting').classList.add('active');
@@ -1021,6 +1082,7 @@
         ? `<div class="notification error"><i class="fas fa-exclamation-triangle"></i> ❌ Denda untuk ${staffInfo}!</div>`
         : `<div class="notification success"><i class="fas fa-thumbs-up"></i> ✅ Kembali tepat waktu: ${staffInfo}.</div>`;
       loadActivePermissions();
+      loadIzinHariIni();
       loadPersonalStats();
       checkActivePermission();
     }
@@ -1052,6 +1114,7 @@
       returnBtn.classList.add('hidden');
       permissionStatus.innerHTML = `<div class="notification error"><i class="fas fa-skull"></i> ❌ Waktu habis! Denda untuk ${staffInfo}.</div>`;
       loadActivePermissions();
+      loadIzinHariIni();
       loadPersonalStats();
     }
 
@@ -1095,19 +1158,16 @@
     }
 
     async function exportToPDF() {
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toLocaleDateString('id-ID');
-      document.getElementById('pdf-date').textContent = yesterdayStr;
+      const today = new Date().toLocaleDateString('id-ID');
+      document.getElementById('pdf-date').textContent = today;
       const pdfBody = document.getElementById('pdf-body');
       pdfBody.innerHTML = '';
       let hasData = false;
       for (const [name, records] of Object.entries(history)) {
         const staff = STAFF_LIST.find(s => s.name === name);
         if (!staff) continue;
-        const yRecords = records.filter(r => r.date === yesterdayStr);
-        yRecords.forEach(rec => {
+        const todayRecords = records.filter(r => r.date === today);
+        todayRecords.forEach(rec => {
           hasData = true;
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -1122,7 +1182,7 @@
         });
       }
       if (!hasData) {
-        showToast("Tidak ada data untuk diekspor.", 'warning');
+        showToast("Tidak ada data hari ini untuk diekspor.", 'warning');
         return;
       }
       const { jsPDF } = window.jspdf;
@@ -1143,7 +1203,7 @@
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
-      pdf.save(`Linetogel_Riwayat_Semalam_${yesterdayStr.replace(/\//g, '-')}.pdf`);
+      pdf.save(`Linetogel_Izin_Hari_Ini_${today.replace(/\//g, '-')}.pdf`);
     }
 
     function showChangePassword() {
@@ -1221,6 +1281,7 @@
       }
       renderStaffManagement();
       loadActivePermissions();
+      loadIzinHariIni();
       showToast(`Role ${staffName} diubah menjadi: ${role}`, 'success');
       saveSession();
     }
@@ -1255,6 +1316,7 @@
       }
       saveSession();
       loadActivePermissions();
+      loadIzinHariIni();
       loadPersonalStats();
       showToast("✅ Semua sesi izin dan riwayat hari ini berhasil direset!", 'success');
     }
@@ -1287,7 +1349,7 @@
   </audio>
 
   <div class="footer">
-    LINETOGEL PRO REAL-TIME • Dashboard Otomatis • © 2026
+    LINETOGEL PRO HARI INI • Dashboard Lengkap • © 2026
   </div>
 </body>
 </html>
