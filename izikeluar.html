@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>LINETOGEL PRO • SETTING PER STAFF</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
 --bg: #020204;
@@ -366,22 +368,35 @@ padding-bottom: 4px;
 <i class="fas fa-key"></i> Ganti Password
 </button>
 </div>
-<!-- ✅ MANAJEMEN STAF DENGAN SETTING LENGKAP -->
-<div id="staff-management-section">
+<div id="staff-management-section" class="hidden">
 <div class="card">
 <h2><i class="fas fa-tools"></i> Manajemen Staf</h2>
 <table id="staff-management-table">
 <thead>
 <tr>
 <th>Staf</th>
-<th>Role</th>
-<th>Izin/Hari</th>
-<th>Durasi (mnt)</th>
+<th>Role Saat Ini</th>
 <th>Aksi</th>
 </tr>
 </thead>
 <tbody id="staff-management-body"></tbody>
 </table>
+
+<!-- ✅ HISTORI STAF YANG DISETTING -->
+<div class="setting-group" style="margin-top: 30px;">
+<h3><i class="fas fa-history"></i> Histori Konfigurasi Staf</h3>
+<p id="config-history" style="color:#ccc; font-size:16px; line-height:1.6;"></p>
+</div>
+</div>
+</div>
+<div class="card">
+<h2><i class="fas fa-database"></i> Data & Ekspor</h2>
+<button class="btn btn-warning" onclick="resetAllData()" style="margin-top: 10px; width: 100%;">
+<i class="fas fa-trash-alt"></i> Reset Data Lokal
+</button>
+<button class="btn btn-purple" onclick="exportToPDF()" style="margin-top: 10px; width: 100%;">
+<i class="fas fa-file-pdf"></i> Ekspor ke PDF
+</button>
 </div>
 </div>
 </div>
@@ -408,6 +423,16 @@ Batal
 <!-- TOAST CONTAINER -->
 <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 5000;"></div>
 
+<!-- HIDDEN PDF AREA -->
+<div id="pdf-export-area" style="position:absolute;left:-9999px;top:-9999px;width:800px;background:white;padding:40px;font-family:Arial,sans-serif;">
+<h1 style="color:#007acc;text-align:center;margin-bottom:20px;">LINETOGEL PRO • Riwayat Izin Hari Ini</h1>
+<p>Tanggal: <span id="pdf-date">-</span></p>
+<table id="pdf-table" style="width:100%;border-collapse:collapse;">
+<thead><tr><th>Staf</th><th>Role</th><th>Mulai</th><th>Selesai</th><th>Durasi</th><th>Status</th></tr></thead>
+<tbody id="pdf-body"></tbody>
+</table>
+</div>
+
 <!-- FULL-SCREEN NOTIFICATION -->
 <div id="full-screen-notice" class="hidden">
 <div style="text-align:center;padding:40px;border:2px solid #00e0ff40;border-radius:30px;background:rgba(8,8,20,0.8);box-shadow:0 0 50px rgba(0,224,255,0.7);">
@@ -431,9 +456,12 @@ let permissionTimer = null;
 let activePermissions = {};
 let history = {};
 let staffPasswords = {};
-let staffConfig = {}; // ✅ Konfigurasi per staf
+let staffConfig = {}; // ✅ Per-staff config
 let alarmPlayed = false;
 let beepPlayed = false;
+
+// ✅ Emoticon istirahat acak
+const REST_EMOJIS = ['🛌', '😴', '☕', '🧘‍♂️', '🛋️', '💤', '😎', '🫖', '🦽', '🪟'];
 
 // === REAL-TIME SYNC ===
 window.addEventListener('storage', (e) => {
@@ -531,7 +559,7 @@ const now = new Date();
 currentTimeEl.textContent = now.toLocaleTimeString('id-ID', { hour12: false });
 }
 
-// ✅ Load konfigurasi per staf
+// ✅ Load staffConfig
 function loadStaffConfig() {
 const saved = localStorage.getItem('linetogel_staff_config');
 if (saved) {
@@ -544,9 +572,9 @@ console.warn("Invalid staff config", e);
 STAFF_LIST.forEach(staff => {
 if (!staffConfig[staff.name]) {
 staffConfig[staff.name] = {
-role: staff.role,
 maxPermissionsPerDay: 1,
-maxDurationMinutes: 15
+maxDurationMinutes: 15,
+role: staff.role
 };
 }
 });
@@ -574,15 +602,17 @@ const saved = localStorage.getItem('linetogel_session');
 if (saved) {
 try {
 const session = JSON.parse(saved);
-// ✅ Hanya cocokkan nama — tidak role
-const staff = STAFF_LIST.find(s => s.name === session.user.name);
+const staff = STAFF_LIST.find(s => s.name === session.user.name && s.role === session.user.role);
 if (staff) {
 currentUser = staff;
 userBadge.textContent = `${staff.name} • ${staff.role}`;
 loginScreen.classList.add('hidden');
 app.classList.remove('hidden');
-// ✅ Tampilkan manajemen staf untuk SEMUA
+if (staff.role === "CS" || staff.role === "CS LINE") {
 staffManagementSection.classList.remove('hidden');
+} else {
+staffManagementSection.classList.add('hidden');
+}
 if (session.startTime) {
 const start = new Date(session.startTime);
 const endStr = localStorage.getItem(`linetogel_end_${currentUser.name}`);
@@ -607,6 +637,7 @@ loadActivePermissions();
 loadIzinHariIni();
 loadPersonalStats();
 renderStaffManagement();
+updateConfigHistory();
 }
 } catch (e) {
 clearSession();
@@ -680,8 +711,14 @@ const card = document.createElement('div');
 card.className = 'card';
 card.style.marginBottom = '24px';
 const nameClass = isLate ? 'late' : 'punctual';
+
+// ✅ Emoticon acak
+const randomEmoji = REST_EMOJIS[Math.floor(Math.random() * REST_EMOJIS.length)];
+
 card.innerHTML = `
-<h3 class="staff-name ${nameClass}" style="color: var(--neon-cyan);">🛌 ${name} <span style="font-size:16px; color:#aaa;">(${roleDisplay})</span></h3>
+<h3 class="staff-name ${nameClass}" style="color: var(--neon-cyan);">
+${randomEmoji} ${name} <span style="font-size:16px; color:#aaa;">(${roleDisplay})</span>
+</h3>
 <p><strong>Sisa Waktu:</strong> <span class="timer ${remainingSec <= 0 ? 'late' : remainingSec <= 300 ? 'warning' : ''}">${remainingText}</span></p>
 `;
 activeList.appendChild(card);
@@ -753,7 +790,7 @@ localStorage.setItem('linetogel_passwords', JSON.stringify(staffPasswords));
 
 function saveSession() {
 const session = {
-user: { name: currentUser.name }, // ✅ Hanya simpan nama
+user: currentUser,
 startTime: startTime ? startTime.getTime() : null,
 activePermissions: activePermissions
 };
@@ -786,11 +823,16 @@ currentUser = staff;
 userBadge.textContent = `${staff.name} • ${staff.role}`;
 loginScreen.classList.add('hidden');
 app.classList.remove('hidden');
-staffManagementSection.classList.remove('hidden'); // ✅ Semua staf bisa akses
+if (staff.role === "CS" || staff.role === "CS LINE") {
+staffManagementSection.classList.remove('hidden');
+} else {
+staffManagementSection.classList.add('hidden');
+}
 loadActivePermissions();
 loadIzinHariIni();
 loadPersonalStats();
 renderStaffManagement();
+updateConfigHistory();
 saveSession();
 }
 
@@ -814,8 +856,13 @@ document.getElementById('nav-riwayat').classList.add('active');
 loadLastNightHistory();
 }
 else if (page === 'setting') {
+if (currentUser && (currentUser.role === "CS" || currentUser.role === "CS LINE")) {
 document.getElementById('page-setting').classList.remove('hidden');
 document.getElementById('nav-setting').classList.add('active');
+} else {
+showToast("Hanya CS dan CS LINE yang bisa mengakses menu ini.", "error");
+showPage('dashboard');
+}
 }
 }
 
@@ -989,6 +1036,55 @@ riwayatTable.appendChild(row);
 }
 }
 
+async function exportToPDF() {
+const today = new Date().toLocaleDateString('id-ID');
+document.getElementById('pdf-date').textContent = today;
+const pdfBody = document.getElementById('pdf-body');
+pdfBody.innerHTML = '';
+let hasData = false;
+for (const [name, records] of Object.entries(history)) {
+const staff = STAFF_LIST.find(s => s.name === name);
+if (!staff) continue;
+const todayRecords = records.filter(r => r.date === today);
+todayRecords.forEach(rec => {
+hasData = true;
+const row = document.createElement('tr');
+row.innerHTML = `
+<td>${name}</td>
+<td>${staff.role}</td>
+<td>${rec.start}</td>
+<td>${rec.end}</td>
+<td>${rec.duration}</td>
+<td>${rec.status === 'ok' ? 'Aman' : 'Denda'}</td>
+`;
+pdfBody.appendChild(row);
+});
+}
+if (!hasData) {
+showToast("Tidak ada data hari ini untuk diekspor.", 'warning');
+return;
+}
+const { jsPDF } = window.jspdf;
+const element = document.getElementById('pdf-export-area');
+const canvas = await html2canvas(element, { scale: 2 });
+const imgData = canvas.toDataURL('image/png');
+const pdf = new jsPDF('p', 'mm', 'a4');
+const imgWidth = 210;
+const pageHeight = 297;
+const imgHeight = (canvas.height * imgWidth) / canvas.width;
+let heightLeft = imgHeight;
+let position = 0;
+pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+heightLeft -= pageHeight;
+while (heightLeft >= 0) {
+position = heightLeft - imgHeight;
+pdf.addPage();
+pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+heightLeft -= pageHeight;
+}
+pdf.save(`Linetogel_Izin_Hari_Ini_${today.replace(/\//g, '-')}.pdf`);
+}
+
 function showChangePassword() {
 document.getElementById('new-password').value = '';
 document.getElementById('confirm-password').value = '';
@@ -1022,65 +1118,108 @@ showToast("Password berhasil diubah!", 'success');
 hideChangePassword();
 }
 
-// ✅ RENDER MANAJEMEN STAF DENGAN SEMUA MENU
+// ✅ RENDER MANAJEMEN STAF PER STAFF
 function renderStaffManagement() {
 staffManagementBody.innerHTML = '';
 STAFF_LIST.forEach(staff => {
-const cfg = staffConfig[staff.name] || { role: staff.role, maxPermissionsPerDay: 1, maxDurationMinutes: 15 };
+const config = staffConfig[staff.name] || { maxPermissionsPerDay: 1, maxDurationMinutes: 15 };
 const row = document.createElement('tr');
 row.innerHTML = `
 <td><strong>${staff.name}</strong></td>
-<td><input type="text" value="${cfg.role}" 
-    onchange="updateStaffSetting('${staff.name}', 'role', this.value)"
-    style="width:100%; padding:6px; font-size:14px; background:#111; color:white; border:1px solid #00e0ff40; border-radius:6px;"></td>
-<td><input type="number" min="1" max="10" value="${cfg.maxPermissionsPerDay}"
-    onchange="updateStaffSetting('${staff.name}', 'maxPermissionsPerDay', parseInt(this.value))"
-    style="width:80px; padding:6px; font-size:14px; background:#111; color:white; border:1px solid #00e0ff40; border-radius:6px;"></td>
-<td><input type="number" min="1" max="120" value="${cfg.maxDurationMinutes}"
-    onchange="updateStaffSetting('${staff.name}', 'maxDurationMinutes', parseInt(this.value))"
-    style="width:80px; padding:6px; font-size:14px; background:#111; color:white; border:1px solid #00e0ff40; border-radius:6px;"></td>
 <td>
-<button class="btn btn-warning" style="padding:6px 10px; font-size:14px; margin-right:6px;" 
-        onclick="resetExitTime('${staff.name}')">
+<input type="text" value="${config.role}" 
+       onchange="updateStaffRole('${staff.name}', this.value)"
+       style="width:100%; padding:6px; font-size:14px; background:#111; color:white; border:1px solid #00e0ff40; border-radius:6px;">
+</td>
+<td>
+<div style="display:flex; gap:8px; flex-wrap:wrap;">
+<input type="number" min="1" max="10" value="${config.maxPermissionsPerDay}"
+       onchange="updateStaffMaxPerm('${staff.name}', this.value)"
+       placeholder="Izin/hari" style="width:90px; padding:6px; font-size:14px; background:#111; color:white; border:1px solid #00e0ff40; border-radius:6px;">
+
+<input type="number" min="1" max="120" value="${config.maxDurationMinutes}"
+       onchange="updateStaffMaxDur('${staff.name}', this.value)"
+       placeholder="Durasi (mnt)" style="width:100px; padding:6px; font-size:14px; background:#111; color:white; border:1px solid #00e0ff40; border-radius:6px;">
+
+<button class="btn btn-warning" style="padding:6px 10px; font-size:14px;" onclick="resetExitTime('${staff.name}')">
 <i class="fas fa-redo"></i> Reset Jam Keluar
 </button>
+</div>
 </td>
 `;
 staffManagementBody.appendChild(row);
 });
 }
 
-function updateStaffSetting(name, key, value) {
-if (!staffConfig[name]) staffConfig[name] = {};
-if (key === 'role') {
-staffConfig[name][key] = value.trim().toUpperCase();
-// Update STAFF_LIST juga
+function updateStaffRole(name, newRole) {
+if (!newRole.trim()) return;
+staffConfig[name].role = newRole.trim().toUpperCase();
+saveStaffConfig();
+showToast(`Role ${name} diperbarui.`, 'success');
 const idx = STAFF_LIST.findIndex(s => s.name === name);
 if (idx !== -1) STAFF_LIST[idx].role = staffConfig[name].role;
-} else {
-const num = parseInt(value);
-if (isNaN(num) || num < 1) return;
-staffConfig[name][key] = num;
-}
-saveStaffConfig();
-showToast(`Setting ${name} diperbarui.`, 'success');
+renderStaffManagement();
+loadActivePermissions();
+updateConfigHistory();
 }
 
+function updateStaffMaxPerm(name, val) {
+const num = parseInt(val);
+if (isNaN(num) || num < 1) return;
+staffConfig[name].maxPermissionsPerDay = num;
+saveStaffConfig();
+updateConfigHistory();
+}
+
+function updateStaffMaxDur(name, val) {
+const num = parseInt(val);
+if (isNaN(num) || num < 1) return;
+staffConfig[name].maxDurationMinutes = num;
+saveStaffConfig();
+updateConfigHistory();
+}
+
+// ✅ Reset jam keluar (hapus izin aktif + riwayat staf)
 function resetExitTime(staffName) {
 if (!confirm(`Reset semua data izin untuk ${staffName}? Ini akan:\n- Hapus izin aktif\n- Hapus seluruh riwayat izin\nLanjutkan?`)) return;
+
+// Hapus dari activePermissions
 for (const role in activePermissions) {
 if (activePermissions[role] === staffName) {
 delete activePermissions[role];
 break;
 }
 }
+
+// Hapus data localStorage
 localStorage.removeItem(`linetogel_start_${staffName}`);
 localStorage.removeItem(`linetogel_end_${staffName}`);
+
+// Hapus riwayat
 delete history[staffName];
+
+// Simpan
 saveSession();
 showToast(`Data izin ${staffName} berhasil direset.`, 'success');
 loadActivePermissions();
 loadIzinHariIni();
+}
+
+// ✅ Tampilkan histori staf yang di-setting
+function updateConfigHistory() {
+const modified = [];
+for (const staff of STAFF_LIST) {
+const cfg = staffConfig[staff.name];
+if (cfg.maxPermissionsPerDay !== 1 || cfg.maxDurationMinutes !== 15 || cfg.role !== staff.role) {
+modified.push(staff.name);
+}
+}
+const historyEl = document.getElementById('config-history');
+if (modified.length === 0) {
+historyEl.innerHTML = "Belum ada staf yang dikonfigurasi.";
+} else {
+historyEl.innerHTML = `Staf yang pernah diubah: <strong>${modified.join(', ')}</strong>`;
+}
 }
 
 function logout() {
@@ -1092,6 +1231,30 @@ if (confirm("Yakin ingin logout?")) {
 clearSession();
 location.reload();
 }
+}
+
+function resetAllData() {
+if (confirm("⚠️ Ini akan menghapus SEMUA data di browser ini.\nLanjutkan?")) {
+localStorage.clear();
+showToast("Semua data lokal telah direset.", 'success');
+setTimeout(() => location.reload(), 1000);
+}
+}
+
+function loadPersonalStats() {
+if (!currentUser) return;
+const records = history[currentUser.name] || [];
+const totalCount = records.length;
+let totalMinutes = 0;
+records.forEach(r => {
+const match = r.duration.match(/(\d+)m/);
+if (match) totalMinutes += parseInt(match[1]);
+});
+const avg = totalCount ? Math.round(totalMinutes / totalCount) : 0;
+totalCountEl.textContent = `${totalCount} kali`;
+totalMinutesEl.textContent = `${totalMinutes} menit`;
+avgDurationEl.textContent = `${avg} menit/izin`;
+lastPermissionEl.textContent = totalCount ? records[records.length - 1].date : "-";
 }
 </script>
 
