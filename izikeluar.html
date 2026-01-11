@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LINETOGEL PRO • FINAL ULTIMATE</title>
+  <title>LINETOGEL PRO • FINAL COMPLETE</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -373,6 +373,15 @@
       color: var(--neon-red);
     }
 
+    /* === SETTING GROUP === */
+    .setting-group {
+      margin: 20px 0;
+      padding: 16px;
+      background: rgba(0, 224, 255, 0.05);
+      border-radius: 12px;
+      border-left: 3px solid var(--neon-cyan);
+    }
+
     @media (max-width: 650px) {
       .nav-links { flex-direction: column; }
       .nav-links li a { justify-content: center; }
@@ -563,11 +572,52 @@
           </button>
         </div>
 
+        <!-- PENGATURAN SISTEM KHUSUS CS -->
+        <div id="cs-only-setting" class="hidden">
+          <div class="card">
+            <h2 style="color: var(--neon-yellow);"><i class="fas fa-shield-alt"></i> Pengaturan Admin (CS Only)</h2>
+            
+            <div class="setting-group">
+              <label>Maksimal Izin Keluar per Hari:</label>
+              <input type="number" id="max-permissions" min="1" max="10" value="1" style="width: 100%; padding: 12px; font-size: 18px; border-radius: 8px; border: 1px solid var(--border-neon); background: rgba(10,10,20,0.8); color: white;" />
+              <small style="color:#aaa;">Default: 1 kali</small>
+            </div>
+            
+            <div class="setting-group">
+              <label>Durasi Maksimal Izin (menit):</label>
+              <input type="number" id="max-duration" min="5" max="60" value="15" style="width: 100%; padding: 12px; font-size: 18px; border-radius: 8px; border: 1px solid var(--border-neon); background: rgba(10,10,20,0.8); color: white;" />
+              <small style="color:#aaa;">Default: 15 menit</small>
+            </div>
+            
+            <button class="btn btn-warning" onclick="saveSystemSettings()" style="margin-top: 15px;">
+              <i class="fas fa-save"></i> Simpan Pengaturan
+            </button>
+            
+            <hr style="border-color: var(--border-neon); margin: 25px 0;" />
+            
+            <h3><i class="fas fa-sync-alt"></i> Aksi Darurat</h3>
+            
+            <button class="btn btn-danger" onclick="resetAllPasswords()" style="margin-top: 10px; width: 100%;">
+              <i class="fas fa-lock"></i> Reset Password Semua Staf ke Default
+            </button>
+            
+            <button class="btn btn-danger" onclick="resetAllPermissions()" style="margin-top: 10px; width: 100%;">
+              <i class="fas fa-clock"></i> Reset Jam Keluar (Hapus Semua Sesi Aktif)
+            </button>
+            
+            <div style="margin-top: 15px; padding: 12px; background: rgba(255, 51, 102, 0.1); border-radius: 8px; color: #ff9999;">
+              <i class="fas fa-exclamation-triangle"></i> 
+              <strong>Peringatan:</strong> Aksi ini tidak bisa dikembalikan!
+            </div>
+          </div>
+        </div>
+
+        <!-- MANAJEMEN STAF (CS & CS LINE) -->
         <div id="admin-setting" class="hidden">
           <div class="card">
-            <h2><i class="fas fa-tools"></i> Manajemen Staf (CS/CS LINE)</h2>
+            <h2><i class="fas fa-tools"></i> Manajemen Staf</h2>
             <table id="staff-management-table">
-              <thead><tr><th>Staf</th><th>Role</th><th>Aksi</th></tr></thead>
+              <thead><tr><th>Staf</th><th>Role Saat Ini</th><th>Aksi</th></tr></thead>
               <tbody id="staff-management-body"></tbody>
             </table>
           </div>
@@ -674,6 +724,10 @@
     let staffPasswords = {};
     let alarmPlayed = false;
     let beepPlayed = false;
+    let systemConfig = {
+      maxPermissionsPerDay: 1,
+      maxDurationMinutes: 15
+    };
 
     window.addEventListener('storage', (e) => {
       if (e.key === 'linetogel_active' || e.key === 'linetogel_zoom_trigger') {
@@ -733,6 +787,7 @@
     const activeList = document.getElementById('active-permissions-list');
     const noActiveEl = document.getElementById('no-active-permission');
     const adminSetting = document.getElementById('admin-setting');
+    const csOnlySetting = document.getElementById('cs-only-setting');
     const staffManagementBody = document.getElementById('staff-management-body');
     const activeStaffTable = document.getElementById('active-staff-table');
     const riwayatTable = document.getElementById('riwayat-table');
@@ -747,7 +802,7 @@
     const settingLink = document.getElementById('setting-link');
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Tampilkan notifikasi "HANYA 6 ORANG TERPILIH" hanya sekali per sesi
+      // Tampilkan notifikasi "HANYA 6 ORANG TERPILIH"
       if (!sessionStorage.getItem('linetogel_full_notice_shown')) {
         setTimeout(() => {
           document.getElementById('full-screen-notice').classList.remove('hidden');
@@ -787,6 +842,9 @@
       });
       saveStaffPasswords();
 
+      // Muat pengaturan sistem
+      loadSystemConfig();
+
       const saved = localStorage.getItem('linetogel_session');
       if (saved) {
         try {
@@ -798,7 +856,14 @@
             loginScreen.classList.add('hidden');
             app.classList.remove('hidden');
 
-            if (staff.role === "CS" || staff.role === "CS LINE") {
+            // Hanya CS yang bisa akses pengaturan sistem penuh
+            if (staff.role === "CS") {
+              settingLink.style.display = 'block';
+              csOnlySetting.classList.remove('hidden');
+              adminSetting.classList.remove('hidden');
+            } 
+            // CS LINE hanya bisa manajemen staf
+            else if (staff.role === "CS LINE") {
               settingLink.style.display = 'block';
               adminSetting.classList.remove('hidden');
             }
@@ -810,7 +875,8 @@
                 startTime = null;
               } else {
                 const elapsed = Date.now() - start.getTime();
-                if (elapsed < 15 * 60 * 1000) {
+                const maxSec = systemConfig.maxDurationMinutes * 60;
+                if (elapsed < maxSec) {
                   startTime = start;
                   startTimer();
                   returnBtn.classList.remove('hidden');
@@ -831,6 +897,38 @@
           clearSession();
         }
       }
+    }
+
+    function loadSystemConfig() {
+      const saved = localStorage.getItem('linetogel_system_config');
+      if (saved) {
+        try {
+          systemConfig = JSON.parse(saved);
+        } catch (e) {
+          console.warn("Invalid system config", e);
+        }
+      }
+      document.getElementById('max-permissions').value = systemConfig.maxPermissionsPerDay;
+      document.getElementById('max-duration').value = systemConfig.maxDurationMinutes;
+    }
+
+    function saveSystemSettings() {
+      const maxPerm = parseInt(document.getElementById('max-permissions').value);
+      const maxDur = parseInt(document.getElementById('max-duration').value);
+      
+      if (isNaN(maxPerm) || maxPerm < 1 || maxPerm > 10) {
+        showToast("Maksimal izin harus antara 1-10", 'error');
+        return;
+      }
+      
+      if (isNaN(maxDur) || maxDur < 5 || maxDur > 60) {
+        showToast("Durasi harus antara 5-60 menit", 'error');
+        return;
+      }
+      
+      systemConfig = { maxPermissionsPerDay: maxPerm, maxDurationMinutes: maxDur };
+      localStorage.setItem('linetogel_system_config', JSON.stringify(systemConfig));
+      showToast("Pengaturan sistem berhasil disimpan!", 'success');
     }
 
     function loadPersonalStats() {
@@ -856,7 +954,6 @@
       lastPermissionEl.textContent = lastInfo;
     }
 
-    // ✅ TAMPILKAN SEMUA STAF YANG SEDANG IZIN — DENGAN GARIS STATUS
     function loadActivePermissions() {
       activeList.innerHTML = '';
       let count = 0;
@@ -878,7 +975,8 @@
         if (startStr) {
           const start = new Date(parseInt(startStr));
           const elapsed = Date.now() - start.getTime();
-          remainingSec = Math.max(0, 15 * 60 - Math.floor(elapsed / 1000));
+          const maxSec = systemConfig.maxDurationMinutes * 60;
+          remainingSec = Math.max(0, maxSec - Math.floor(elapsed / 1000));
           if (remainingSec > 0) {
             const mins = Math.floor(remainingSec / 60);
             const secs = remainingSec % 60;
@@ -901,8 +999,6 @@
       }
 
       noActiveEl.classList.toggle('hidden', count > 0);
-
-      // ✅ UPDATE TABEL AKTIF DI HALAMAN RIWAYAT
       updateActiveStaffTable();
     }
 
@@ -928,7 +1024,6 @@
         activeStaffTable.appendChild(row);
       }
 
-      // Jika tidak ada yang aktif, tampilkan pesan
       if (activeStaffTable.children.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `<td colspan="3" style="text-align:center; color:#aaa;">Tidak ada staf yang sedang izin.</td>`;
@@ -940,6 +1035,16 @@
       const role = currentUser.role;
       if (activePermissions[role]) {
         showToast("Sudah ada staf di role ini yang sedang izin.", 'warning');
+        return;
+      }
+
+      // CEK BATAS IZIN PER HARI
+      const today = new Date().toLocaleDateString('id-ID');
+      const records = history[currentUser.name] || [];
+      const todayRecords = records.filter(r => r.date === today);
+      
+      if (todayRecords.length >= systemConfig.maxPermissionsPerDay) {
+        showToast(`Anda sudah mencapai batas ${systemConfig.maxPermissionsPerDay} izin hari ini.`, 'error');
         return;
       }
 
@@ -983,8 +1088,6 @@
       }
     });
 
-    // ... (sisa fungsi seperti returnFromPermission, handlePermissionExpired, dll)
-
     function saveStaffPasswords() {
       localStorage.setItem('linetogel_passwords', JSON.stringify(staffPasswords));
     }
@@ -1027,7 +1130,13 @@
       loginScreen.classList.add('hidden');
       app.classList.remove('hidden');
 
-      if (staff.role === "CS" || staff.role === "CS LINE") {
+      // Hanya CS yang bisa akses pengaturan sistem penuh
+      if (staff.role === "CS") {
+        settingLink.style.display = 'block';
+        csOnlySetting.classList.remove('hidden');
+        adminSetting.classList.remove('hidden');
+      } 
+      else if (staff.role === "CS LINE") {
         settingLink.style.display = 'block';
         adminSetting.classList.remove('hidden');
       }
@@ -1036,6 +1145,7 @@
       loadPersonalStats();
       checkActivePermission();
       renderStaffManagement();
+      loadSystemConfig();
 
       saveSession();
     }
@@ -1089,11 +1199,12 @@
       alarmPlayed = false;
       beepPlayed = false;
 
+      const totalSec = systemConfig.maxDurationMinutes * 60;
+
       permissionTimer = setInterval(() => {
         if (!startTime) return;
         const now = new Date();
         const elapsedMs = now - startTime;
-        const totalSec = 15 * 60;
         const remainingSec = Math.max(0, totalSec - Math.floor(elapsedMs / 1000));
 
         const mins = Math.floor(remainingSec / 60);
@@ -1138,10 +1249,11 @@
     function confirmReturn() {
       const now = new Date();
       const elapsedMin = Math.ceil((now - startTime) / 60000);
-      const isLate = elapsedMin > 15;
+      const maxMin = systemConfig.maxDurationMinutes;
+      const isLate = elapsedMin > maxMin;
       const staffInfo = `${currentUser.name} (${currentUser.role})`;
       const msg = isLate 
-        ? `Izin ${staffInfo} telah berlangsung ${elapsedMin} menit (>15m).\nDenda akan dikenakan.\n\nLanjutkan?`
+        ? `Izin ${staffInfo} telah berlangsung ${elapsedMin} menit (>${maxMin}m).\nDenda akan dikenakan.\n\nLanjutkan?`
         : `Izin ${staffInfo} berlangsung ${elapsedMin} menit.\nKembali sekarang?`;
 
       if (confirm(msg)) {
@@ -1154,7 +1266,8 @@
       const durationMs = endTime - startTime;
       const durationMin = Math.floor(durationMs / 60000);
       const durationSec = Math.floor((durationMs % 60000) / 1000);
-      const isLate = durationMin > 15 || (durationMin === 15 && durationSec > 0);
+      const maxMin = systemConfig.maxDurationMinutes;
+      const isLate = durationMin > maxMin || (durationMin === maxMin && durationSec > 0);
       const staffInfo = `${currentUser.name} (${currentUser.role})`;
 
       const record = {
@@ -1188,7 +1301,8 @@
     }
 
     function handlePermissionExpired(start) {
-      const endTime = new Date(start.getTime() + 15 * 60 * 1000);
+      const maxMs = systemConfig.maxDurationMinutes * 60 * 1000;
+      const endTime = new Date(start.getTime() + maxMs);
       const staff = STAFF_LIST.find(s => s.name === activePermissions[currentUser?.role || '']);
       const staffInfo = staff ? `${staff.name} (${staff.role})` : "Staf";
       
@@ -1196,7 +1310,7 @@
         date: endTime.toLocaleDateString('id-ID'),
         start: start.toLocaleTimeString('id-ID'),
         end: endTime.toLocaleTimeString('id-ID'),
-        duration: "15m 00s",
+        duration: `${systemConfig.maxDurationMinutes}m 00s`,
         status: 'late'
       };
 
@@ -1221,7 +1335,6 @@
       loadPersonalStats();
     }
 
-    // ✅ MUAT RIWAYAT + TABEL MIRIP GAMBAR
     function loadLastNightHistory() {
       const today = new Date();
       const yesterday = new Date(today);
@@ -1244,7 +1357,6 @@
           const minutes = durationParts ? durationParts[1] : "0";
           const seconds = durationParts ? durationParts[2] : "0";
 
-          // Hitung jumlah izin untuk staf ini
           const totalIzin = records.length;
           const lateCount = records.filter(r => r.status === 'late').length;
           const statusText = `Sudah ${totalIzin}x Keluar`;
@@ -1256,7 +1368,7 @@
             <td>${rec.date}</td>
             <td>${rec.start}</td>
             <td>${rec.end}</td>
-            <td>${minutes} hours ${seconds} seconds</td>
+            <td>${minutes} menit ${seconds} detik</td>
             <td>Tepat Waktu</td>
             <td class="status-cell ${rec.status === 'late' ? 'late' : ''}">${statusText}</td>
           `;
@@ -1418,6 +1530,47 @@
       saveSession();
     }
 
+    // === FUNGSI BARU: RESET SEMUA ===
+    function resetAllPasswords() {
+      if (!confirm("⚠️ Reset password SEMUA staf ke default ('1')?\nAksi ini tidak bisa dikembalikan!")) return;
+      
+      STAFF_LIST.forEach(staff => {
+        staffPasswords[staff.name] = simpleHash("1");
+      });
+      saveStaffPasswords();
+      showToast("✅ Password semua staf berhasil direset ke default!", 'success');
+    }
+
+    function resetAllPermissions() {
+      if (!confirm("⚠️ Hapus SEMUA sesi izin aktif dan riwayat hari ini?\nAksi ini tidak bisa dikembalikan!")) return;
+      
+      activePermissions = {};
+      localStorage.removeItem('linetogel_active');
+      
+      STAFF_LIST.forEach(staff => {
+        localStorage.removeItem(`linetogel_start_${staff.name}`);
+        localStorage.removeItem(`linetogel_end_${staff.name}`);
+      });
+      
+      const today = new Date().toLocaleDateString('id-ID');
+      for (const name in history) {
+        history[name] = history[name].filter(r => r.date !== today);
+      }
+      localStorage.setItem('linetogel_history', JSON.stringify(history));
+      
+      if (startTime) {
+        clearInterval(permissionTimer);
+        startTime = null;
+        timerDisplay.classList.add('hidden');
+        returnBtn.classList.add('hidden');
+      }
+      
+      saveSession();
+      loadActivePermissions();
+      loadPersonalStats();
+      showToast("✅ Semua sesi izin dan riwayat hari ini berhasil direset!", 'success');
+    }
+
     function logout() {
       if (startTime) {
         showToast("Anda sedang dalam izin keluar! Harap kembali terlebih dahulu.", 'warning');
@@ -1437,6 +1590,17 @@
       }
     }
   </script>
+
+  <audio id="beep-audio" preload="auto">
+    <source src="audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmszLlNLV0IyLjE3MzQ4OTU1MjUAV0FWRXhtcDpDb3JlIDEuMC4xMAAA//uQxAADwAABp3ZpbmWHVnljbGFzcwoJCgsMDQ4PEBESEw==" type="audio/mpeg">
+  </audio>
+  <audio id="alarm-audio" preload="auto">
+    <source src="audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmszLlNLV0IyLjE3MzQ4OTU1MjUAV0FWRXhtcDpDb3JlIDEuMC4xMAAA//uQxAADwAABp3ZpbmWHVnljbGFzcwoJCgsMDQ4PEBESEw==" type="audio/mpeg">
+  </audio>
+
+  <div class="footer">
+    LINETOGEL PRO FINAL COMPLETE • CS Only Settings • © 2026
+  </div>
 </body>
 </html>
 
