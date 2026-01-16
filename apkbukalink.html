@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Link Launcher</title>
+  <title>Ultra Instinct Link Launcher</title>
   <style>
     :root {
       --neon-blue: #00f7ff;
       --neon-purple: #b967ff;
       --neon-pink: #ff2a6d;
+      --neon-red: #ff3c7d;
+      --neon-green: #00ffaa;
       --dark-bg: #0c0c16;
       --card-bg: rgba(20, 20, 40, 0.7);
     }
@@ -71,9 +73,17 @@
       margin: 4px;
     }
 
+    .delete-all-btn {
+      background: linear-gradient(to right, var(--neon-red), #ff6b6b);
+    }
+
     .action-buttons {
       text-align: center;
       margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .links-container {
@@ -95,6 +105,19 @@
     .link-url {
       font-size: 1.05rem; color: var(--neon-blue); word-break: break-all; flex: 1;
       margin-right: 15px;
+    }
+
+    .link-actions button {
+      font-size: 0.95rem;
+      padding: 8px 16px;
+    }
+
+    /* Tombol Buka yang sudah diklik */
+    .btn-opened {
+      background: linear-gradient(to right, var(--neon-red), #ff5555) !important;
+      color: white !important;
+      text-shadow: 0 0 6px rgba(255, 60, 125, 0.8);
+      box-shadow: 0 0 12px rgba(255, 60, 125, 0.6);
     }
 
     .status {
@@ -119,24 +142,27 @@
       h1 { font-size: 2.0rem; }
       .link-card { flex-direction: column; align-items: flex-start; gap: 10px; }
       .link-actions { width: 100%; }
+      .action-buttons { flex-direction: column; align-items: center; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🌀 LINK LAUNCHER</h1>
+    <h1>🌀 ULTRA INSTINCT LINK LAUNCHER</h1>
 
     <div class="input-section">
       <textarea id="linkInput" placeholder="Masukkan link (satu per baris). Contoh:
 google.com
-youtube.com
-tokopedia.com"></textarea>
+youtube.com"></textarea>
       <button onclick="addLinks()">➕ TAMBAH LINK</button>
     </div>
 
     <div class="action-buttons">
       <button onclick="openAllLinks()" style="background: linear-gradient(to right, var(--neon-pink), #d100ff);">
-        🚀 BUKA SEMUA LINK SEKALIGUS
+        🚀 BUKA SEMUA LINK
+      </button>
+      <button onclick="clearAllLinks()" class="delete-all-btn">
+        🗑️ HAPUS SEMUA LINK
       </button>
     </div>
 
@@ -185,17 +211,43 @@ tokopedia.com"></textarea>
     function renderLinks() {
       const container = document.getElementById('linksContainer');
       container.innerHTML = '';
-      links.forEach(url => {
+      links.forEach((url, index) => {
         const card = document.createElement('div');
         card.className = 'link-card';
+        // Gunakan data attribute untuk lacak status
         card.innerHTML = `
           <div class="link-url">${url}</div>
           <div class="link-actions">
-            <button onclick="window.open('${url}', '_blank', 'noopener,noreferrer')">👁️ BUKA</button>
+            <button 
+              class="btn-open" 
+              data-index="${index}"
+              onclick="handleOpenLink(this, '${url}')"
+            >👁️ BUKA</button>
           </div>
         `;
         container.appendChild(card);
       });
+    }
+
+    function handleOpenLink(button, url) {
+      // Cek apakah sudah pernah diklik
+      if (button.classList.contains('btn-opened')) {
+        // Opsional: fokus ulang tab jika sudah terbuka
+        return;
+      }
+
+      const win = window.open(url, '_blank', 'noopener,noreferrer');
+      if (win) {
+        // Ubah warna tombol jadi merah neon
+        button.classList.add('btn-opened');
+        button.innerHTML = '✅ DIBUKA';
+      } else {
+        document.getElementById('status').innerHTML = 
+          `<div class="exclusive-notice">
+            🔒 HANYA 6 ORANG TERPILIH YANG BISA MELEWATI INI!<br>
+            Izinkan pop-up di browser Anda!
+          </div>`;
+      }
     }
 
     function openAllLinks() {
@@ -205,16 +257,15 @@ tokopedia.com"></textarea>
       }
 
       let successCount = 0;
-      let failedUrls = [];
-
-      // Buka SEMUA link SEKALIGUS dalam satu klik (diizinkan oleh browser)
       links.forEach(url => {
         const win = window.open(url, '_blank', 'noopener,noreferrer');
-        if (win) {
-          successCount++;
-        } else {
-          failedUrls.push(url);
-        }
+        if (win) successCount++;
+      });
+
+      // Update semua tombol "Buka" jadi "Dibuka"
+      document.querySelectorAll('.btn-open').forEach(btn => {
+        btn.classList.add('btn-opened');
+        btn.innerHTML = '✅ DIBUKA';
       });
 
       if (successCount === links.length) {
@@ -222,9 +273,22 @@ tokopedia.com"></textarea>
       } else {
         document.getElementById('status').innerHTML = 
           `<div class="exclusive-notice">
-            🔒 <br>
+            🔒 HANYA 6 ORANG TERPILIH YANG BISA MELEWATI INI!<br>
             Klik ikon gembok (🔒) di address bar → Izinkan Pop-up!
           </div>`;
+      }
+    }
+
+    function clearAllLinks() {
+      if (links.length === 0) {
+        document.getElementById('status').textContent = 'ℹ️ Tidak ada link untuk dihapus.';
+        return;
+      }
+
+      if (confirm(`Anda yakin ingin menghapus ${links.length} link?`)) {
+        links = [];
+        renderLinks();
+        document.getElementById('status').textContent = '🗑️ Semua link telah dihapus.';
       }
     }
   </script>
