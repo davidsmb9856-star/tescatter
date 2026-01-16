@@ -174,104 +174,91 @@ tokopedia.com"></textarea>
   </div>
 
   <script>
-    let links = [];
+  let links = [];
 
-    function normalizeUrl(url) {
-      url = url.trim();
-      if (!url) return null;
-      if (!/^https?:\/\//i.test(url)) {
-        url = 'https://' + url;
-      }
-      try {
-        new URL(url);
-        return url;
-      } catch {
-        return null;
-      }
+  function normalizeUrl(url) {
+    url = url.trim();
+    if (!url) return null;
+    if (!/^https?:\/\//i.test(url)) {
+      url = 'https://' + url;
+    }
+    try {
+      new URL(url);
+      return url;
+    } catch {
+      return null;
+    }
+  }
+
+  function addLinks() {
+    const textarea = document.getElementById('linkInput');
+    const lines = textarea.value.split('\n');
+    let validLinks = [];
+
+    for (const line of lines) {
+      const norm = normalizeUrl(line);
+      if (norm) validLinks.push(norm);
     }
 
-    function addLinks() {
-      const textarea = document.getElementById('linkInput');
-      const lines = textarea.value.split('\n');
-      let validLinks = [];
-
-      for (const line of lines) {
-        const norm = normalizeUrl(line);
-        if (norm) validLinks.push(norm);
-      }
-
-      if (validLinks.length === 0) {
-        alert('Tidak ada link valid ditemukan.');
-        return;
-      }
-
-      if (links.length + validLinks.length > 100) {
-        alert(`Maksimal total 100 link. Saat ini: ${links.length}, tambah: ${validLinks.length} → melebihi batas.`);
-        return;
-      }
-
-      links = [...links, ...validLinks];
-      renderLinks();
-      textarea.value = '';
+    if (validLinks.length === 0) {
+      alert('Tidak ada link valid ditemukan.');
+      return;
     }
 
-    function renderLinks() {
-      const container = document.getElementById('linksContainer');
-      container.innerHTML = '';
-      links.forEach((url, index) => {
-        const card = document.createElement('div');
-        card.className = 'link-card';
-        card.innerHTML = `
-          <div class="link-url">${url}</div>
-          <div class="link-actions">
-            <button onclick="openLink('${url}')">👁️ BUKA</button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
+    if (links.length + validLinks.length > 100) {
+      alert(`Maksimal total 100 link. Saat ini: ${links.length}, tambah: ${validLinks.length} → melebihi batas.`);
+      return;
     }
 
-    function openLink(url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
+    links = [...links, ...validLinks];
+    renderLinks();
+    textarea.value = '';
+  }
+
+  function renderLinks() {
+    const container = document.getElementById('linksContainer');
+    container.innerHTML = '';
+    links.forEach((url, index) => {
+      const card = document.createElement('div');
+      card.className = 'link-card';
+      card.innerHTML = `
+        <div class="link-url">${url}</div>
+        <div class="link-actions">
+          <button onclick="openLink('${url}')">👁️ BUKA</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function openLink(url) {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  function openAllLinks() {
+    if (links.length === 0) {
+      document.getElementById('status').textContent = '⚠️ Tidak ada link untuk dibuka.';
+      return;
     }
 
-    function openAllLinks() {
-      if (links.length === 0) {
-        document.getElementById('status').textContent = '⚠️ Tidak ada link untuk dibuka.';
-        return;
-      }
+    // Coba buka semua sekaligus
+    let openedCount = 0;
+    links.forEach(url => {
+      const win = window.open(url, '_blank', 'noopener,noreferrer');
+      if (win) openedCount++;
+    });
 
-      // Tampilkan status awal
-      document.getElementById('status').textContent = `🚀 Membuka ${links.length} link...`;
-
-      // Buka link PERTAMA segera
-      openLink(links[0]);
-      let i = 1;
-
-      if (links.length === 1) {
-        setTimeout(() => {
-          document.getElementById('status').textContent = '✨ Selesai! 1 link telah dibuka.';
-        }, 1000);
-        return;
-      }
-
-      // Buka sisa link tiap 10 detik
-      const interval = setInterval(() => {
-        if (i < links.length) {
-          openLink(links[i]);
-          const remaining = links.length - i - 1;
-          document.getElementById('status').textContent = 
-            `✅ Membuka: ${links[i]}\n${remaining > 0 ? `Menunggu ${remaining} lagi...` : 'Selesai!'}`;
-          i++;
-        } else {
-          clearInterval(interval);
-          setTimeout(() => {
-            document.getElementById('status').textContent = '✨ Semua link telah dibuka!';
-          }, 1000);
-        }
-      }, 10000); // 🔥 10 detik = 10.000 ms
+    if (openedCount === links.length) {
+      document.getElementById('status').textContent = `✨ ${links.length} link berhasil dibuka!`;
+    } else {
+      document.getElementById('status').innerHTML = 
+        `<span style="color:#ff2a6d; text-shadow:0 0 8px #ff2a6d;">
+          ⚠️ Hanya ${openedCount} dari ${links.length} link yang terbuka.<br>
+          🔒 Klik ikon gembok/peredam di address bar → Izinkan Pop-up!
+        </span>`;
     }
-  </script>
+  }
+</script>
 </body>
 </html>
 
