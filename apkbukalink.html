@@ -10,7 +10,6 @@
       --neon-purple: #b967ff;
       --neon-pink: #ff2a6d;
       --neon-red: #ff3c7d;
-      --neon-green: #00ffaa;
       --dark-bg: #0c0c16;
       --card-bg: rgba(20, 20, 40, 0.7);
     }
@@ -112,7 +111,7 @@
       padding: 8px 16px;
     }
 
-    /* Tombol Buka yang sudah diklik */
+    /* Tombol yang sudah diklik */
     .btn-opened {
       background: linear-gradient(to right, var(--neon-red), #ff5555) !important;
       color: white !important;
@@ -222,18 +221,22 @@ youtube.com"></textarea>
         const btn = document.createElement('button');
         btn.className = 'btn-open';
         btn.textContent = '👁️ BUKA';
-        btn.dataset.url = url; // Simpan URL di data attribute
+        btn.dataset.url = url;
 
-        // Tambahkan event listener (aman dari kutipan)
+        // 🔥 Event listener yang dijamin ubah warna
         btn.addEventListener('click', function() {
+          // ✅ Langkah 1: Ubah warna DULU
+          this.classList.add('btn-opened');
+          this.textContent = '✅ DIBUKA';
+
+          // ✅ Langkah 2: Baru coba buka link
           const win = window.open(this.dataset.url, '_blank', 'noopener,noreferrer');
-          if (win) {
-            this.classList.add('btn-opened');
-            this.textContent = '✅ DIBUKA';
-          } else {
+          
+          // Jika popup diblokir, tampilkan notifikasi
+          if (!win) {
             document.getElementById('status').innerHTML = 
               `<div class="exclusive-notice">
-                🔒 HANYA 6 ORANG TERPILIH YANG BISA MELEWATI INI!<br>
+                🔒 POP-UP DIBLOKIR!<br>HANYA 6 ORANG TERPILIH YANG BISA MELEWATI INI!<br>
                 Izinkan pop-up di browser Anda!
               </div>`;
           }
@@ -255,16 +258,17 @@ youtube.com"></textarea>
         return;
       }
 
+      // Ubah semua tombol jadi "Dibuka" dulu
+      document.querySelectorAll('.btn-open').forEach(btn => {
+        btn.classList.add('btn-opened');
+        btn.textContent = '✅ DIBUKA';
+      });
+
+      // Lalu buka semua link
       let successCount = 0;
       links.forEach(url => {
         const win = window.open(url, '_blank', 'noopener,noreferrer');
         if (win) successCount++;
-      });
-
-      // Update semua tombol
-      document.querySelectorAll('.btn-open').forEach(btn => {
-        btn.classList.add('btn-opened');
-        btn.textContent = '✅ DIBUKA';
       });
 
       if (successCount === links.length) {
@@ -272,8 +276,8 @@ youtube.com"></textarea>
       } else {
         document.getElementById('status').innerHTML = 
           `<div class="exclusive-notice">
-            🔒 HANYA 6 ORANG TERPILIH YANG BISA MELEWATI INI!<br>
-            Klik ikon gembok (🔒) di address bar → Izinkan Pop-up!
+            🔒 POP-UP DIBLOKIR!<br>HANYA 6 ORANG TERPILIH YANG BISA MELEWATI INI!<br>
+            Izinkan pop-up di browser Anda!
           </div>`;
       }
     }
