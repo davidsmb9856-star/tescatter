@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Link Launcher</title>
+  <title>Ultra Instinct Link Launcher</title>
   <style>
     :root {
       --neon-blue: #00f7ff;
@@ -148,7 +148,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>🌀LINK LAUNCHER</h1>
+    <h1>🌀 ULTRA INSTINCT LINK LAUNCHER</h1>
 
     <div class="input-section">
       <textarea id="linkInput" placeholder="Masukkan link (satu per baris). Contoh:
@@ -214,40 +214,39 @@ youtube.com"></textarea>
       links.forEach((url, index) => {
         const card = document.createElement('div');
         card.className = 'link-card';
-        // Gunakan data attribute untuk lacak status
-        card.innerHTML = `
-          <div class="link-url">${url}</div>
-          <div class="link-actions">
-            <button 
-              class="btn-open" 
-              data-index="${index}"
-              onclick="handleOpenLink(this, '${url}')"
-            >👁️ BUKA</button>
-          </div>
-        `;
+        
+        const urlEl = document.createElement('div');
+        urlEl.className = 'link-url';
+        urlEl.textContent = url;
+
+        const btn = document.createElement('button');
+        btn.className = 'btn-open';
+        btn.textContent = '👁️ BUKA';
+        btn.dataset.url = url; // Simpan URL di data attribute
+
+        // Tambahkan event listener (aman dari kutipan)
+        btn.addEventListener('click', function() {
+          const win = window.open(this.dataset.url, '_blank', 'noopener,noreferrer');
+          if (win) {
+            this.classList.add('btn-opened');
+            this.textContent = '✅ DIBUKA';
+          } else {
+            document.getElementById('status').innerHTML = 
+              `<div class="exclusive-notice">
+                🔒 HANYA 6 ORANG TERPILIH YANG BISA MELEWATI INI!<br>
+                Izinkan pop-up di browser Anda!
+              </div>`;
+          }
+        });
+
+        const actions = document.createElement('div');
+        actions.className = 'link-actions';
+        actions.appendChild(btn);
+
+        card.appendChild(urlEl);
+        card.appendChild(actions);
         container.appendChild(card);
       });
-    }
-
-    function handleOpenLink(button, url) {
-      // Cek apakah sudah pernah diklik
-      if (button.classList.contains('btn-opened')) {
-        // Opsional: fokus ulang tab jika sudah terbuka
-        return;
-      }
-
-      const win = window.open(url, '_blank', 'noopener,noreferrer');
-      if (win) {
-        // Ubah warna tombol jadi merah neon
-        button.classList.add('btn-opened');
-        button.innerHTML = '✅ DIBUKA';
-      } else {
-        document.getElementById('status').innerHTML = 
-          `<div class="exclusive-notice">
-            🔒 HANYA 6 ORANG TERPILIH YANG BISA MELEWATI INI!<br>
-            Izinkan pop-up di browser Anda!
-          </div>`;
-      }
     }
 
     function openAllLinks() {
@@ -262,10 +261,10 @@ youtube.com"></textarea>
         if (win) successCount++;
       });
 
-      // Update semua tombol "Buka" jadi "Dibuka"
+      // Update semua tombol
       document.querySelectorAll('.btn-open').forEach(btn => {
         btn.classList.add('btn-opened');
-        btn.innerHTML = '✅ DIBUKA';
+        btn.textContent = '✅ DIBUKA';
       });
 
       if (successCount === links.length) {
