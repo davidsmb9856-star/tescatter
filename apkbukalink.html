@@ -37,18 +37,18 @@
 
     header {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
       padding: 20px;
     }
 
     h1 {
-      font-size: 2.8rem;
+      font-size: 2.6rem;
       background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
       text-shadow: var(--text-glow);
-      letter-spacing: 1.5px;
+      letter-spacing: 1.2px;
     }
 
     .input-section {
@@ -60,19 +60,21 @@
       margin-bottom: 25px;
     }
 
-    input[type="text"] {
+    textarea {
       width: 100%;
+      height: 120px;
       padding: 14px;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       background: rgba(0, 0, 0, 0.4);
       border: 2px solid var(--neon-blue);
       color: white;
       border-radius: 8px;
       margin-bottom: 12px;
       outline: none;
+      resize: vertical;
     }
 
-    input[type="text"]:focus {
+    textarea:focus {
       box-shadow: 0 0 12px var(--neon-blue);
     }
 
@@ -109,16 +111,16 @@
       justify-content: space-between;
       align-items: center;
       border: 1px solid rgba(185, 103, 255, 0.4);
-      animation: fadeIn 0.5s ease;
+      animation: fadeIn 0.4s ease;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     .link-url {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: var(--neon-blue);
       word-break: break-all;
       flex: 1;
@@ -127,7 +129,7 @@
 
     .link-actions button {
       font-size: 0.95rem;
-      padding: 8px 14px;
+      padding: 8px 16px;
       margin-left: 8px;
     }
 
@@ -140,8 +142,9 @@
     }
 
     @media (max-width: 600px) {
-      h1 { font-size: 2.2rem; }
+      h1 { font-size: 2.1rem; }
       .link-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .link-actions { width: 100%; }
     }
   </style>
 </head>
@@ -152,14 +155,19 @@
     </header>
 
     <div class="input-section">
-      <input type="text" id="linkInput" placeholder="Contoh: google.com atau https://youtube.com" />
-      <button onclick="addLink()">➕ TAMBAH LINK</button>
+      <textarea id="linkInput" placeholder="Masukkan link (satu per baris). Contoh:
+google.com
+youtube.com
+tokopedia.com"></textarea>
+      <button onclick="addLinks()">➕ TAMBAH SEMUA LINK</button>
     </div>
 
     <div class="links-container" id="linksContainer"></div>
 
     <div style="text-align: center; margin-top: 20px;">
-      <button onclick="openAllLinks()" style="background: linear-gradient(to right, #ff2a6d, #d100ff);">🚀 BUKA SEMUA LINK (1/menit)</button>
+      <button onclick="openAllLinks()" style="background: linear-gradient(to right, #ff2a6d, #d100ff);">
+        🚀 BUKA SEMUA LINK (1/menit)
+      </button>
     </div>
 
     <div class="status" id="status"></div>
@@ -171,37 +179,40 @@
     function normalizeUrl(url) {
       url = url.trim();
       if (!url) return null;
-      // Tambahkan https:// jika tidak ada protokol
       if (!/^https?:\/\//i.test(url)) {
         url = 'https://' + url;
       }
       try {
-        new URL(url); // Validasi dasar
+        new URL(url);
         return url;
       } catch {
         return null;
       }
     }
 
-    function addLink() {
-      const input = document.getElementById('linkInput');
-      const rawUrl = input.value;
-      const normalized = normalizeUrl(rawUrl);
+    function addLinks() {
+      const textarea = document.getElementById('linkInput');
+      const lines = textarea.value.split('\n');
+      let validLinks = [];
 
-      if (!normalized) {
-        alert('Masukkan alamat web yang valid (contoh: youtube.com)');
+      for (const line of lines) {
+        const norm = normalizeUrl(line);
+        if (norm) validLinks.push(norm);
+      }
+
+      if (validLinks.length === 0) {
+        alert('Tidak ada link valid ditemukan.');
         return;
       }
 
-      if (links.length >= 100) {
-        alert('Maksimal 100 link!');
+      if (links.length + validLinks.length > 100) {
+        alert(`Maksimal total 100 link. Saat ini: ${links.length}, tambah: ${validLinks.length} → melebihi batas.`);
         return;
       }
 
-      links.push(normalized);
+      links = [...links, ...validLinks];
       renderLinks();
-      input.value = '';
-      input.focus();
+      textarea.value = '';
     }
 
     function renderLinks() {
@@ -245,12 +256,9 @@
             document.getElementById('status').textContent = '✨ Semua link telah dibuka!';
           }, 2000);
         }
-      }, 60000); // 60 detik
+      }, 60000);
     }
-
-    document.getElementById('linkInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') addLink();
-    });
   </script>
 </body>
 </html>
+
