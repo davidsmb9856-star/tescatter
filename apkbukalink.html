@@ -64,8 +64,7 @@
       background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
       color: #000; font-weight: bold; font-size: 1.1rem;
       padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
+      border: none; border-radius: 8px;
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -108,6 +107,12 @@
       text-shadow: 0 0 8px var(--neon-pink);
       font-weight: bold;
       line-height: 1.4;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
     }
 
     @media (max-width: 600px) {
@@ -124,13 +129,14 @@
     <div class="input-section">
       <textarea id="linkInput" placeholder="Masukkan link (satu per baris). Contoh:
 google.com
-youtube.com"></textarea>
+youtube.com
+tokopedia.com"></textarea>
       <button onclick="addLinks()">➕ TAMBAH LINK</button>
     </div>
 
     <div class="action-buttons">
-      <button onclick="openAllLinksSequential()" style="background: linear-gradient(to right, var(--neon-pink), #d100ff);">
-        🚀 BUKA SEMUA LINK (5 DETIK/LINK)
+      <button onclick="openAllLinks()" style="background: linear-gradient(to right, var(--neon-pink), #d100ff);">
+        🚀 BUKA SEMUA LINK SEKALIGUS
       </button>
     </div>
 
@@ -141,14 +147,19 @@ youtube.com"></textarea>
 
   <script>
     let links = [];
-    let controlTab = null;
-    let sequentialInterval = null;
 
     function normalizeUrl(url) {
       url = url.trim();
       if (!url) return null;
-      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-      try { new URL(url); return url; } catch { return null; }
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+      }
+      try {
+        new URL(url);
+        return url;
+      } catch {
+        return null;
+      }
     }
 
     function addLinks() {
@@ -177,7 +188,6 @@ youtube.com"></textarea>
       links.forEach(url => {
         const card = document.createElement('div');
         card.className = 'link-card';
-        // Tombol Buka individual — selalu bekerja!
         card.innerHTML = `
           <div class="link-url">${url}</div>
           <div class="link-actions">
@@ -188,56 +198,35 @@ youtube.com"></textarea>
       });
     }
 
-    function openAllLinksSequential() {
+    function openAllLinks() {
       if (links.length === 0) {
-        document.getElementById('status').textContent = '⚠️ Tidak ada link untuk dimuat.';
+        document.getElementById('status').textContent = '⚠️ Tidak ada link untuk dibuka.';
         return;
       }
 
-      // Tutup tab lama jika masih terbuka
-      if (controlTab && !controlTab.closed) {
-        controlTab.close();
-      }
+      let successCount = 0;
+      let failedUrls = [];
 
-      // Buka satu tab baru untuk kontrol berurutan
-      controlTab = window.open('about:blank', '_blank', 'noopener,noreferrer,width=800,height=600');
-      if (!controlTab) {
+      // Buka SEMUA link SEKALIGUS dalam satu klik (diizinkan oleh browser)
+      links.forEach(url => {
+        const win = window.open(url, '_blank', 'noopener,noreferrer');
+        if (win) {
+          successCount++;
+        } else {
+          failedUrls.push(url);
+        }
+      });
+
+      if (successCount === links.length) {
+        document.getElementById('status').textContent = `✨ ${links.length} link berhasil dibuka!`;
+      } else {
         document.getElementById('status').innerHTML = 
-          `<div class="exclusive-notice">🔒 POP-UP DIBLOKIR!<br>HANYA 6 ORANG TERPILIH YANG BISA MELEWATI INI!<br>Izinkan pop-up di browser Anda!</div>`;
-        return;
+          `<div class="exclusive-notice">
+            🔒 HANYA 6 ORANG TERPILIH YANG BISA MELEWATI INI!<br>
+            Klik ikon gembok (🔒) di address bar → Izinkan Pop-up!
+          </div>`;
       }
-
-      document.getElementById('status').textContent = `▶️ Memulai... Total: ${links.length} link`;
-      let index = 0;
-
-      const loadNext = () => {
-        if (index >= links.length || controlTab.closed) {
-          clearInterval(sequentialInterval);
-          if (controlTab && !controlTab.closed) {
-            controlTab.close();
-          }
-          document.getElementById('status').textContent = '✅ Selesai! Semua link telah dimuat.';
-          return;
-        }
-
-        try {
-          controlTab.location.href = links[index];
-          document.getElementById('status').textContent = 
-            `⏳ Membuka: ${links[index]} (${index + 1}/${links.length})`;
-        } catch (e) {
-          document.getElementById('status').textContent = '❌ Gagal. Pastikan tab tidak ditutup.';
-          clearInterval(sequentialInterval);
-          return;
-        }
-        index++;
-      };
-
-      // Jalankan link pertama langsung
-      loadNext();
-      // Lanjutkan tiap 5 detik
-      sequentialInterval = setInterval(loadNext, 5000);
     }
   </script>
 </body>
 </html>
-
