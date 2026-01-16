@@ -39,7 +39,6 @@
       text-align: center;
       margin-bottom: 30px;
       padding: 20px;
-      position: relative;
     }
 
     h1 {
@@ -50,7 +49,6 @@
       color: transparent;
       text-shadow: var(--text-glow);
       letter-spacing: 1.5px;
-      margin-top: 10px;
     }
 
     .input-section {
@@ -62,7 +60,7 @@
       margin-bottom: 25px;
     }
 
-    input[type="url"] {
+    input[type="text"] {
       width: 100%;
       padding: 14px;
       font-size: 1.2rem;
@@ -74,7 +72,7 @@
       outline: none;
     }
 
-    input[type="url"]:focus {
+    input[type="text"]:focus {
       box-shadow: 0 0 12px var(--neon-blue);
     }
 
@@ -141,7 +139,6 @@
       min-height: 28px;
     }
 
-    /* Responsif */
     @media (max-width: 600px) {
       h1 { font-size: 2.2rem; }
       .link-card { flex-direction: column; align-items: flex-start; gap: 10px; }
@@ -155,7 +152,7 @@
     </header>
 
     <div class="input-section">
-      <input type="url" id="linkInput" placeholder="https://example.com" />
+      <input type="text" id="linkInput" placeholder="Contoh: google.com atau https://youtube.com" />
       <button onclick="addLink()">➕ TAMBAH LINK</button>
     </div>
 
@@ -171,20 +168,37 @@
   <script>
     let links = [];
 
+    function normalizeUrl(url) {
+      url = url.trim();
+      if (!url) return null;
+      // Tambahkan https:// jika tidak ada protokol
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+      }
+      try {
+        new URL(url); // Validasi dasar
+        return url;
+      } catch {
+        return null;
+      }
+    }
+
     function addLink() {
       const input = document.getElementById('linkInput');
-      const url = input.value.trim();
-      if (!url) return alert('Masukkan URL yang valid!');
-      if (!url.startsWith('http')) {
-        alert('URL harus diawali dengan http:// atau https://');
+      const rawUrl = input.value;
+      const normalized = normalizeUrl(rawUrl);
+
+      if (!normalized) {
+        alert('Masukkan alamat web yang valid (contoh: youtube.com)');
         return;
       }
+
       if (links.length >= 100) {
         alert('Maksimal 100 link!');
         return;
       }
 
-      links.push(url);
+      links.push(normalized);
       renderLinks();
       input.value = '';
       input.focus();
@@ -207,7 +221,7 @@
     }
 
     function openLink(url) {
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
 
     function openAllLinks() {
@@ -231,14 +245,12 @@
             document.getElementById('status').textContent = '✨ Semua link telah dibuka!';
           }, 2000);
         }
-      }, 60000); // 60 detik = 60.000 ms
+      }, 60000); // 60 detik
     }
 
-    // Enter untuk tambah link
     document.getElementById('linkInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') addLink();
     });
   </script>
 </body>
 </html>
-
