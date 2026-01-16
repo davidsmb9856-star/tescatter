@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ultra Instinct Link Launcher</title>
+  <style>
+    :root {
+      --neon-blue: #00f7ff;
+      --neon-purple: #b967ff;
+      --dark-bg: #0c0c16;
+      --card-bg: rgba(20, 20, 40, 0.7);
+      --text-glow: 0 0 10px var(--neon-blue), 0 0 20px rgba(0, 247, 255, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background-color: var(--dark-bg);
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(185, 103, 255, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(0, 247, 255, 0.1) 0%, transparent 20%);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: var(--text-glow);
+      letter-spacing: 1.5px;
+      margin-top: 10px;
+    }
+
+    .input-section {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--neon-blue);
+      box-shadow: 0 0 15px rgba(0, 247, 255, 0.3);
+      margin-bottom: 25px;
+    }
+
+    input[type="url"] {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.2rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid var(--neon-blue);
+      color: white;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    input[type="url"]:focus {
+      box-shadow: 0 0 12px var(--neon-blue);
+    }
+
+    button {
+      background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+      color: #000;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px var(--neon-blue);
+    }
+
+    .links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .link-card {
+      background: var(--card-bg);
+      padding: 14px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid rgba(185, 103, 255, 0.4);
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .link-url {
+      font-size: 1.1rem;
+      color: var(--neon-blue);
+      word-break: break-all;
+      flex: 1;
+      margin-right: 15px;
+    }
+
+    .link-actions button {
+      font-size: 0.95rem;
+      padding: 8px 14px;
+      margin-left: 8px;
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 1.1rem;
+      color: var(--neon-purple);
+      min-height: 28px;
+    }
+
+    /* Responsif */
+    @media (max-width: 600px) {
+      h1 { font-size: 2.2rem; }
+      .link-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌀 ULTRA INSTINCT LINK LAUNCHER</h1>
+    </header>
+
+    <div class="input-section">
+      <input type="url" id="linkInput" placeholder="https://example.com" />
+      <button onclick="addLink()">➕ TAMBAH LINK</button>
+    </div>
+
+    <div class="links-container" id="linksContainer"></div>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <button onclick="openAllLinks()" style="background: linear-gradient(to right, #ff2a6d, #d100ff);">🚀 BUKA SEMUA LINK (1/menit)</button>
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    let links = [];
+
+    function addLink() {
+      const input = document.getElementById('linkInput');
+      const url = input.value.trim();
+      if (!url) return alert('Masukkan URL yang valid!');
+      if (!url.startsWith('http')) {
+        alert('URL harus diawali dengan http:// atau https://');
+        return;
+      }
+      if (links.length >= 100) {
+        alert('Maksimal 100 link!');
+        return;
+      }
+
+      links.push(url);
+      renderLinks();
+      input.value = '';
+      input.focus();
+    }
+
+    function renderLinks() {
+      const container = document.getElementById('linksContainer');
+      container.innerHTML = '';
+      links.forEach((url, index) => {
+        const card = document.createElement('div');
+        card.className = 'link-card';
+        card.innerHTML = `
+          <div class="link-url">${url}</div>
+          <div class="link-actions">
+            <button onclick="openLink('${url}')">👁️ BUKA</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openLink(url) {
+      window.open(url, '_blank');
+    }
+
+    function openAllLinks() {
+      if (links.length === 0) {
+        document.getElementById('status').textContent = '⚠️ Tidak ada link untuk dibuka.';
+        return;
+      }
+
+      document.getElementById('status').textContent = `Memulai... Membuka ${links.length} link, 1 per menit.`;
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < links.length) {
+          openLink(links[i]);
+          const remaining = links.length - i - 1;
+          document.getElementById('status').textContent = 
+            `✅ Membuka: ${links[i]}\n${remaining > 0 ? `Menunggu ${remaining} lagi...` : 'Selesai!'}`;
+          i++;
+        } else {
+          clearInterval(interval);
+          setTimeout(() => {
+            document.getElementById('status').textContent = '✨ Semua link telah dibuka!';
+          }, 2000);
+        }
+      }, 60000); // 60 detik = 60.000 ms
+    }
+
+    // Enter untuk tambah link
+    document.getElementById('linkInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addLink();
+    });
+  </script>
+</body>
+</html>
+
