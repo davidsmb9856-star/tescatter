@@ -7,7 +7,6 @@
 <!-- FAVICON -->
 <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/190/190411.png" type="image/x-icon">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 /* === SAMA SEPERTI ASLI === */
@@ -154,7 +153,6 @@ font-display: swap;
 </div>
 <div class="ip-display" id="ipDisplay">IP: <span id="currentIPText">Getting IP...</span></div>
 
-<!-- MODAL MAX LIMIT -->
 <div id="maxLimitModal" class="custom-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);justify-content:center;align-items:center;z-index:9999;">
 <div style="background:#1a1a2e;padding:40px;border-radius:24px;max-width:400px;width:90%;text-align:center;border:1px solid rgba(0,243,255,0.2);box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);">
 <div style="font-size:50px;color:#ff4757;margin-bottom:20px;"><i class="fas fa-ban"></i></div>
@@ -164,7 +162,6 @@ font-display: swap;
 </div>
 </div>
 
-<!-- LOGIN FORM -->
 <div id="loginForm">
 <div class="login-logo-wrapper">
 <img src="https://cdn.areabermain.club/assets/cdn/az6/2026/01/22/20260122/488c225ecce2c68019933eff2b248567/contoh.png" alt="Logo">
@@ -191,7 +188,6 @@ font-display: swap;
 <div style="text-align:center;margin-top:25px;color:rgba(255,255,255,0.2);font-size:11px;">&copy; 2026 Staff Linetogel</div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="container hidden">
 <center><img src="https://cdn.areabermain.club/assets/cdn/az4/2025/04/23/20250423/a82bdc6fb564d0dff3671aeb9a4d1da5/logo.png" alt="Logo" class="logo"></center>
 <h2><i class="fas fa-clock"></i> IZIN STAFF LINETOGEL 2026 </h2>
@@ -258,19 +254,17 @@ font-display: swap;
 
 <script>
 // ============================================
-// KONFIGURASI BARU: GANTI GOOGLE SHEETS → GITHUB
+// KONFIGURASI BARU: GANTI KE REPO BARU
 // ============================================
-const GITHUB_REPO = 'davidsmb9856-star/linetgl-attendance-system';
+const GITHUB_REPO = 'davidsmb9856-star/tescatter'; // ✅ DIPERBARUI
 const BASE_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/main`;
 
-// Global state
 let currentUser = null;
 let currentIP = '';
 let todayStartCount = 0;
 let isBlocked = false;
 let maxStartLimit = 4;
 
-// DOM Elements
 const elements = {
 loginForm: document.getElementById('loginForm'),
 dashboard: document.getElementById('dashboard'),
@@ -310,9 +304,6 @@ loginRunningText: document.querySelector('#loginRunningText .running-text-conten
 dashboardRunningText: document.querySelector('#dashboardRunningText .running-text-content')
 };
 
-// ============================================
-// FUNGSI UTILITAS
-// ============================================
 function getFormattedDate(date) {
 const year = date.getFullYear();
 const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -341,14 +332,11 @@ function showPopup(msg, duration = 4000) {
 alert(msg);
 }
 function updateConnectionStatus(isConnected, msg) {
-elements.statusIndicator.className = isConnected ? 'status-indicator status-connected' : 'status-indicator status-disconnected';
+elements.statusIndicator.className = isConnected ? 'status-indicator' : '';
 elements.statusIndicator.style.background = isConnected ? '#2ed573' : '#ff4757';
 elements.statusText.textContent = msg;
 }
 
-// ============================================
-// FETCH DATA DARI GITHUB
-// ============================================
 async function fetchData(filename) {
 try {
 const res = await fetch(`${BASE_URL}/data/${filename}`);
@@ -361,9 +349,6 @@ return null;
 }
 }
 
-// ============================================
-// LOGIN
-// ============================================
 async function login() {
 const username = elements.username.value.trim();
 const password = elements.password.value.trim();
@@ -371,14 +356,12 @@ if (!username || !password) return showError('Masukkan username dan password');
 
 showLoading('Memverifikasi...');
 try {
-// Ambil data staff
 const staffData = await fetchData('staff.json');
 if (!staffData || !staffData.staff) return showError('Data staff tidak tersedia');
 
 const user = staffData.staff.find(u => u.username === username && u.password_hash === password);
 if (!user) return showError('Username atau password salah!');
 
-// Cek IP whitelist
 const ipData = await fetchData('whitelist.json');
 if (ipData && ipData.allowed_ips) {
 const allowed = ipData.allowed_ips.some(ip => {
@@ -396,7 +379,6 @@ return;
 }
 }
 
-// Login sukses
 currentUser = user;
 localStorage.setItem('currentUser', JSON.stringify(user));
 localStorage.setItem('loginTime', new Date().toISOString());
@@ -411,19 +393,14 @@ hideLoading();
 }
 }
 
-// ============================================
-// DASHBOARD
-// ============================================
 async function loadDashboard() {
 elements.loginForm.style.display = 'none';
 elements.dashboard.classList.remove('hidden');
 
-// Load config
 const config = await fetchData('config.json');
 const requireJobdesk = config?.require_jobdesk ?? true;
 elements.jobdeskSection.classList.toggle('hidden', !requireJobdesk);
 
-// Load jobdesk
 const jobdeskData = await fetchData('jobdesk.json');
 if (jobdeskData && jobdeskData.options) {
 elements.jobdeskSelect.innerHTML = '<option value="">-- Pilih --</option>';
@@ -434,36 +411,28 @@ elements.jobdeskSelect.appendChild(el);
 });
 }
 
-// Load running text
 const rt = await fetchData('running-text.json');
 const texts = rt?.texts || ['Selamat datang di sistem izin staff Linetgl!'];
 elements.loginRunningText.textContent = texts[0];
 elements.dashboardRunningText.textContent = texts[0];
 
-// Load background
 const bg = await fetchData('backgrounds.json');
 if (bg && bg.urls && bg.urls.length > 0) {
 elements.backgroundImage.src = bg.urls[0];
 setTimeout(() => elements.backgroundImage.classList.add('active'), 100);
 }
 
-// Update UI
 elements.staffNameDisplay.textContent = currentUser.name;
 elements.userRoleDisplay.textContent = currentUser.role;
 
-// Cek limit
 checkStartTimeLimit();
 
-// Clock & status
 updateClock();
 setInterval(updateClock, 1000);
 updateTimeRestriction();
 setInterval(updateTimeRestriction, 30000);
 }
 
-// ============================================
-// IZIN KELUAR / MASUK
-// ============================================
 function checkActiveRecord() {
 const records = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
 const today = getFormattedDate(new Date());
@@ -523,9 +492,6 @@ updateStatusPanel();
 showPopup('✅ Kembali masuk berhasil dicatat!');
 }
 
-// ============================================
-// STATUS & BATAS
-// ============================================
 function checkStartTimeLimit() {
 const records = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
 const today = getFormattedDate(new Date());
@@ -573,9 +539,6 @@ elements.statusPanelInfo.textContent = remaining > 0 ? 'Klik "Izin Keluar" untuk
 }
 }
 
-// ============================================
-// WAKTU & UTILITAS LAIN
-// ============================================
 function isRestrictedTime() {
 const now = new Date();
 const h = now.getHours(), m = now.getMinutes();
@@ -624,11 +587,7 @@ function closeMaxLimitModal() {
 elements.maxLimitModal.style.display = 'none';
 }
 
-// ============================================
-// INIT
-// ============================================
 async function init() {
-// Get IP
 try {
 const ipRes = await fetch('https://api.ipify.org?format=json');
 const ipData = await ipRes.json();
@@ -639,7 +598,6 @@ currentIP = '127.0.0.1';
 elements.currentIPText.textContent = 'IP tidak terdeteksi';
 }
 
-// Check auto-login
 const saved = localStorage.getItem('currentUser');
 const loginTime = localStorage.getItem('loginTime');
 if (saved && loginTime) {
@@ -652,7 +610,6 @@ return;
 }
 }
 
-// Load running text default
 elements.loginRunningText.textContent = 'Menunggu data pengumuman...';
 elements.dashboardRunningText.textContent = 'Menunggu data pengumuman...';
 
