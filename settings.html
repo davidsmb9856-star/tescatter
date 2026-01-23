@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Menu Pengaturan</title>
+<style>
+body {
+background: #0c0c16;
+color: #0ff;
+font-family: 'Courier New', monospace;
+padding: 20px;
+margin: 0;
+}
+.card {
+background: rgba(0, 30, 60, 0.6);
+border: 2px solid #0ff;
+border-radius: 8px;
+padding: 16px;
+margin: 12px 0;
+box-shadow: 0 0 10px #0ff;
+font-size: 16px;
+}
+.neon-btn {
+background: transparent;
+color: #0ff;
+border: 1px solid #0ff;
+padding: 8px 16px;
+margin-top: 8px;
+cursor: pointer;
+font-size: 16px;
+text-transform: uppercase;
+}
+.toast {
+position: fixed;
+top: 20px;
+right: 20px;
+background: rgba(0, 0, 0, 0.8);
+border: 2px solid #0f0;
+color: #0f0;
+padding: 12px 20px;
+border-radius: 6px;
+font-weight: bold;
+opacity: 0;
+transform: scale(0.8);
+transition: all 0.4s ease;
+z-index: 1000;
+}
+.toast.show {
+opacity: 1;
+transform: scale(1);
+}
+input, select, textarea {
+width: 100%;
+padding: 8px;
+margin: 6px 0;
+background: rgba(0,0,0,0.4);
+color: #0ff;
+border: 1px solid #0ff;
+border-radius: 4px;
+}
+</style>
+</head>
+<body>
+<h1>⚙️ MENU PENGATURAN</h1>
+
+<div class="card">
+<h3>🔧 Staff Management</h3>
+<input type="text" id="newUsername" placeholder="Username">
+<input type="text" id="newPassword" placeholder="Password (plaintext)">
+<input type="text" id="newName" placeholder="Nama">
+<select id="newRole">
+<option value="CS LINE">CS LINE</option>
+<option value="KAPTEN">KAPTEN</option>
+<option value="KASIR">KASIR</option>
+</select>
+<button class="neon-btn" onclick="addStaff()">Tambah Staff</button>
+</div>
+
+<div class="card">
+<h3>💼 Jobdesk</h3>
+<textarea id="jobdeskList" rows="4" placeholder="Satu per baris"></textarea>
+<button class="neon-btn" onclick="saveJobdesk()">Simpan Jobdesk</button>
+</div>
+
+<div class="card">
+<h3>🌐 Whitelist IP</h3>
+<textarea id="ipList" rows="4" placeholder="Contoh: 192.168.1.*"></textarea>
+<button class="neon-btn" onclick="saveWhitelist()">Simpan IP</button>
+</div>
+
+<div class="card">
+<h3>📢 Running Text</h3>
+<textarea id="runningText" rows="4" placeholder="Satu per baris"></textarea>
+<button class="neon-btn" onclick="saveRunningText()">Simpan Teks</button>
+</div>
+
+<div class="card">
+<h3>🖼️ Background</h3>
+<input type="url" id="bgUrl" placeholder="URL gambar">
+<button class="neon-btn" onclick="addBackground()">Tambah Background</button>
+</div>
+
+<div class="toast" id="toast">HANYA 6 ORANG TERPILIH – Pengaturan Disimpan!</div>
+
+<script>
+const GITHUB_REPO = 'davidsmb9856-star/linetgl-attendance-system';
+
+async function showToast() {
+const toast = document.getElementById('toast');
+toast.classList.add('show');
+setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// Contoh fungsi simpan (harus dikirim ke serverless function di produksi)
+async function saveConfig(path, content) {
+// Di produksi: kirim ke /api/update-data
+// Untuk demo: simpan ke localStorage
+localStorage.setItem(`local_${path}`, JSON.stringify(content));
+showToast();
+}
+
+async function addStaff() {
+const staff = {
+username: document.getElementById('newUsername').value,
+password_hash: document.getElementById('newPassword').value,
+name: document.getElementById('newName').value,
+role: document.getElementById('newRole').value
+};
+const staffData = JSON.parse(localStorage.getItem('local_staff.json') || '{"staff":[]}');
+staffData.staff.push(staff);
+await saveConfig('staff.json', staffData);
+}
+
+async function saveJobdesk() {
+const options = document.getElementById('jobdeskList').value.split('\n').filter(x => x.trim());
+await saveConfig('jobdesk.json', { options });
+}
+
+async function saveWhitelist() {
+const ips = document.getElementById('ipList').value.split('\n').filter(x => x.trim());
+await saveConfig('whitelist.json', { allowed_ips: ips });
+}
+
+async function saveRunningText() {
+const texts = document.getElementById('runningText').value.split('\n').filter(x => x.trim());
+await saveConfig('running-text.json', { texts });
+}
+
+async function addBackground() {
+const url = document.getElementById('bgUrl').value.trim();
+if (!url) return;
+const bgData = JSON.parse(localStorage.getItem('local_backgrounds.json') || '{"urls":[]}');
+bgData.urls.push(url);
+await saveConfig('backgrounds.json', bgData);
+}
+</script>
+</body>
+</html>
