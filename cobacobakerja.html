@@ -495,23 +495,6 @@ textarea {
       font-weight: 800;
     }
 
-    .judul-glow::after {
-      content: "";
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.2), transparent);
-      animation: rotateGlow 8s linear infinite;
-      z-index: -1;
-    }
-
-    @keyframes rotateGlow {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
 /* === PREVIEW ISI CATATAN — UKURAN LEBIH KECIL === */
 .note-content-preview {
   color: var(--accent-cyan);
@@ -4087,9 +4070,121 @@ input:checked + .slider-mode:before { transform: translateX(24px); background-co
   font-family: monospace; font-size: 11px; color: #8b949e; 
   padding: 3px 0; border-bottom: 1px dashed #21262d;
 }
+.menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(0, 20, 40, 0.6);
+  border: 1px solid #00f3ff;
+  color: #00f3ff;
+  font-family: 'Orbitron', sans-serif;
+  border-radius: 8px;
+  margin: 8px 0;
+  cursor: pointer;
+}
+.menu-btn:hover {
+  background: rgba(0, 243, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+}
+/* === NEURO-SCAN AUTH v2.6 === */
+#neuroAuthOverlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #000428, #004e92);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #0ff;
+  font-family: 'Orbitron', sans-serif;
+  overflow: hidden;
+}
+/* Neural Network Background */
+#neuroAuthOverlay::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.05), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(157, 0, 255, 0.05), transparent 40%);
+  animation: pulseBG 8s infinite alternate;
+}
+@keyframes pulseBG {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.7; }
+}
+
+/* Retina Scan Circle */
+.retina-scan {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 50px;
+}
+.retina-core {
+  position: absolute;
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #000, #001122);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+.retina-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 120px; height: 120px;
+  transform: translate(-50%, -50%);
+  border: 2px solid #00f3ff;
+  border-radius: 50%;
+  animation: rotateRing 12s linear infinite;
+}
+.retina-laser {
+  position: absolute;
+  top: 0; left: 50%;
+  width: 2px; height: 100%;
+  background: linear-gradient(to bottom, transparent, #00ffff, transparent);
+  transform-origin: center;
+  animation: scanLaser 4s linear infinite;
+}
+@keyframes rotateRing {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes scanLaser {
+  0% { transform: translateX(-50%) rotate(0deg); opacity: 0.7; }
+  100% { transform: translateX(-50%) rotate(360deg); opacity: 0.3; }
+}
+
+/* Voice Wave */
+.voice-wave {
+  display: flex;
+  gap: 4px;
+  margin-top: 30px;
+}
+.voice-bar {
+  width: 6px;
+  background: #00f3ff;
+  border-radius: 3px;
+  animation: wavePulse 1.5s infinite ease-in-out;
+}
+.voice-bar:nth-child(2) { animation-delay: 0.1s; height: 20px; }
+.voice-bar:nth-child(3) { animation-delay: 0.2s; height: 30px; }
+.voice-bar:nth-child(4) { animation-delay: 0.3s; height: 25px; }
+.voice-bar:nth-child(5) { animation-delay: 0.4s; height: 20px; }
+@keyframes wavePulse {
+  0%, 100% { transform: scaleY(1); opacity: 0.6; }
+  50% { transform: scaleY(1.5); opacity: 1; }
+}
+
 </style>
 </head>
 <body class="bg-default">
+  <!-- CYBER BACKGROUND -->
+<canvas id="cyberBg" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;"></canvas>
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle at 20% 80%, rgba(0,243,255,0.05), transparent 30%), radial-gradient(circle at 80% 20%, rgba(157,0,255,0.05), transparent 30%);z-index:-1;"></div>
+
   <button id="toggleSidebarBtn" style="
   position: fixed;
   top: 15px;
@@ -4141,10 +4236,6 @@ input:checked + .slider-mode:before { transform: translateX(24px); background-co
       <button class="neon-button" onclick="loadNotes('CARA BERMAIN'); showTab('catatanTab', this)">
         <i class="fas fa-book-open"></i>
         <span>CARA BERMAIN</span>
-      </button>
-      <button class="neon-button" onclick="loadNotes('PROMO'); showTab('catatanTab', this)">
-        <i class="fas fa-gift"></i>
-        <span>PROMO</span>
       </button>
       <button class="neon-button" onclick="showTab('tryCariTab', this)">
         <i class="fas fa-search"></i>
@@ -9365,354 +9456,126 @@ function clearField(id) {
 }
 
 // ====================================================================
-// === TANYA Z: AI SERBA BISA (TEKS + GAMBAR + UPLOAD + PERINTAH) ===
+// === TANYA Z: AI SERBA BISA (DIPERBAIKI - KOMPATIBEL DENGAN FILE ANDA) ===
 // ====================================================================
 let conversationHistory = [];
-const MAX_HISTORY = 20; // Lebih panjang untuk konteks mendalam
+const MAX_HISTORY = 10; // Lebih ringan, cukup untuk konteks
 
-// === UTILITAS ===
 function sanitizeHTML(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
 
-// === ZOOM GAMBAR STABIL (BISA DITUTUP VIA KLIK OVERLAY) ===
 function showZoomModal(imgSrc) {
   const modal = document.createElement('div');
   modal.style.cssText = `
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.92);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-    cursor: pointer;
-    animation: fadeIn 0.3s ease;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.92); display: flex; justify-content: center;
+    align-items: center; z-index: 10000; cursor: pointer;
   `;
-
   const img = document.createElement('img');
   img.src = imgSrc;
-  img.alt = "Zoomed";
-  img.style.cssText = `
-    max-width: 90vw;
-    max-height: 85vh;
-    border-radius: 12px;
-    box-shadow: 0 0 20px #66ccff;
-    cursor: default;
-  `;
-
+  img.style.maxWidth = '90vw';
+  img.style.maxHeight = '85vh';
+  img.style.borderRadius = '12px';
+  img.style.boxShadow = '0 0 20px #66ccff';
   modal.appendChild(img);
   document.body.appendChild(modal);
-
-  // 🔥 TUTUP SAAT KLIK DI MANA SAJA (TERMASUK GAMBAR)
-  modal.onclick = () => {
-    document.body.removeChild(modal);
-  };
-
-  // ESC juga menutup
+  modal.onclick = () => document.body.removeChild(modal);
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      if (modal.parentNode) document.body.removeChild(modal);
+    if (e.key === 'Escape' && modal.parentNode) {
+      document.body.removeChild(modal);
     }
   }, { once: true });
 }
 
-// === TAMPILKAN PESAN ===
 function displayMessage(sender, text, isImage = false, imageSrcs = []) {
   const chatHistory = document.getElementById('chatHistory');
   if (!chatHistory) return;
 
   const messageDiv = document.createElement('div');
   messageDiv.className = `message ${sender}-message`;
-  messageDiv.style.cssText = `
-    margin: 12px 0;
-    display: flex;
-    justify-content: ${sender === 'user' ? 'flex-end' : 'flex-start'};
-  `;
+  messageDiv.style.display = 'flex';
+  messageDiv.style.justifyContent = sender === 'user' ? 'flex-end' : 'flex-start';
+  messageDiv.style.margin = '10px 0';
 
-  const bubbleDiv = document.createElement('div');
-  bubbleDiv.className = 'message-bubble';
-  bubbleDiv.style.cssText = `
-    padding: 14px 18px;
-    border-radius: 16px;
-    max-width: 85%;
-    word-wrap: break-word;
-    font-size: 1.1em;
-    line-height: 1.5;
-    box-shadow: 0 4px 10px rgba(102, 204, 255, 0.3);
-    backdrop-filter: blur(4px);
-    position: relative;
-  `;
+  const bubble = document.createElement('div');
+  bubble.className = 'message-bubble';
+  bubble.style.padding = '12px 16px';
+  bubble.style.borderRadius = '16px';
+  bubble.style.maxWidth = '80%';
+  bubble.style.wordWrap = 'break-word';
+  bubble.style.fontSize = '1em';
+  bubble.style.lineHeight = '1.4';
+  bubble.style.boxShadow = '0 2px 8px rgba(102,204,255,0.3)';
+  bubble.style.backdropFilter = 'blur(4px)';
 
   if (sender === 'user') {
-    bubbleDiv.style.backgroundColor = 'rgba(60, 180, 255, 0.15)';
-    bubbleDiv.style.border = '1px solid #66ccff';
-    bubbleDiv.style.color = '#e0f0ff';
+    bubble.style.backgroundColor = 'rgba(60,180,255,0.15)';
+    bubble.style.border = '1px solid #66ccff';
+    bubble.style.color = '#e0f0ff';
   } else {
-    bubbleDiv.style.backgroundColor = 'rgba(40, 40, 60, 0.8)';
-    bubbleDiv.style.border = '1px solid #66ccff';
-    bubbleDiv.style.color = '#e0f0ff';
+    bubble.style.backgroundColor = 'rgba(40,40,60,0.8)';
+    bubble.style.border = '1px solid #66ccff';
+    bubble.style.color = '#e0f0ff';
   }
 
-  if (isImage && Array.isArray(imageSrcs) && imageSrcs.length > 0) {
+  if (isImage && Array.isArray(imageSrcs)) {
     imageSrcs.forEach(src => {
       const img = document.createElement('img');
       img.src = src;
-      img.alt = "Gambar";
-      img.style.cssText = `
-        max-width: 100%;
-        max-height: 300px;
-        border-radius: 10px;
-        border: 1px solid #66ccff;
-        margin: 6px 0;
-        box-shadow: 0 0 6px rgba(102, 204, 255, 0.3);
-        cursor: zoom-in;
-      `;
-      img.addEventListener('click', () => showZoomModal(src));
-      bubbleDiv.appendChild(img);
+      img.style.maxWidth = '100%';
+      img.style.maxHeight = '250px';
+      img.style.borderRadius = '8px';
+      img.style.margin = '6px 0';
+      img.style.cursor = 'zoom-in';
+      img.onclick = () => showZoomModal(src);
+      bubble.appendChild(img);
     });
   } else {
     let formatted = sanitizeHTML(text)
       .replace(/\*\*(.*?)\*\*/g, '<b style="color:#66ccff">$1</b>')
-      .replace(/\*(.*?)\*/g, '<i>$1</i>')
-      .replace(/```([\s\S]*?)```/g, '<div class="code-container" style="background:rgba(20,40,60,0.6);padding:12px;border-radius:8px;margin:8px 0;overflow-x:auto;font-family:monospace;color:#a0d0ff;border-left:3px solid #66ccff;">$1</div>')
       .replace(/\n/g, '<br>');
+    bubble.innerHTML = formatted;
 
-    bubbleDiv.innerHTML = formatted;
-
-    // 🔁 IKON REGENERATE KECIL
     if (sender === 'ai') {
       const regenBtn = document.createElement('span');
-      regenBtn.innerHTML = '$';
-      regenBtn.title = 'Regenerate respons';
+      regenBtn.innerHTML = '🔄';
+      regenBtn.title = 'Regenerate';
       regenBtn.style.cssText = `
-        position: absolute;
-        bottom: 4px;
-        right: 4px;
-        font-size: 1.3em;
-        color: #88ddff;
-        cursor: pointer;
+        position: absolute; bottom: 4px; right: 4px;
+        font-size: 1.2em; color: #88ddff; cursor: pointer;
         opacity: 0.7;
-        transition: all 0.25s ease;
-        text-shadow: 0 0 4px rgba(136, 221, 255, 0.6);
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10;
       `;
-      regenBtn.addEventListener('mouseenter', () => {
-        regenBtn.style.opacity = '1';
-        regenBtn.style.textShadow = '0 0 8px rgba(136, 221, 255, 0.9)';
-        regenBtn.style.transform = 'scale(1.2)';
-      });
-      regenBtn.addEventListener('mouseleave', () => {
-        regenBtn.style.opacity = '0.7';
-        regenBtn.style.textShadow = '0 0 4px rgba(136, 221, 255, 0.6)';
-        regenBtn.style.transform = 'scale(1)';
-      });
+      regenBtn.onmouseenter = () => regenBtn.style.opacity = '1';
+      regenBtn.onmouseleave = () => regenBtn.style.opacity = '0.7';
       regenBtn.onclick = (e) => {
         e.stopPropagation();
         regenerateLastResponse();
       };
-      bubbleDiv.appendChild(regenBtn);
+      bubble.appendChild(regenBtn);
     }
   }
 
-  messageDiv.appendChild(bubbleDiv);
+  messageDiv.appendChild(bubble);
   chatHistory.appendChild(messageDiv);
   chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
-// === KIRIM PESAN ===
-async function sendMessage() {
-  const inputDiv = document.getElementById('chatInput');
-  if (!inputDiv) return;
-
-  const userText = inputDiv.innerText.trim();
-  const imageElements = inputDiv.querySelectorAll('img');
-  const savedImages = [];
-
-  imageElements.forEach(img => {
-    if (img.src.startsWith('data:image')) {
-      savedImages.push(img.src);
-    }
-  });
-
-  if (!userText && savedImages.length === 0) {
-    inputDiv.innerHTML = '';
-    return;
-  }
-
-  inputDiv.innerHTML = '';
-  disableInputs();
-
-  if (savedImages.length > 0) {
-    displayMessage('user', '', true, savedImages);
-  } else {
-    displayMessage('user', userText);
-  }
-
-  const imageParts = savedImages.map(src => ({
-    inline_data: { mime_type: "image/png", data: src.split(',')[1] }
-  }));
-
-  showTypingIndicator();
-
-  // Perintah khusus: /gambar:
-  if (userText.toLowerCase().startsWith('/gambar:')) {
-    const prompt = userText.substring(8).trim();
-    if (!prompt) {
-      hideTypingIndicator(); enableInputs();
-      displayMessage('ai', '❌ Prompt tidak boleh kosong setelah `/gambar:`');
-      return;
-    }
-
-    google.script.run
-      .withSuccessHandler(res => {
-        hideTypingIndicator(); enableInputs();
-        if (res && typeof res === 'string' && res.startsWith('data:image')) {
-          displayMessage('ai', '', true, [res]);
-        } else {
-          displayMessage('ai', res || '⚠️ Gagal menghasilkan gambar.');
-        }
-      })
-      .withFailureHandler(err => {
-        hideTypingIndicator(); enableInputs();
-        displayMessage('ai', `❌ Error gambar: ${err.message || err}`);
-      })
-      .generateImageWithGemini(prompt);
-    return;
-  }
-
-  // Kirim ke AI biasa — ini yang memberi akses ke SEMUA KEMAMPUAN Z
-  const userMessage = {
-    role: "user",
-    parts: [{ text: userText || "Analisis gambar ini" }, ...imageParts]
-  };
-
-  conversationHistory.push(userMessage);
-  if (conversationHistory.length > MAX_HISTORY) conversationHistory.shift();
-
-  google.script.run
-    .withSuccessHandler(res => {
-      hideTypingIndicator(); enableInputs();
-      if (typeof res === 'string') {
-        conversationHistory.push({ role: "model", parts: [{ text: res }] });
-        displayMessage('ai', res);
-      } else {
-        displayMessage('ai', '⚠️ Respons tidak valid dari AI.');
-      }
-    })
-    .withFailureHandler(err => {
-      hideTypingIndicator(); enableInputs();
-      displayMessage('ai', `❌ Error: ${err.message || JSON.stringify(err)}`);
-    })
-    .callGeminiAdvanced([...conversationHistory]); // <-- INI AKSES KE SEMUA FITUR Z
-}
-
-// === REGENERATE ===
-function regenerateLastResponse() {
-  if (conversationHistory.length < 2) {
-    displayMessage('ai', '⚠️ Tidak ada riwayat untuk diregenerasi.');
-    return;
-  }
-
-  if (conversationHistory[conversationHistory.length - 1].role === 'model') {
-    conversationHistory.pop();
-  }
-
-  disableInputs();
-  showTypingIndicator();
-
-  google.script.run
-    .withSuccessHandler(res => {
-      hideTypingIndicator(); enableInputs();
-      if (typeof res === 'string') {
-        conversationHistory.push({ role: 'model', parts: [{ text: res }] });
-
-        const chatHistory = document.getElementById('chatHistory');
-        const msgs = chatHistory.querySelectorAll('.message');
-        if (msgs.length > 0) {
-          const last = msgs[msgs.length - 1];
-          if (last.classList.contains('ai-message')) last.remove();
-        }
-
-        displayMessage('ai', res);
-      } else {
-        displayMessage('ai', '⚠️ Respons tidak valid.');
-      }
-    })
-    .withFailureHandler(err => {
-      hideTypingIndicator(); enableInputs();
-      displayMessage('ai', `❌ Gagal regenerate: ${err.message || err}`);
-    })
-    .callGeminiAdvanced([...conversationHistory]);
-}
-
-// === PASTE GAMBAR ===
-document.getElementById('chatInput')?.addEventListener('paste', e => {
-  const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
-  if (!items) return;
-
-  for (const item of items) {
-    if (item.type.startsWith('image/')) {
-      e.preventDefault();
-      const file = item.getAsFile();
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = ev => {
-          const img = document.createElement('img');
-          img.src = ev.target.result;
-          img.style.cssText = `
-            max-width: 140px;
-            max-height: 140px;
-            margin: 4px;
-            border-radius: 8px;
-            border: 1px solid #66ccff;
-            box-shadow: 0 0 6px rgba(102, 204, 255, 0.3);
-            vertical-align: middle;
-            cursor: zoom-in;
-          `;
-          img.addEventListener('click', () => showZoomModal(img.src));
-          document.getElementById('chatInput').appendChild(img);
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-  }
-});
-
-// === KEYBOARD ===
-document.getElementById('chatInput')?.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-});
-document.getElementById('sendButton')?.addEventListener('click', sendMessage);
-
-// === UI HELPER ===
 function showTypingIndicator() {
   const chatHistory = document.getElementById('chatHistory');
+  if (!chatHistory) return;
   const loader = document.createElement('div');
   loader.id = 'z-loader';
   loader.className = 'message ai-message';
-  loader.style.cssText = `display: flex; justify-content: flex-start; margin: 10px 0;`;
+  loader.style.display = 'flex';
+  loader.style.justifyContent = 'flex-start';
   loader.innerHTML = `<div class="message-bubble" style="
-    background: rgba(40, 40, 60, 0.7);
-    border: 1px solid #66ccff;
-    color: #c0e0ff;
-    padding: 12px 16px;
-    border-radius: 16px;
-    font-style: italic;
-  ">Z sedang berpikir... 🤖</div>`;
-  chatHistory?.appendChild(loader);
-  chatHistory?.scrollTo({ top: chatHistory.scrollHeight, behavior: 'smooth' });
+    background: rgba(40,40,60,0.7); border: 1px solid #66ccff;
+    color: #c0e0ff; padding: 10px 14px; border-radius: 14px;
+    font-style: italic;">Z sedang berpikir... 🤖</div>`;
+  chatHistory.appendChild(loader);
 }
 
 function hideTypingIndicator() {
@@ -9737,32 +9600,160 @@ function enableInputs() {
   }
 }
 
-// === ANIMASI TAMBAHAN ===
-(function injectStyles() {
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+async function sendMessage() {
+  const inputDiv = document.getElementById('chatInput');
+  if (!inputDiv) return;
+
+  const userText = inputDiv.innerText.trim();
+  const imgs = inputDiv.querySelectorAll('img');
+  const savedImages = [];
+
+  imgs.forEach(img => {
+    if (img.src.startsWith('data:image')) {
+      savedImages.push(img.src);
     }
-    .message-bubble::after {
-      content: '';
-      position: absolute;
-      top: -2px; left: -2px; right: -2px; bottom: -2px;
-      border-radius: 18px;
-      background: linear-gradient(45deg, #66ccff, #4499ff, #66ccff);
-      z-index: -1;
-      opacity: 0.2;
-      filter: blur(6px);
-      animation: pulseGlow 4s infinite alternate;
+  });
+
+  if (!userText && savedImages.length === 0) return;
+
+  inputDiv.innerHTML = '';
+  disableInputs();
+
+  if (savedImages.length > 0) {
+    displayMessage('user', '', true, savedImages);
+  } else {
+    displayMessage('user', userText);
+  }
+
+  // Perintah khusus: /gambar:
+  if (userText.toLowerCase().startsWith('/gambar:')) {
+    const prompt = userText.substring(8).trim();
+    if (!prompt) {
+      hideTypingIndicator(); enableInputs();
+      displayMessage('ai', '❌ Prompt tidak boleh kosong setelah `/gambar:`');
+      return;
     }
-    @keyframes pulseGlow {
-      0% { opacity: 0.1; }
-      100% { opacity: 0.3; }
+    showTypingIndicator();
+    google.script.run
+      .withSuccessHandler(res => {
+        hideTypingIndicator(); enableInputs();
+        if (res && res.startsWith('data:image')) {
+          displayMessage('ai', '', true, [res]);
+        } else {
+          displayMessage('ai', res || '⚠️ Gagal membuat gambar.');
+        }
+      })
+      .withFailureHandler(err => {
+        hideTypingIndicator(); enableInputs();
+        displayMessage('ai', `❌ Error: ${err.message || 'Gagal generate gambar'}`);
+      })
+      .generateImageWithGemini(prompt);
+    return;
+  }
+
+  // Kirim ke AI
+  const imageParts = savedImages.map(src => ({
+    inline_data: { mime_type: "image/png", data: src.split(',')[1] }
+  }));
+
+  const userMsg = {
+    role: "user",
+    parts: [{ text: userText || "Analisis gambar ini" }, ...imageParts]
+  };
+
+  conversationHistory.push(userMsg);
+  if (conversationHistory.length > MAX_HISTORY) conversationHistory.shift();
+
+  showTypingIndicator();
+  google.script.run
+    .withSuccessHandler(res => {
+      hideTypingIndicator(); enableInputs();
+      if (typeof res === 'string') {
+        conversationHistory.push({ role: "model", parts: [{ text: res }] });
+        displayMessage('ai', res);
+      } else {
+        displayMessage('ai', '⚠️ Respons tidak valid.');
+      }
+    })
+    .withFailureHandler(err => {
+      hideTypingIndicator(); enableInputs();
+      displayMessage('ai', `❌ Error: ${err.message || 'Koneksi gagal'}`);
+    })
+    .callGeminiAdvanced([...conversationHistory]);
+}
+
+function regenerateLastResponse() {
+  if (conversationHistory.length < 2) {
+    displayMessage('ai', '⚠️ Tidak ada riwayat untuk diregenerasi.');
+    return;
+  }
+  // Hapus respons AI terakhir
+  if (conversationHistory[conversationHistory.length - 1].role === 'model') {
+    conversationHistory.pop();
+  }
+  // Hapus pesan AI terakhir dari tampilan
+  const chatHistory = document.getElementById('chatHistory');
+  const msgs = chatHistory.querySelectorAll('.message');
+  if (msgs.length > 0) {
+    const last = msgs[msgs.length - 1];
+    if (last.classList.contains('ai-message')) last.remove();
+  }
+  // Kirim ulang
+  disableInputs();
+  showTypingIndicator();
+  google.script.run
+    .withSuccessHandler(res => {
+      hideTypingIndicator(); enableInputs();
+      if (typeof res === 'string') {
+        conversationHistory.push({ role: "model", parts: [{ text: res }] });
+        displayMessage('ai', res);
+      } else {
+        displayMessage('ai', '⚠️ Gagal meregenerasi.');
+      }
+    })
+    .withFailureHandler(err => {
+      hideTypingIndicator(); enableInputs();
+      displayMessage('ai', `❌ Error: ${err.message || 'Regenerasi gagal'}`);
+    })
+    .callGeminiAdvanced([...conversationHistory]);
+}
+
+// Paste gambar
+document.getElementById('chatInput')?.addEventListener('paste', e => {
+  const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const img = document.createElement('img');
+          img.src = ev.target.result;
+          img.style.cssText = `
+            max-width: 120px; max-height: 120px; margin: 4px;
+            border-radius: 8px; border: 1px solid #66ccff;
+            vertical-align: middle; cursor: zoom-in;
+          `;
+          img.onclick = () => showZoomModal(img.src);
+          document.getElementById('chatInput').appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      }
     }
-  `;
-  document.head.appendChild(style);
-})();
+  }
+});
+
+// Enter untuk kirim
+document.getElementById('chatInput')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+document.getElementById('sendButton')?.addEventListener('click', sendMessage);
 
 document.querySelectorAll('#pengaturanTab h4').forEach(h => {
   h.addEventListener('click', () => {
@@ -9773,6 +9764,68 @@ document.querySelectorAll('#pengaturanTab h4').forEach(h => {
     }
   });
 });
+// === CYBER BACKGROUND DENGAN PARTIKEL & GRID ===
+(function initCyberBg() {
+  const canvas = document.getElementById('cyberBg');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+
+  // Partikel
+  const particles = [];
+  for (let i = 0; i < 50; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2 + 0.5,
+      speedX: (Math.random() - 0.5) * 0.3,
+      speedY: (Math.random() - 0.5) * 0.3
+    });
+  }
+
+  function animate() {
+    ctx.fillStyle = 'rgba(0, 10, 30, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Gambar partikel
+    particles.forEach(p => {
+      p.x += p.speedX;
+      p.y += p.speedY;
+      if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+
+      ctx.fillStyle = '#00f3ff';
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Grid tipis
+    ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
 
 </script>
 </body>
