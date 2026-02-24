@@ -3,338 +3,307 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FLOATING ORB MENU</title>
+  <title>FLOATING DOCK UI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <style>
     /* =========================================
        1. SETUP DASAR
        ========================================= */
     :root {
-      --main-color: #6c5ce7;
-      --bg-dark: #0f0f11;
-      --glass: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --text-main: #e0e0e0;
+      --accent-color: #6c5ce7; /* Ungu kebiruan */
+      --bg-main: #0f0f12;
+      --card-bg: #1a1a1f;
+      --text-main: #eaeaea;
+      --dock-bg: rgba(30, 30, 35, 0.85);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
+      background-color: var(--bg-main);
       font-family: 'Outfit', sans-serif;
+      color: var(--text-main);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow-x: hidden;
-      padding-bottom: 100px; /* Ruang untuk dock di bawah */
+      padding-bottom: 100px; /* Ruang untuk Dock di bawah */
     }
 
     /* =========================================
-       2. KONTEN UTAMA
+       2. KONTEN UTAMA (FULL SCREEN)
        ========================================= */
-    .content-wrapper {
-      width: 100%;
-      max-width: 800px;
+    .content-area {
       padding: 20px;
-      padding-bottom: 20px;
-      z-index: 1;
+      max-width: 100%;
+      width: 100%;
     }
 
     .tab-content {
       display: none;
-      animation: fadeIn 0.5s ease;
-    }
-    
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-    .card-panel {
-      background: var(--glass);
-      border: 1px solid var(--glass-border);
+      width: 100%;
+      background: var(--card-bg);
       border-radius: 24px;
-      padding: 30px;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      padding: 25px;
       margin-bottom: 20px;
+      border: 1px solid #2a2a30;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
-    .card-panel h3 {
-      font-size: 22px;
+    .tab-content h3 {
+      font-size: 20px;
       margin-bottom: 20px;
-      color: #fff;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    
+
     /* Form Style */
-    input, textarea, select {
-      width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #333;
-      color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 15px;
-      font-family: 'Outfit', sans-serif; font-size: 14px;
+    .tab-content textarea, .tab-content input, .tab-content select {
+      width: 100%;
+      background: #000;
+      border: 1px solid #333;
+      color: #fff;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-family: 'Outfit', sans-serif;
     }
-    button.btn-action {
-      background: var(--main-color); color: #fff; border: none;
-      padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer;
-      transition: 0.2s; width: 100%;
+    .tab-content button {
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      border-radius: 8px;
+      border: none;
+      padding: 10px 20px;
+      font-weight: 600;
+      background: var(--accent-color);
+      color: #fff;
     }
-    button.btn-action:hover { filter: brightness(1.2); box-shadow: 0 0 20px rgba(108, 92, 231, 0.4); }
+    .tab-content button.secondary { background: #333; }
 
     /* =========================================
-       3. FLOATING ORB MENU (DOCK)
+       3. FLOATING DOCK (BOTTOM NAVIGATION)
        ========================================= */
-    .menu-container {
+    .floating-dock {
       position: fixed;
-      bottom: 30px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 999;
+      background: var(--dock-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 10px 15px;
+      border-radius: 25px;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      gap: 5px;
+      z-index: 1000;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      
+      /* Agar tombol tidak terlalu lebar di desktop */
+      max-width: 600px; 
+      width: auto; 
     }
 
-    /* Tombol Utama (Center) */
-    .menu-main-btn {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, #ff00cc, #333399);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #fff;
-      font-size: 24px;
+    .dock-item {
+      background: transparent;
+      border: none;
+      color: #888;
+      padding: 10px 15px;
+      border-radius: 20px;
       cursor: pointer;
-      box-shadow: 0 5px 25px rgba(255, 0, 204, 0.5);
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 10;
-      border: 2px solid rgba(255,255,255,0.2);
-    }
-
-    .menu-main-btn:hover { transform: scale(1.1); }
-    .menu-main-btn.active { transform: rotate(45deg); background: #fff; color: #000; }
-
-    /* Tombol-Tombol Menu (Muncul Saat Active) */
-    .orb-menu {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      list-style: none;
-      transition: all 0.3s ease;
-      pointer-events: none; /* Tidak bisa diklik saat tersembunyi */
-    }
-
-    .orb-item {
-      position: absolute;
-      width: 45px;
-      height: 45px;
-      background: #fff;
-      border-radius: 50%;
+      transition: all 0.2s;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      color: #000;
-      font-size: 18px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    }
-
-    .orb-item:hover { transform: translate(-50%, -50%) scale(1.2); background: var(--main-color); color: #fff; }
-
-    /* Posisi Orbit (Membentuk Lingkaran) */
-    /* Rumus: x = r * cos(angle), y = r * sin(angle) */
-    /* Jari-jari orbit (r) = 80px */
-    
-    .menu-container.active .orb-menu { pointer-events: auto; }
-    
-    .menu-container.active .orb-item:nth-child(1)  { transform: translate(-50%, -50%) scale(1); top: -130%; left: 50%; opacity: 1; } /* Atas */
-    .menu-container.active .orb-item:nth-child(2)  { transform: translate(-50%, -50%) scale(1); top: -110%; left: 95%; opacity: 1; } /* Kanan Atas */
-    .menu-container.active .orb-item:nth-child(3)  { transform: translate(-50%, -50%) scale(1); top: -40%; left: 130%; opacity: 1; } /* Kanan */
-    .menu-container.active .orb-item:nth-child(4)  { transform: translate(-50%, -50%) scale(1); top: 50%; left: 130%; opacity: 1; } /* Kanan Bawah */
-    .menu-container.active .orb-item:nth-child(5)  { transform: translate(-50%, -50%) scale(1); top: 140%; left: 100%; opacity: 1; } /* Bawah Kanan */
-    .menu-container.active .orb-item:nth-child(6)  { transform: translate(-50%, -50%) scale(1); top: 140%; left: 0%; opacity: 1; } /* Bawah Kiri */
-    .menu-container.active .orb-item:nth-child(7)  { transform: translate(-50%, -50%) scale(1); top: 50%; left: -30%; opacity: 1; } /* Kiri Bawah */
-    .menu-container.active .orb-item:nth-child(8)  { transform: translate(-50%, -50%) scale(1); top: -40%; left: -30%; opacity: 1; } /* Kiri */
-    .menu-container.active .orb-item:nth-child(9)  { transform: translate(-50%, -50%) scale(1); top: -110%; left: 5%; opacity: 1; } /* Kiri Atas */
-    .menu-container.active .orb-item:nth-child(10) { transform: translate(-50%, -50%) scale(1); top: -140%; left: 100%; opacity: 1; } /* Tambahan */
-
-    /* Tooltip untuk Orb */
-    .orb-item span {
-      position: absolute;
-      bottom: -25px;
-      background: #000;
-      color: #fff;
-      padding: 2px 8px;
-      border-radius: 4px;
+      gap: 4px;
       font-size: 10px;
-      white-space: nowrap;
-      opacity: 0;
-      transition: 0.2s;
+      font-weight: 600;
     }
-    .orb-item:hover span { opacity: 1; bottom: -30px; }
 
-    /* =========================================
-       4. FLOATING UTILITIES
-       ========================================= */
-    #toastNotif { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 10px 30px; border-radius: 30px; font-weight: bold; display: none; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-    
-    /* Sticky Note Button (Satu-satunya FAB terpisah) */
-    #stickyFab { position: fixed; top: 20px; right: 20px; width: 50px; height: 50px; background: #fff; color: #000; border-radius: 18px; font-size: 20px; cursor: pointer; z-index: 999; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: 0.2s; }
-    #stickyPanel { display: none; position: fixed; top: 80px; right: 20px; width: 300px; background: #1a1a1a; border-radius: 20px; padding: 20px; z-index: 999; border: 1px solid #333; }
-    #stickyPanel input, #stickyPanel textarea { background: #000; border: 1px solid #333; }
+    .dock-item i {
+      font-size: 18px;
+    }
 
-    /* Modal */
-    #lightbox { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.95); display: none; z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(10px); cursor: pointer; }
-    #lightbox img { max-width: 90%; max-height: 90%; border-radius: 10px; }
+    .dock-item:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* Active State */
+    .dock-item.active {
+      background: var(--accent-color);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
+    }
+
+    /* Utility */
+    #toastNotif { position: fixed; top: 20px; right: 20px; background: #fff; color: #000; padding: 10px 20px; border-radius: 50px; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    #stickyFab { position: fixed; bottom: 90px; right: 20px; background: var(--accent-color); color: #fff; border-radius: 50%; width: 50px; height: 50px; border: none; font-size: 20px; cursor: pointer; z-index: 999; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4); }
+    #stickyPanel { display: none; position: fixed; bottom: 150px; right: 20px; width: 300px; background: #1a1a1f; border-radius: 15px; padding: 15px; z-index: 999; border: 1px solid #333; }
 
   </style>
 </head>
 <body>
 
-  <!-- Konten Utama -->
-  <div class="content-wrapper">
+  <!-- ================= AREA KONTEN UTAMA ================= -->
+  <div class="content-area">
     
-    <!-- TAB CATATAN -->
-    <div id="catatanTab" class="tab-content" style="display:block;">
-      <div class="card-panel">
-        <h3 id="judulCatatan"><i class="fas fa-folder"></i> Kendala All</h3>
-        <input type="text" id="searchInput" placeholder="🔍 Cari catatan..." oninput="searchNotes()">
-        <div id="notesList"><p style="text-align:center; opacity:0.6;">Menampilkan data...</p></div>
-      </div>
-    </div>
-
-    <!-- TAB AI -->
+    <!-- Tab AI Z -->
     <div id="tanyaZTab" class="tab-content">
-      <div class="card-panel">
-        <h3><i class="fas fa-robot"></i> Tanya Z (AI)</h3>
-        <div id="chatHistory" style="min-height:200px; border:1px solid #333; border-radius:12px; padding:15px; margin-bottom:15px;"></div>
-        <div style="display:flex; gap:10px;">
-          <input type="text" id="chatInput" placeholder="Ketik pesan..." style="margin:0; flex:1;">
-          <button onclick="sendMessage()" class="btn-action" style="width:auto; padding:0 20px;">KIRIM</button>
-        </div>
+      <h3><i class="fas fa-robot"></i> Tanya Z (AI)</h3>
+      <div id="chatHistory" style="min-height:200px; background:#111; border-radius:12px; padding:10px; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="chatInput" placeholder="Ketik pesan..." style="margin:0;">
+        <button onclick="sendMessage()">Send</button>
       </div>
     </div>
 
-    <!-- TAB BONUS -->
+    <!-- Tab Catatan -->
+    <div id="catatanTab" class="tab-content" style="display:block;">
+      <h3 id="judulCatatan"><i class="fas fa-folder"></i> Kendala All</h3>
+      <input type="text" id="searchInput" placeholder="Cari..." oninput="searchNotes()">
+      <div id="notesList"><p style="opacity:0.5; text-align:center;">Memuat data...</p></div>
+    </div>
+
+    <!-- Tab Prediksi -->
+    <div id="prediksiGabungTab" class="tab-content">
+      <h3><i class="fas fa-bullseye"></i> Prediksi & Hitung</h3>
+      <input type="text" id="membacaIsiFoto_input" placeholder="Link Gambar OCR...">
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <input type="number" id="nominalInput" placeholder="Nominal" style="flex:1;">
+        <button onclick="updateNominalTogel()" class="secondary">SET</button>
+      </div>
+      <div id="detailHitunganDropdown" style="margin-top:15px; padding:10px; background:#111; border-radius:8px; text-align:center; color:var(--accent-color);">OUTPUT</div>
+    </div>
+
+    <!-- Tab Bonus Event -->
     <div id="cekBonusEventTab" class="tab-content">
-      <div class="card-panel">
-        <h3><i class="fas fa-gem"></i> Bonus Event</h3>
-        <!-- Sub Switch -->
-        <div style="display:flex; gap:10px; justify-content:center; margin-bottom:15px;">
-            <button class="btn-action" style="background:#333; width:auto; padding:5px 15px;" onclick="switchBonusMode('bonusAsli')">Asli</button>
-            <button class="btn-action" style="background:#333; width:auto; padding:5px 15px;" onclick="switchBonusMode('inputScatter')">Scatter</button>
+      <h3><i class="fas fa-gem"></i> Bonus Event</h3>
+      <!-- Sub Switch Horizontal -->
+      <div style="display:flex; gap:5px; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
+        <button class="dock-item active" id="btn-bonusAsli" onclick="switchBonusMode('bonusAsli')" style="padding:5px 10px; font-size:11px;">Asli</button>
+        <button class="dock-item" id="btn-galeri" onclick="switchBonusMode('galeri')" style="padding:5px 10px; font-size:11px;">Galeri</button>
+        <button class="dock-item" id="btn-inputScatter" onclick="switchBonusMode('inputScatter')" style="padding:5px 10px; font-size:11px;">Scatter</button>
+      </div>
+      
+      <div id="modeBonusAsli" class="bonus-mode">
+        <textarea id="bonusTextarea" rows="3" placeholder="Data..."></textarea>
+        <div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" id="bonusPatokan" placeholder="Patokan"><input type="text" id="bonusSurplus" placeholder="Surplus"></div>
+        <div style="display:flex; gap:10px;">
+          <button onclick="hitungBonusEvent()" style="flex:1;">HITUNG</button>
+          <button onclick="hapusBonusEvent()" class="secondary" style="flex:1; background:#333;">HAPUS</button>
         </div>
-        <div id="modeBonusAsli">
-            <textarea id="bonusTextarea" rows="4" placeholder="Tempel data..."></textarea>
-            <div style="display:flex; gap:10px;"><input type="text" id="bonusPatokan" placeholder="Patokan"><input type="text" id="bonusSurplus" placeholder="Surplus"></div>
-            <button onclick="hitungBonusEvent()" class="btn-action">HITUNG BONUS</button>
-        </div>
-        <div id="modeInputScatter" style="display:none;">
-            <input type="text" id="bonusUserid1" placeholder="UID 1">
-            <input type="text" id="bonusUserid2" placeholder="UID 2">
-            <button onclick="copySemuaData()" class="btn-action">COPY SEMUA</button>
-        </div>
+        <div id="bonusHasil" style="margin-top:15px; font-weight:bold; text-align:center;"></div>
+      </div>
+      <div id="modeGaleri" class="bonus-mode" style="display:none;"><textarea id="bonusLinkInput" rows="2" placeholder="Link..."></textarea></div>
+      <div id="modeInputScatter" class="bonus-mode" style="display:none;">
+         <div style="display:flex; gap:10px;">
+            <div style="flex:1;"><input placeholder="UID 1"><input placeholder="S1"></div>
+            <div style="flex:1;"><input placeholder="UID 2"><input placeholder="S2"></div>
+         </div>
+         <div style="display:flex; gap:10px; margin-top:10px;"><button onclick="copySemuaData()" style="flex:1;">COPY</button><button onclick="hapusSemuaData()" class="secondary" style="flex:1; background:#333;">CLEAR</button></div>
       </div>
     </div>
 
-    <!-- TAB LAINNYA (DISINGKAT) -->
-    <div id="tryCariTab" class="tab-content"><div class="card-panel"><h3><i class="fas fa-search"></i> Try Cari</h3><textarea id="dataDocs" placeholder="Data Docs"></textarea><textarea id="dataAdmin" placeholder="Data Admin"></textarea><button onclick="prosesData_TRYCARI()" class="btn-action">BANDINGKAN</button></div></div>
-    <div id="prediksiGabungTab" class="tab-content"><div class="card-panel"><h3><i class="fas fa-bullseye"></i> Prediksi</h3><input type="number" id="nominalInput" placeholder="Nominal"><button onclick="updateNominalTogel()" class="btn-action">SET</button></div></div>
-    <div id="cekhadiahTab" class="tab-content"><div class="card-panel"><h3><i class="fas fa-medal"></i> Hadiah</h3><div id="hadiahContainer">Memuat...</div></div></div>
-    <div id="reportLineTab" class="tab-content"><div class="card-panel"><h3><i class="fas fa-file-alt"></i> Report</h3><div id="reportLineCardContainer">Memuat...</div></div></div>
-    <div id="pengaturanTab" class="tab-content"><div class="card-panel"><h3><i class="fas fa-cog"></i> Setting</h3><label style="display:block; margin:5px 0;"><input type="radio" name="textColor" value="#fff" onchange="setTextColor('#fff')"> Putih</label></div></div>
-
-  </div>
-
-  <!-- ================= FLOATING ORB MENU ================= -->
-  <div class="menu-container" id="menuDock">
-    <!-- Tombol Utama -->
-    <div class="menu-main-btn" onclick="toggleMenuDock()">
-      <i class="fas fa-plus"></i>
+    <!-- Tab Lainnya -->
+    <div id="cekhadiahTab" class="tab-content"><h3><i class="fas fa-medal"></i> Hadiah</h3><div id="hadiahContainer">Memuat...</div></div>
+    <div id="reportLineTab" class="tab-content"><h3><i class="fas fa-file-alt"></i> Report</h3><div id="reportLineCardContainer">Memuat...</div></div>
+    <div id="tryCariTab" class="tab-content">
+        <h3><i class="fas fa-search"></i> Try Cari</h3>
+        <div style="display:flex; gap:10px;"><textarea id="dataDocs" rows="2" placeholder="Docs" style="flex:1;"></textarea><textarea id="dataAdmin" rows="2" placeholder="Admin" style="flex:1;"></textarea></div>
+        <button onclick="prosesData_TRYCARI()" style="width:100%; margin-top:10px;">BANDINGKAN</button>
     </div>
+    <div id="pengaturanTab" class="tab-content"><h3><i class="fas fa-cog"></i> Setting</h3><p>Pengaturan Tema...</p></div>
 
-    <!-- Orb Menu Items -->
-    <ul class="orb-menu">
-      <li class="orb-item" onclick="handleTab('KENDALA ALL', null, 'catatanTab')"><i class="fas fa-headset"></i><span>Kendala</span></li>
-      <li class="orb-item" onclick="handleTab('FOTO', null, 'catatanTab')"><i class="fas fa-camera"></i><span>Foto</span></li>
-      <li class="orb-item" onclick="handleTab(null, null, 'tryCariTab')"><i class="fas fa-search"></i><span>Cari</span></li>
-      <li class="orb-item" onclick="handleTab(null, null, 'prediksiGabungTab')"><i class="fas fa-bullseye"></i><span>Prediksi</span></li>
-      <li class="orb-item" onclick="handleTab(null, null, 'cekBonusEventTab')"><i class="fas fa-gem"></i><span>Bonus</span></li>
-      <li class="orb-item" onclick="handleTab(null, null, 'cekhadiahTab')"><i class="fas fa-medal"></i><span>Hadiah</span></li>
-      <li class="orb-item" onclick="handleTab(null, null, 'reportLineTab')"><i class="fas fa-file-alt"></i><span>Report</span></li>
-      <li class="orb-item" onclick="handleTab(null, null, 'tanyaZTab')"><i class="fas fa-robot"></i><span>AI Z</span></li>
-      <li class="orb-item" onclick="handleTab(null, null, 'pengaturanTab')"><i class="fas fa-cog"></i><span>Setting</span></li>
-      <li class="orb-item" onclick="handleTab('CARA BERMAIN', null, 'catatanTab')"><i class="fas fa-book"></i><span>Panduan</span></li>
-    </ul>
   </div>
 
-  <!-- Floating Utilities -->
-  <div id="stickyFab" onclick="toggleStickyPanel()">📝</div>
-  <div id="stickyPanel"><textarea id="stickyInput" placeholder="Catatan cepat..."></textarea><button onclick="addSticky()" class="btn-action" style="margin-top:5px;">SIMPAN</button><div id="stickyList" style="margin-top:10px;"></div></div>
-  <div id="lightbox" onclick="hideLightbox()"><img src="" id="lightboxImg"></div>
+  <!-- ================= FLOATING DOCK (NAVIGASI) ================= -->
+  <div class="floating-dock" id="mainMenuGrid">
+    <button class="dock-item active" onclick="handleTab('KENDALA ALL', this, 'catatanTab')">
+      <i class="fas fa-headset"></i><span>Kendala</span>
+    </button>
+    <button class="dock-item" onclick="handleTab('FOTO', this, 'catatanTab')">
+      <i class="fas fa-camera"></i><span>Foto</span>
+    </button>
+    <button class="dock-item" onclick="handleTab(null, this, 'tryCariTab')">
+      <i class="fas fa-search"></i><span>Cari</span>
+    </button>
+    <button class="dock-item" onclick="handleTab(null, this, 'cekBonusEventTab')">
+      <i class="fas fa-gem"></i><span>Bonus</span>
+    </button>
+    <button class="dock-item" onclick="handleTab(null, this, 'prediksiGabungTab')">
+      <i class="fas fa-bullseye"></i><span>Prediksi</span>
+    </button>
+    <button class="dock-item" onclick="handleTab(null, this, 'reportLineTab')">
+      <i class="fas fa-file-alt"></i><span>Report</span>
+    </button>
+    <button class="dock-item" onclick="handleTab(null, this, 'tanyaZTab')">
+      <i class="fas fa-robot"></i><span>AI Z</span>
+    </button>
+    <button class="dock-item" onclick="handleTab(null, this, 'pengaturanTab')">
+      <i class="fas fa-cog"></i><span>Set</span>
+    </button>
+  </div>
+
+  <!-- Floating Elements -->
+  <div id="stickyFab" onclick="toggleStickyPanel()">💀</div>
+  <div id="stickyPanel"><textarea id="stickyInput" placeholder="Note..."></textarea><button onclick="addSticky()" style="width:100%; margin-top:5px;">SAVE</button><div id="stickyList" style="margin-top:10px;"></div></div>
   <div id="toastNotif">Notif</div>
+  <div id="lightbox" onclick="hideLightbox()" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; z-index:2000; justify-content:center; align-items:center;"><img id="lightboxImg" src="" style="max-width:90%; max-height:90%;"></div>
 
   <!-- ================= JAVASCRIPT ================= -->
   <script>
-    // --- Logika Menu Dock ---
-    function toggleMenuDock() {
-        const dock = document.getElementById('menuDock');
-        const mainBtn = dock.querySelector('.menu-main-btn');
-        
-        dock.classList.toggle('active');
-        mainBtn.classList.toggle('active');
-        
-        // Ganti ikon plus menjadi times
-        const icon = mainBtn.querySelector('i');
-        if(dock.classList.contains('active')) {
-            icon.classList.remove('fa-plus');
-            icon.classList.add('fa-times');
-        } else {
-            icon.classList.remove('fa-times');
-            icon.classList.add('fa-plus');
-        }
+    function handleTab(folderName, buttonElement, tabId) {
+      // 1. Update Dock Active State
+      const buttons = document.querySelectorAll('.floating-dock .dock-item');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      if (buttonElement) buttonElement.classList.add('active');
+
+      // 2. Show Tab
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      const activeTab = document.getElementById(tabId);
+      if (activeTab) {
+          activeTab.style.display = 'block';
+          // Scroll ke atas konten saat ganti tab
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // 3. Load Data
+      if (folderName && tabId === 'catatanTab') loadNotes(folderName);
+      if (tabId === 'reportLineTab') loadReportLineData();
+      if (tabId === 'cekhadiahTab') loadHadiahTogel();
     }
 
-    // --- Logika Tab ---
-    function handleTab(folderName, btn, tabId) {
-        // Sembunyikan semua tab
-        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-        // Tampilkan tab yang dipilih
-        document.getElementById(tabId).style.display = 'block';
-        
-        // Tutup dock setelah memilih (opsional, biar bersih)
-        // toggleMenuDock(); 
-
-        // Load data jika perlu
-        if(folderName) loadNotes(folderName);
+    function switchBonusMode(mode) {
+        ['modeBonusAsli', 'modeGaleri', 'modeInputScatter'].forEach(id => document.getElementById(id).style.display = 'none');
+        document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).style.display = 'block';
+        const btns = document.querySelectorAll('#cekBonusEventTab .dock-item'); btns.forEach(b=>b.classList.remove('active'));
+        document.getElementById('btn-'+mode).classList.add('active');
     }
 
-    // --- Fungsi Utility ---
-    function showToast(m) { const t = document.getElementById("toastNotif"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2500); }
-    
-    // --- Fungsi Data (Simulasi) ---
-    function loadNotes(f) { document.getElementById('notesList').innerHTML = "<p style='text-align:center'>Data "+f+"</p>"; }
-    function hitungBonusEvent() { showToast("Menghitung..."); }
-    function copySemuaData() { showToast("Disalin!"); }
-    function prosesData_TRYCARI() { showToast("Analisis selesai"); }
-    function sendMessage() { const i=document.getElementById('chatInput'); if(i.value) { const h=document.getElementById('chatHistory'); h.innerHTML+="<div style='margin-bottom:5px; color:#6c5ce7;'>Me: "+i.value+"</div>"; i.value=""; } }
-    function toggleStickyPanel() { const p=document.getElementById('stickyPanel'); p.style.display = p.style.display==='block'?'none':'block'; }
-    function addSticky() { const v=document.getElementById('stickyInput').value; if(v){ const d=document.createElement('div'); d.innerText=v; d.style.cssText="background:#222; padding:10px; margin-top:5px; border-radius:8px;"; document.getElementById('stickyList').prepend(d); document.getElementById('stickyInput').value=""; } }
-    function switchBonusMode(m) { document.getElementById('modeBonusAsli').style.display='none'; document.getElementById('modeInputScatter').style.display='none'; document.getElementById('mode'+m.charAt(0).toUpperCase()+m.slice(1)).style.display='block'; }
+    // --- Utils & Dummy Functions ---
+    function showToast(m) { const t = document.getElementById("toastNotif"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2000); }
+    function loadNotes(f){ document.getElementById('notesList').innerHTML = "Memuat "+f; }
+    function hitungBonusEvent(){ showToast("Menghitung..."); }
+    function hapusBonusEvent(){ showToast("Clear"); }
+    function copySemuaData(){ showToast("Copied"); }
+    function hapusSemuaData(){ showToast("Cleared"); }
+    function prosesData_TRYCARI(){ showToast("Analisis..."); }
+    function sendMessage(){ const i=document.getElementById('chatInput'); if(i.value) { const h=document.getElementById('chatHistory'); h.innerHTML+="<div>Me: "+i.value+"</div>"; i.value=""; } }
+    function toggleStickyPanel(){ const p=document.getElementById('stickyPanel'); p.style.display = p.style.display==='block'?'none':'block'; }
+    function addSticky(){ const v=document.getElementById('stickyInput').value; if(v){ const d=document.createElement('div'); d.innerText=v; d.style.cssText="background:#222; padding:5px; margin-top:2px; font-size:11px;"; document.getElementById('stickyList').prepend(d); document.getElementById('stickyInput').value=""; } }
+    function showLightbox(s){ document.getElementById('lightbox').style.display='flex'; document.getElementById('lightboxImg').src=s; }
     function hideLightbox(){ document.getElementById('lightbox').style.display='none'; }
-    function updateNominalTogel() { showToast("Nominal disimpan"); }
-    function setTextColor(c) { document.body.style.color = c; }
+    function loadReportLineData(){ document.getElementById('reportLineCardContainer').innerText="Report Loaded"; }
+    function loadHadiahTogel(){ document.getElementById('hadiahContainer').innerText="Hadiah Loaded"; }
+    function updateNominalTogel(){ showToast("Updated"); }
+    function searchNotes(){}
 
     // Init
     document.addEventListener('DOMContentLoaded', () => {
-        handleTab('KENDALA ALL', null, 'catatanTab');
+       handleTab('KENDALA ALL', document.querySelector('.floating-dock .dock-item'), 'catatanTab');
     });
   </script>
 </body>
