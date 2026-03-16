@@ -1806,52 +1806,56 @@ renderStickyNotes();
 showToast('✅ Ditambahkan ke Sticky Notes!');
 }
 
-// ========== FUNGSI COPY TEXT + FOTO SEKALIGUS ==========
+// ========== FUNGSI COPY TEXT + FOTO SEKALIGUS (DIPERBAIKI) ==========
 async function copyStickyNote(index) {
 const note = stickyNotes[index];
 if (!note) return;
 
 try {
-const items = [];
+// Siapkan array untuk multiple clipboard items
+const clipboardItems = [];
 let copiedInfo = [];
 
-// 1. Copy TEXT jika ada
+// 1. Buat blob untuk TEXT
 if (note.text && note.text.trim() !== '') {
 const textBlob = new Blob([note.text], { type: 'text/plain' });
-items.push(new ClipboardItem({ 'text/plain': textBlob }));
+clipboardItems.push(new ClipboardItem({ 'text/plain': textBlob }));
 copiedInfo.push('Text');
 }
 
-// 2. Copy FOTO jika ada
+// 2. Buat blob untuk FOTO (convert base64 ke blob)
 if (note.image) {
 try {
-const response = await fetch(note.image);
-const blob = await response.blob();
-// Tambahkan gambar ke clipboard items
-items.push(new ClipboardItem({ 
-[blob.type]: blob,
-'text/plain': textBlob // Sertakan text juga
-}));
+// Convert base64 data URL ke blob
+const base64Response = await fetch(note.image);
+const imageBlob = await base64Response.blob();
+
+// Buat ClipboardItem dengan image
+const imageItem = new ClipboardItem({ 
+[imageBlob.type]: imageBlob 
+});
+clipboardItems.push(imageItem);
 copiedInfo.push('Foto');
 } catch (imgErr) {
-// Fallback: copy URL gambar sebagai text
+console.error('Gagal convert foto:', imgErr);
+// Fallback: copy URL sebagai text
 const urlBlob = new Blob([note.image], { type: 'text/plain' });
-items.push(new ClipboardItem({ 'text/plain': urlBlob }));
+clipboardItems.push(new ClipboardItem({ 'text/plain': urlBlob }));
 copiedInfo.push('URL Foto');
 }
 }
 
-// 3. Write ke clipboard
-if (items.length > 0) {
-await navigator.clipboard.write(items);
+// 3. Write ke clipboard (text + foto bersamaan)
+if (clipboardItems.length > 0) {
+await navigator.clipboard.write(clipboardItems);
 showToast(`✅ ${copiedInfo.join(' + ')} disalin!`);
 }
 } catch (err) {
 console.error('Copy error:', err);
-// Fallback terakhir
+// Fallback terakhir: copy text saja
 if (note.text) {
 await navigator.clipboard.writeText(note.text);
-showToast('✅ Text disalin! 📸 Klik gambar untuk copy foto');
+showToast('✅ Text disalin! 📸 Klik gambar untuk copy foto terpisah');
 } else if (note.image) {
 await copyPhoto(note.image);
 }
