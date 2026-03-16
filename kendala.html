@@ -685,13 +685,13 @@ animation: copiedPulse 0.5s ease;
 position: fixed;
 bottom: 25px;
 right: 25px;
-width: 56px;
-height: 56px;
+width: 50px;
+height: 50px;
 background: radial-gradient(circle at 30% 30%, var(--neon-cyan), var(--neon-purple));
 border: 3px solid var(--neon-cyan);
 border-radius: 50%;
 color: #000;
-font-size: 22px;
+font-size: 20px;
 font-weight: bold;
 cursor: pointer;
 z-index: 1000;
@@ -715,9 +715,9 @@ box-shadow: 0 0 35px rgba(0, 255, 255, 0.9);
 
 .sticky-panel {
 position: fixed;
-bottom: 90px;
+bottom: 85px;
 right: 25px;
-width: 400px;
+width: 420px;
 max-width: 90vw;
 max-height: 70vh;
 background: var(--bg-sticky);
@@ -775,6 +775,10 @@ transform: rotate(90deg) scale(1.2);
 margin-bottom: 14px;
 }
 
+.sticky-input-wrapper {
+position: relative;
+}
+
 .sticky-input {
 width: 100%;
 min-height: 90px;
@@ -800,12 +804,13 @@ color: rgba(0, 255, 255, 0.4);
 }
 
 .sticky-photo-preview {
-margin-top: 10px;
-padding: 10px;
+margin-top: 12px;
+padding: 12px;
 background: rgba(0, 255, 255, 0.1);
-border: 1px dashed var(--neon-cyan);
-border-radius: 8px;
+border: 2px dashed var(--neon-cyan);
+border-radius: 10px;
 display: none;
+position: relative;
 }
 
 .sticky-photo-preview.show {
@@ -815,18 +820,43 @@ animation: photoFadeIn 0.3s ease;
 
 .sticky-photo-preview img {
 max-width: 100%;
-max-height: 150px;
+max-height: 180px;
 border-radius: 8px;
 border: 2px solid var(--neon-cyan);
+display: block;
 }
 
 .sticky-photo-preview-text {
-font-size: 11px;
+font-size: 12px;
 color: var(--neon-green);
 margin-bottom: 8px;
 display: flex;
 align-items: center;
-gap: 5px;
+gap: 6px;
+font-weight: 600;
+}
+
+.sticky-remove-photo {
+position: absolute;
+top: 8px;
+right: 8px;
+background: var(--neon-red);
+color: #fff;
+border: none;
+width: 28px;
+height: 28px;
+border-radius: 50%;
+cursor: pointer;
+font-size: 16px;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: var(--transition-fast);
+}
+
+.sticky-remove-photo:hover {
+background: #ff3366;
+transform: scale(1.1);
 }
 
 .sticky-add-btn {
@@ -850,6 +880,33 @@ min-height: 48px;
 background: rgba(0, 255, 255, 0.35);
 transform: translateY(-2px);
 box-shadow: 0 0 18px rgba(0, 255, 255, 0.6);
+}
+
+.sticky-upload-btn {
+background: rgba(0, 255, 136, 0.15);
+border: 2px solid var(--neon-green);
+color: var(--neon-green);
+padding: 10px 18px;
+border-radius: 10px;
+cursor: pointer;
+font-weight: 600;
+font-size: 12px;
+transition: var(--transition-normal);
+display: inline-flex;
+align-items: center;
+gap: 6px;
+margin-top: 10px;
+margin-left: 8px;
+}
+
+.sticky-upload-btn:hover {
+background: rgba(0, 255, 136, 0.3);
+transform: translateY(-2px);
+box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+}
+
+#fileInput {
+display: none;
 }
 
 .sticky-list {
@@ -915,7 +972,7 @@ color: var(--neon-cyan);
 
 .sticky-note img {
 max-width: 100%;
-max-height: 120px;
+max-height: 150px;
 border-radius: 8px;
 border: 2px solid var(--neon-cyan);
 margin: 6px 0;
@@ -1162,17 +1219,17 @@ margin: 20px 0;
 .lightbox-btn { width: 100%; max-width: 260px; justify-content: center; }
 .zoom-slider { width: 100%; max-width: 260px; }
 .sticky-panel {
-width: 90vw;
-right: 5vw;
-bottom: 85px;
-max-height: 60vh;
+width: 95vw;
+right: 2.5vw;
+bottom: 80px;
+max-height: 65vh;
 }
 .sticky-fab {
 bottom: 16px;
 right: 16px;
-width: 50px;
-height: 50px;
-font-size: 20px;
+width: 45px;
+height: 45px;
+font-size: 18px;
 }
 }
 
@@ -1283,21 +1340,28 @@ Next <i class="fas fa-chevron-right"></i>
 <button class="sticky-close" onclick="toggleStickyPanel()">&times;</button>
 </div>
 <div class="sticky-input-area">
-<textarea class="sticky-input" id="stickyInput" placeholder="📝 Tulis catatan di sini...
-💡 Tempel URL foto untuk menambahkan gambar
-Contoh: https://example.com/foto.jpg"></textarea>
+<div class="sticky-input-wrapper">
+<textarea class="sticky-input" id="stickyInput" placeholder="✏️ Tulis catatan di sini...
+📸 Tempel foto (Ctrl+V) atau klik Upload"></textarea>
+<input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+</div>
 <div class="sticky-photo-preview" id="stickyPhotoPreview">
 <div class="sticky-photo-preview-text">
-<i class="fas fa-image"></i> Foto terdeteksi:
+<i class="fas fa-image"></i> Foto siap ditambahkan:
 </div>
 <img id="stickyPreviewImg" src="" alt="Preview">
+<button class="sticky-remove-photo" onclick="removePhoto()" title="Hapus foto">
+<i class="fas fa-times"></i>
+</button>
 </div>
-<button class="sticky-add-btn" id="stickyAddBtn" onclick="handleStickyAction()">
-<i class="fas fa-plus"></i> <span id="stickyBtnText">Tambah</span>
+<div style="margin-top: 10px;">
+<button class="sticky-add-btn" onclick="addStickyNote()">
+<i class="fas fa-plus"></i> Tambah
 </button>
-<button class="sticky-add-btn" id="stickyCancelBtn" onclick="cancelEdit()" style="display:none;background:rgba(255,0,102,0.2);border-color:var(--neon-red);color:var(--neon-red);">
-<i class="fas fa-times"></i> Batal Edit
+<button class="sticky-upload-btn" onclick="document.getElementById('fileInput').click()">
+<i class="fas fa-upload"></i> Upload Foto
 </button>
+</div>
 </div>
 <div class="sticky-list" id="stickyList"></div>
 </div>
@@ -1321,7 +1385,7 @@ let lightboxIndex = 0;
 let zoomLevel = 1;
 let stickyNotes = JSON.parse(localStorage.getItem('stickyNotes') || '[]');
 let draggedNote = null;
-let editingIndex = -1;
+let tempPhotoData = null;
 
 async function loadKendalaData() {
 try {
@@ -1394,9 +1458,6 @@ function createKendalaCard(item, index) {
 const titlePhoto = extractTitlePhoto(item.judul);
 const cleanJudul = titlePhoto ? item.judul.replace(titlePhoto.url, '').trim() : item.judul;
 const hasPhoto = detectPhotoLink(item);
-const links1 = extractLinks(item.jawaban1);
-const links2 = extractLinks(item.jawaban2);
-const links3 = extractLinks(item.jawaban3);
 
 return `
 <div class="kendala-card" data-index="${index}">
@@ -1412,9 +1473,8 @@ ${item.jawaban1 ? `
 <i class="fas fa-comment-alt"></i>
 JAWABAN 1
 </div>
-<div class="answer-content">${formatContent(item.jawaban1, links1)}</div>
+<div class="answer-content">${escapeHtml(item.jawaban1)}</div>
 ${hasPhoto && !titlePhoto ? createPhotoSection(item) : ''}
-${links1.length > 0 ? createLinkButtons(links1) : ''}
 <button class="copy-btn" onclick="copyAnswer(${index}, 1)">
 <i class="fas fa-copy"></i> Copy
 </button>
@@ -1428,8 +1488,7 @@ ${item.jawaban2 ? `
 <i class="fas fa-comment-alt"></i>
 JAWABAN 2
 </div>
-<div class="answer-content">${formatContent(item.jawaban2, links2)}</div>
-${links2.length > 0 ? createLinkButtons(links2) : ''}
+<div class="answer-content">${escapeHtml(item.jawaban2)}</div>
 <button class="copy-btn" onclick="copyAnswer(${index}, 2)">
 <i class="fas fa-copy"></i> Copy
 </button>
@@ -1443,8 +1502,7 @@ ${item.jawaban3 ? `
 <i class="fas fa-comment-alt"></i>
 JAWABAN 3
 </div>
-<div class="answer-content">${formatContent(item.jawaban3, links3)}</div>
-${links3.length > 0 ? createLinkButtons(links3) : ''}
+<div class="answer-content">${escapeHtml(item.jawaban3)}</div>
 <button class="copy-btn" onclick="copyAnswer(${index}, 3)">
 <i class="fas fa-copy"></i> Copy
 </button>
@@ -1501,25 +1559,6 @@ photoPattern.test(item.jawaban2) ||
 photoPattern.test(item.jawaban3);
 }
 
-function extractLinks(text) {
-if (!text) return [];
-const urlPattern = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
-return text.match(urlPattern) || [];
-}
-
-function formatContent(text, links = []) {
-if (!text) return '';
-let formatted = escapeHtml(text);
-links.forEach(link => {
-const displayText = link.length > 45 ? link.substring(0, 42) + '...' : link;
-formatted = formatted.replace(
-new RegExp(escapeRegExp(link), 'g'),
-`<a href="${link}" target="_blank" rel="noopener">${displayText}</a>`
-);
-});
-return formatted;
-}
-
 function createPhotoSection(item) {
 const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
 const match = (item.jawaban1 + ' ' + item.jawaban2 + ' ' + item.jawaban3).match(photoPattern);
@@ -1536,19 +1575,6 @@ onerror="this.parentElement.style.display='none'">
 <button class="copy-photo-btn" onclick="copyPhoto('${photoUrl}')">
 <i class="fas fa-copy"></i> Copy Foto
 </button>
-</div>`;
-}
-
-function createLinkButtons(links) {
-if (links.length === 0) return '';
-return `
-<div class="link-buttons">
-${links.map((link, i) => {
-const label = links.length > 1 ? `Link ${i+1}` : 'Buka Link';
-return `<a href="${link}" target="_blank" rel="noopener" class="open-link-btn">
-<i class="fas fa-external-link-alt"></i> ${label}
-</a>`;
-}).join('')}
 </div>`;
 }
 
@@ -1730,35 +1756,68 @@ list.appendChild(div);
 });
 }
 
-function handleStickyAction() {
-if (editingIndex >= 0) {
-updateStickyNote();
-} else {
-addStickyNote();
+function handleFileSelect(event) {
+const file = event.target.files[0];
+if (file && file.type.startsWith('image/')) {
+const reader = new FileReader();
+reader.onload = function(e) {
+tempPhotoData = e.target.result;
+showPhotoPreview(tempPhotoData);
+};
+reader.readAsDataURL(file);
+}
+}
+
+function showPhotoPreview(dataUrl) {
+const preview = document.getElementById('stickyPhotoPreview');
+const previewImg = document.getElementById('stickyPreviewImg');
+previewImg.src = dataUrl;
+preview.classList.add('show');
+}
+
+function removePhoto() {
+tempPhotoData = null;
+document.getElementById('stickyPhotoPreview').classList.remove('show');
+document.getElementById('fileInput').value = '';
+}
+
+function handleStickyPaste(event) {
+const items = event.clipboardData.items;
+for (let i = 0; i < items.length; i++) {
+if (items[i].type.startsWith('image/')) {
+event.preventDefault();
+const blob = items[i].getAsFile();
+const reader = new FileReader();
+reader.onload = function(e) {
+tempPhotoData = e.target.result;
+showPhotoPreview(tempPhotoData);
+showToast('📸 Foto berhasil ditempel!');
+};
+reader.readAsDataURL(blob);
+break;
+}
 }
 }
 
 function addStickyNote() {
 const input = document.getElementById('stickyInput');
 const text = input.value.trim();
-if (!text) {
-showToast('⚠️ Isi catatan terlebih dahulu!');
+
+if (!text && !tempPhotoData) {
+showToast('⚠️ Isi catatan atau tambah foto!');
 return;
 }
 
-const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
-const match = text.match(photoPattern);
-const imageUrl = match ? match[1] : null;
-
 stickyNotes.push({
-text: imageUrl ? text.replace(photoPattern, '').trim() : text,
-image: imageUrl,
+text: text,
+image: tempPhotoData,
 timestamp: Date.now()
 });
 
 localStorage.setItem('stickyNotes', JSON.stringify(stickyNotes));
+
 input.value = '';
-hidePhotoPreview();
+removePhoto();
 renderStickyNotes();
 showToast('✅ Ditambahkan ke Sticky Notes!');
 }
@@ -1768,25 +1827,17 @@ const note = stickyNotes[index];
 if (!note) return;
 
 try {
-let copiedContent = '';
 if (note.text) {
-copiedContent = note.text;
 await navigator.clipboard.writeText(note.text);
 }
 if (note.image) {
-try {
 const response = await fetch(note.image);
 const blob = await response.blob();
 await navigator.clipboard.write([
 new ClipboardItem({ [blob.type]: blob })
 ]);
-copiedContent += (copiedContent ? '\n' : '') + '[FOTO]';
-} catch {
-copiedContent += (copiedContent ? '\n' : '') + note.image;
-await navigator.clipboard.writeText(note.image);
 }
-}
-showToast('✅ Sticky note disalin! (Text + Foto)');
+showToast('✅ Sticky note disalin!');
 } catch {
 showToast('❗ Gagal menyalin');
 }
@@ -1796,61 +1847,16 @@ function editStickyNote(index) {
 const note = stickyNotes[index];
 if (!note) return;
 
-editingIndex = index;
-const input = document.getElementById('stickyInput');
-input.value = note.text + (note.image ? '\n' + note.image : '');
-
-const addBtn = document.getElementById('stickyAddBtn');
-const cancelBtn = document.getElementById('stickyCancelBtn');
-addBtn.classList.add('editing');
-addBtn.innerHTML = '<i class="fas fa-save"></i> <span>Update</span>';
-cancelBtn.style.display = 'inline-flex';
-
-checkPhotoInInput();
-showToast('✏️ Mode Edit Aktif');
-}
-
-function updateStickyNote() {
-const input = document.getElementById('stickyInput');
-const text = input.value.trim();
-if (!text || editingIndex < 0) {
-showToast('⚠️ Isi catatan!');
-return;
-}
-
-const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
-const match = text.match(photoPattern);
-const imageUrl = match ? match[1] : null;
-
-stickyNotes[editingIndex] = {
-text: imageUrl ? text.replace(photoPattern, '').trim() : text,
-image: imageUrl,
-timestamp: Date.now()
-};
-
+const newText = prompt('Edit catatan:', note.text || '');
+if (newText !== null && newText.trim() !== '') {
+stickyNotes[index].text = newText.trim();
 localStorage.setItem('stickyNotes', JSON.stringify(stickyNotes));
-cancelEdit();
 renderStickyNotes();
 showToast('✅ Sticky note diperbarui!');
 }
-
-function cancelEdit() {
-editingIndex = -1;
-const input = document.getElementById('stickyInput');
-input.value = '';
-hidePhotoPreview();
-
-const addBtn = document.getElementById('stickyAddBtn');
-const cancelBtn = document.getElementById('stickyCancelBtn');
-addBtn.classList.remove('editing');
-addBtn.innerHTML = '<i class="fas fa-plus"></i> <span>Tambah</span>';
-cancelBtn.style.display = 'none';
 }
 
 function deleteStickyNote(index) {
-const note = stickyNotes[index];
-if (!note) return;
-
 if (confirm('Hapus sticky note ini?')) {
 stickyNotes.splice(index, 1);
 localStorage.setItem('stickyNotes', JSON.stringify(stickyNotes));
@@ -1898,13 +1904,9 @@ const item = filteredKendala[kendalaIndex];
 const content = item[`jawaban${answerNum}`];
 if (!content) return;
 
-const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
-const match = content.match(photoPattern);
-const imageUrl = match ? match[1] : null;
-
 stickyNotes.push({
-text: imageUrl ? content.replace(photoPattern, '').trim() : content,
-image: imageUrl,
+text: content,
+image: null,
 timestamp: Date.now()
 });
 
@@ -1938,12 +1940,7 @@ function updateStats() {
 document.getElementById('totalItems').textContent = filteredKendala.length;
 const withPhotos = filteredKendala.filter(item => detectPhotoLink(item) || extractTitlePhoto(item.judul)).length;
 document.getElementById('withPhotos').textContent = withPhotos;
-const withLinks = filteredKendala.filter(item =>
-extractLinks(item.jawaban1).length > 0 ||
-extractLinks(item.jawaban2).length > 0 ||
-extractLinks(item.jawaban3).length > 0
-).length;
-document.getElementById('withLinks').textContent = withLinks;
+document.getElementById('withLinks').textContent = filteredKendala.length;
 }
 
 function showToast(message) {
@@ -1973,36 +1970,6 @@ if (!text) return '';
 const div = document.createElement('div');
 div.textContent = text;
 return div.innerHTML;
-}
-
-function escapeRegExp(string) {
-return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function checkPhotoInInput() {
-const input = document.getElementById('stickyInput');
-const text = input.value.trim();
-const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
-const match = text.match(photoPattern);
-
-if (match) {
-const imageUrl = match[1];
-showPhotoPreview(imageUrl);
-} else {
-hidePhotoPreview();
-}
-}
-
-function showPhotoPreview(url) {
-const preview = document.getElementById('stickyPhotoPreview');
-const previewImg = document.getElementById('stickyPreviewImg');
-previewImg.src = url;
-preview.classList.add('show');
-}
-
-function hidePhotoPreview() {
-const preview = document.getElementById('stickyPhotoPreview');
-preview.classList.remove('show');
 }
 
 function createParticles() {
@@ -2044,7 +2011,7 @@ loadKendalaData();
 
 const stickyInput = document.getElementById('stickyInput');
 if (stickyInput) {
-stickyInput.addEventListener('input', checkPhotoInInput);
+stickyInput.addEventListener('paste', handleStickyPaste);
 }
 
 if (document.getElementById('stickyPanel').classList.contains('active')) {
@@ -2066,7 +2033,6 @@ updateZoom();
 document.addEventListener('keydown', (e) => {
 if (e.key === 'Escape') {
 closeLightbox();
-if (editingIndex >= 0) cancelEdit();
 }
 });
 </script>
