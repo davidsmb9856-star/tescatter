@@ -610,7 +610,6 @@ transform: translateY(-2px);
 box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
 }
 
-/* ========== LINK BUTTONS ========== */
 .link-buttons {
 display: flex;
 flex-wrap: wrap;
@@ -680,7 +679,6 @@ animation: copiedPulse 0.5s ease;
 100% { transform: scale(1); }
 }
 
-/* ========== STICKY NOTES PANEL ========== */
 .sticky-fab {
 position: fixed;
 bottom: 25px;
@@ -934,7 +932,6 @@ background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purple));
 border-radius: 3px;
 }
 
-/* ========== STICKY NOTE CARD ========== */
 .sticky-note {
 background: var(--bg-note);
 border: 1.5px solid rgba(0, 255, 255, 0.4);
@@ -1072,7 +1069,6 @@ color: var(--neon-green);
 background: rgba(0, 255, 136, 0.2);
 }
 
-/* ========== LIGHTBOX ========== */
 .lightbox {
 display: none;
 position: fixed;
@@ -1167,7 +1163,6 @@ width: 100%;
 accent-color: var(--neon-cyan);
 }
 
-/* ========== TOAST ========== */
 .toast {
 position: fixed;
 bottom: 30px;
@@ -1548,7 +1543,6 @@ return `
 </div>`;
 }
 
-// ========== FUNGSI LINK BUTTONS ==========
 function createLinkButtons(links) {
 if (links.length === 0) return '';
 return `
@@ -1812,6 +1806,7 @@ renderStickyNotes();
 showToast('✅ Ditambahkan ke Sticky Notes!');
 }
 
+// ========== FUNGSI COPY TEXT + FOTO SEKALIGUS ==========
 async function copyStickyNote(index) {
 const note = stickyNotes[index];
 if (!note) return;
@@ -1820,38 +1815,52 @@ try {
 const items = [];
 let copiedInfo = [];
 
-if (note.text) {
+// 1. Copy TEXT jika ada
+if (note.text && note.text.trim() !== '') {
 const textBlob = new Blob([note.text], { type: 'text/plain' });
 items.push(new ClipboardItem({ 'text/plain': textBlob }));
 copiedInfo.push('Text');
 }
 
+// 2. Copy FOTO jika ada
 if (note.image) {
 try {
 const response = await fetch(note.image);
 const blob = await response.blob();
-items.push(new ClipboardItem({ [blob.type]: blob }));
+// Tambahkan gambar ke clipboard items
+items.push(new ClipboardItem({ 
+[blob.type]: blob,
+'text/plain': textBlob // Sertakan text juga
+}));
 copiedInfo.push('Foto');
-} catch {
+} catch (imgErr) {
+// Fallback: copy URL gambar sebagai text
 const urlBlob = new Blob([note.image], { type: 'text/plain' });
 items.push(new ClipboardItem({ 'text/plain': urlBlob }));
 copiedInfo.push('URL Foto');
 }
 }
 
+// 3. Write ke clipboard
 if (items.length > 0) {
 await navigator.clipboard.write(items);
 showToast(`✅ ${copiedInfo.join(' + ')} disalin!`);
 }
-} catch {
+} catch (err) {
+console.error('Copy error:', err);
+// Fallback terakhir
 if (note.text) {
 await navigator.clipboard.writeText(note.text);
-showToast('✅ Text disalin!');
+showToast('✅ Text disalin! 📸 Klik gambar untuk copy foto');
 } else if (note.image) {
-await navigator.clipboard.writeText(note.image);
-showToast('📋 URL Foto disalin!');
+await copyPhoto(note.image);
 }
 }
+}
+
+// Copy foto terpisah
+async function copyStickyImage(url) {
+await copyPhoto(url);
 }
 
 function editStickyNote(index) {
