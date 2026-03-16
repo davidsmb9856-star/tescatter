@@ -610,6 +610,7 @@ transform: translateY(-2px);
 box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
 }
 
+/* ========== LINK BUTTONS ========== */
 .link-buttons {
 display: flex;
 flex-wrap: wrap;
@@ -1452,6 +1453,9 @@ function createKendalaCard(item, index) {
 const titlePhoto = extractTitlePhoto(item.judul);
 const cleanJudul = titlePhoto ? item.judul.replace(titlePhoto.url, '').trim() : item.judul;
 const hasPhoto = detectPhotoLink(item);
+const links1 = extractLinks(item.jawaban1);
+const links2 = extractLinks(item.jawaban2);
+const links3 = extractLinks(item.jawaban3);
 
 return `
 <div class="kendala-card" data-index="${index}">
@@ -1460,23 +1464,26 @@ ${titlePhoto ? createTitlePhotoSection(titlePhoto.url, index) : ''}
 <div class="kendala-answers">
 ${item.jawaban1 ? `
 <div class="answer-item">
-<div class="answer-label">JAWABAN 1</div>
-<div class="answer-content">${escapeHtml(item.jawaban1)}</div>
+<div class="answer-label"><i class="fas fa-comment-alt"></i> JAWABAN 1</div>
+<div class="answer-content">${formatContent(item.jawaban1, links1)}</div>
 ${hasPhoto && !titlePhoto ? createPhotoSection(item) : ''}
+${links1.length > 0 ? createLinkButtons(links1) : ''}
 <button class="copy-btn" onclick="copyAnswer(${index}, 1)"><i class="fas fa-copy"></i> Copy</button>
 <button class="sticky-btn" onclick="addToSticky(${index}, 1)"><i class="fas fa-sticky-note"></i> Sticky</button>
 </div>` : ''}
 ${item.jawaban2 ? `
 <div class="answer-item">
-<div class="answer-label">JAWABAN 2</div>
-<div class="answer-content">${escapeHtml(item.jawaban2)}</div>
+<div class="answer-label"><i class="fas fa-comment-alt"></i> JAWABAN 2</div>
+<div class="answer-content">${formatContent(item.jawaban2, links2)}</div>
+${links2.length > 0 ? createLinkButtons(links2) : ''}
 <button class="copy-btn" onclick="copyAnswer(${index}, 2)"><i class="fas fa-copy"></i> Copy</button>
 <button class="sticky-btn" onclick="addToSticky(${index}, 2)"><i class="fas fa-sticky-note"></i> Sticky</button>
 </div>` : ''}
 ${item.jawaban3 ? `
 <div class="answer-item">
-<div class="answer-label">JAWABAN 3</div>
-<div class="answer-content">${escapeHtml(item.jawaban3)}</div>
+<div class="answer-label"><i class="fas fa-comment-alt"></i> JAWABAN 3</div>
+<div class="answer-content">${formatContent(item.jawaban3, links3)}</div>
+${links3.length > 0 ? createLinkButtons(links3) : ''}
 <button class="copy-btn" onclick="copyAnswer(${index}, 3)"><i class="fas fa-copy"></i> Copy</button>
 <button class="sticky-btn" onclick="addToSticky(${index}, 3)"><i class="fas fa-sticky-note"></i> Sticky</button>
 </div>` : ''}
@@ -1512,6 +1519,22 @@ const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
 return photoPattern.test(item.jawaban1) || photoPattern.test(item.jawaban2) || photoPattern.test(item.jawaban3);
 }
 
+function extractLinks(text) {
+if (!text) return [];
+const urlPattern = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+return text.match(urlPattern) || [];
+}
+
+function formatContent(text, links = []) {
+if (!text) return '';
+let formatted = escapeHtml(text);
+links.forEach(link => {
+const displayText = link.length > 45 ? link.substring(0, 42) + '...' : link;
+formatted = formatted.replace(new RegExp(escapeRegExp(link), 'g'), `<a href="${link}" target="_blank" rel="noopener">${displayText}</a>`);
+});
+return formatted;
+}
+
 function createPhotoSection(item) {
 const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
 const match = (item.jawaban1 + ' ' + item.jawaban2 + ' ' + item.jawaban3).match(photoPattern);
@@ -1522,6 +1545,20 @@ return `
 <div class="photo-container">
 <img src="${photoUrl}" alt="Foto" class="photo-img" onclick="openLightbox('${photoUrl}')" onerror="this.parentElement.style.display='none'">
 <button class="copy-photo-btn" onclick="copyPhoto('${photoUrl}')"><i class="fas fa-copy"></i> Copy Foto</button>
+</div>`;
+}
+
+// ========== FUNGSI LINK BUTTONS ==========
+function createLinkButtons(links) {
+if (links.length === 0) return '';
+return `
+<div class="link-buttons">
+${links.map((link, i) => {
+const label = links.length > 1 ? `Link ${i+1}` : 'Buka Link';
+return `<a href="${link}" target="_blank" rel="noopener" class="open-link-btn">
+<i class="fas fa-external-link-alt"></i> ${label}
+</a>`;
+}).join('')}
 </div>`;
 }
 
@@ -1783,14 +1820,12 @@ try {
 const items = [];
 let copiedInfo = [];
 
-// Copy teks jika ada
 if (note.text) {
 const textBlob = new Blob([note.text], { type: 'text/plain' });
 items.push(new ClipboardItem({ 'text/plain': textBlob }));
 copiedInfo.push('Text');
 }
 
-// Copy gambar jika ada
 if (note.image) {
 try {
 const response = await fetch(note.image);
@@ -1804,13 +1839,11 @@ copiedInfo.push('URL Foto');
 }
 }
 
-// Copy semua sekaligus
 if (items.length > 0) {
 await navigator.clipboard.write(items);
 showToast(`✅ ${copiedInfo.join(' + ')} disalin!`);
 }
-} catch (err) {
-// Fallback: copy text saja
+} catch {
 if (note.text) {
 await navigator.clipboard.writeText(note.text);
 showToast('✅ Text disalin!');
@@ -1924,9 +1957,13 @@ const item = filteredKendala[kendalaIndex];
 const content = item[`jawaban${answerNum}`];
 if (!content) return;
 
+const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
+const match = content.match(photoPattern);
+const imageUrl = match ? match[1] : null;
+
 stickyNotes.push({
-text: content,
-image: null,
+text: imageUrl ? content.replace(photoPattern, '').trim() : content,
+image: imageUrl,
 timestamp: Date.now()
 });
 
@@ -1951,7 +1988,12 @@ function updateStats() {
 document.getElementById('totalItems').textContent = filteredKendala.length;
 const withPhotos = filteredKendala.filter(item => detectPhotoLink(item) || extractTitlePhoto(item.judul)).length;
 document.getElementById('withPhotos').textContent = withPhotos;
-document.getElementById('withLinks').textContent = filteredKendala.length;
+const withLinks = filteredKendala.filter(item =>
+extractLinks(item.jawaban1).length > 0 ||
+extractLinks(item.jawaban2).length > 0 ||
+extractLinks(item.jawaban3).length > 0
+).length;
+document.getElementById('withLinks').textContent = withLinks;
 }
 
 function showToast(message) {
@@ -1975,6 +2017,10 @@ if (!text) return '';
 const div = document.createElement('div');
 div.textContent = text;
 return div.innerHTML;
+}
+
+function escapeRegExp(string) {
+return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function createParticles() {
