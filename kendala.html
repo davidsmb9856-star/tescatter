@@ -717,7 +717,7 @@ box-shadow: 0 0 35px rgba(0, 255, 255, 0.9);
 position: fixed;
 bottom: 85px;
 right: 25px;
-width: 420px;
+width: 400px;
 max-width: 90vw;
 max-height: 70vh;
 background: var(--bg-sticky);
@@ -773,10 +773,6 @@ transform: rotate(90deg) scale(1.2);
 
 .sticky-input-area {
 margin-bottom: 14px;
-}
-
-.sticky-input-wrapper {
-position: relative;
 }
 
 .sticky-input {
@@ -1707,6 +1703,7 @@ const div = document.createElement('div');
 div.className = 'sticky-note';
 div.draggable = true;
 div.dataset.index = index;
+div.title = '📋 Klik untuk copy Text + Foto sekaligus';
 
 if (note.text) {
 const content = document.createElement('div');
@@ -1729,7 +1726,7 @@ actions.className = 'sticky-note-actions';
 
 const copyBtn = document.createElement('button');
 copyBtn.className = 'sticky-action-btn copy';
-copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Semua';
 copyBtn.onclick = (e) => { e.stopPropagation(); copyStickyNote(index); };
 
 const editBtn = document.createElement('button');
@@ -1827,19 +1824,45 @@ const note = stickyNotes[index];
 if (!note) return;
 
 try {
+const items = [];
+let copiedInfo = [];
+
+// Copy teks jika ada
 if (note.text) {
-await navigator.clipboard.writeText(note.text);
+const textBlob = new Blob([note.text], { type: 'text/plain' });
+items.push(new ClipboardItem({ 'text/plain': textBlob }));
+copiedInfo.push('Text');
 }
+
+// Copy gambar jika ada
 if (note.image) {
+try {
 const response = await fetch(note.image);
 const blob = await response.blob();
-await navigator.clipboard.write([
-new ClipboardItem({ [blob.type]: blob })
-]);
+items.push(new ClipboardItem({ [blob.type]: blob }));
+copiedInfo.push('Foto');
+} catch (imgErr) {
+// Fallback: copy URL gambar sebagai text
+const urlBlob = new Blob([note.image], { type: 'text/plain' });
+items.push(new ClipboardItem({ 'text/plain': urlBlob }));
+copiedInfo.push('URL Foto');
 }
-showToast('✅ Sticky note disalin!');
-} catch {
-showToast('❗ Gagal menyalin');
+}
+
+// Copy semua sekaligus
+if (items.length > 0) {
+await navigator.clipboard.write(items);
+showToast(`✅ ${copiedInfo.join(' + ')} disalin!`);
+}
+} catch (err) {
+// Fallback: copy text saja
+if (note.text) {
+await navigator.clipboard.writeText(note.text);
+showToast('✅ Text disalin!');
+} else if (note.image) {
+await navigator.clipboard.writeText(note.image);
+showToast('📋 URL Foto disalin!');
+}
 }
 }
 
