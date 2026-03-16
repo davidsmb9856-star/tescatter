@@ -1,960 +1,1923 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="theme-color" content="#00c6d7" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
-<title>Aplikasi Catatan Futuristik</title>
-<style>
-/* ===================================
-   === SCROLLBAR & BASE STYLES ===
-   =================================== */
-html { scroll-behavior: smooth; }
-html::-webkit-scrollbar { width: 5px; }
-*::-webkit-scrollbar-track { background: rgba(0, 0, 20, 0.4); border-radius: 5px; }
-*::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #33FFFF, #0044FF); border-radius: 5px; box-shadow: 0 0 10px #00E5FF88; }
-*::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #33FFFF, #0055FF); box-shadow: 0 0 15px #33FFFFaa; }
-
-body {
-    margin: 0; padding: 30px; transition: background 0.8s ease-in-out;
-    background-attachment: fixed; background-size: cover;
-    font-family: 'Orbitron', 'Segoe UI', sans-serif;
-}
-
-body.bg-default, body.bg-deepspace {
-    background-repeat: no-repeat; background-position: center center; color: #33FFFF;
-}
-body.bg-default { background-image: url('https://wallpapercave.com/wp/wp9046775.jpg'); }
-body.bg-deepspace { background-image: url('https://4kwallpapers.com/images/walls/thumbs_3t/19856.jpg'); }
-body.bg-gradient { background-image: url('https://cdn.areabermain.club/assets/cdn/az6/2026/01/08/20260108/0e9b0ec9a88ad88a5935bc5802bc41a5/linetogel-background-07januari2026.jpg'); }
-
-/* ===================================
-   === VARIABLES ===
-   =================================== */
-:root {
-    --bg-dark: #001020; --bg-galaxy: rgba(0, 0, 50, 0.7);
-    --bg-galaxy-section: linear-gradient(135deg, rgba(0,0,40,0.7), rgba(0,30,60,0.6));
-    --bg-input: rgba(0,10,30,0.8); --bg-input-dark: #021222;
-    --txt-main: #00ffff; --txt-highlight: #66ffff; --txt-shadow: 1px 1px 2px black;
-    --border-galaxy: rgba(0, 191, 255, 0.7); --btn-glow: #00bfff;
-    --shadow-glow: rgba(0, 255, 255, 0.2); --accent-neon: #00ffff;
-    --neon-blue: #00ffff; --neon-green: #00ff88; --neon-yellow: #ffff00;
-    --neon-red: #ff0066; --panel-bg: rgba(0, 10, 30, 0.6);
-    --panel-border: rgba(0, 229, 255, 0.4); --panel-shadow: rgba(0, 229, 255, 0.2);
-    --text-main: #00ffff;
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-/* ===================================
-   === SIDEBAR & CONTAINER ===
-   =================================== */
-.sidebar-brand { text-align: center; margin-bottom: 18px; position: relative; z-index: 2; }
-.sidebar-brand h2 {
-    margin: 0; font-size: 24px;
-    background: linear-gradient(90deg, #00ffff, #ff00ff, #00ffff);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-size: 200% 200%; animation: neonTitle 3s ease infinite;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
-}
-.brand-sub { font-size: 12px; color: #00E5FF; text-shadow: 0 0 6px #00E5FF66; }
-.planet-icon { margin-bottom: 12px; display: flex; justify-content: center; }
-
-.main-container {
-    display: flex; flex-direction: row; gap: 25px; padding: 20px;
-    align-items: flex-start; justify-content: flex-start; flex-wrap: wrap; min-height: 100vh;
-}
-
-.sidebar-container {
-    backdrop-filter: blur(20px); background: rgba(0, 10, 30, 0.75);
-    border-radius: 22px; padding: 28px 22px; width: 100%; max-width: 290px;
-    box-shadow: 0 0 45px rgba(0, 229, 255, 0.3); display: flex; flex-direction: column; gap: 22px;
-    border: 1px solid rgba(0, 229, 255, 0.5); animation: fadeIn 0.8s ease-in;
-    position: relative; overflow: hidden; height: fit-content; align-self: flex-start; top: 20px;
-}
-
-.sidebar-container::before {
-    content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(0, 229, 255, 0.15) 0%, transparent 70%);
-    animation: rotateGalaxy 40s linear infinite; z-index: -1; opacity: 0.7;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes rotateGalaxy { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ===================================
-   === NEON BUTTON ===
-   =================================== */
-.neon-button {
-    background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(0,100,255,0.15));
-    color: #33FFFF; border: 1px solid rgba(0,229,255,0.4); padding: 14px 20px;
-    font-size: 15px; border-radius: 14px; cursor: pointer; transition: all 0.3s ease;
-    display: flex; align-items: center; justify-content: flex-start; gap: 12px;
-    box-shadow: 0 0 10px rgba(0,229,255,0.1); position: relative; overflow: hidden;
-}
-.neon-button::after {
-    content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-    background: linear-gradient(120deg, transparent, rgba(0,229,255,0.4), transparent); transition: 0.4s;
-}
-.neon-button:hover::after { left: 100%; }
-.neon-button:hover {
-    background: rgba(0,229,255,0.25); color: #33FFFF;
-    transform: translateX(5px) scale(1.03);
-    box-shadow: 0 0 15px #00E5FF, 0 0 25px #00E5FF66;
-}
-.neon-button span { flex: 1; font-weight: 500; }
-
-/* ===================================
-   === CONTENT AREA ===
-   =================================== */
-.content-area {
-    flex: 1; min-width: 300px; background: rgba(0, 15, 35, 0.65);
-    backdrop-filter: blur(12px); padding: 28px; border-radius: 22px; color: var(--text-main);
-    box-shadow: 0 0 30px rgba(0, 229, 255, 0.3), 0 0 50px rgba(100, 0, 255, 0.2);
-    border: 1px solid rgba(0, 229, 255, 0.4); animation: fadeIn 0.8s ease-in;
-    position: relative; overflow: hidden; min-height: calc(100vh - 40px);
-}
-
-/* ===================================
-   === CLOCK ===
-   =================================== */
-#clock {
-    color: var(--neon-blue); text-align: center; margin: 15px 0 20px;
-    font-weight: bold; font-size: 22px; font-family: 'Orbitron', sans-serif;
-    letter-spacing: 1.5px; text-shadow: 0 0 8px var(--neon-blue), 0 0 15px var(--neon-blue), 0 0 25px rgba(0, 255, 255, 0.5);
-    background: rgba(0, 20, 40, 0.6); padding: 10px; border-radius: 14px;
-    border: 1px solid rgba(0, 229, 255, 0.6); box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
-    animation: pulseClock 2s infinite alternate;
-}
-@keyframes pulseClock {
-    0%, 100% { box-shadow: 0 0 10px rgba(0, 229, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.3); }
-    50% { box-shadow: 0 0 18px rgba(0, 229, 255, 0.8), 0 0 30px rgba(0, 255, 255, 0.6); }
-}
-
-/* ===================================
-   === NOTE CARDS ===
-   =================================== */
-.note-card {
-    background: var(--panel-bg); padding: 22px; width: 100%; max-width: none;
-    margin: 0 0 24px; color: var(--txt-main); border-radius: 18px;
-    box-shadow: 0 0 15px var(--panel-shadow), inset 0 0 8px rgba(0, 50, 100, 0.3);
-    backdrop-filter: blur(12px) saturate(180%); -webkit-backdrop-filter: blur(12px) saturate(180%);
-    word-break: break-word; font-weight: 500; transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.2);
-    position: relative; overflow: hidden; border: 1px solid var(--panel-border);
-    font-family: 'Exo 2', sans-serif; box-sizing: border-box;
-}
-.note-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 198, 215, 0.4), 0 0 30px rgba(185, 103, 255, 0.3), inset 0 0 12px rgba(0, 100, 200, 0.4);
-    background: rgba(10, 20, 50, 0.9); cursor: pointer;
-}
-.note-card::before {
-    content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-    background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-purple));
-    box-shadow: 0 0 8px var(--accent-cyan), 0 0 16px var(--accent-purple);
-    border-radius: 0 6px 6px 0; animation: cyberPulseGlow 2.5s infinite alternate;
-}
-@keyframes cyberPulseGlow {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; box-shadow: 0 0 12px var(--accent-cyan), 0 0 24px var(--accent-purple); }
-}
-
-.note-card .note-title {
-    font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 800;
-    color: var(--accent-cyan); text-shadow: 0 0 8px rgba(0, 198, 215, 0.8), 0 0 16px rgba(185, 103, 255, 0.6);
-    margin: 0 0 16px; letter-spacing: 1px; text-align: center; padding-bottom: 12px;
-    border-bottom: 1px solid rgba(0, 198, 215, 0.3); background: rgba(0, 30, 60, 0.2); position: relative;
-}
-.note-card .note-title::after {
-    content: ""; position: absolute; bottom: -3px; left: 30%; width: 40%; height: 2px;
-    background: var(--accent-cyan); border-radius: 2px;
-}
-
-.note-detail p {
-    margin-bottom: 12px; font-size: 14px; color: var(--txt-highlight);
-    text-shadow: 0 0 2px rgba(0, 198, 215, 0.3); white-space: pre-wrap;
-    word-break: break-word; line-height: 1.6; letter-spacing: 0.4px; font-weight: 500;
-    transition: color 0.25s ease;
-}
-
-/* ===================================
-   === COPY BUTTONS - JANGAN DIHAPUS! ===
-   =================================== */
-.copy-button, .sticky-add-button {
-    background: linear-gradient(145deg, rgba(0, 229, 255, 0.3), rgba(0, 100, 255, 0.3));
-    color: var(--neon-blue); border: 1px solid rgba(0, 229, 255, 0.65);
-    padding: 9px 18px; font-size: 14px; font-weight: 700; border-radius: 12px;
-    cursor: pointer; transition: all 0.3s ease; display: inline-flex;
-    align-items: center; gap: 8px; margin: 6px 4px;
-    box-shadow: 0 0 10px rgba(0, 229, 255, 0.4), inset 0 0 8px rgba(0, 229, 255, 0.3);
-    text-shadow: 0 0 3px rgba(0, 255, 255, 0.8);
-}
-.copy-button:hover, .sticky-add-button:hover {
-    background: linear-gradient(145deg, rgba(0, 255, 255, 0.5), rgba(0, 150, 255, 0.5));
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 0 18px rgba(0, 255, 255, 0.8), inset 0 0 12px rgba(0, 255, 255, 0.5);
-}
-
-/* ===================================
-   === STICKY NOTES FAB & PANEL ===
-   =================================== */
-#stickyFab {
-    position: fixed; bottom: 28px; right: 28px; width: 64px; height: 64px;
-    background: radial-gradient(circle at 30% 30%, #00ffff, #0077ff); color: #000;
-    border: none; border-radius: 50%; cursor: pointer; z-index: 10001;
-    display: flex; align-items: center; justify-content: center; font-size: 28px;
-    font-weight: bold; box-shadow: 0 0 12px rgba(0, 255, 255, 0.8), 0 0 28px rgba(0, 191, 255, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.3);
-    transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.2);
-    animation: cyberPulseGlow 2.8s infinite alternate;
-    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-}
-#stickyFab:hover {
-    transform: scale(1.15) rotate(12deg);
-    background: radial-gradient(circle at 70% 70%, #00ffcc, #00bfff);
-    box-shadow: 0 0 20px rgba(0, 255, 255, 1), 0 0 40px rgba(0, 191, 255, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.5);
-}
-#stickyFab:active { transform: scale(0.95); }
-
-#stickyPanel {
-    position: fixed; bottom: 100px; right: 28px; width: 680px; max-width: 92vw;
-    min-width: 420px; min-height: 180px; background: rgba(4, 12, 32, 0.88);
-    border: 2px solid rgba(0, 255, 255, 0.6); border-radius: 20px; padding: 24px;
-    display: none; z-index: 10000; max-height: 88vh; overflow: auto; resize: both;
-    animation: panelSlideIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    backdrop-filter: blur(14px) saturate(180%); -webkit-backdrop-filter: blur(14px) saturate(180%);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 0 12px rgba(0, 100, 200, 0.4);
-}
-@keyframes panelSlideIn {
-    from { opacity: 0; transform: translateY(20px) scale(0.95); filter: blur(2px); }
-    to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-}
-
-#stickyInput {
-    width: 100%; min-height: 60px; background: rgba(0, 15, 40, 0.75);
-    color: #00ffff; border: 1.5px solid rgba(0, 255, 255, 0.5); border-radius: 14px;
-    padding: 14px; margin-bottom: 16px; font-family: 'Exo 2', monospace;
-    font-size: 15px; font-weight: 600; resize: vertical; transition: all 0.3s ease;
-    box-shadow: inset 0 0 8px rgba(0, 100, 200, 0.3);
-}
-#stickyInput:focus {
-    outline: none; border-color: #00ffff;
-    box-shadow: inset 0 0 12px rgba(0, 200, 255, 0.6), 0 0 15px rgba(0, 255, 255, 0.4);
-    background: rgba(0, 20, 50, 0.85);
-}
-
-#stickyPanel button {
-    width: auto; min-width: 140px;
-    background: linear-gradient(145deg, rgba(0, 255, 255, 0.25), rgba(0, 150, 255, 0.25));
-    color: #00ffff; border: 1.5px solid rgba(0, 255, 255, 0.6); padding: 10px 20px;
-    border-radius: 14px; margin: 0 8px 16px 0; cursor: pointer; font-weight: 700;
-    font-size: 15px; transition: all 0.3s ease;
-    box-shadow: 0 0 8px rgba(0, 255, 255, 0.3), inset 0 0 6px rgba(0, 200, 255, 0.2);
-}
-#stickyPanel button:hover {
-    background: rgba(0, 255, 255, 0.35); transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 0 16px rgba(0, 255, 255, 0.8), inset 0 0 10px rgba(0, 255, 255, 0.4);
-}
-
-#stickyList div {
-    position: relative; white-space: pre-wrap; background: rgba(6, 20, 50, 0.85);
-    border: 1.5px solid rgba(0, 255, 255, 0.4); color: #66ffff; border-radius: 16px;
-    padding: 16px 20px 16px 20px; margin-bottom: 14px; word-wrap: break-word;
-    font-size: 15px; font-weight: 600; line-height: 1.6; cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 0 8px rgba(0, 50, 100, 0.3);
-}
-#stickyList div:hover {
-    transform: translateY(-3px); border-color: #00ffff;
-    box-shadow: 0 6px 18px rgba(0, 255, 255, 0.3), inset 0 0 12px rgba(0, 100, 200, 0.4);
-    background: rgba(8, 25, 60, 0.92);
-}
-
-.sticky-delete, .sticky-edit {
-    position: absolute; top: 12px; font-size: 18px; font-weight: bold;
-    cursor: pointer; opacity: 0.7; transition: all 0.25s ease;
-}
-.sticky-delete { right: 16px; color: #ff0066; text-shadow: 0 0 6px rgba(255, 0, 102, 0.8); }
-.sticky-edit { right: 48px; color: #00ffaa; text-shadow: 0 0 6px rgba(0, 255, 170, 0.8); }
-.sticky-delete:hover, .sticky-edit:hover { opacity: 1; transform: scale(1.2); }
-
-#stickyList img {
-    display: block; margin: 12px auto; max-width: 45%; max-height: 140px; height: auto;
-    object-fit: contain; border-radius: 12px; border: 1.5px solid rgba(0, 255, 255, 0.3);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 200, 255, 0.2);
-    transition: transform 0.3s ease;
-}
-#stickyList img:hover {
-    transform: scale(1.04);
-    box-shadow: 0 6px 16px rgba(0, 255, 255, 0.4), 0 0 15px rgba(0, 255, 255, 0.3);
-}
-
-/* ===================================
-   === TOAST NOTIFICATION ===
-   =================================== */
-#toastNotif {
-    position: fixed; bottom: 32px; right: 32px; z-index: 9999;
-    background: rgba(0, 20, 45, 0.92); color: var(--cyber-neon);
-    padding: 16px 28px; border-radius: 20px; font-weight: 700; font-size: 17px;
-    font-family: 'Exo 2', sans-serif;
-    box-shadow: 0 0 25px rgba(0, 243, 255, 0.7), 0 0 45px rgba(157, 0, 255, 0.4);
-    display: none; border: 1.5px solid var(--cyber-neon); backdrop-filter: blur(10px);
-    transform: translateX(200px) scale(0.9); animation: toastSequence 3.2s forwards;
-    max-width: 380px; text-align: center;
-}
-@keyframes toastSequence {
-    0% { transform: translateX(200px) scale(0.9); opacity: 0; }
-    15% { transform: translateX(0) scale(1.05); opacity: 1; }
-    85% { transform: translateX(0) scale(1); opacity: 1; }
-    100% { transform: translateX(200px) scale(0.95); opacity: 0; }
-}
-
-/* ===================================
-   === TAB CONTENT ===
-   =================================== */
-.tab-content { display: none; flex: 1; }
-.tab-content.active { display: block; }
-
-/* ===================================
-   === SEARCH BAR ===
-   =================================== */
-.search-bar { margin: 20px 0 25px; text-align: center; }
-#searchInput {
-    width: 100%; max-width: 500px; padding: 14px 20px; margin: 0 auto;
-    background: rgba(0, 20, 45, 0.75); border: 2px solid rgba(0, 229, 255, 0.6);
-    border-radius: 16px; color: var(--neon-blue); font-size: 16px; font-weight: bold;
-    text-align: center; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
-    transition: all 0.3s ease; font-family: 'Orbitron', sans-serif;
-}
-#searchInput:focus {
-    outline: none; border-color: var(--neon-blue);
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.7), 0 0 35px rgba(0, 229, 255, 0.5);
-    background: rgba(0, 25, 55, 0.85);
-}
-
-/* ===================================
-   === FOTO GALLERY ===
-   =================================== */
-.foto-gallery {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 22px; padding: 10px;
-}
-.foto-card {
-    background: rgba(0, 15, 35, 0.75); border-radius: 18px; overflow: hidden;
-    cursor: pointer; box-shadow: 0 8px 25px rgba(0, 229, 255, 0.25);
-    transition: all 0.4s ease; border: 1px solid rgba(0, 229, 255, 0.3);
-    position: relative; display: flex; flex-direction: column;
-}
-.foto-card:hover {
-    transform: translateY(-8px) scale(1.03);
-    box-shadow: 0 12px 35px rgba(0, 255, 255, 0.45); border-color: var(--neon-blue);
-}
-.foto-card img {
-    width: 100%; height: 240px; object-fit: contain; object-position: center;
-    display: block; background-color: #000; transition: transform 0.5s ease;
-    border-bottom: 1px solid rgba(0, 229, 255, 0.3);
-}
-.foto-card:hover img { transform: scale(1.05); }
-.foto-title {
-    padding: 12px; text-align: center; font-weight: 700; font-size: 16px;
-    color: var(--neon-blue); text-shadow: 0 0 6px var(--neon-blue), 0 0 12px rgba(0, 255, 255, 0.7);
-    background: rgba(0, 10, 30, 0.7); border-top: 1px solid rgba(0, 229, 255, 0.3);
-}
-
-/* ===================================
-   === LIGHTBOX ===
-   =================================== */
-#lightbox {
-    display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.95); z-index: 10000; flex-direction: column;
-    justify-content: center; align-items: center;
-}
-
-/* ===================================
-   === RESPONSIVE ===
-   =================================== */
-@media (max-width: 768px) {
-    .note-card { padding: 18px 16px; margin: 0 8px 20px; }
-    .note-card .note-title { font-size: 18px; letter-spacing: 0.8px; }
-    .note-detail p { font-size: 13px; line-height: 1.5; }
-    .note-card button, .copy-button { padding: 6px 12px; font-size: 12px; }
-    #stickyPanel { width: 95vw; bottom: 15px; right: 15px; left: 15px; }
-}
-</style>
-</head>
-<body class="bg-default">
-
-<!-- === MAIN CONTAINER === -->
-<div class="main-container">
-    <!-- === SIDEBAR === -->
-    <div class="sidebar-container">
-        <div class="sidebar-brand">
-            <div class="planet-icon">
-                <svg viewBox="0 0 64 64" width="52" height="52">
-                    <circle cx="32" cy="32" r="14" fill="none" stroke="#00f3ff" stroke-width="2">
-                        <animate attributeName="r" values="10;14;10" dur="2s" repeatCount="indefinite"/>
-                    </circle>
-                    <circle cx="32" cy="32" r="8" fill="#00f3ff">
-                        <animate attributeName="fill" values="#00f3ff;#0088ff;#00f3ff" dur="3s" repeatCount="indefinite"/>
-                    </circle>
-                    <ellipse cx="32" cy="32" rx="24" ry="10" fill="none" stroke="#00f3ff" stroke-width="1.5" stroke-dasharray="5,5">
-                        <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 32 32" to="360 32 32" dur="10s" repeatCount="indefinite"/>
-                    </ellipse>
-                </svg>
-            </div>
-            <h2>LINE<span style="color:#9d00ff">TOGEL</span></h2>
-        </div>
-        
-        <!-- Jam Digital -->
-        <div id="clock">00:00:00</div>
-        
-        <!-- Menu Buttons -->
-        <button class="neon-button active" onclick="loadNotes('KENDALA ALL'); showTab('catatanTab', this)">
-            <i class="fas fa-headset"></i><span>KENDALA ALL</span>
-        </button>
-        <button class="neon-button" onclick="loadNotes('FOTO'); showTab('catatanTab', this)">
-            <i class="fas fa-camera"></i><span>FOTO</span>
-        </button>
-        <button class="neon-button" onclick="loadNotes('CARA BERMAIN'); showTab('catatanTab', this)">
-            <i class="fas fa-book-open"></i><span>CARA BERMAIN</span>
-        </button>
-    </div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#00ffff">
+    <title>🎧 KENDALA ALL - LINE TOGEL</title>
     
-    <!-- === CONTENT AREA === -->
-    <div class="content-area">
-        <div id="catatanTab" class="tab-content active">
-            <h3 id="judulCatatan" style="font-size:32px;text-align:center;color:#00ffff;margin-bottom:20px;">💫 LINE TOGEL 💫</h3>
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="🔍 Cari catatan..." oninput="searchNotes()" />
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ===================================
+           === CYBER CORE VARIABLES ===
+           =================================== */
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-blue: #0088ff;
+            --neon-purple: #9d00ff;
+            --neon-green: #00ff88;
+            --neon-yellow: #ffff00;
+            --neon-red: #ff0066;
+            --neon-pink: #ff00ff;
+            
+            --bg-dark: #000a1e;
+            --bg-card: rgba(0, 20, 50, 0.7);
+            --bg-card-hover: rgba(0, 40, 100, 0.85);
+            --bg-panel: rgba(2, 12, 32, 0.92);
+            
+            --text-main: #00ffff;
+            --text-secondary: #66ffff;
+            --text-dim: #33cccc;
+            
+            --border-glow: rgba(0, 255, 255, 0.5);
+            --shadow-glow: rgba(0, 255, 255, 0.3);
+            --shadow-intense: rgba(0, 255, 255, 0.6);
+            
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --transition-slow: 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* ===================================
+           === RESET & BASE ===
+           =================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        /* ===================================
+           === CYBER BACKGROUND EFFECTS ===
+           =================================== */
+        .cyber-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 80%, rgba(0, 243, 255, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(157, 0, 255, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(0, 136, 255, 0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #000a1e 0%, #001133 40%, #000820 100%);
+            z-index: -3;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -2;
+            animation: gridFloat 40s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes gridFloat {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .scan-line {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+            opacity: 0.4;
+            animation: scanDown 10s linear infinite;
+            z-index: 1;
+            pointer-events: none;
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        @keyframes scanDown {
+            0% { top: -10%; opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { top: 110%; opacity: 0; }
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* ===================================
+           === CONTAINER & LAYOUT ===
+           =================================== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ===================================
+           === HEADER ===
+           =================================== */
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            padding: 25px 20px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), var(--neon-cyan), transparent);
+            animation: glowLine 3s ease-in-out infinite;
+        }
+
+        @keyframes glowLine {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; box-shadow: 0 0 20px var(--neon-cyan); }
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 0; top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 255, 255, 0.15);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition-normal);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 255, 255, 0.3);
+            transform: translateY(-50%) translateX(-3px);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+        }
+
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 52px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00f3ff, #9d00ff, #00f3ff, #ff00ff, #00f3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 400% 400%;
+            animation: neonFlow 4s ease infinite, textPulse 2s ease-in-out infinite alternate;
+            text-shadow: 0 0 40px rgba(0, 243, 255, 0.7);
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        @keyframes neonFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes textPulse {
+            0% { filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.5)); }
+            100% { filter: drop-shadow(0 0 45px rgba(0, 243, 255, 0.9)); }
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+            letter-spacing: 3px;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 255, 136, 0.15);
+            border: 2px solid rgba(0, 255, 136, 0.5);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            color: var(--neon-green);
+            margin-top: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            animation: badgeGlow 2.5s infinite;
+        }
+
+        @keyframes badgeGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(0, 255, 136, 0.8); }
+        }
+
+        .status-dot {
+            width: 10px; height: 10px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        /* ===================================
+           === SEARCH & STATS ===
+           =================================== */
+        .search-section {
+            margin: 25px 0 30px;
+            text-align: center;
+        }
+
+        .search-bar {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto 20px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 16px 24px 16px 55px;
+            background: rgba(0, 20, 50, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            border-radius: 16px;
+            color: var(--text-main);
+            font-size: 16px;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 600;
+            transition: var(--transition-normal);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-bar input::placeholder {
+            color: rgba(0, 255, 255, 0.5);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            background: rgba(0, 25, 60, 0.9);
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 20px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--neon-cyan);
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            padding: 15px 20px;
+            background: rgba(0, 20, 50, 0.6);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 8px 20px;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        /* ===================================
+           === KENDALA CARDS ===
+           =================================== */
+        .kendala-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .kendala-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-glow);
+            border-radius: 24px;
+            padding: 28px 32px;
+            transition: var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            animation: cardEnter 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .kendala-card:nth-child(1) { animation-delay: 0.1s; }
+        .kendala-card:nth-child(2) { animation-delay: 0.15s; }
+        .kendala-card:nth-child(3) { animation-delay: 0.2s; }
+        .kendala-card:nth-child(4) { animation-delay: 0.25s; }
+        .kendala-card:nth-child(5) { animation-delay: 0.3s; }
+
+        @keyframes cardEnter {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .kendala-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 5px; height: 100%;
+            background: linear-gradient(to bottom, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+            box-shadow: 0 0 20px var(--neon-cyan);
+            transition: var(--transition-normal);
+        }
+
+        .kendala-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-6px) scale(1.01);
+            border-color: var(--neon-cyan);
+            box-shadow: 
+                0 20px 60px rgba(0, 255, 255, 0.3),
+                0 0 50px rgba(0, 243, 255, 0.2),
+                inset 0 0 30px rgba(0, 255, 255, 0.1);
+        }
+
+        .kendala-card:hover::before {
+            width: 7px;
+            box-shadow: 0 0 35px var(--neon-cyan);
+        }
+
+        .kendala-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--neon-cyan);
+            margin-bottom: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            transition: var(--transition-fast);
+        }
+
+        .kendala-title:hover {
+            color: var(--neon-green);
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.9);
+        }
+
+        .kendala-title::after {
+            content: '▼';
+            font-size: 14px;
+            transition: transform 0.3s ease;
+            color: var(--neon-cyan);
+        }
+
+        .kendala-card.expanded .kendala-title::after {
+            transform: rotate(180deg);
+        }
+
+        .kendala-answers {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .kendala-card.expanded .kendala-answers {
+            display: block;
+        }
+
+        .answer-item {
+            margin-bottom: 18px;
+            padding: 18px 20px;
+            background: rgba(0, 15, 40, 0.6);
+            border-radius: 14px;
+            border-left: 4px solid var(--neon-cyan);
+            transition: var(--transition-fast);
+            position: relative;
+        }
+
+        .answer-item:hover {
+            background: rgba(0, 25, 60, 0.7);
+            border-left-color: var(--neon-green);
+            transform: translateX(3px);
+        }
+
+        .answer-label {
+            font-weight: 700;
+            color: var(--neon-yellow);
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .answer-label i {
+            font-size: 16px;
+        }
+
+        .answer-content {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 15px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .answer-content:hover {
+            background: rgba(0, 255, 255, 0.1);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+        }
+
+        .answer-content a {
+            color: var(--neon-green);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition-fast);
+            position: relative;
+        }
+
+        .answer-content a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 2px;
+            background: var(--neon-green);
+            transition: var(--transition-fast);
+        }
+
+        .answer-content a:hover::after {
+            width: 100%;
+        }
+
+        .answer-content a:hover {
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+        }
+
+        /* ===================================
+           === PHOTO SECTION ===
+           =================================== */
+        .photo-container {
+            margin: 18px 0;
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 20, 50, 0.4);
+            border-radius: 14px;
+            border: 1px dashed rgba(0, 255, 255, 0.4);
+        }
+
+        .photo-img {
+            max-width: 100%;
+            max-height: 350px;
+            border-radius: 14px;
+            border: 3px solid var(--neon-cyan);
+            cursor: pointer;
+            transition: var(--transition-normal);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+        }
+
+        .photo-img:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.7);
+        }
+
+        .copy-photo-btn {
+            background: rgba(0, 255, 255, 0.15);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 10px 22px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: var(--transition-normal);
+            font-weight: 700;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-photo-btn:hover {
+            background: rgba(0, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+        }
+
+        /* ===================================
+           === LINK BUTTONS ===
+           =================================== */
+        .link-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .open-link-btn {
+            background: rgba(0, 200, 255, 0.15);
+            border: 2px solid #00c8ff;
+            color: #00c8ff;
+            padding: 8px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: var(--transition-normal);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .open-link-btn:hover {
+            background: rgba(0, 200, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.6);
+        }
+
+        .open-link-btn i {
+            font-size: 12px;
+        }
+
+        /* ===================================
+           === ADD TO STICKY BUTTON ===
+           =================================== */
+        .add-to-sticky-btn {
+            background: rgba(157, 0, 255, 0.15);
+            border: 2px solid var(--neon-purple);
+            color: var(--neon-purple);
+            padding: 8px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: var(--transition-normal);
+            font-weight: 700;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .add-to-sticky-btn:hover {
+            background: rgba(157, 0, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(157, 0, 255, 0.6);
+        }
+
+        /* ===================================
+           === EMPTY & ERROR STATES ===
+           =================================== */
+        .no-data, .error-msg, .loading {
+            text-align: center;
+            padding: 60px 30px;
+            color: var(--text-secondary);
+        }
+
+        .loading {
+            color: var(--neon-cyan);
+        }
+
+        .loading-spinner {
+            width: 50px; height: 50px;
+            border: 4px solid rgba(0, 255, 255, 0.2);
+            border-top-color: var(--neon-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-msg {
+            color: var(--neon-red);
+            background: rgba(255, 100, 100, 0.1);
+            border-radius: 16px;
+            border: 1px solid var(--neon-red);
+            margin: 20px 0;
+        }
+
+        /* ===================================
+           === LIGHTBOX ===
+           =================================== */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0, 5, 20, 0.97);
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 25px; right: 30px;
+            font-size: 36px;
+            color: var(--neon-cyan);
+            cursor: pointer;
+            transition: var(--transition-normal);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+            z-index: 10000;
+        }
+
+        .lightbox-close:hover {
+            color: var(--neon-red);
+            transform: rotate(90deg) scale(1.1);
+            text-shadow: 0 0 25px rgba(255, 0, 102, 0.9);
+        }
+
+        .lightbox-img {
+            max-width: 95%;
+            max-height: 80vh;
+            border-radius: 16px;
+            border: 4px solid var(--neon-cyan);
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.6);
+            transition: var(--transition-normal);
+            cursor: grab;
+        }
+
+        .lightbox-img:active {
+            cursor: grabbing;
+        }
+
+        .lightbox-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .lightbox-btn {
+            background: rgba(0, 255, 255, 0.15);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 12px 28px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            transition: var(--transition-normal);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lightbox-btn:hover {
+            background: rgba(0, 255, 255, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.7);
+        }
+
+        .zoom-slider {
+            width: 250px;
+            margin-top: 20px;
+        }
+
+        .zoom-slider input {
+            width: 100%;
+            accent-color: var(--neon-cyan);
+        }
+
+        /* ===================================
+           === TOAST NOTIFICATION ===
+           =================================== */
+        .toast {
+            position: fixed;
+            bottom: 35px;
+            right: 35px;
+            background: rgba(2, 12, 32, 0.95);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 16px 28px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 15px;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 0 35px rgba(0, 255, 255, 0.5);
+            transform: translateX(200px);
+            opacity: 0;
+            transition: var(--transition-normal);
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast i {
+            font-size: 20px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+
+        /* ===================================
+           === STICKY NOTES PANEL ===
+           =================================== */
+        .sticky-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 380px;
+            max-width: 90vw;
+            max-height: 85vh;
+            background: rgba(2, 12, 32, 0.95);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 20px;
+            padding: 20px;
+            z-index: 9998;
+            display: none;
+            flex-direction: column;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+            animation: slideInUp 0.4s ease;
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sticky-panel.active {
+            display: flex;
+        }
+
+        .sticky-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .sticky-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+        }
+
+        .sticky-close {
+            background: none;
+            border: none;
+            color: var(--neon-red);
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .sticky-close:hover {
+            transform: rotate(90deg);
+            text-shadow: 0 0 15px var(--neon-red);
+        }
+
+        .sticky-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .sticky-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sticky-list::-webkit-scrollbar-track {
+            background: rgba(0, 10, 30, 0.5);
+            border-radius: 3px;
+        }
+
+        .sticky-list::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+            border-radius: 3px;
+        }
+
+        .sticky-note {
+            background: rgba(0, 20, 50, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            cursor: grab;
+            transition: var(--transition-fast);
+            position: relative;
+        }
+
+        .sticky-note:active {
+            cursor: grabbing;
+        }
+
+        .sticky-note.dragging {
+            opacity: 0.8;
+            transform: scale(1.02);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.7);
+            z-index: 100;
+        }
+
+        .sticky-note:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .sticky-note-content {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 6px;
+            transition: var(--transition-fast);
+        }
+
+        .sticky-note-content:hover {
+            background: rgba(0, 255, 255, 0.1);
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+        }
+
+        .sticky-note-content img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin: 8px 0;
+            border: 2px solid var(--neon-cyan);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .sticky-note-content img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        .sticky-note-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: flex-end;
+        }
+
+        .sticky-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sticky-btn:hover {
+            background: rgba(0, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .sticky-btn.edit {
+            color: var(--neon-yellow);
+            border-color: var(--neon-yellow);
+        }
+
+        .sticky-btn.edit:hover {
+            background: rgba(255, 255, 0, 0.2);
+        }
+
+        .sticky-btn.delete {
+            color: var(--neon-red);
+            border-color: var(--neon-red);
+        }
+
+        .sticky-btn.delete:hover {
+            background: rgba(255, 100, 100, 0.2);
+        }
+
+        .sticky-btn.move-up,
+        .sticky-btn.move-down {
+            color: var(--neon-purple);
+            border-color: var(--neon-purple);
+        }
+
+        .sticky-btn.move-up:hover,
+        .sticky-btn.move-down:hover {
+            background: rgba(157, 0, 255, 0.2);
+        }
+
+        .sticky-note.editing .sticky-note-content {
+            background: rgba(0, 30, 60, 0.8);
+            border: 1px dashed var(--neon-cyan);
+        }
+
+        .sticky-note.editing .sticky-note-actions {
+            display: none;
+        }
+
+        .sticky-edit-input {
+            width: 100%;
+            min-height: 80px;
+            background: rgba(0, 15, 40, 0.8);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 8px;
+            color: var(--text-main);
+            padding: 10px;
+            font-size: 14px;
+            font-family: 'Exo 2', sans-serif;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+
+        .sticky-edit-input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .sticky-edit-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .sticky-edit-save,
+        .sticky-edit-cancel {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .sticky-edit-save {
+            background: var(--neon-green);
+            border: none;
+            color: #000;
+        }
+
+        .sticky-edit-save:hover {
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        .sticky-edit-cancel {
+            background: rgba(255, 100, 100, 0.2);
+            border: 1px solid var(--neon-red);
+            color: var(--neon-red);
+        }
+
+        .sticky-edit-cancel:hover {
+            background: rgba(255, 100, 100, 0.4);
+        }
+
+        /* ===================================
+           === STICKY FAB BUTTON ===
+           =================================== */
+        .sticky-fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle at 30% 30%, var(--neon-cyan), var(--neon-blue));
+            border: 2px solid var(--neon-cyan);
+            border-radius: 50%;
+            color: #000;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 9997;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+            transition: var(--transition-normal);
+            animation: pulseFab 2s infinite;
+        }
+
+        .sticky-fab:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.9);
+        }
+
+        @keyframes pulseFab {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 35px rgba(0, 255, 255, 0.9); }
+        }
+
+        /* ===================================
+           === RESPONSIVE ===
+           =================================== */
+        @media (max-width: 768px) {
+            .container { padding: 20px 15px; }
+            .title { font-size: 38px; letter-spacing: 1px; }
+            .subtitle { font-size: 15px; letter-spacing: 2px; }
+            .kendala-card { padding: 22px 25px; }
+            .kendala-title { font-size: 19px; }
+            .stats-bar { flex-direction: column; gap: 15px; }
+            .search-bar { max-width: 100%; }
+            .lightbox-controls { flex-direction: column; align-items: center; }
+            .lightbox-btn { width: 100%; max-width: 300px; justify-content: center; }
+            .zoom-slider { width: 100%; max-width: 300px; }
+            .sticky-panel {
+                width: 95vw;
+                bottom: 15px;
+                right: 15px;
+                left: 15px;
+            }
+        }
+
+        /* ===================================
+           === SCROLLBAR ===
+           =================================== */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 10, 30, 0.5);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #00ffff, #0088ff);
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #00ffff, #9d00ff);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
+        }
+
+        /* ===================================
+           === SELECTION ===
+           =================================== */
+        ::selection {
+            background: rgba(0, 255, 255, 0.3);
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="cyber-bg"></div>
+    <div class="grid-overlay"></div>
+    <div class="particles" id="particles"></div>
+    <div class="scan-line"></div>
+    <div class="noise-overlay"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Kembali
+            </a>
+            <h1 class="title">🎧 KENDALA ALL</h1>
+            <p class="subtitle">Database Solusi & Bantuan Pengguna</p>
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                <span>SYSTEM ONLINE</span>
             </div>
-            <div id="notesList"><strong>LINE TOGEL</strong></div>
+        </header>
+
+        <!-- Search & Stats -->
+        <div class="search-section">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="🔍 Cari kendala atau solusi..." oninput="searchKendala()">
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-value" id="totalItems">0</span>
+                    <span class="stat-label">Total Data</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="withPhotos">0</span>
+                    <span class="stat-label">Dengan Foto</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="withLinks">0</span>
+                    <span class="stat-label">Dengan Link</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="kendalaContainer">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>⏳ Menghubungi database...</p>
+                <p style="font-size: 13px; opacity: 0.7; margin-top: 10px;">Mengambil data dari Google Sheets</p>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- === STICKY NOTES FAB BUTTON === -->
-<button id="stickyFab" onclick="toggleStickyPanel()" title="Buka Sticky Notes">
-    <i class="fas fa-sticky-note"></i>
-</button>
-
-<!-- === STICKY NOTES PANEL === -->
-<div id="stickyPanel">
-    <textarea id="stickyInput" placeholder="Tulis Sticky Note..." oninput="autoResize(this)"></textarea>
-    <button id="addStickyBtn" onclick="addSticky()">➕ Tambah Sticky</button>
-    <div id="stickyList"></div>
-</div>
-
-<!-- === LIGHTBOX === -->
-<div id="lightbox" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 10000; flex-direction: column; justify-content: center; align-items: center;">
-    <div onclick="hideLightbox()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;"></div>
-    <div style="position: relative; display: flex; flex-direction: column; align-items: center; max-width: 95%; max-height: 95%;">
-        <span onclick="hideLightbox()" style="position: absolute; top: -30px; right: -20px; font-size: 40px; color: #00FFFF; cursor: pointer; text-shadow: 0 0 10px #00ffff;">&times;</span>
-        <img id="lightboxImg" src="" alt="Preview Zoom" style="max-width: 100%; max-height: 80vh; transition: transform 0.3s ease; cursor: grab;">
-        <div style="margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 15px;">
-            <button onclick="changeLightbox(-1)" class="neon-button">Prev</button>
-            <button onclick="event.stopPropagation(); copyPhotoFromLightbox()" class="copy-button">
+    <!-- Lightbox for Photos -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <img class="lightbox-img" id="lightboxImg" src="" alt="Preview" draggable="false">
+        <div class="lightbox-controls">
+            <button class="lightbox-btn" onclick="changeLightbox(-1)">
+                <i class="fas fa-chevron-left"></i> Prev
+            </button>
+            <button class="lightbox-btn" onclick="copyLightboxPhoto()">
                 <i class="fas fa-copy"></i> Copy Foto
             </button>
-            <button onclick="changeLightbox(1)" class="neon-button">Next</button>
+            <button class="lightbox-btn" onclick="changeLightbox(1)">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        <div class="zoom-slider">
+            <input type="range" id="zoomSlider" min="0.5" max="4" step="0.1" value="1" oninput="updateZoom()">
         </div>
     </div>
-</div>
 
-<!-- === TOAST NOTIFICATION === -->
-<div id="toastNotif">Sistem Cyber Core berhasil dimuat ✨</div>
+    <!-- Sticky Notes FAB -->
+    <div class="sticky-fab" onclick="toggleStickyPanel()" title="Buka Sticky Notes">
+        <i class="fas fa-sticky-note"></i>
+    </div>
 
-<script>
-// ===================================
-// === VARIABEL GLOBAL ===
-// ===================================
-let currentFolder = 'DEPOSIT';
-let allNotes = [];
-let lightboxImages = [];
-let lightboxIndex = 0;
-let zoomLevel = 1;
-let offsetX = 0, offsetY = 0;
-let isDragging = false;
-let startX = 0, startY = 0;
-let editIndex = null;
+    <!-- Sticky Notes Panel -->
+    <div class="sticky-panel" id="stickyPanel">
+        <div class="sticky-header">
+            <span class="sticky-title">📝 Sticky Notes</span>
+            <button class="sticky-close" onclick="toggleStickyPanel()">&times;</button>
+        </div>
+        <div class="sticky-list" id="stickyList"></div>
+    </div>
 
-// ===================================
-// === JAM DIGITAL ===
-// ===================================
-function updateClock() {
-    const clockElement = document.getElementById('clock');
-    if (!clockElement) return;
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-    clockElement.textContent = timeStr;
-}
-updateClock();
-setInterval(updateClock, 1000);
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Notifikasi</span>
+    </div>
 
-// ===================================
-// === TOAST NOTIFICATION ===
-// ===================================
-function showToast(message) {
-    const existingToast = document.getElementById('toastNotif');
-    if (existingToast) {
-        existingToast.textContent = message;
-        existingToast.style.display = 'block';
-        if (existingToast.timer) clearTimeout(existingToast.timer);
-        existingToast.timer = setTimeout(() => { existingToast.style.display = 'none'; }, 3000);
-    }
-}
+    <script>
+        /* ===================================
+           === KONFIGURASI ===
+           =================================== */
+        const SHEET_ID = '1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0';
+        const GID = '1251944242';
+        const RANGE = 'C2:F300';
+        const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&range=${RANGE}`;
 
-// ===================================
-// === TAB MANAGEMENT ===
-// ===================================
-function showTab(tabId, button) {
-    document.querySelectorAll('.tab-content').forEach(tab => { tab.style.display = 'none'; });
-    document.querySelectorAll('.neon-button').forEach(btn => { btn.classList.remove('active'); });
-    const activeTab = document.getElementById(tabId);
-    if (activeTab) { activeTab.style.display = 'block'; }
-    if (button) { button.classList.add('active'); }
-}
+        /* ===================================
+           === VARIABEL GLOBAL ===
+           =================================== */
+        let allKendala = [];
+        let filteredKendala = [];
+        let lightboxImages = [];
+        let lightboxIndex = 0;
+        let zoomLevel = 1;
+        let stickyNotes = JSON.parse(localStorage.getItem('kendalaStickyNotes') || '[]');
+        let draggedNote = null;
 
-// ===================================
-// === STICKY NOTES - DIPERBAIKI! ===
-// ===================================
-function toggleStickyPanel() {
-    const panel = document.getElementById("stickyPanel");
-    if (!panel) {
-        console.error("Sticky Panel tidak ditemukan!");
-        return;
-    }
-    const isVisible = panel.style.display === "block";
-    panel.style.display = isVisible ? "none" : "block";
-    if (!isVisible) {
-        loadStickyNotes();
-        showToast("📝 Sticky Notes dibuka");
-    } else {
-        showToast("📝 Sticky Notes ditutup");
-    }
-}
-
-function autoResize(el) {
-    el.style.height = "auto";
-    el.style.height = el.scrollHeight + "px";
-}
-
-async function addSticky() {
-    const input = document.getElementById("stickyInput");
-    const text = input.value.trim();
-    const image = input.dataset.image || null;
-    if (!text && !image) {
-        showToast("⚠️ Isi sticky note terlebih dahulu!");
-        return;
-    }
-    let stickies = JSON.parse(localStorage.getItem("stickies") || "[]");
-    if (editIndex !== null) {
-        stickies[editIndex] = { text, image };
-        editIndex = null;
-        document.querySelector("#stickyPanel button").textContent = "➕ Tambah Sticky";
-    } else {
-        stickies.push({ text, image });
-    }
-    localStorage.setItem("stickies", JSON.stringify(stickies));
-    input.value = "";
-    input.dataset.image = "";
-    autoResize(input);
-    loadStickyNotes();
-    showToast("✅ Sticky note ditambahkan!");
-}
-
-function loadStickyNotes() {
-    const list = document.getElementById("stickyList");
-    if (!list) return;
-    list.innerHTML = "";
-    const stickies = JSON.parse(localStorage.getItem("stickies") || "[]");
-    if (stickies.length === 0) {
-        list.innerHTML = '<p style="text-align:center;color:#66ffff;padding:20px;">Belum ada sticky notes</p>';
-        return;
-    }
-    stickies.forEach((note, i) => {
-        const div = document.createElement("div");
-        div.className = "sticky-card";
-        div.dataset.index = i;
-        if (note.text) {
-            const p = document.createElement("p");
-            p.textContent = note.text;
-            div.appendChild(p);
-        }
-        if (note.image) {
-            const img = document.createElement("img");
-            img.src = note.image;
-            div.appendChild(img);
-        }
-        div.onclick = async() => {
+        /* ===================================
+           === FUNGSI UTAMA: LOAD DATA ===
+           =================================== */
+        async function loadKendalaData() {
             try {
-                const items = {};
-                if (note.text) items["text/plain"] = new Blob([note.text], { type: "text/plain" });
-                if (note.image) {
-                    const resp = await fetch(note.image);
-                    const blob = await resp.blob();
-                    items[blob.type] = blob;
-                }
-                await navigator.clipboard.write([new ClipboardItem(items)]);
-                showToast("✅ Teks + Gambar disalin!");
-            } catch {
-                showToast("⚠️ Gagal menyalin");
-            }
-        };
-        const del = document.createElement("span");
-        del.textContent = "✖";
-        del.className = "sticky-delete";
-        del.onclick = e => { e.stopPropagation(); deleteSticky(i); };
-        const edit = document.createElement("span");
-        edit.textContent = "✏️";
-        edit.className = "sticky-edit";
-        edit.onclick = e => { e.stopPropagation(); editSticky(i); };
-        div.appendChild(del);
-        div.appendChild(edit);
-        div.setAttribute("draggable", true);
-        div.ondragstart = e => e.dataTransfer.setData("text/plain", i);
-        div.ondragover = e => { e.preventDefault(); div.style.border = "2px dashed #00ffff"; };
-        div.ondragleave = () => div.style.border = "1px solid #00ffff";
-        div.ondrop = e => {
-            e.preventDefault();
-            div.style.border = "1px solid #00ffff";
-            reorderSticky(e.dataTransfer.getData("text/plain"), i);
-        };
-        list.appendChild(div);
-    });
-}
-
-function reorderSticky(from, to) {
-    let stickies = JSON.parse(localStorage.getItem("stickies") || "[]");
-    const moved = stickies.splice(from, 1)[0];
-    stickies.splice(to, 0, moved);
-    localStorage.setItem("stickies", JSON.stringify(stickies));
-    loadStickyNotes();
-}
-
-function deleteSticky(i) {
-    if (!confirm("Hapus sticky note ini?")) return;
-    let stickies = JSON.parse(localStorage.getItem("stickies") || "[]");
-    stickies.splice(i, 1);
-    localStorage.setItem("stickies", JSON.stringify(stickies));
-    loadStickyNotes();
-    showToast("🗑️ Sticky note dihapus");
-}
-
-function editSticky(i) {
-    const stickies = JSON.parse(localStorage.getItem("stickies") || "[]");
-    const input = document.getElementById("stickyInput");
-    input.value = stickies[i].text || "";
-    input.dataset.image = stickies[i].image || "";
-    autoResize(input);
-    editIndex = i;
-    document.querySelector("#stickyPanel button").textContent = "💾 Simpan Perubahan";
-    showToast("✏️ Mode edit aktif");
-}
-
-// ===================================
-// === CATATAN & FOTO FUNCTIONS ===
-// ===================================
-function loadNotes(folder) {
-    currentFolder = folder;
-    const judulCatatan = document.getElementById('judulCatatan');
-    const notesList = document.getElementById('notesList');
-    if (judulCatatan) judulCatatan.textContent = `💫 ${folder}`;
-    if (notesList) {
-        notesList.innerHTML = '<div style="text-align:center;padding:40px;"><div style="width:40px;height:40px;border:3px solid #00ffff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;"></div><span style="color:#00ffff;font-weight:bold;">⏳ Memuat data...</span></div>';
-    }
-    showTab('catatanTab');
-    
-    // Simulasi data untuk demo (ganti dengan google.script.run untuk production)
-    setTimeout(() => {
-        const demoNotes = [
-            { title: "Contoh Kendala 1", content: "Jawaban 1 untuk kendala ini\nJawaban 2 untuk kendala ini\nJawaban 3 untuk kendala ini" },
-            { title: "Contoh Kendala 2", content: "Solusi untuk masalah kedua\nSilakan hubungi admin jika masih ada kendala" },
-            { title: "Contoh Kendala 3", content: "Panduan lengkap tersedia\nBaca cara bermain terlebih dahulu" }
-        ];
-        renderNotes(demoNotes);
-    }, 1000);
-}
-
-function renderNotes(notes) {
-    lightboxImages = [];
-    allNotes = notes;
-    const container = document.getElementById('notesList');
-    if (!container) return;
-    container.innerHTML = '';
-    container.className = '';
-    
-    if (notes.length === 0) {
-        container.innerHTML = '<p><i>Tidak ada catatan.</i></p>';
-        return;
-    }
-    
-    if (currentFolder === "FOTO") {
-        container.className = 'foto-gallery';
-        notes.forEach((note, index) => {
-            lightboxImages.push(note.content);
-            const card = document.createElement('div');
-            card.className = 'foto-card';
-            const img = document.createElement('img');
-            img.src = note.content;
-            img.alt = note.title;
-            img.onclick = () => { lightboxIndex = index; showLightbox(note.content); };
-            img.onerror = () => img.style.display = 'none';
-            const title = document.createElement('div');
-            title.className = 'foto-title';
-            title.textContent = note.title;
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'copy-button';
-            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Foto';
-            copyBtn.onclick = (event) => { event.stopPropagation(); copyImageToClipboardFromURL(note.content); };
-            card.appendChild(img);
-            card.appendChild(title);
-            card.appendChild(copyBtn);
-            container.appendChild(card);
-        });
-        return;
-    }
-    
-    notes.forEach(note => {
-        const div = document.createElement('div');
-        div.className = 'note-card';
-        const title = document.createElement('h3');
-        title.className = 'note-title clickable-title';
-        title.textContent = note.title;
-        const detail = document.createElement('div');
-        detail.className = 'note-detail';
-        detail.style.display = 'none';
-        
-        const contentsToAdd = [note.content, note.content2, note.content3].filter(c => c && c.trim() !== '');
-        const stickyAllBtn = document.createElement('button');
-        stickyAllBtn.textContent = '➕ Tambahkan Sticky Notes';
-        stickyAllBtn.className = 'sticky-add-button';
-        stickyAllBtn.onclick = (event) => { event.stopPropagation(); addNoteToSticky(contentsToAdd); };
-        detail.appendChild(stickyAllBtn);
-        
-        const fields = [
-            { label: '======== JAWABAN 1 ========', content: note.content },
-            { label: '======== JAWABAN 2 ========', content: note.content2 },
-            { label: '======== JAWABAN 3 ========', content: note.content3 }
-        ];
-        
-        fields.forEach(({ label, content }) => {
-            if (content && content.trim() !== '') {
-                const p = document.createElement('p');
-                p.innerHTML = `<strong>${label}:</strong><br>${content}`;
+                const response = await fetch(DATA_URL);
+                const text = await response.text();
                 
-                // ✅ TOMBOL COPY - JANGAN DIHAPUS!
-                const copyBtn = document.createElement('button');
-                copyBtn.textContent = '📋 Copy';
-                copyBtn.className = 'copy-button';
-                copyBtn.onclick = (event) => {
-                    event.stopPropagation();
-                    copyToClipboard(content);
-                };
+                // Parse JSON dari Google Visualization API
+                const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+                if (!jsonMatch) throw new Error('Gagal parse response');
                 
-                // ✅ TOMBOL STICKY PER JAWABAN
-                const stickyBtn = document.createElement('button');
-                stickyBtn.textContent = '➕ Sticky';
-                stickyBtn.className = 'copy-button';
-                stickyBtn.onclick = (event) => {
-                    event.stopPropagation();
-                    addNoteToSticky([content]);
-                };
+                const data = JSON.parse(jsonMatch[1]);
+                const rows = data.table?.rows || [];
                 
-                p.appendChild(document.createElement('br'));
-                p.appendChild(copyBtn);
-                p.appendChild(stickyBtn);
-                
-                const urls = content.match(/https?:\/\/[^\s]+/gi);
-                if (urls) {
-                    urls.forEach((url, index) => {
-                        const linkBtn = document.createElement('button');
-                        linkBtn.textContent = `🔗 Buka Link ${index + 1}`;
-                        linkBtn.className = 'copy-button';
-                        linkBtn.onclick = (event) => {
-                            event.stopPropagation();
-                            window.open(url, '_blank');
+                // Parse dan filter data
+                allKendala = rows
+                    .map(row => {
+                        const cells = row.c || [];
+                        return {
+                            judul: cells[0]?.v?.toString().trim() || '',
+                            jawaban1: cells[1]?.v?.toString().trim() || '',
+                            jawaban2: cells[2]?.v?.toString().trim() || '',
+                            jawaban3: cells[3]?.v?.toString().trim() || ''
                         };
-                        p.appendChild(linkBtn);
-                    });
-                }
-                detail.appendChild(p);
+                    })
+                    .filter(item => item.judul && item.judul !== '');
+                
+                filteredKendala = [...allKendala];
+                renderKendala();
+                updateStats();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('kendalaContainer').innerHTML = `
+                    <div class="error-msg">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 32px; margin-bottom: 15px;"></i>
+                        <p><strong>⚠️ Gagal memuat data</strong></p>
+                        <p style="font-size: 14px; margin-top: 10px; opacity: 0.9;">
+                            Pastikan Google Sheet sudah dipublikasikan:<br>
+                            File → Share → Publish to web → Entire Document
+                        </p>
+                        <p style="font-size: 12px; margin-top: 15px; opacity: 0.7;">
+                            ${error.message}
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        /* ===================================
+           === RENDER DATA KE HTML ===
+           =================================== */
+        function renderKendala(data = filteredKendala) {
+            const container = document.getElementById('kendalaContainer');
+            
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-search" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i>
+                        <p>Tidak ada data yang ditemukan</p>
+                        <p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">
+                            Coba kata kunci pencarian lain
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `<div class="kendala-list">
+                ${data.map((item, index) => createKendalaCard(item, index)).join('')}
+            </div>`;
+            
+            // Add event listeners for expand/collapse
+            document.querySelectorAll('.kendala-title').forEach(title => {
+                title.addEventListener('click', function() {
+                    this.parentElement.classList.toggle('expanded');
+                });
+            });
+        }
+
+        /* ===================================
+           === BUAT KARTU KENDALA ===
+           =================================== */
+        function createKendalaCard(item, index) {
+            const hasPhoto = detectPhotoLink(item);
+            const links1 = extractLinks(item.jawaban1);
+            const links2 = extractLinks(item.jawaban2);
+            const links3 = extractLinks(item.jawaban3);
+            const hasLinks = links1.length > 0 || links2.length > 0 || links3.length > 0;
+            
+            return `
+            <div class="kendala-card" data-index="${index}">
+                <h3 class="kendala-title">
+                    ${escapeHtml(item.judul)}
+                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                </h3>
+                <div class="kendala-answers">
+                    ${item.jawaban1 ? `
+                    <div class="answer-item">
+                        <div class="answer-label">
+                            <i class="fas fa-comment-alt"></i>
+                            JAWABAN 1
+                        </div>
+                        <div class="answer-content" onclick="copyToClipboard('${escapeJs(item.jawaban1)}', 'Jawaban 1')">${formatContent(item.jawaban1, links1)}</div>
+                        ${hasPhoto ? createPhotoSection(item) : ''}
+                        ${links1.length > 0 ? createLinkButtons(links1) : ''}
+                        <button class="add-to-sticky-btn" onclick="addToSticky('${escapeJs(item.judul)}', '${escapeJs(item.jawaban1)}')">
+                            <i class="fas fa-plus"></i> Tambah ke Sticky
+                        </button>
+                    </div>` : ''}
+                    
+                    ${item.jawaban2 ? `
+                    <div class="answer-item">
+                        <div class="answer-label">
+                            <i class="fas fa-comment-alt"></i>
+                            JAWABAN 2
+                        </div>
+                        <div class="answer-content" onclick="copyToClipboard('${escapeJs(item.jawaban2)}', 'Jawaban 2')">${formatContent(item.jawaban2, links2)}</div>
+                        ${links2.length > 0 ? createLinkButtons(links2) : ''}
+                        <button class="add-to-sticky-btn" onclick="addToSticky('${escapeJs(item.judul)}', '${escapeJs(item.jawaban2)}')">
+                            <i class="fas fa-plus"></i> Tambah ke Sticky
+                        </button>
+                    </div>` : ''}
+                    
+                    ${item.jawaban3 ? `
+                    <div class="answer-item">
+                        <div class="answer-label">
+                            <i class="fas fa-comment-alt"></i>
+                            JAWABAN 3
+                        </div>
+                        <div class="answer-content" onclick="copyToClipboard('${escapeJs(item.jawaban3)}', 'Jawaban 3')">${formatContent(item.jawaban3, links3)}</div>
+                        ${links3.length > 0 ? createLinkButtons(links3) : ''}
+                        <button class="add-to-sticky-btn" onclick="addToSticky('${escapeJs(item.judul)}', '${escapeJs(item.jawaban3)}')">
+                            <i class="fas fa-plus"></i> Tambah ke Sticky
+                        </button>
+                    </div>` : ''}
+                </div>
+            </div>`;
+        }
+
+        /* ===================================
+           === DETEKSI & EKSTRAK LINK ===
+           =================================== */
+        function detectPhotoLink(item) {
+            const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
+            return photoPattern.test(item.jawaban1) || 
+                   photoPattern.test(item.jawaban2) || 
+                   photoPattern.test(item.jawaban3);
+        }
+
+        function extractLinks(text) {
+            if (!text) return [];
+            const urlPattern = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+            return text.match(urlPattern) || [];
+        }
+
+        function formatContent(text, links = []) {
+            if (!text) return '';
+            let formatted = escapeHtml(text);
+            
+            links.forEach(link => {
+                const displayText = link.length > 45 ? link.substring(0, 42) + '...' : link;
+                formatted = formatted.replace(
+                    new RegExp(escapeRegExp(link), 'g'),
+                    `<a href="${link}" target="_blank" rel="noopener">${displayText}</a>`
+                );
+            });
+            
+            return formatted;
+        }
+
+        function createPhotoSection(item) {
+            const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
+            const match = (item.jawaban1 + ' ' + item.jawaban2 + ' ' + item.jawaban3).match(photoPattern);
+            
+            if (!match) return '';
+            
+            const photoUrl = match[1];
+            // Tambahkan ke array lightbox
+            if (!lightboxImages.includes(photoUrl)) {
+                lightboxImages.push(photoUrl);
+            }
+            
+            return `
+            <div class="photo-container">
+                <img src="${photoUrl}" alt="Foto" class="photo-img" 
+                     onclick="openLightbox('${photoUrl}')" 
+                     onerror="this.parentElement.style.display='none'">
+                <button class="copy-photo-btn" onclick="copyPhoto('${photoUrl}')">
+                    <i class="fas fa-copy"></i> Copy Foto
+                </button>
+            </div>`;
+        }
+
+        function createLinkButtons(links) {
+            if (links.length === 0) return '';
+            return `
+            <div class="link-buttons">
+                ${links.map((link, i) => {
+                    const label = links.length > 1 ? `Link ${i+1}` : 'Buka Link';
+                    return `<a href="${link}" target="_blank" rel="noopener" class="open-link-btn">
+                        <i class="fas fa-external-link-alt"></i> ${label}
+                    </a>`;
+                }).join('')}
+            </div>`;
+        }
+
+        /* ===================================
+           === COPY FUNCTIONS ===
+           =================================== */
+        async function copyToClipboard(text, label) {
+            if (!text) return;
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast(`✅ ${label} disalin!`);
+            } catch (err) {
+                fallbackCopy(text, label);
+            }
+        }
+
+        async function copyPhoto(url) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                await navigator.clipboard.write([
+                    new ClipboardItem({ [blob.type]: blob })
+                ]);
+                showToast('✅ Foto disalin!');
+            } catch (err) {
+                // Fallback: copy URL
+                await navigator.clipboard.writeText(url);
+                showToast('📋 URL foto disalin!');
+            }
+        }
+
+        function fallbackCopy(text, label) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(`✅ ${label} disalin!`);
+            } catch (err) {
+                showToast(`❌ Gagal menyalin ${label}`);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        /* ===================================
+           === LIGHTBOX FUNCTIONS ===
+           =================================== */
+        function openLightbox(url) {
+            lightboxIndex = lightboxImages.indexOf(url);
+            if (lightboxIndex === -1) {
+                lightboxImages.push(url);
+                lightboxIndex = lightboxImages.length - 1;
+            }
+            document.getElementById('lightboxImg').src = url;
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            zoomLevel = 1;
+            updateZoom();
+        }
+
+        function closeLightbox(event) {
+            if (!event || event.target.id === 'lightbox' || event.target.classList.contains('lightbox-close')) {
+                document.getElementById('lightbox').classList.remove('active');
+                document.getElementById('lightboxImg').src = '';
+                document.body.style.overflow = '';
+            }
+        }
+
+        function changeLightbox(direction) {
+            lightboxIndex += direction;
+            if (lightboxIndex < 0) lightboxIndex = lightboxImages.length - 1;
+            if (lightboxIndex >= lightboxImages.length) lightboxIndex = 0;
+            document.getElementById('lightboxImg').src = lightboxImages[lightboxIndex];
+            zoomLevel = 1;
+            updateZoom();
+        }
+
+        function updateZoom() {
+            zoomLevel = parseFloat(document.getElementById('zoomSlider').value);
+            document.getElementById('lightboxImg').style.transform = `scale(${zoomLevel})`;
+        }
+
+        async function copyLightboxPhoto() {
+            const url = document.getElementById('lightboxImg').src;
+            if (url) await copyPhoto(url);
+        }
+
+        // Drag to zoom/pan
+        let isDragging = false, startX, startY, currentX = 0, currentY = 0;
+        
+        document.getElementById('lightboxImg').addEventListener('mousedown', (e) => {
+            if (zoomLevel > 1) {
+                isDragging = true;
+                startX = e.clientX - currentX;
+                startY = e.clientY - currentY;
+                e.target.style.cursor = 'grabbing';
             }
         });
-        
-        title.onclick = () => {
-            detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
-        };
-        div.appendChild(title);
-        div.appendChild(detail);
-        container.appendChild(div);
-    });
-}
 
-function searchNotes() {
-    const searchInput = document.getElementById("searchInput");
-    if (!searchInput) return;
-    const query = searchInput.value.trim().toLowerCase();
-    const allCards = document.querySelectorAll(".note-card, .foto-card");
-    allCards.forEach(card => {
-        const text = card.textContent.toLowerCase();
-        card.style.display = text.includes(query) ? "block" : "none";
-    });
-}
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging && zoomLevel > 1) {
+                currentX = e.clientX - startX;
+                currentY = e.clientY - startY;
+                document.getElementById('lightboxImg').style.transform = 
+                    `scale(${zoomLevel}) translate(${currentX}px, ${currentY}px)`;
+            }
+        });
 
-function addNoteToSticky(contents) {
-    let stickies = JSON.parse(localStorage.getItem("stickies") || "[]");
-    let addedCount = 0;
-    contents.forEach(content => {
-        if (content && content.trim() !== '') {
-            stickies.push({ text: content.trim(), image: null });
-            addedCount++;
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            const img = document.getElementById('lightboxImg');
+            if (img) img.style.cursor = 'grab';
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('lightbox').classList.contains('active')) {
+                if (e.key === 'ArrowLeft') changeLightbox(-1);
+                if (e.key === 'ArrowRight') changeLightbox(1);
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === '+') { zoomLevel = Math.min(zoomLevel + 0.2, 4); updateZoom(); }
+                if (e.key === '-') { zoomLevel = Math.max(zoomLevel - 0.2, 0.5); updateZoom(); }
+            }
+        });
+
+        /* ===================================
+           === SEARCH & FILTER ===
+           =================================== */
+        function searchKendala() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            filteredKendala = allKendala.filter(item => 
+                item.judul.toLowerCase().includes(query) ||
+                (item.jawaban1 && item.jawaban1.toLowerCase().includes(query)) ||
+                (item.jawaban2 && item.jawaban2.toLowerCase().includes(query)) ||
+                (item.jawaban3 && item.jawaban3.toLowerCase().includes(query))
+            );
+            
+            renderKendala();
+            updateStats();
         }
-    });
-    if (addedCount > 0) {
-        localStorage.setItem("stickies", JSON.stringify(stickies));
-        showToast(`✅ ${addedCount} catatan ditambahkan ke Sticky Notes!`);
-    } else {
-        showToast("❗ Tidak ada catatan yang bisa ditambahkan.");
-    }
-}
 
-// ===================================
-// === COPY FUNCTIONS ===
-// ===================================
-function copyToClipboard(text) {
-    if (!text || text.trim() === '') {
-        showToast("❗ Tidak ada teks untuk disalin!");
-        return;
-    }
-    navigator.clipboard.writeText(text).then(() => {
-        showToast("✅ Disalin!");
-    }).catch(() => {
-        showToast("❗ Gagal menyalin");
-    });
-}
+        function updateStats() {
+            document.getElementById('totalItems').textContent = filteredKendala.length;
+            
+            const withPhotos = filteredKendala.filter(item => detectPhotoLink(item)).length;
+            document.getElementById('withPhotos').textContent = withPhotos;
+            
+            const withLinks = filteredKendala.filter(item => 
+                extractLinks(item.jawaban1).length > 0 ||
+                extractLinks(item.jawaban2).length > 0 ||
+                extractLinks(item.jawaban3).length > 0
+            ).length;
+            document.getElementById('withLinks').textContent = withLinks;
+        }
 
-async function copyImageToClipboardFromURL(imageUrl) {
-    if (!imageUrl || typeof imageUrl !== 'string' || imageUrl.trim() === '') {
-        showToast("❗ URL gambar tidak valid.");
-        return;
-    }
-    try {
-        const response = await fetch(imageUrl);
-        if (!response.ok) throw new Error(`Gagal mengambil gambar. Status: ${response.status}`);
-        const blob = await response.blob();
-        const item = new ClipboardItem({ [blob.type]: blob });
-        await navigator.clipboard.write([item]);
-        showToast("✅ Foto Disalin!");
-    } catch (err) {
-        console.error("Gagal menyalin gambar:", err);
-        showToast(`❗ Gagal menyalin. ${err.message || 'Cek konsol untuk detail.'}`);
-    }
-}
+        /* ===================================
+           === TOAST NOTIFICATION ===
+           =================================== */
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
 
-async function copyPhotoFromLightbox() {
-    const img = document.getElementById('lightboxImg');
-    if (!img || !img.src) return showToast("❗ Gambar tidak ditemukan");
-    showToast("⏳ Memproses salinan...");
-    try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const tempImg = new Image();
-        tempImg.crossOrigin = "Anonymous";
-        tempImg.src = img.src;
-        tempImg.onload = async function() {
-            canvas.width = tempImg.width;
-            canvas.height = tempImg.height;
-            ctx.drawImage(tempImg, 0, 0);
-            canvas.toBlob(async (blob) => {
-                try {
-                    const item = new ClipboardItem({ "image/png": blob });
-                    await navigator.clipboard.write([item]);
-                    showToast("✅ Foto berhasil disalin!");
-                } catch (e) {
-                    showToast("❗ Browser memblokir copy otomatis");
+        /* ===================================
+           === UTILS ===
+           =================================== */
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeJs(str) {
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        /* ===================================
+           === PARTICLE EFFECT ===
+           =================================== */
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            
+            for (let i = 0; i < 40; i++) {
+                const particle = document.createElement('div');
+                const size = Math.random() * 3 + 1;
+                particle.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: rgba(0, 255, 255, ${Math.random() * 0.5 + 0.2});
+                    border-radius: 50%;
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    animation: float ${Math.random() * 15 + 10}s infinite linear;
+                    box-shadow: 0 0 ${Math.random() * 10 + 5}px rgba(0, 255, 255, 0.5);
+                `;
+                container.appendChild(particle);
+            }
+        }
+
+        // Add particle animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+                10% { opacity: 1; }
+                90% { opacity: 1; }
+                50% { transform: translateY(-200px) translateX(${Math.random() * 100 - 50}px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        /* ===================================
+           === STICKY NOTES FUNCTIONS ===
+           =================================== */
+        function toggleStickyPanel() {
+            const panel = document.getElementById('stickyPanel');
+            panel.classList.toggle('active');
+            if (panel.classList.contains('active')) {
+                renderStickyNotes();
+            }
+        }
+
+        function addToSticky(judul, content) {
+            const note = {
+                id: Date.now(),
+                judul: judul,
+                content: content,
+                createdAt: new Date().toISOString()
+            };
+            
+            stickyNotes.unshift(note); // Add to top
+            saveStickyNotes();
+            renderStickyNotes();
+            showToast('✅ Ditambahkan ke Sticky Notes!');
+        }
+
+        function renderStickyNotes() {
+            const list = document.getElementById('stickyList');
+            if (!list) return;
+            
+            if (stickyNotes.length === 0) {
+                list.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:20px;">Belum ada sticky notes</p>';
+                return;
+            }
+            
+            list.innerHTML = stickyNotes.map((note, index) => `
+                <div class="sticky-note" data-id="${note.id}" draggable="true">
+                    <div class="sticky-note-content" onclick="copyToClipboard('${escapeJs(note.content)}', 'Sticky Note')">
+                        ${formatStickyContent(note.content)}
+                    </div>
+                    <div class="sticky-note-actions">
+                        <button class="sticky-btn move-up" onclick="moveStickyNote(${index}, -1)" title="Naik">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button class="sticky-btn move-down" onclick="moveStickyNote(${index}, 1)" title="Turun">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button class="sticky-btn edit" onclick="editStickyNote(${note.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="sticky-btn delete" onclick="deleteStickyNote(${note.id})" title="Hapus">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add drag events
+            document.querySelectorAll('.sticky-note').forEach(note => {
+                note.addEventListener('dragstart', handleDragStart);
+                note.addEventListener('dragover', handleDragOver);
+                note.addEventListener('drop', handleDrop);
+                note.addEventListener('dragend', handleDragEnd);
+            });
+        }
+
+        function formatStickyContent(content) {
+            if (!content) return '';
+            let formatted = escapeHtml(content);
+            
+            // Format links
+            const links = extractLinks(content);
+            links.forEach(link => {
+                const displayText = link.length > 40 ? link.substring(0, 37) + '...' : link;
+                formatted = formatted.replace(
+                    new RegExp(escapeRegExp(link), 'g'),
+                    `<a href="${link}" target="_blank" rel="noopener" style="color:var(--neon-green);">${displayText}</a>`
+                );
+            });
+            
+            // Format images
+            const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/gi;
+            formatted = formatted.replace(photoPattern, match => 
+                `<img src="${match}" alt="Foto" onclick="copyPhoto('${match}')" style="max-width:100%;border-radius:8px;">`
+            );
+            
+            return formatted;
+        }
+
+        function saveStickyNotes() {
+            localStorage.setItem('kendalaStickyNotes', JSON.stringify(stickyNotes));
+        }
+
+        function editStickyNote(id) {
+            const note = stickyNotes.find(n => n.id === id);
+            if (!note) return;
+            
+            const noteEl = document.querySelector(`.sticky-note[data-id="${id}"]`);
+            if (!noteEl) return;
+            
+            noteEl.classList.add('editing');
+            const contentEl = noteEl.querySelector('.sticky-note-content');
+            const originalContent = note.content;
+            
+            contentEl.innerHTML = `
+                <textarea class="sticky-edit-input">${escapeHtml(note.content)}</textarea>
+                <div class="sticky-edit-buttons">
+                    <button class="sticky-edit-save" onclick="saveStickyEdit(${id})">💾 Simpan</button>
+                    <button class="sticky-edit-cancel" onclick="cancelStickyEdit(${id}, '${escapeJs(originalContent)}')">❌ Batal</button>
+                </div>
+            `;
+            
+            const textarea = contentEl.querySelector('textarea');
+            textarea.focus();
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        }
+
+        function saveStickyEdit(id) {
+            const noteEl = document.querySelector(`.sticky-note[data-id="${id}"]`);
+            if (!noteEl) return;
+            
+            const textarea = noteEl.querySelector('.sticky-edit-input');
+            const newContent = textarea.value.trim();
+            
+            const note = stickyNotes.find(n => n.id === id);
+            if (note) {
+                note.content = newContent;
+                saveStickyNotes();
+                renderStickyNotes();
+                showToast('✅ Sticky note diperbarui!');
+            }
+        }
+
+        function cancelStickyEdit(id, originalContent) {
+            renderStickyNotes();
+        }
+
+        function deleteStickyNote(id) {
+            if (confirm('Hapus sticky note ini?')) {
+                stickyNotes = stickyNotes.filter(n => n.id !== id);
+                saveStickyNotes();
+                renderStickyNotes();
+                showToast('🗑️ Sticky note dihapus');
+            }
+        }
+
+        function moveStickyNote(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= stickyNotes.length) return;
+            
+            // Swap
+            [stickyNotes[index], stickyNotes[newIndex]] = [stickyNotes[newIndex], stickyNotes[index]];
+            saveStickyNotes();
+            renderStickyNotes();
+        }
+
+        // Drag and Drop
+        function handleDragStart(e) {
+            draggedNote = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (draggedNote && this !== draggedNote) {
+                const fromId = parseInt(draggedNote.dataset.id);
+                const toId = parseInt(this.dataset.id);
+                
+                const fromIndex = stickyNotes.findIndex(n => n.id === fromId);
+                const toIndex = stickyNotes.findIndex(n => n.id === toId);
+                
+                if (fromIndex !== -1 && toIndex !== -1) {
+                    // Move item
+                    const [moved] = stickyNotes.splice(fromIndex, 1);
+                    stickyNotes.splice(toIndex, 0, moved);
+                    saveStickyNotes();
+                    renderStickyNotes();
                 }
-            }, "image/png");
-        };
-        tempImg.onerror = () => { showToast("❗ Gagal: Proteksi Keamanan Gambar (CORS)"); };
-    } catch (err) {
-        showToast("❗ Gagal menyalin");
-    }
-}
-
-// ===================================
-// === LIGHTBOX & ZOOM ===
-// ===================================
-function showLightbox(src) {
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightboxImg');
-    if (!lightbox || !lightboxImg) {
-        console.error('Elemen lightbox tidak ditemukan di HTML.');
-        return;
-    }
-    lightboxImg.src = src;
-    lightbox.style.display = 'flex';
-}
-
-function hideLightbox() {
-    const lightbox = document.getElementById('lightbox');
-    if (lightbox) { lightbox.style.display = 'none'; }
-}
-
-function changeLightbox(direction) {
-    lightboxIndex += direction;
-    if (lightboxIndex < 0) lightboxIndex = lightboxImages.length - 1;
-    if (lightboxIndex >= lightboxImages.length) lightboxIndex = 0;
-    const imgEl = document.getElementById('lightboxImg');
-    if (imgEl) { imgEl.src = lightboxImages[lightboxIndex]; }
-    resetZoomAndPosition();
-}
-
-function resetZoomAndPosition() {
-    zoomLevel = 1; offsetX = 0; offsetY = 0;
-    applyTransform();
-}
-
-function applyTransform() {
-    const imgEl = document.getElementById('lightboxImg');
-    if (!imgEl) return;
-    imgEl.style.transform = `scale(${zoomLevel}) translate(${offsetX}px, ${offsetY}px)`;
-}
-
-// ===================================
-// === INITIALIZATION ===
-// ===================================
-document.addEventListener('DOMContentLoaded', () => {
-    // Force hide panels
-    const stickyPanel = document.getElementById('stickyPanel');
-    if (stickyPanel) { stickyPanel.style.display = 'none'; }
-    
-    // Load default notes
-    loadNotes('KENDALA ALL');
-    
-    // Load sticky notes
-    loadStickyNotes();
-    
-    // Welcome toast
-    setTimeout(() => { showToast('🚀 Sistem berhasil dimuat!'); }, 1000);
-});
-
-// Keyboard shortcuts
-document.addEventListener('keydown', e => {
-    const lightboxEl = document.getElementById('lightbox');
-    if (lightboxEl && lightboxEl.style.display === 'flex') {
-        if (e.key === 'ArrowLeft') changeLightbox(-1);
-        if (e.key === 'ArrowRight') changeLightbox(1);
-        if (e.key === 'Escape') hideLightbox();
-    }
-    if (e.key === 'Escape') {
-        const stickyPanel = document.getElementById('stickyPanel');
-        if (stickyPanel && stickyPanel.style.display === 'block') {
-            stickyPanel.style.display = 'none';
+            }
+            return false;
         }
-    }
-});
-</script>
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            draggedNote = null;
+        }
+
+        /* ===================================
+           === INITIALIZATION ===
+           =================================== */
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create particles
+            createParticles();
+            
+            // Load data
+            loadKendalaData();
+            
+            // Load sticky notes
+            renderStickyNotes();
+            
+            // Welcome toast
+            setTimeout(() => {
+                showToast('🚀 KENDALA ALL loaded successfully!');
+            }, 1500);
+        });
+
+        // Handle window resize for lightbox
+        window.addEventListener('resize', () => {
+            if (document.getElementById('lightbox').classList.contains('active')) {
+                zoomLevel = 1;
+                currentX = 0;
+                currentY = 0;
+                updateZoom();
+            }
+        });
+    </script>
 </body>
 </html>
