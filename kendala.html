@@ -50,6 +50,7 @@ top: 0; left: 0; width: 100%; height: 100%;
 background:
 radial-gradient(ellipse at 20% 80%, rgba(0, 243, 255, 0.12) 0%, transparent 50%),
 radial-gradient(ellipse at 80% 20%, rgba(157, 0, 255, 0.12) 0%, transparent 50%),
+radial-gradient(ellipse at 50% 50%, rgba(0, 136, 255, 0.08) 0%, transparent 60%),
 linear-gradient(180deg, #000a1e 0%, #001133 40%, #000820 100%);
 z-index: -3;
 }
@@ -86,6 +87,7 @@ opacity: 0.4;
 animation: scanDown 10s linear infinite;
 z-index: 1;
 pointer-events: none;
+box-shadow: 0 0 20px var(--neon-cyan);
 }
 
 @keyframes scanDown {
@@ -93,6 +95,15 @@ pointer-events: none;
 10% { opacity: 0.6; }
 90% { opacity: 0.6; }
 100% { top: 110%; opacity: 0; }
+}
+
+.noise-overlay {
+position: fixed;
+top: 0; left: 0; width: 100%; height: 100%;
+background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+opacity: 0.03;
+z-index: -1;
+pointer-events: none;
 }
 
 .container {
@@ -113,6 +124,22 @@ padding: 20px 15px;
 position: relative;
 }
 
+.header::before {
+content: '';
+position: absolute;
+bottom: 0; left: 50%;
+transform: translateX(-50%);
+width: 80%;
+height: 2px;
+background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), var(--neon-cyan), transparent);
+animation: glowLine 3s ease-in-out infinite;
+}
+
+@keyframes glowLine {
+0%, 100% { opacity: 0.5; }
+50% { opacity: 1; box-shadow: 0 0 20px var(--neon-cyan); }
+}
+
 .back-btn {
 position: absolute;
 left: 0; top: 50%;
@@ -129,6 +156,7 @@ display: flex;
 align-items: center;
 gap: 6px;
 transition: var(--transition-normal);
+backdrop-filter: blur(10px);
 }
 
 .back-btn:hover {
@@ -141,13 +169,15 @@ box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
 font-family: 'Orbitron', sans-serif;
 font-size: 32px;
 font-weight: 800;
-background: linear-gradient(90deg, #00f3ff, #9d00ff, #00f3ff);
+background: linear-gradient(90deg, #00f3ff, #9d00ff, #00f3ff, #ff00ff, #00f3ff);
 -webkit-background-clip: text;
 -webkit-text-fill-color: transparent;
 background-size: 400% 400%;
-animation: neonFlow 4s ease infinite;
+animation: neonFlow 4s ease infinite, textPulse 2s ease-in-out infinite alternate;
 text-shadow: 0 0 30px rgba(0, 243, 255, 0.7);
 margin-bottom: 10px;
+letter-spacing: 1px;
+position: relative;
 }
 
 @keyframes neonFlow {
@@ -155,10 +185,50 @@ margin-bottom: 10px;
 50% { background-position: 100% 50%; }
 }
 
+@keyframes textPulse {
+0% { filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.5)); }
+100% { filter: drop-shadow(0 0 35px rgba(0, 243, 255, 0.9)); }
+}
+
 .subtitle {
 font-size: 14px;
 color: var(--text-secondary);
+text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
 letter-spacing: 2px;
+opacity: 0.9;
+}
+
+.status-badge {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+background: rgba(0, 255, 136, 0.15);
+border: 2px solid rgba(0, 255, 136, 0.5);
+padding: 6px 16px;
+border-radius: 20px;
+font-size: 12px;
+color: var(--neon-green);
+margin-top: 12px;
+box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+animation: badgeGlow 2.5s infinite;
+}
+
+@keyframes badgeGlow {
+0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 136, 0.4); }
+50% { box-shadow: 0 0 25px rgba(0, 255, 136, 0.8); }
+}
+
+.status-dot {
+width: 8px; height: 8px;
+background: var(--neon-green);
+border-radius: 50%;
+animation: pulse 2s infinite;
+box-shadow: 0 0 10px var(--neon-green);
+}
+
+@keyframes pulse {
+0%, 100% { transform: scale(1); opacity: 1; }
+50% { transform: scale(1.3); opacity: 0.7; }
 }
 
 .search-section {
@@ -181,13 +251,20 @@ border-radius: 12px;
 color: var(--text-main);
 font-size: 14px;
 font-family: 'Exo 2', sans-serif;
+font-weight: 600;
 transition: var(--transition-normal);
+backdrop-filter: blur(10px);
+}
+
+.search-bar input::placeholder {
+color: rgba(0, 255, 255, 0.5);
 }
 
 .search-bar input:focus {
 outline: none;
 border-color: var(--neon-cyan);
 box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+background: rgba(0, 25, 60, 0.9);
 }
 
 .search-bar i {
@@ -196,6 +273,7 @@ left: 16px; top: 50%;
 transform: translateY(-50%);
 color: var(--neon-cyan);
 font-size: 16px;
+text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
 }
 
 .stats-bar {
@@ -221,6 +299,7 @@ font-family: 'Orbitron', sans-serif;
 font-size: 22px;
 font-weight: 700;
 color: var(--neon-cyan);
+text-shadow: 0 0 12px rgba(0, 255, 255, 0.7);
 display: block;
 }
 
@@ -228,6 +307,8 @@ display: block;
 font-size: 11px;
 color: var(--text-secondary);
 text-transform: uppercase;
+letter-spacing: 1px;
+opacity: 0.9;
 }
 
 .kendala-list {
@@ -244,6 +325,20 @@ padding: 20px 24px;
 transition: var(--transition-normal);
 position: relative;
 overflow: hidden;
+backdrop-filter: blur(20px);
+animation: cardEnter 0.5s ease forwards;
+opacity: 0;
+transform: translateY(20px);
+}
+
+.kendala-card:nth-child(1) { animation-delay: 0.1s; }
+.kendala-card:nth-child(2) { animation-delay: 0.15s; }
+.kendala-card:nth-child(3) { animation-delay: 0.2s; }
+.kendala-card:nth-child(4) { animation-delay: 0.25s; }
+.kendala-card:nth-child(5) { animation-delay: 0.3s; }
+
+@keyframes cardEnter {
+to { opacity: 1; transform: translateY(0); }
 }
 
 .kendala-card::before {
@@ -251,13 +346,24 @@ content: '';
 position: absolute;
 top: 0; left: 0;
 width: 4px; height: 100%;
-background: linear-gradient(to bottom, var(--neon-cyan), var(--neon-purple));
+background: linear-gradient(to bottom, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
 box-shadow: 0 0 15px var(--neon-cyan);
+transition: var(--transition-normal);
 }
 
 .kendala-card:hover {
-transform: translateY(-4px);
-box-shadow: 0 15px 40px rgba(0, 255, 255, 0.3);
+background: var(--bg-card-hover);
+transform: translateY(-4px) scale(1.005);
+border-color: var(--neon-cyan);
+box-shadow:
+0 15px 40px rgba(0, 255, 255, 0.3),
+0 0 40px rgba(0, 243, 255, 0.2),
+inset 0 0 25px rgba(0, 255, 255, 0.1);
+}
+
+.kendala-card:hover::before {
+width: 6px;
+box-shadow: 0 0 25px var(--neon-cyan);
 }
 
 .kendala-title {
@@ -270,12 +376,110 @@ cursor: pointer;
 display: flex;
 justify-content: space-between;
 align-items: center;
+text-shadow: 0 0 12px rgba(0, 255, 255, 0.7);
 padding-bottom: 12px;
 border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+transition: var(--transition-fast);
 }
 
 .kendala-title:hover {
 color: var(--neon-green);
+text-shadow: 0 0 18px rgba(0, 255, 136, 0.9);
+}
+
+.kendala-title::after {
+content: '▼';
+font-size: 12px;
+transition: transform 0.3s ease;
+color: var(--neon-cyan);
+}
+
+.kendala-card.expanded .kendala-title::after {
+transform: rotate(180deg);
+}
+
+.title-photo-section {
+display: none;
+margin: 14px 0;
+padding: 14px;
+background: rgba(0, 15, 40, 0.6);
+border-radius: 12px;
+border: 2px solid rgba(0, 255, 255, 0.3);
+text-align: center;
+animation: photoFadeIn 0.4s ease;
+}
+
+@keyframes photoFadeIn {
+from { opacity: 0; transform: translateY(-8px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.kendala-card.expanded .title-photo-section {
+display: block;
+}
+
+.title-photo-container {
+position: relative;
+display: inline-block;
+}
+
+.title-photo-img {
+max-width: 100%;
+max-height: 300px;
+border-radius: 10px;
+border: 2px solid var(--neon-cyan);
+cursor: pointer;
+transition: var(--transition-normal);
+box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.title-photo-img:hover {
+transform: scale(1.015);
+box-shadow: 0 0 35px rgba(0, 255, 255, 0.7);
+}
+
+.title-photo-badge {
+position: absolute;
+top: 8px;
+left: 8px;
+background: rgba(0, 255, 136, 0.9);
+color: #000;
+padding: 4px 10px;
+border-radius: 6px;
+font-size: 11px;
+font-weight: 700;
+display: flex;
+align-items: center;
+gap: 4px;
+}
+
+.title-photo-actions {
+margin-top: 12px;
+display: flex;
+gap: 8px;
+justify-content: center;
+flex-wrap: wrap;
+}
+
+.copy-title-photo-btn, .view-title-photo-btn {
+background: rgba(0, 255, 255, 0.15);
+border: 2px solid var(--neon-cyan);
+color: var(--neon-cyan);
+padding: 8px 18px;
+border-radius: 10px;
+cursor: pointer;
+transition: var(--transition-normal);
+font-weight: 600;
+font-size: 12px;
+display: inline-flex;
+align-items: center;
+gap: 6px;
+}
+
+.copy-title-photo-btn:hover, .view-title-photo-btn:hover {
+background: rgba(0, 255, 255, 0.3);
+transform: translateY(-2px);
+box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
 }
 
 .kendala-answers {
@@ -283,6 +487,12 @@ display: none;
 margin-top: 16px;
 padding-top: 16px;
 border-top: 1px solid rgba(0, 255, 255, 0.2);
+animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+from { opacity: 0; transform: translateY(-8px); }
+to { opacity: 1; transform: translateY(0); }
 }
 
 .kendala-card.expanded .kendala-answers {
@@ -295,6 +505,14 @@ padding: 14px 16px;
 background: rgba(0, 15, 40, 0.6);
 border-radius: 10px;
 border-left: 3px solid var(--neon-cyan);
+transition: var(--transition-fast);
+position: relative;
+}
+
+.answer-item:hover {
+background: rgba(0, 25, 60, 0.7);
+border-left-color: var(--neon-green);
+transform: translateX(2px);
 }
 
 .answer-label {
@@ -303,6 +521,14 @@ color: var(--neon-yellow);
 margin-bottom: 8px;
 font-size: 12px;
 text-transform: uppercase;
+letter-spacing: 1px;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+
+.answer-label i {
+font-size: 14px;
 }
 
 .answer-content {
@@ -311,6 +537,110 @@ line-height: 1.6;
 white-space: pre-wrap;
 word-break: break-word;
 font-size: 13px;
+}
+
+.answer-content a {
+color: var(--neon-green);
+text-decoration: none;
+font-weight: 600;
+transition: var(--transition-fast);
+position: relative;
+}
+
+.answer-content a::after {
+content: '';
+position: absolute;
+bottom: -2px; left: 0;
+width: 0; height: 2px;
+background: var(--neon-green);
+transition: var(--transition-fast);
+}
+
+.answer-content a:hover::after {
+width: 100%;
+}
+
+.answer-content a:hover {
+text-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
+}
+
+.photo-container {
+margin: 14px 0;
+text-align: center;
+padding: 12px;
+background: rgba(0, 20, 50, 0.4);
+border-radius: 10px;
+border: 1px dashed rgba(0, 255, 255, 0.4);
+}
+
+.photo-img {
+max-width: 100%;
+max-height: 280px;
+border-radius: 10px;
+border: 2px solid var(--neon-cyan);
+cursor: pointer;
+transition: var(--transition-normal);
+box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+}
+
+.photo-img:hover {
+transform: scale(1.02);
+box-shadow: 0 0 30px rgba(0, 255, 255, 0.7);
+}
+
+.copy-photo-btn {
+background: rgba(0, 255, 255, 0.15);
+border: 2px solid var(--neon-cyan);
+color: var(--neon-cyan);
+padding: 8px 18px;
+border-radius: 10px;
+cursor: pointer;
+margin-top: 10px;
+transition: var(--transition-normal);
+font-weight: 600;
+font-size: 12px;
+display: inline-flex;
+align-items: center;
+gap: 6px;
+}
+
+.copy-photo-btn:hover {
+background: rgba(0, 255, 255, 0.3);
+transform: translateY(-2px);
+box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+}
+
+.link-buttons {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+margin-top: 12px;
+}
+
+.open-link-btn {
+background: rgba(0, 200, 255, 0.15);
+border: 2px solid #00c8ff;
+color: #00c8ff;
+padding: 6px 14px;
+border-radius: 8px;
+cursor: pointer;
+font-size: 11px;
+font-weight: 600;
+transition: var(--transition-normal);
+display: inline-flex;
+align-items: center;
+gap: 5px;
+text-decoration: none;
+}
+
+.open-link-btn:hover {
+background: rgba(0, 200, 255, 0.3);
+transform: translateY(-2px);
+box-shadow: 0 0 15px rgba(0, 200, 255, 0.6);
+}
+
+.open-link-btn i {
+font-size: 10px;
 }
 
 .copy-btn, .sticky-btn {
@@ -325,11 +655,28 @@ margin-right: 6px;
 transition: var(--transition-normal);
 font-weight: 600;
 font-size: 12px;
+display: inline-flex;
+align-items: center;
+gap: 5px;
 }
 
 .copy-btn:hover, .sticky-btn:hover {
 background: rgba(0, 255, 255, 0.3);
+transform: translateY(-2px);
 box-shadow: 0 0 18px rgba(0, 255, 255, 0.6);
+}
+
+.copy-btn.copied, .sticky-btn.added {
+background: var(--neon-green);
+border-color: var(--neon-green);
+color: #000;
+animation: copiedPulse 0.5s ease;
+}
+
+@keyframes copiedPulse {
+0% { transform: scale(1); }
+50% { transform: scale(1.1); }
+100% { transform: scale(1); }
 }
 
 /* ========== STICKY NOTES PANEL ========== */
@@ -344,6 +691,7 @@ border: 3px solid var(--neon-cyan);
 border-radius: 50%;
 color: #000;
 font-size: 20px;
+font-weight: bold;
 cursor: pointer;
 z-index: 1000;
 display: flex;
@@ -368,7 +716,7 @@ box-shadow: 0 0 35px rgba(0, 255, 255, 0.9);
 position: fixed;
 bottom: 85px;
 right: 25px;
-width: 400px;
+width: 420px;
 max-width: 90vw;
 max-height: 70vh;
 background: var(--bg-sticky);
@@ -415,6 +763,7 @@ color: var(--neon-red);
 font-size: 24px;
 cursor: pointer;
 transition: var(--transition-fast);
+text-shadow: 0 0 8px rgba(255, 0, 102, 0.8);
 }
 
 .sticky-close:hover {
@@ -427,7 +776,7 @@ margin-bottom: 14px;
 
 .sticky-input {
 width: 100%;
-min-height: 80px;
+min-height: 90px;
 background: rgba(0, 15, 40, 0.7);
 border: 2px solid rgba(0, 255, 255, 0.4);
 border-radius: 12px;
@@ -450,8 +799,8 @@ color: rgba(0, 255, 255, 0.4);
 }
 
 .sticky-photo-preview {
-margin-top: 10px;
-padding: 10px;
+margin-top: 12px;
+padding: 12px;
 background: rgba(0, 255, 255, 0.1);
 border: 2px dashed var(--neon-cyan);
 border-radius: 10px;
@@ -462,11 +811,6 @@ position: relative;
 .sticky-photo-preview.show {
 display: block;
 animation: photoFadeIn 0.3s ease;
-}
-
-@keyframes photoFadeIn {
-from { opacity: 0; transform: translateY(-5px); }
-to { opacity: 1; transform: translateY(0); }
 }
 
 .sticky-photo-preview img {
@@ -480,21 +824,22 @@ display: block;
 .sticky-photo-preview-text {
 font-size: 11px;
 color: var(--neon-green);
-margin-bottom: 6px;
+margin-bottom: 8px;
 display: flex;
 align-items: center;
 gap: 5px;
+font-weight: 600;
 }
 
 .sticky-remove-photo {
 position: absolute;
-top: 6px;
-right: 6px;
+top: 8px;
+right: 8px;
 background: var(--neon-red);
 color: #fff;
 border: none;
-width: 24px;
-height: 24px;
+width: 26px;
+height: 26px;
 border-radius: 50%;
 cursor: pointer;
 font-size: 14px;
@@ -738,10 +1083,17 @@ flex-direction: column;
 justify-content: center;
 align-items: center;
 padding: 20px;
+backdrop-filter: blur(15px);
+animation: fadeIn 0.3s ease;
 }
 
 .lightbox.active {
 display: flex;
+}
+
+@keyframes fadeIn {
+from { opacity: 0; }
+to { opacity: 1; }
 }
 
 .lightbox-close {
@@ -751,11 +1103,14 @@ font-size: 32px;
 color: var(--neon-cyan);
 cursor: pointer;
 transition: var(--transition-normal);
+text-shadow: 0 0 12px rgba(0, 255, 255, 0.8);
+z-index: 10000;
 }
 
 .lightbox-close:hover {
 color: var(--neon-red);
-transform: rotate(90deg);
+transform: rotate(90deg) scale(1.1);
+text-shadow: 0 0 20px rgba(255, 0, 102, 0.9);
 }
 
 .lightbox-img {
@@ -764,6 +1119,51 @@ max-height: 75vh;
 border-radius: 12px;
 border: 3px solid var(--neon-cyan);
 box-shadow: 0 0 40px rgba(0, 255, 255, 0.6);
+transition: var(--transition-normal);
+cursor: grab;
+}
+
+.lightbox-img:active {
+cursor: grabbing;
+}
+
+.lightbox-controls {
+display: flex;
+gap: 12px;
+margin-top: 20px;
+flex-wrap: wrap;
+justify-content: center;
+}
+
+.lightbox-btn {
+background: rgba(0, 255, 255, 0.15);
+border: 2px solid var(--neon-cyan);
+color: var(--neon-cyan);
+padding: 10px 24px;
+border-radius: 12px;
+cursor: pointer;
+font-weight: 600;
+font-size: 12px;
+transition: var(--transition-normal);
+display: flex;
+align-items: center;
+gap: 6px;
+}
+
+.lightbox-btn:hover {
+background: rgba(0, 255, 255, 0.3);
+transform: translateY(-2px);
+box-shadow: 0 0 25px rgba(0, 255, 255, 0.7);
+}
+
+.zoom-slider {
+width: 220px;
+margin-top: 16px;
+}
+
+.zoom-slider input {
+width: 100%;
+accent-color: var(--neon-cyan);
 }
 
 /* ========== TOAST ========== */
@@ -786,6 +1186,7 @@ box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
 transform: translateX(200px);
 opacity: 0;
 transition: var(--transition-normal);
+backdrop-filter: blur(10px);
 }
 
 .toast.show {
@@ -793,14 +1194,27 @@ transform: translateX(0);
 opacity: 1;
 }
 
+.toast i {
+font-size: 18px;
+text-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
+}
+
 .toast.delete {
 border-color: var(--neon-red);
 color: var(--neon-red);
 }
 
+.toast.delete i {
+text-shadow: 0 0 8px rgba(255, 100, 100, 0.8);
+}
+
 .loading, .no-data, .error-msg {
 text-align: center;
 padding: 50px 25px;
+}
+
+.loading {
+color: var(--neon-cyan);
 }
 
 .loading-spinner {
@@ -810,6 +1224,7 @@ border-top-color: var(--neon-cyan);
 border-radius: 50%;
 animation: spin 1s linear infinite;
 margin: 0 auto 16px;
+box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
 }
 
 @keyframes spin {
@@ -851,6 +1266,11 @@ background: rgba(0, 10, 30, 0.5);
 background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purple));
 border-radius: 4px;
 }
+
+::selection {
+background: rgba(0, 255, 255, 0.3);
+color: var(--text-main);
+}
 </style>
 </head>
 <body>
@@ -858,6 +1278,7 @@ border-radius: 4px;
 <div class="grid-overlay"></div>
 <div class="particles" id="particles"></div>
 <div class="scan-line"></div>
+<div class="noise-overlay"></div>
 
 <div class="container">
 <header class="header">
@@ -865,7 +1286,11 @@ border-radius: 4px;
 <i class="fas fa-arrow-left"></i> Kembali
 </a>
 <h1 class="title">🎧 KENDALA ALL</h1>
-<p class="subtitle">Database Solusi & Bantuan</p>
+<p class="subtitle">Database Solusi & Bantuan Pengguna</p>
+<div class="status-badge">
+<span class="status-dot"></span>
+<span>SYSTEM ONLINE</span>
+</div>
 </header>
 
 <div class="search-section">
@@ -876,15 +1301,15 @@ border-radius: 4px;
 <div class="stats-bar">
 <div class="stat-item">
 <span class="stat-value" id="totalItems">0</span>
-<span class="stat-label">Total</span>
+<span class="stat-label">Total Data</span>
 </div>
 <div class="stat-item">
 <span class="stat-value" id="withPhotos">0</span>
-<span class="stat-label">Foto</span>
+<span class="stat-label">Dengan Foto</span>
 </div>
 <div class="stat-item">
 <span class="stat-value" id="withLinks">0</span>
-<span class="stat-label">Link</span>
+<span class="stat-label">Dengan Link</span>
 </div>
 </div>
 </div>
@@ -892,17 +1317,32 @@ border-radius: 4px;
 <div id="kendalaContainer">
 <div class="loading">
 <div class="loading-spinner"></div>
-<p>Mengambil data...</p>
+<p>⏳ Menghubungi database...</p>
+<p style="font-size: 12px; opacity: 0.7; margin-top: 8px;">Mengambil data dari Google Sheets</p>
 </div>
 </div>
 </div>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
 <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
-<img class="lightbox-img" id="lightboxImg" src="" alt="Preview">
+<img class="lightbox-img" id="lightboxImg" src="" alt="Preview" draggable="false">
+<div class="lightbox-controls">
+<button class="lightbox-btn" onclick="changeLightbox(-1)">
+<i class="fas fa-chevron-left"></i> Prev
+</button>
+<button class="lightbox-btn" onclick="copyLightboxPhoto()">
+<i class="fas fa-copy"></i> Copy Foto
+</button>
+<button class="lightbox-btn" onclick="changeLightbox(1)">
+Next <i class="fas fa-chevron-right"></i>
+</button>
+</div>
+<div class="zoom-slider">
+<input type="range" id="zoomSlider" min="0.5" max="4" step="0.1" value="1" oninput="updateZoom()">
+</div>
 </div>
 
-<div class="sticky-fab" onclick="toggleStickyPanel()" title="Sticky Notes">
+<div class="sticky-fab" onclick="toggleStickyPanel()" title="Buka Sticky Notes">
 <i class="fas fa-sticky-note"></i>
 </div>
 
@@ -954,6 +1394,8 @@ const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx
 let allKendala = [];
 let filteredKendala = [];
 let lightboxImages = [];
+let lightboxIndex = 0;
+let zoomLevel = 1;
 let stickyNotes = JSON.parse(localStorage.getItem('stickyNotes') || '[]');
 let draggedNote = null;
 let editingIndex = -1;
@@ -985,7 +1427,9 @@ updateStats();
 document.getElementById('kendalaContainer').innerHTML = `
 <div class="error-msg">
 <i class="fas fa-exclamation-triangle" style="font-size: 28px; margin-bottom: 12px;"></i>
-<p>Gagal memuat data</p>
+<p><strong>⚠️ Gagal memuat data</strong></p>
+<p style="font-size: 12px; margin-top: 8px; opacity: 0.9;">Pastikan Google Sheet sudah dipublikasikan</p>
+<p style="font-size: 11px; margin-top: 12px; opacity: 0.7;">${error.message}</p>
 </div>`;
 }
 }
@@ -1005,14 +1449,20 @@ this.parentElement.classList.toggle('expanded');
 }
 
 function createKendalaCard(item, index) {
+const titlePhoto = extractTitlePhoto(item.judul);
+const cleanJudul = titlePhoto ? item.judul.replace(titlePhoto.url, '').trim() : item.judul;
+const hasPhoto = detectPhotoLink(item);
+
 return `
 <div class="kendala-card" data-index="${index}">
-<h3 class="kendala-title">${escapeHtml(item.judul)} <i class="fas fa-chevron-down" style="font-size: 10px;"></i></h3>
+<h3 class="kendala-title">${escapeHtml(cleanJudul)} <i class="fas fa-chevron-down" style="font-size: 10px;"></i></h3>
+${titlePhoto ? createTitlePhotoSection(titlePhoto.url, index) : ''}
 <div class="kendala-answers">
 ${item.jawaban1 ? `
 <div class="answer-item">
 <div class="answer-label">JAWABAN 1</div>
 <div class="answer-content">${escapeHtml(item.jawaban1)}</div>
+${hasPhoto && !titlePhoto ? createPhotoSection(item) : ''}
 <button class="copy-btn" onclick="copyAnswer(${index}, 1)"><i class="fas fa-copy"></i> Copy</button>
 <button class="sticky-btn" onclick="addToSticky(${index}, 1)"><i class="fas fa-sticky-note"></i> Sticky</button>
 </div>` : ''}
@@ -1034,36 +1484,152 @@ ${item.jawaban3 ? `
 </div>`;
 }
 
+function extractTitlePhoto(judul) {
+if (!judul) return null;
+const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
+const match = judul.match(photoPattern);
+if (match) return { url: match[1], fullMatch: match[0] };
+return null;
+}
+
+function createTitlePhotoSection(photoUrl, index) {
+if (!lightboxImages.includes(photoUrl)) lightboxImages.push(photoUrl);
+return `
+<div class="title-photo-section">
+<div class="title-photo-container">
+<span class="title-photo-badge"><i class="fas fa-image"></i> FOTO</span>
+<img src="${photoUrl}" alt="Foto Kendala" class="title-photo-img" onclick="openLightbox('${photoUrl}')" onerror="this.parentElement.parentElement.style.display='none'">
+</div>
+<div class="title-photo-actions">
+<button class="copy-title-photo-btn" onclick="copyTitlePhoto('${photoUrl}')"><i class="fas fa-copy"></i> Copy Foto</button>
+<button class="view-title-photo-btn" onclick="openLightbox('${photoUrl}')"><i class="fas fa-expand"></i> Lihat Penuh</button>
+</div>
+</div>`;
+}
+
+function detectPhotoLink(item) {
+const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
+return photoPattern.test(item.jawaban1) || photoPattern.test(item.jawaban2) || photoPattern.test(item.jawaban3);
+}
+
+function createPhotoSection(item) {
+const photoPattern = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i;
+const match = (item.jawaban1 + ' ' + item.jawaban2 + ' ' + item.jawaban3).match(photoPattern);
+if (!match) return '';
+const photoUrl = match[1];
+if (!lightboxImages.includes(photoUrl)) lightboxImages.push(photoUrl);
+return `
+<div class="photo-container">
+<img src="${photoUrl}" alt="Foto" class="photo-img" onclick="openLightbox('${photoUrl}')" onerror="this.parentElement.style.display='none'">
+<button class="copy-photo-btn" onclick="copyPhoto('${photoUrl}')"><i class="fas fa-copy"></i> Copy Foto</button>
+</div>`;
+}
+
 async function copyAnswer(index, answerNum) {
 const item = filteredKendala[index];
 const content = item[`jawaban${answerNum}`];
 if (!content) return;
 try {
 await navigator.clipboard.writeText(content);
-showToast('✅ Disalin!');
+showToast('✅ Jawaban disalin!');
+const btn = event.target.closest('.copy-btn');
+if (btn) {
+btn.classList.add('copied');
+btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+setTimeout(() => {
+btn.classList.remove('copied');
+btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+}, 2000);
+}
 } catch {
-showToast('❗ Gagal');
+fallbackCopy(content);
 }
 }
 
+async function copyTitlePhoto(url) {
+try {
+const response = await fetch(url);
+const blob = await response.blob();
+await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+showToast('✅ Foto disalin!');
+} catch {
+await navigator.clipboard.writeText(url);
+showToast('📋 URL foto disalin!');
+}
+}
+
+async function copyPhoto(url) {
+try {
+const response = await fetch(url);
+const blob = await response.blob();
+await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+showToast('✅ Foto disalin!');
+} catch {
+await navigator.clipboard.writeText(url);
+showToast('📋 URL foto disalin!');
+}
+}
+
+function fallbackCopy(text) {
+const textarea = document.createElement('textarea');
+textarea.value = text;
+textarea.style.position = 'fixed';
+textarea.style.left = '-9999px';
+document.body.appendChild(textarea);
+textarea.select();
+try {
+document.execCommand('copy');
+showToast('✅ Disalin!');
+} catch {
+showToast('❗ Gagal menyalin');
+}
+document.body.removeChild(textarea);
+}
+
 function openLightbox(url) {
-lightboxImages = [url];
+lightboxIndex = lightboxImages.indexOf(url);
+if (lightboxIndex === -1) {
+lightboxImages.push(url);
+lightboxIndex = lightboxImages.length - 1;
+}
 document.getElementById('lightboxImg').src = url;
 document.getElementById('lightbox').classList.add('active');
+document.body.style.overflow = 'hidden';
+zoomLevel = 1;
+updateZoom();
 }
 
 function closeLightbox(event) {
 if (!event || event.target.id === 'lightbox' || event.target.classList.contains('lightbox-close')) {
 document.getElementById('lightbox').classList.remove('active');
+document.getElementById('lightboxImg').src = '';
+document.body.style.overflow = '';
 }
+}
+
+function changeLightbox(direction) {
+lightboxIndex += direction;
+if (lightboxIndex < 0) lightboxIndex = lightboxImages.length - 1;
+if (lightboxIndex >= lightboxImages.length) lightboxIndex = 0;
+document.getElementById('lightboxImg').src = lightboxImages[lightboxIndex];
+zoomLevel = 1;
+updateZoom();
+}
+
+function updateZoom() {
+zoomLevel = parseFloat(document.getElementById('zoomSlider').value);
+document.getElementById('lightboxImg').style.transform = `scale(${zoomLevel})`;
+}
+
+async function copyLightboxPhoto() {
+const url = document.getElementById('lightboxImg').src;
+if (url) await copyPhoto(url);
 }
 
 function toggleStickyPanel() {
 const panel = document.getElementById('stickyPanel');
 panel.classList.toggle('active');
-if (panel.classList.contains('active')) {
-renderStickyNotes();
-}
+if (panel.classList.contains('active')) renderStickyNotes();
 }
 
 function renderStickyNotes() {
@@ -1081,6 +1647,7 @@ const div = document.createElement('div');
 div.className = 'sticky-note';
 div.draggable = true;
 div.dataset.index = index;
+div.title = '📋 Klik untuk copy Text + Foto sekaligus';
 
 const header = document.createElement('div');
 header.className = 'sticky-note-header';
@@ -1092,7 +1659,6 @@ const content = document.createElement('div');
 content.className = 'sticky-note-content';
 content.textContent = note.text;
 content.onclick = () => copyStickyNote(index);
-content.title = '📋 Klik untuk copy Text + Foto';
 div.appendChild(content);
 }
 
@@ -1109,7 +1675,7 @@ actions.className = 'sticky-note-actions';
 
 const copyBtn = document.createElement('button');
 copyBtn.className = 'sticky-action-btn copy';
-copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Semua';
 copyBtn.onclick = (e) => { e.stopPropagation(); copyStickyNote(index); };
 
 const editBtn = document.createElement('button');
@@ -1171,7 +1737,7 @@ const reader = new FileReader();
 reader.onload = function(e) {
 tempPhotoData = e.target.result;
 showPhotoPreview(tempPhotoData);
-showToast('📸 Foto ditempel!');
+showToast('📸 Foto berhasil ditempel!');
 };
 reader.readAsDataURL(blob);
 break;
@@ -1206,7 +1772,7 @@ localStorage.setItem('stickyNotes', JSON.stringify(stickyNotes));
 input.value = '';
 removePhoto();
 renderStickyNotes();
-showToast('✅ Ditambahkan!');
+showToast('✅ Ditambahkan ke Sticky Notes!');
 }
 
 async function copyStickyNote(index) {
@@ -1217,12 +1783,14 @@ try {
 const items = [];
 let copiedInfo = [];
 
+// Copy teks jika ada
 if (note.text) {
 const textBlob = new Blob([note.text], { type: 'text/plain' });
 items.push(new ClipboardItem({ 'text/plain': textBlob }));
 copiedInfo.push('Text');
 }
 
+// Copy gambar jika ada
 if (note.image) {
 try {
 const response = await fetch(note.image);
@@ -1232,18 +1800,23 @@ copiedInfo.push('Foto');
 } catch {
 const urlBlob = new Blob([note.image], { type: 'text/plain' });
 items.push(new ClipboardItem({ 'text/plain': urlBlob }));
-copiedInfo.push('URL');
+copiedInfo.push('URL Foto');
 }
 }
 
+// Copy semua sekaligus
 if (items.length > 0) {
 await navigator.clipboard.write(items);
 showToast(`✅ ${copiedInfo.join(' + ')} disalin!`);
 }
-} catch {
+} catch (err) {
+// Fallback: copy text saja
 if (note.text) {
 await navigator.clipboard.writeText(note.text);
 showToast('✅ Text disalin!');
+} else if (note.image) {
+await navigator.clipboard.writeText(note.image);
+showToast('📋 URL Foto disalin!');
 }
 }
 }
@@ -1268,7 +1841,7 @@ addBtn.innerHTML = '<i class="fas fa-save"></i> <span>Update</span>';
 cancelBtn.style.display = 'inline-flex';
 
 input.focus();
-showToast('✏️ Mode Edit Aktif');
+showToast('✏️ Mode Edit Aktif - Edit di kolom input');
 }
 
 function updateStickyNote() {
@@ -1289,7 +1862,7 @@ timestamp: Date.now()
 localStorage.setItem('stickyNotes', JSON.stringify(stickyNotes));
 cancelEdit();
 renderStickyNotes();
-showToast('✅ Diperbarui!');
+showToast('✅ Sticky note diperbarui!');
 }
 
 function cancelEdit() {
@@ -1310,7 +1883,7 @@ if (confirm('Hapus sticky note ini?')) {
 stickyNotes.splice(index, 1);
 localStorage.setItem('stickyNotes', JSON.stringify(stickyNotes));
 renderStickyNotes();
-showToastDelete('🗑️ Dihapus!');
+showToastDelete('🗑️ Sticky note dihapus!');
 }
 }
 
@@ -1359,14 +1932,16 @@ timestamp: Date.now()
 
 localStorage.setItem('stickyNotes', JSON.stringify(stickyNotes));
 renderStickyNotes();
-showToast('✅ Ditambahkan ke Sticky!');
+showToast('✅ Ditambahkan ke Sticky Notes!');
 }
 
 function searchKendala() {
 const query = document.getElementById('searchInput').value.toLowerCase().trim();
 filteredKendala = allKendala.filter(item =>
 item.judul.toLowerCase().includes(query) ||
-(item.jawaban1 && item.jawaban1.toLowerCase().includes(query))
+(item.jawaban1 && item.jawaban1.toLowerCase().includes(query)) ||
+(item.jawaban2 && item.jawaban2.toLowerCase().includes(query)) ||
+(item.jawaban3 && item.jawaban3.toLowerCase().includes(query))
 );
 renderKendala();
 updateStats();
@@ -1374,7 +1949,8 @@ updateStats();
 
 function updateStats() {
 document.getElementById('totalItems').textContent = filteredKendala.length;
-document.getElementById('withPhotos').textContent = filteredKendala.length;
+const withPhotos = filteredKendala.filter(item => detectPhotoLink(item) || extractTitlePhoto(item.judul)).length;
+document.getElementById('withPhotos').textContent = withPhotos;
 document.getElementById('withLinks').textContent = filteredKendala.length;
 }
 
@@ -1416,6 +1992,7 @@ border-radius: 50%;
 left: ${Math.random() * 100}%;
 top: ${Math.random() * 100}%;
 animation: float ${Math.random() * 15 + 10}s infinite linear;
+box-shadow: 0 0 ${Math.random() * 10 + 5}px rgba(0, 255, 255, 0.5);
 `;
 container.appendChild(particle);
 }
