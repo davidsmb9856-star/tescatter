@@ -3,746 +3,413 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📸 Foto Gallery Premium</title>
+    <title>Galeri Foto Modern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
         }
-
-        :root {
-            --primary: #6366f1;
-            --secondary: #8b5cf6;
-            --accent: #ec4899;
-            --dark: #0f172a;
-            --light: #f8fafc;
-            --glass: rgba(255, 255, 255, 0.1);
-            --border: rgba(255, 255, 255, 0.2);
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
-            min-height: 100vh;
-            color: var(--light);
-            overflow-x: hidden;
+        
+        .dark .glass-effect {
+            background: rgba(17, 24, 39, 0.7);
         }
-
-        /* Animated Background */
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 40%);
-            animation: pulse 8s ease-in-out infinite;
+        
+        .image-card {
+            transition: all 0.3s ease;
         }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
+        
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
         }
-
-        /* Header Styles */
-        header {
-            text-align: center;
-            padding: 3rem 1rem 2rem;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-        }
-
-        h1 {
-            font-size: 3rem;
-            background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 60px rgba(99, 102, 241, 0.3);
-            margin-bottom: 0.5rem;
-            animation: titleGlow 3s ease-in-out infinite alternate;
-        }
-
-        @keyframes titleGlow {
-            from { filter: brightness(1); }
-            to { filter: brightness(1.2); }
-        }
-
-        .subtitle {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.1rem;
-            margin-top: 1rem;
-        }
-
-        /* Search Bar Styles */
-        .search-container {
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+        
+        .image-container {
             position: relative;
+            overflow: hidden;
         }
-
-        .search-box {
-            display: flex;
-            gap: 0.5rem;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 0.75rem;
-            backdrop-filter: blur(20px);
-            transition: all 0.3s ease;
+        
+        .image-container img {
+            transition: transform 0.3s ease;
         }
-
-        .search-box:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+        
+        .image-container:hover img {
+            transform: scale(1.05);
         }
-
-        .search-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--light);
-            font-size: 1rem;
-            padding: 0.75rem 1rem;
-            outline: none;
+        
+        .overlay {
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
         }
-
-        .search-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
+        
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
         }
-
-        .search-btn, .copy-btn {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .search-btn:hover, .copy-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
-        }
-
-        .copy-btn {
-            background: linear-gradient(135deg, var(--accent), #f472b6);
-        }
-
-        /* Loading Spinner */
-        .spinner {
-            display: none;
+        
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
             width: 40px;
             height: 40px;
-            border: 4px solid var(--glass);
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 2rem auto;
         }
-
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        /* Grid Container */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 2rem;
-            padding: 2rem;
-            max-width: 1600px;
-            margin: 0 auto;
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
         }
-
-        /* Photo Card Styles */
-        .photo-card {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            overflow: hidden;
-            backdrop-filter: blur(20px);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            animation: fadeInUp 0.6s ease forwards;
-            opacity: 0;
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        
+        .copy-btn {
+            transition: all 0.2s;
         }
-
-        .photo-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 
-                0 30px 60px rgba(99, 102, 241, 0.3),
-                0 15px 30px rgba(236, 72, 153, 0.2);
-            border-color: var(--primary);
-        }
-
-        .photo-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, transparent 0%, rgba(99, 102, 241, 0.1) 50%, transparent 100%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .photo-card:hover::before {
-            opacity: 1;
-        }
-
-        .photo-image {
-            width: 100%;
-            height: 280px;
-            object-fit: cover;
-            background: linear-gradient(135deg, var(--dark), #1e1e3e);
-            transition: all 0.4s ease;
-        }
-
-        .photo-card:hover .photo-image {
-            transform: scale(1.1);
-        }
-
-        .card-content {
-            padding: 1.5rem;
-            position: relative;
-        }
-
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: var(--light);
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-small {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .btn-copy {
-            background: linear-gradient(135deg, #10b981, #34d399);
-            color: white;
-        }
-
-        .btn-search {
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            color: white;
-        }
-
-        .btn-wa {
-            background: linear-gradient(135deg, #14b8a6, #2dd4bf);
-            color: white;
-        }
-
-        .btn-instagram {
-            background: linear-gradient(135deg, #ec4899, #f472b6);
-            color: white;
-        }
-
-        .btn-small:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        }
-
-        .copy-notification {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            background: linear-gradient(135deg, #10b981, #34d399);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
-            transform: translateX(150%);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 10000;
-        }
-
-        .copy-notification.show {
-            transform: translateX(0);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .empty-state svg {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        .count-badge {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 50px;
-            padding: 1rem 2rem;
-            backdrop-filter: blur(20px);
-            font-weight: 700;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Modal for image preview */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            animation: modalFadeIn 0.3s ease;
-        }
-
-        @keyframes modalFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-image {
-            max-width: 90%;
-            max-height: 80vh;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 2rem;
-            right: 2rem;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .close-modal:hover {
-            background: var(--primary);
-            transform: rotate(90deg);
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.9rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-
-            .gallery-grid {
-                grid-template-columns: 1fr;
-                padding: 1rem;
-            }
-
-            .search-box {
-                flex-direction: column;
-            }
-
-            .search-btn, .copy-btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .count-badge {
-                bottom: 1rem;
-                right: 1rem;
-                padding: 0.75rem 1.5rem;
-                font-size: 0.9rem;
-            }
+        
+        .copy-btn:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
-<body>
-    <!-- Animated Background -->
-    <div class="bg-animation"></div>
+<body class="bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 min-h-screen dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
 
     <!-- Header -->
-    <header>
-        <h1>🎨 FOTO GALLERY PREMIUM</h1>
-        <p class="subtitle">Koleksi Foto Terlengkap • Bisa Copy & Cari Di Web</p>
+    <header class="glass-effect sticky top-0 z-50 border-b border-white/20 dark:border-gray-700/30">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            Galeri Foto
+                        </h1>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Koleksi Foto Modern</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-700 transition">
+                        <i class="fas fa-moon dark:hidden text-gray-700"></i>
+                        <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <!-- Search Container -->
-    <div class="search-container">
-        <div class="search-box">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cari judul foto atau keyword...">
-            <button class="search-btn" onclick="searchWeb()">
-                🔎 Cari Di Google
-            </button>
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Search Section -->
+        <div class="max-w-2xl mx-auto mb-12">
+            <div class="glass-effect rounded-2xl p-6 shadow-xl">
+                <div class="flex flex-col gap-4">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Cari foto dari Google Sheets..." 
+                            class="search-input w-full px-6 py-4 rounded-xl border-2 border-transparent bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-white placeholder-gray-400 focus:border-indigo-500 focus:outline-none transition"
+                        >
+                        <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button 
+                            onclick="searchWebImages()" 
+                            class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg hover:scale-[1.02] transition flex items-center justify-center gap-2"
+                        >
+                            <i class="fas fa-globe"></i>
+                            Cari dari Web
+                        </button>
+                        <button 
+                            onclick="loadFromSheet()" 
+                            class="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg hover:scale-[1.02] transition flex items-center justify-center gap-2 border-2 border-gray-200 dark:border-gray-600"
+                        >
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="hidden flex flex-col items-center justify-center py-20">
+            <div class="loading-spinner mb-4"></div>
+            <p class="text-gray-600 dark:text-gray-400">Memuat foto...</p>
+        </div>
+
+        <!-- Images Grid -->
+        <div id="imagesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Images will be loaded here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-20">
+            <div class="w-24 h-24 mx-auto mb-4 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <i class="fas fa-image text-4xl text-gray-400"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Tidak ada foto ditemukan</h3>
+            <p class="text-gray-500 dark:text-gray-400">Coba kata kunci pencarian lain</p>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-gray-800 dark:bg-white text-white dark:text-gray-800 px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+            <i class="fas fa-check-circle text-green-400 dark:text-green-600"></i>
+            <span id="toastMessage">Foto berhasil disalin!</span>
         </div>
     </div>
 
-    <!-- Loading Spinner -->
-    <div class="spinner" id="loadingSpinner"></div>
-
-    <!-- Gallery Grid -->
-    <div class="gallery-grid" id="galleryGrid">
-        <!-- Data will be inserted here -->
-    </div>
-
-    <!-- Empty State -->
-    <div class="empty-state" id="emptyState" style="display: none;">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-        </svg>
-        <h2>Data belum tersedia</h2>
-        <p>Silakan publish Google Sheet dan coba lagi</p>
-    </div>
-
-    <!-- Count Badge -->
-    <div class="count-badge" id="countBadge">
-        📦 Total: <span id="totalCount">0</span> Foto
-    </div>
-
-    <!-- Copy Notification -->
-    <div class="copy-notification" id="copyNotification">
-        ✅ Link berhasil disalin!
-    </div>
-
-    <!-- Image Modal -->
-    <div class="modal" id="imageModal">
-        <button class="close-modal" onclick="closeModal()">×</button>
-        <img src="" alt="Preview" class="modal-image" id="modalImage">
-    </div>
-
-    <footer>
-        <p>&copy; 2026 FOTO GALLERY PREMIUM | Dibuat dengan ❤️</p>
-    </footer>
-
     <script>
-        // ==========================================
-        // KONFIGURASI GOOGLE SHEETS
-        // ==========================================
-        
-        // GANTI ID SHEET DI SINI (ambil dari URL setelah /d/ dan sebelum /edit)
         const SHEET_ID = '1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0';
-        
-        // Sheet number (biasanya 1 untuk tab pertama)
-        const SHEET_NUMBER = '1';
+        const GID = '1246502038';
+        let allImages = [];
+        let currentImages = [];
 
-        // ==========================================
-        // DATA SAMPLE (Jika Sheets belum terhubung)
-        // ==========================================
-        const sampleData = [
-            { title: "Pemandangan Pantai Sunset", photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&h=400&fit=crop" },
-            { title: "Gunung Majestic Aurora", photo: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500&h=400&fit=crop" },
-            { title: "Hutan Tropis Hijau", photo: "https://images.unsplash.com/photo-1448375240586-dfd8d395ea6c?w=500&h=400&fit=crop" },
-            { title: "Kota Malam Neon", photo: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=500&h=400&fit=crop" },
-            { title: "Danau Tenang Cermin", photo: "https://images.unsplash.com/photo-1510784722466-f2aa9c52fff6?w=500&h=400&fit=crop" },
-            { title: "Air Terjun Megah", photo: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=500&h=400&fit=crop" },
-            { title: "Desa Pedesaan Indah", photo: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500&h=400&fit=crop" },
-            { title: "Palu Kuning Eksotis", photo: "https://images.unsplash.com/photo-1495570499609-48221dcb8d83?w=500&h=400&fit=crop" },
-            { title: "Sawah Terbentang Luas", photo: "https://images.unsplash.com/photo-1550350643-48223c2eb9d5?w=500&h=400&fit=crop" },
-            { title: "Bintang Langit Malam", photo: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=500&h=400&fit=crop" }
-        ];
-
-        // ==========================================
-        // FUNGSI UTAMA
-        // ==========================================
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await fetchGoogleSheets();
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromSheet();
+            
+            // Search input listener
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                filterImages(e.target.value);
+            });
         });
 
-        // Fetch data dari Google Sheets
-        async function fetchGoogleSheets() {
+        // Load data from Google Sheets
+        async function loadFromSheet() {
             showLoading(true);
-            
             try {
-                // Format URL untuk akses JSON dari Google Sheets
-                const url = `https://spreadsheets.google.com/feeds/list/${SHEET_ID}/${SHEET_NUMBER}/public/values?alt=json`;
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
+                const response = await fetch(url);
+                const text = await response.text();
                 
-                // Coba fetch langsung
-                const response = await fetch(url + '&tainted=true');
-                const data = await response.json();
+                // Parse Google Sheets JSON response
+                const json = JSON.parse(text.substring(47).slice(0, -2));
+                const rows = json.table.rows;
                 
-                if (data.feed && data.feed.entry) {
-                    processSheetData(data.feed.entry);
-                } else {
-                    console.log('Menggunakan data sample...');
-                    renderGallery(sampleData);
-                }
+                allImages = [];
+                
+                rows.forEach((row, index) => {
+                    if (index === 0) return; // Skip header
+                    
+                    const cells = row.c;
+                    if (!cells) return;
+                    
+                    // Column C (index 2) = Title, Column D (index 3) = Image URL
+                    const title = cells[2] ? cells[2].v : '';
+                    const imageUrl = cells[3] ? cells[3].v : '';
+                    
+                    if (imageUrl && imageUrl.trim() !== '') {
+                        allImages.push({
+                            id: index,
+                            title: title || 'Foto ' + index,
+                            url: imageUrl,
+                            source: 'sheet'
+                        });
+                    }
+                });
+                
+                currentImages = [...allImages];
+                displayImages(currentImages);
+                
             } catch (error) {
-                console.error('Error fetching data:', error);
-                console.log('Menggunakan data sample karena tidak dapat mengakses sheets...');
-                renderGallery(sampleData);
+                console.error('Error loading data:', error);
+                showToast('Gagal memuat data dari Google Sheets', 'error');
             } finally {
                 showLoading(false);
             }
         }
 
-        // Proses data dari Google Sheets
-        function processSheetData(entries) {
-            const processedData = [];
-            
-            entries.forEach(entry => {
-                const cellValues = {};
-                
-                entry.content.forEach(cell => {
-                    const colName = cell['gs$cell'].col;
-                    const rowNum = cell['gs$cell'].row;
-                    const value = cell.$t || '';
-                    
-                    if (!cellValues[rowNum]) {
-                        cellValues[rowNum] = {};
-                    }
-                    
-                    // Kolom C = 3, Kolom D = 4
-                    if (colName === '3') cellValues[rowNum].title = value;
-                    if (colName === '4') cellValues[rowNum].photo = value;
-                });
-                
-                // Ambil hanya data dengan isi
-                Object.values(cellValues).forEach(row => {
-                    if ((row.title && row.title.trim()) && (row.photo && row.photo.trim())) {
-                        processedData.push({
-                            title: row.title,
-                            photo: row.photo
-                        });
-                    }
-                });
-            });
-            
-            console.log(`Total data valid: ${processedData.length}`);
-            renderGallery(processedData.length > 0 ? processedData : sampleData);
-        }
-
-        // Render galeri foto
-        function renderGallery(data) {
-            const galleryGrid = document.getElementById('galleryGrid');
-            const emptyState = document.getElementById('emptyState');
-            const totalCount = document.getElementById('totalCount');
-            
-            galleryGrid.innerHTML = '';
-            totalCount.textContent = data.length;
-            
-            if (data.length === 0) {
-                emptyState.style.display = 'block';
+        // Search images from web (Unsplash API)
+        async function searchWebImages() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                showToast('Masukkan kata kunci pencarian', 'error');
                 return;
             }
             
-            emptyState.style.display = 'none';
+            showLoading(true);
             
-            data.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'photo-card';
-                card.style.animationDelay = `${index * 0.05}s`;
-                card.innerHTML = `
-                    <img src="${sanitizePhotoUrl(item.photo)}" alt="${item.title}" class="photo-image" 
-                         onclick="openModal('${sanitizePhotoUrl(item.photo)}')">
-                    <div class="card-content">
-                        <h3 class="card-title">${escapeHtml(item.title)}</h3>
-                        <div class="action-buttons">
-                            <button class="btn-small btn-copy" onclick="copyLink('${sanitizePhotoUrl(item.photo)}')" title="Copy Link">
-                                📋 Copy Link
-                            </button>
-                            <button class="btn-small btn-search" onclick="searchWebForTitle('${encodeURIComponent(item.title)}')" title="Cari di Google">
-                                🔍 Cari Gambar
-                            </button>
-                            <button class="btn-small btn-wa" onclick="shareWhatsApp('${encodeURIComponent(item.title)}', '${sanitizePhotoUrl(item.photo)}')" title="Share WhatsApp">
-                                💬 WA
-                            </button>
-                            <button class="btn-small btn-instagram" onclick="shareInstagram('${sanitizePhotoUrl(item.photo)}')" title="Share Instagram">
-                                📷 IG
-                            </button>
+            try {
+                // Using Unsplash Source API for demo
+                // In production, you should use Unsplash API with access key
+                const searchTerms = query.split(' ').join(',');
+                const webImages = [];
+                
+                // Generate multiple images based on search
+                for (let i = 1; i <= 12; i++) {
+                    webImages.push({
+                        id: 'web-' + i,
+                        title: query + ' ' + i,
+                        url: `https://source.unsplash.com/800x600/?${searchTerms}&sig=${i}`,
+                        source: 'web'
+                    });
+                }
+                
+                currentImages = webImages;
+                displayImages(currentImages);
+                showToast(`Ditemukan ${webImages.length} foto dari web`);
+                
+            } catch (error) {
+                console.error('Error searching web:', error);
+                showToast('Gagal mencari foto dari web', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Filter images based on search
+        function filterImages(query) {
+            if (!query.trim()) {
+                currentImages = [...allImages];
+            } else {
+                currentImages = allImages.filter(img => 
+                    img.title.toLowerCase().includes(query.toLowerCase())
+                );
+            }
+            displayImages(currentImages);
+        }
+
+        // Display images in grid
+        function displayImages(images) {
+            const grid = document.getElementById('imagesGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (images.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            grid.innerHTML = images.map((img, index) => `
+                <div class="image-card glass-effect rounded-2xl overflow-hidden shadow-lg fade-in" style="animation-delay: ${index * 0.05}s">
+                    <div class="image-container aspect-[4/3] bg-gray-200 dark:bg-gray-700">
+                        <img 
+                            src="${img.url}" 
+                            alt="${img.title}"
+                            class="w-full h-full object-cover"
+                            onerror="this.src='https://via.placeholder.com/800x600?text=Foto+Tidak+Ditemukan'"
+                            loading="lazy"
+                        >
+                        <div class="overlay absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
+                            <div class="text-white">
+                                <p class="font-semibold">${img.title}</p>
+                                <p class="text-sm opacity-80">${img.source === 'sheet' ? 'Dari Google Sheets' : 'Dari Web'}</p>
+                            </div>
                         </div>
                     </div>
-                `;
-                galleryGrid.appendChild(card);
-            });
+                    
+                    <div class="p-4">
+                        <h3 class="font-semibold text-gray-800 dark:text-white mb-3 line-clamp-1">${img.title}</h3>
+                        
+                        <div class="flex gap-2">
+                            <button 
+                                onclick="copyImage('${img.url}')"
+                                class="copy-btn flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition flex items-center justify-center gap-2"
+                            >
+                                <i class="fas fa-copy"></i>
+                                Salin Foto
+                            </button>
+                            <a 
+                                href="${img.url}" 
+                                target="_blank"
+                                class="px-4 py-2 rounded-lg font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center"
+                            >
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // Sanitize photo URL
-        function sanitizePhotoUrl(url) {
-            if (!url || url.trim() === '') {
-                return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&h=400&fit=crop';
+        // Copy image to clipboard
+        async function copyImage(url) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        [blob.type]: blob
+                    })
+                ]);
+                
+                showToast('Foto berhasil disalin ke clipboard!');
+            } catch (error) {
+                // Fallback: copy URL
+                try {
+                    await navigator.clipboard.writeText(url);
+                    showToast('URL foto berhasil disalin!');
+                } catch (e) {
+                    showToast('Gagal menyalin foto', 'error');
+                }
             }
-            return url.trim();
         }
 
-        // Escape HTML for safety
-        function escapeHtml(text) {
-            if (!text) return 'No Title';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Show/Hide loading spinner
+        // Show/hide loading
         function showLoading(show) {
-            document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
+            const loading = document.getElementById('loadingState');
+            const grid = document.getElementById('imagesGrid');
+            
+            if (show) {
+                loading.classList.remove('hidden');
+                grid.classList.add('hidden');
+            } else {
+                loading.classList.add('hidden');
+                grid.classList.remove('hidden');
+            }
         }
 
-        // Copy link to clipboard
-        function copyLink(link) {
-            navigator.clipboard.writeText(link).then(() => {
-                showCopyNotification();
-            }).catch(err => {
-                // Fallback method
-                const textArea = document.createElement('textarea');
-                textArea.value = link;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showCopyNotification();
-            });
-        }
-
-        // Show copy notification
-        function showCopyNotification() {
-            const notification = document.getElementById('copyNotification');
-            notification.classList.add('show');
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            
+            if (type === 'error') {
+                toast.querySelector('i').className = 'fas fa-exclamation-circle text-red-400';
+            } else {
+                toast.querySelector('i').className = 'fas fa-check-circle text-green-400 dark:text-green-600';
+            }
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
             setTimeout(() => {
-                notification.classList.remove('show');
-            }, 2000);
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
         }
 
-        // Search in Google
-        function searchWeb() {
-            const query = document.getElementById('searchInput').value;
-            if (query.trim()) {
-                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}+site:unsplash.com&tbm=isch`, '_blank');
-            }
+        // Toggle dark mode
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
         }
 
-        // Search specific title
-        function searchWebForTitle(title) {
-            const encodedTitle = encodeURIComponent(title.replace(/ /g, '+'));
-            window.open(`https://www.google.com/search?q=${encodedTitle}&tbm=isch`, '_blank');
+        // Check for saved dark mode preference
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
         }
-
-        // Share via WhatsApp
-        function shareWhatsApp(title, photoUrl) {
-            const message = `*${title}*\n\n${photoUrl}\n\n_Beli Sekarang!_`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-        }
-
-        // Share via Instagram (placeholder action)
-        function shareInstagram(photoUrl) {
-            alert('Untuk share ke Instagram, silakan copy link fotonya dulu lalu upload manual di Instagram!');
-            copyLink(photoUrl);
-        }
-
-        // Open modal for image preview
-        function openModal(imageUrl) {
-            const modal = document.getElementById('imageModal');
-            const modalImage = document.getElementById('modalImage');
-            modalImage.src = imageUrl;
-            modal.classList.add('active');
-        }
-
-        // Close modal
-        function closeModal() {
-            const modal = document.getElementById('imageModal');
-            modal.classList.remove('active');
-            document.getElementById('modalImage').src = '';
-        }
-
-        // Close modal on escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-            }
-        });
-
-        // Close modal on clicking outside image
-        document.getElementById('imageModal').addEventListener('click', (e) => {
-            if (e.target.id === 'imageModal') {
-                closeModal();
-            }
-        });
-
-        // Search on Enter key
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchWeb();
-            }
-        });
-
-        // Keyboard shortcut to focus search
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'k') {
-                e.preventDefault();
-                document.getElementById('searchInput').focus();
-            }
-        });
     </script>
 </body>
 </html>
