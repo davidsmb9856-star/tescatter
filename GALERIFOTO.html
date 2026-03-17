@@ -58,10 +58,6 @@
             transform: scale(1.05);
         }
         
-        .neon-button:active {
-            transform: scale(0.95);
-        }
-        
         .photo-card {
             position: relative;
             overflow: hidden;
@@ -78,9 +74,11 @@
         
         .photo-card img {
             width: 100%;
-            height: 300px;
-            object-fit: cover;
+            height: auto;
+            min-height: 300px;
+            object-fit: contain;
             display: block;
+            background: #000;
         }
         
         .copy-overlay {
@@ -164,28 +162,13 @@
             50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.8); }
         }
         
-        .animate-pulse-glow {
-            animation: pulse-glow 2s infinite;
-        }
-        
-        .loading-skeleton {
-            background: linear-gradient(90deg, rgba(0,212,255,0.1) 25%, rgba(0,212,255,0.2) 50%, rgba(0,212,255,0.1) 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-        
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-        
         .modal-backdrop {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.98);
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -195,7 +178,7 @@
         
         .modal-image {
             max-width: 95%;
-            max-height: 95%;
+            max-height: 85%;
             object-fit: contain;
             border: 3px solid #00d4ff;
             box-shadow: 0 0 50px rgba(0, 212, 255, 0.6);
@@ -224,6 +207,11 @@
         .layer-item:hover, .layer-item.active {
             background: rgba(0, 212, 255, 0.3);
             box-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+        }
+
+        .editor-canvas-container {
+            position: relative;
+            background: repeating-conic-gradient(#1a1a2e 0% 25%, #0f0f1e 0% 50%) 50% / 20px 20px;
         }
     </style>
 </head>
@@ -263,7 +251,7 @@
                     🔄 Refresh
                 </button>
             </div>
-            <div id="photos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div id="photos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div class="col-span-full text-center py-20">
                     <div class="animate-spin inline-block w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full"></div>
                     <p class="mt-4 text-cyan-400">Loading photos from Google Sheets...</p>
@@ -284,17 +272,17 @@
                 </div>
                 <div class="mt-3 flex gap-2 flex-wrap">
                     <span class="text-sm text-cyan-600">Popular:</span>
-                    <button onclick="quickSearch('neon')" class="text-xs px-3 py-1 rounded bg-cyan-900/50 hover:bg-cyan-800 transition">Neon</button>
-                    <button onclick="quickSearch('cyberpunk')" class="text-xs px-3 py-1 rounded bg-cyan-900/50 hover:bg-cyan-800 transition">Cyberpunk</button>
-                    <button onclick="quickSearch('nature')" class="text-xs px-3 py-1 rounded bg-cyan-900/50 hover:bg-cyan-800 transition">Nature</button>
-                    <button onclick="quickSearch('space')" class="text-xs px-3 py-1 rounded bg-cyan-900/50 hover:bg-cyan-800 transition">Space</button>
-                    <button onclick="quickSearch('architecture')" class="text-xs px-3 py-1 rounded bg-cyan-900/50 hover:bg-cyan-800 transition">Architecture</button>
+                    <button onclick="quickSearch('neon lights')" class="text-xs px-3 py-1 rounded bg-cyan-900/50 hover:bg-cyan-800 transition">Neon Lights</button>
+                    <button onclick="quickSearch('cyberpunk city')" class="text-xs px-3 py-1 rounded bg-cyan-900/50 hover:bg-cyan-800 transition">Cyberpunk</button>
+                    <button onclick="quickSearch('nature landscape')" class="text-xs px-3 py-1 rounded bg-cyan-900/50 hover:bg-cyan-800 transition">Nature</button>
+                    <button onclick="quickSearch('space galaxy')" class="text-xs px-3 py-1 rounded bg-cyan-900/50 hover:bg-cyan-800 transition">Space</button>
+                    <button onclick="quickSearch('architecture modern')" class="text-xs px-3 py-1 rounded bg-cyan-900/50 hover:bg-cyan-800 transition">Architecture</button>
                 </div>
             </div>
-            <div id="search-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div id="search-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div class="col-span-full text-center py-20 text-cyan-400/50">
                     <p class="text-xl">Enter a search term above to find photos</p>
-                    <p class="text-sm mt-2">All photos can be copied directly to clipboard</p>
+                    <p class="text-sm mt-2">All photos can be downloaded or copied</p>
                 </div>
             </div>
         </section>
@@ -336,7 +324,7 @@
                                 <button onclick="setCanvasBackground('#ffffff')" class="w-8 h-8 rounded bg-white border-2 border-cyan-400 hover:scale-110 transition"></button>
                                 <button onclick="setCanvasBackground('#00d4ff')" class="w-8 h-8 rounded bg-cyan-400 border-2 border-cyan-400 hover:scale-110 transition"></button>
                                 <button onclick="setCanvasBackground('#1a1a2e')" class="w-8 h-8 rounded bg-[#1a1a2e] border-2 border-cyan-400 hover:scale-110 transition"></button>
-                                <button onclick="setCanvasBackground('#16213e')" class="w-8 h-8 rounded bg-[#16213e] border-2 border-cyan-400 hover:scale-110 transition"></button>
+                                <button onclick="setCanvasBackground('transparent')" class="w-8 h-8 rounded bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFElEQVQoU2NkIAAEjAwMDCiM0YBxNAwA86gEA81dN6oAAAAASUVORK5CYII=')] border-2 border-cyan-400 hover:scale-110 transition"></button>
                             </div>
                             <input type="color" id="bg-color-picker" onchange="setCanvasBackground(this.value)" class="w-full h-8 rounded cursor-pointer">
                         </div>
@@ -373,7 +361,7 @@
 
                     <!-- Center Canvas -->
                     <div class="xl:col-span-2">
-                        <div class="canvas-wrapper rounded overflow-hidden">
+                        <div class="canvas-wrapper rounded overflow-hidden editor-canvas-container">
                             <canvas id="editor-canvas"></canvas>
                         </div>
                         <div class="mt-4 flex gap-3 flex-wrap justify-center">
@@ -390,7 +378,7 @@
                                 ⭕ Circle
                             </button>
                             <button onclick="downloadCanvas()" class="neon-button px-4 py-2 rounded text-sm bg-green-600 hover:bg-green-500">
-                                💾 Download
+                                💾 Download HD
                             </button>
                         </div>
                     </div>
@@ -456,11 +444,11 @@
     <div id="image-modal" class="modal-backdrop hidden" onclick="closeImageModal(event)">
         <img id="modal-image" src="" alt="Preview" class="modal-image">
         <button onclick="closeImageModal(event)" class="absolute top-4 right-4 text-cyan-400 text-4xl hover:text-cyan-300">&times;</button>
-        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-4">
-            <button onclick="copyFromModal()" class="neon-button px-6 py-2 rounded">
-                📋 Copy Photo
+        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-4 flex-wrap justify-center">
+            <button onclick="downloadFromModal()" class="neon-button px-6 py-3 rounded">
+                💾 Download Photo
             </button>
-            <button onclick="addToEditorFromModal()" class="neon-button px-6 py-2 rounded bg-purple-600 hover:bg-purple-500">
+            <button onclick="addToEditorFromModal()" class="neon-button px-6 py-3 rounded bg-purple-600 hover:bg-purple-500">
                 ✏️ Add to Editor
             </button>
         </div>
@@ -565,10 +553,10 @@
                 card.className = 'photo-card rounded-lg overflow-hidden group';
                 card.innerHTML = `
                     <div class="relative cursor-pointer" onclick="openImagePreview('${photo.photo}')">
-                        <img src="${photo.photo}" alt="${photo.title}" onerror="this.src='https://via.placeholder.com/400x300/000510/00d4ff?text=No+Image'" loading="lazy">
+                        <img src="${photo.photo}" alt="${photo.title}" onerror="this.src='https://via.placeholder.com/600x400/000510/00d4ff?text=No+Image'" loading="lazy">
                         <div class="copy-overlay" onclick="event.stopPropagation()">
-                            <button onclick="copyImageDirect('${photo.photo}', '${photo.title.replace(/'/g, "\\'")}')" class="neon-button px-6 py-3 rounded mb-2 text-sm md:text-base">
-                                📋 Copy Photo
+                            <button onclick="downloadImage('${photo.photo}', '${photo.title.replace(/'/g, "\\'")}')" class="neon-button px-6 py-3 rounded mb-2 text-sm md:text-base">
+                                💾 Download Photo
                             </button>
                             <button onclick="addToEditor('${photo.photo}')" class="neon-button px-5 py-2 rounded bg-purple-600 hover:bg-purple-500 text-sm">
                                 ✏️ Add to Editor
@@ -592,7 +580,7 @@
             searchPhotos();
         }
 
-        // Search Photos from Web using Unsplash Source
+        // Search Photos from Web
         async function searchPhotos() {
             const query = document.getElementById('search-input').value.trim();
             if (!query) {
@@ -604,16 +592,14 @@
             results.innerHTML = '<div class="col-span-full text-center py-20"><div class="animate-spin inline-block w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full"></div><p class="mt-4 text-cyan-400">Searching photos...</p></div>';
 
             try {
-                // Generate unique image URLs with different sizes and signatures
+                // Use Unsplash Source with better quality
                 const images = [];
                 const timestamp = Date.now();
-                const sizes = ['800x600', '600x800', '800x800', '1000x667', '667x1000'];
                 
-                for (let i = 0; i < 32; i++) {
-                    const size = sizes[i % sizes.length];
+                for (let i = 0; i < 24; i++) {
                     images.push({
                         id: i,
-                        url: `https://source.unsplash.com/${size}/?${encodeURIComponent(query)}&sig=${timestamp}-${i}`,
+                        url: `https://source.unsplash.com/800x600/?${encodeURIComponent(query)}&sig=${timestamp}-${i}`,
                         query: query
                     });
                 }
@@ -625,10 +611,10 @@
                     card.className = 'photo-card rounded-lg overflow-hidden group';
                     card.innerHTML = `
                         <div class="relative cursor-pointer" onclick="openImagePreview('${img.url}')">
-                            <img src="${img.url}" alt="${img.query}" loading="lazy" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'h-64 flex items-center justify-center text-cyan-600 text-sm\'>Image not available</div>'">
+                            <img src="${img.url}" alt="${img.query}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\'h-64 flex items-center justify-center text-cyan-600 text-sm\'>Image not available</div>'">
                             <div class="copy-overlay" onclick="event.stopPropagation()">
-                                <button onclick="copyImageDirect('${img.url}', 'Search Result ${index + 1}')" class="neon-button px-6 py-3 rounded mb-2 text-sm">
-                                    📋 Copy Photo
+                                <button onclick="downloadImage('${img.url}', 'Search Result ${index + 1}')" class="neon-button px-6 py-3 rounded mb-2 text-sm">
+                                    💾 Download Photo
                                 </button>
                                 <button onclick="addToEditor('${img.url}')" class="neon-button px-5 py-2 rounded bg-purple-600 hover:bg-purple-500 text-sm">
                                     ✏️ Add to Editor
@@ -648,43 +634,30 @@
             }
         }
 
-        // Copy Image Directly to Clipboard
-        async function copyImageDirect(url, title) {
+        // Download Image
+        async function downloadImage(url, filename) {
             try {
-                showToast('Loading image...');
+                showToast('Downloading image...');
                 
                 const response = await fetch(url);
                 const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
                 
-                const clipboardItem = new ClipboardItem({
-                    [blob.type]: blob
-                });
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = `${filename.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(blobUrl);
                 
-                await navigator.clipboard.write([clipboardItem]);
-                
-                showToast(`✅ Photo "${title}" copied to clipboard!`);
-                
-                // Visual feedback on button
-                const btn = event.target;
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ Copied!';
-                btn.classList.add('copy-success');
-                
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.classList.remove('copy-success');
-                }, 2000);
+                showToast(`✅ Photo downloaded successfully!`);
                 
             } catch (err) {
-                console.error('Error copying image:', err);
-                
-                // Fallback: Copy URL
-                try {
-                    await navigator.clipboard.writeText(url);
-                    showToast('📋 Image URL copied (browser limitation)');
-                } catch (fallbackErr) {
-                    showToast('❌ Copy failed. Right-click image to save.');
-                }
+                console.error('Error downloading image:', err);
+                // Fallback: open in new tab
+                window.open(url, '_blank');
+                showToast('Opened image in new tab');
             }
         }
 
@@ -707,10 +680,10 @@
             }
         }
 
-        // Copy from Modal
-        async function copyFromModal() {
+        // Download from Modal
+        async function downloadFromModal() {
             if (currentModalImage) {
-                await copyImageDirect(currentModalImage, 'Preview Image');
+                await downloadImage(currentModalImage, 'preview_image');
             }
         }
 
@@ -790,7 +763,11 @@
         }
 
         function setCanvasBackground(color) {
-            canvas.setBackgroundColor(color, canvas.renderAll.bind(canvas));
+            if (color === 'transparent') {
+                canvas.setBackgroundColor(null, canvas.renderAll.bind(canvas));
+            } else {
+                canvas.setBackgroundColor(color, canvas.renderAll.bind(canvas));
+            }
             showToast('Background changed');
         }
 
