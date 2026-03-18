@@ -5,24 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REPORT LINE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #030810;
-            --bg-secondary: #0a1220;
-            --bg-card: rgba(8, 18, 35, 0.9);
+            --bg-primary: #050a15;
+            --bg-secondary: #0a1225;
+            --bg-card: rgba(8, 20, 45, 0.85);
             --neon-blue: #00e5ff;
+            --neon-blue-bright: #00ffff;
             --neon-blue-dim: #0099bb;
-            --neon-blue-glow: rgba(0, 229, 255, 0.4);
-            --text-primary: #e8f8ff;
-            --text-muted: #5a8a9f;
-            --border-color: rgba(0, 229, 255, 0.25);
+            --neon-glow: rgba(0, 229, 255, 0.6);
+            --neon-glow-soft: rgba(0, 229, 255, 0.15);
+            --text-primary: #e8faff;
+            --text-muted: #6b9db5;
+            --border-glow: rgba(0, 229, 255, 0.25);
+            --border-active: rgba(0, 229, 255, 0.6);
         }
 
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
         }
 
         body {
@@ -33,29 +34,32 @@
             overflow-x: hidden;
         }
 
-        /* Animated Grid Background */
-        .grid-bg {
+        /* Animated grid background */
+        .bg-grid {
             position: fixed;
-            inset: 0;
-            background: 
-                linear-gradient(90deg, rgba(0, 229, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(rgba(0, 229, 255, 0.02) 1px, transparent 1px);
-            background-size: 60px 60px;
-            animation: gridMove 20s linear infinite;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
             pointer-events: none;
             z-index: 0;
+            animation: gridMove 20s linear infinite;
         }
 
         @keyframes gridMove {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(60px, 60px); }
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 40px; }
         }
 
-        /* Floating Orbs */
-        .orb {
+        /* Glow orbs */
+        .bg-orb {
             position: fixed;
             border-radius: 50%;
-            filter: blur(100px);
+            filter: blur(120px);
             pointer-events: none;
             z-index: 0;
         }
@@ -65,8 +69,8 @@
             height: 500px;
             top: -150px;
             left: -150px;
-            background: radial-gradient(circle, rgba(0, 229, 255, 0.3), transparent 70%);
-            animation: float1 15s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.2) 0%, transparent 70%);
+            animation: orbFloat1 12s ease-in-out infinite;
         }
 
         .orb-2 {
@@ -74,8 +78,8 @@
             height: 400px;
             bottom: -100px;
             right: -100px;
-            background: radial-gradient(circle, rgba(0, 150, 255, 0.25), transparent 70%);
-            animation: float2 18s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(0, 150, 255, 0.15) 0%, transparent 70%);
+            animation: orbFloat2 15s ease-in-out infinite;
         }
 
         .orb-3 {
@@ -84,153 +88,92 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: radial-gradient(circle, rgba(0, 200, 255, 0.15), transparent 70%);
-            animation: float3 12s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(0, 200, 255, 0.08) 0%, transparent 70%);
+            animation: orbPulse 8s ease-in-out infinite;
         }
 
-        @keyframes float1 {
+        @keyframes orbFloat1 {
             0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(50px, 30px) scale(1.1); }
-            66% { transform: translate(-30px, 50px) scale(0.95); }
+            50% { transform: translate(50px, 30px) scale(1.1); }
         }
 
-        @keyframes float2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-60px, -40px) scale(1.15); }
+        @keyframes orbFloat2 {
+            0%, 100% { transform: translate(0, 0) scale(1.1); }
+            50% { transform: translate(-40px, -20px) scale(1); }
         }
 
-        @keyframes float3 {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; }
+        @keyframes orbPulse {
+            0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.3); }
         }
 
-        /* Header Styles */
-        .main-title {
+        /* Header */
+        .header-title {
             font-family: 'Orbitron', monospace;
             font-weight: 900;
-            font-size: clamp(2.5rem, 8vw, 5rem);
-            letter-spacing: 0.15em;
+            font-size: clamp(2.2rem, 7vw, 4.5rem);
+            letter-spacing: 0.25em;
             text-transform: uppercase;
-            background: linear-gradient(135deg, #00e5ff 0%, #00b8d4 50%, #00e5ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            position: relative;
-            display: inline-block;
+            color: var(--neon-blue-bright);
+            text-shadow: 
+                0 0 10px var(--neon-glow),
+                0 0 40px var(--neon-glow),
+                0 0 80px var(--neon-glow),
+                0 0 120px rgba(0, 229, 255, 0.3);
+            animation: titlePulse 4s ease-in-out infinite;
         }
 
-        .main-title::before {
-            content: attr(data-text);
-            position: absolute;
-            left: 0;
-            top: 0;
-            z-index: -1;
-            background: linear-gradient(135deg, #00e5ff, #00b8d4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: blur(30px);
-            opacity: 0.7;
+        @keyframes titlePulse {
+            0%, 100% { 
+                text-shadow: 
+                    0 0 10px var(--neon-glow),
+                    0 0 40px var(--neon-glow),
+                    0 0 80px var(--neon-glow);
+            }
+            50% { 
+                text-shadow: 
+                    0 0 20px var(--neon-glow),
+                    0 0 60px var(--neon-glow),
+                    0 0 120px var(--neon-glow),
+                    0 0 160px rgba(0, 229, 255, 0.4);
+            }
         }
 
-        .title-line {
+        .header-line {
             height: 3px;
-            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
-            box-shadow: 0 0 30px var(--neon-blue-glow);
-            animation: linePulse 3s ease-in-out infinite;
+            background: linear-gradient(90deg, transparent 0%, var(--neon-blue) 20%, var(--neon-blue-bright) 50%, var(--neon-blue) 80%, transparent 100%);
+            box-shadow: 0 0 30px var(--neon-glow), 0 0 60px var(--neon-glow-soft);
+            animation: lineGlow 3s ease-in-out infinite;
         }
 
-        @keyframes linePulse {
-            0%, 100% { opacity: 0.7; transform: scaleX(1); }
-            50% { opacity: 1; transform: scaleX(1.05); }
+        @keyframes lineGlow {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
         }
 
-        /* Stats Panel */
-        .stats-panel {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 1rem;
-        }
-
-        .stat-item {
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(0, 150, 255, 0.04));
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1rem 2rem;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .stat-item:hover {
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
-            transform: translateY(-3px);
-        }
-
-        .stat-value {
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
-            font-size: 2rem;
-            color: var(--neon-blue);
-            text-shadow: 0 0 20px var(--neon-blue-glow);
-        }
-
-        .stat-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-        }
-
-        /* Search Input */
-        .search-container {
-            position: relative;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .search-input {
-            width: 100%;
-            background: rgba(0, 229, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 50px;
-            padding: 1rem 1.5rem 1rem 3.5rem;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 40px rgba(0, 229, 255, 0.2), inset 0 0 20px rgba(0, 229, 255, 0.05);
-        }
-
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 1.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--neon-blue-dim);
-        }
-
-        /* Card Styles */
+        /* Cards */
         .report-card {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-glow);
             border-radius: 16px;
-            padding: 1.5rem;
             backdrop-filter: blur(15px);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 0;
-            transform: translateY(40px) scale(0.95);
+            transform: translateY(40px) scale(0.98);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .report-card.visible {
@@ -241,161 +184,165 @@
         .report-card:hover {
             border-color: var(--neon-blue);
             box-shadow: 
-                0 0 50px rgba(0, 229, 255, 0.15),
-                0 20px 60px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(0, 229, 255, 0.1);
-            transform: translateY(-5px) scale(1.01);
+                0 0 40px rgba(0, 229, 255, 0.15),
+                0 0 80px rgba(0, 229, 255, 0.05),
+                inset 0 0 60px rgba(0, 229, 255, 0.03);
+            transform: translateY(-4px) scale(1.01);
         }
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.25rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+        .report-card:hover::before {
+            opacity: 1;
         }
 
         .card-number {
             font-family: 'Orbitron', monospace;
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: var(--neon-blue);
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(0, 150, 255, 0.1));
-            padding: 0.4rem 1rem;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
+            font-weight: 700;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            color: var(--neon-blue-bright);
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(0, 150, 200, 0.1) 100%);
+            padding: 6px 16px;
+            border-radius: 30px;
+            border: 1px solid var(--border-glow);
+            text-shadow: 0 0 10px var(--neon-glow);
         }
 
-        .card-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        /* Field Styles */
-        .field-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .field-group:last-child {
-            margin-bottom: 0;
-        }
-
+        /* Editable fields */
         .field-label {
             font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 0.2em;
             color: var(--neon-blue-dim);
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .field-label::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            background: var(--neon-blue);
-            border-radius: 2px;
-            box-shadow: 0 0 10px var(--neon-blue-glow);
-        }
-
-        .field-content {
-            position: relative;
+            margin-bottom: 8px;
+            font-weight: 600;
         }
 
         .editable-field {
-            width: 100%;
-            background: rgba(0, 229, 255, 0.03);
-            border: 1px solid transparent;
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
             color: var(--text-primary);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            resize: vertical;
-            min-height: 60px;
+            line-height: 1.7;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid transparent;
             transition: all 0.3s ease;
-            font-family: inherit;
+            min-height: 44px;
+            background: transparent;
+            outline: none;
         }
 
         .editable-field:hover {
-            background: rgba(0, 229, 255, 0.06);
-            border-color: rgba(0, 229, 255, 0.2);
+            background: rgba(0, 229, 255, 0.03);
+            border-color: var(--border-glow);
         }
 
         .editable-field:focus {
-            outline: none;
-            background: rgba(0, 229, 255, 0.08);
+            background: rgba(0, 229, 255, 0.06);
             border-color: var(--neon-blue);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.15), inset 0 0 20px rgba(0, 229, 255, 0.03);
         }
 
-        .field-title .editable-field {
-            font-weight: 600;
-            font-size: 1.1rem;
+        .editable-field.title-field {
+            font-size: 1.15rem;
+            font-weight: 700;
         }
 
-        .field-toolbar {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
+        /* Memo sections */
+        .memo-section {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.06) 0%, rgba(0, 100, 150, 0.04) 100%);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 14px 18px;
+            transition: all 0.3s ease;
+        }
+
+        .memo-section:hover {
+            border-color: rgba(0, 229, 255, 0.4);
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(0, 100, 150, 0.06) 100%);
         }
 
         /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 0.875rem;
-            border-radius: 6px;
+        .action-btn {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.12) 0%, rgba(0, 150, 200, 0.08) 100%);
+            border: 1px solid var(--border-glow);
+            color: var(--neon-blue);
+            padding: 8px 14px;
+            border-radius: 8px;
             font-size: 0.75rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Space Grotesk', sans-serif;
         }
 
-        .btn-copy {
-            background: rgba(0, 229, 255, 0.1);
-            border-color: var(--border-color);
-            color: var(--neon-blue);
-        }
-
-        .btn-copy:hover {
-            background: rgba(0, 229, 255, 0.2);
+        .action-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2) 0%, rgba(0, 150, 200, 0.15) 100%);
             border-color: var(--neon-blue);
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.25);
+            transform: translateY(-2px);
         }
 
-        .btn-copy.copied {
-            background: rgba(0, 255, 136, 0.15);
-            border-color: #00ff88;
-            color: #00ff88;
+        .action-btn:active {
+            transform: translateY(0) scale(0.98);
         }
 
-        .btn-reset {
-            background: rgba(255, 170, 0, 0.1);
-            border-color: rgba(255, 170, 0, 0.3);
-            color: #ffaa00;
+        .action-btn.copied {
+            background: linear-gradient(135deg, rgba(0, 255, 150, 0.2) 0%, rgba(0, 200, 100, 0.1) 100%);
+            border-color: #00ff96;
+            color: #00ff96;
+            box-shadow: 0 0 25px rgba(0, 255, 150, 0.25);
         }
 
-        .btn-reset:hover {
-            background: rgba(255, 170, 0, 0.2);
-            border-color: #ffaa00;
+        /* Stats */
+        .stat-box {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(0, 100, 150, 0.04) 100%);
+            border: 1px solid var(--border-glow);
+            border-radius: 14px;
+            padding: 18px 28px;
+            text-align: center;
+            transition: all 0.3s ease;
         }
 
-        /* Memo Badge */
-        .memo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.05), rgba(0, 100, 255, 0.03));
-            border-radius: 12px;
-            padding: 1rem;
-            border: 1px solid rgba(0, 229, 255, 0.1);
+        .stat-box:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.15);
+        }
+
+        .stat-number {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 1.8rem;
+            color: var(--neon-blue-bright);
+            text-shadow: 0 0 30px var(--neon-glow);
+        }
+
+        /* Search */
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            background: rgba(0, 229, 255, 0.04);
+            border: 1px solid var(--border-glow);
+            border-radius: 14px;
+            padding: 16px 24px 16px 52px;
+            color: var(--text-primary);
+            width: 100%;
+            font-size: 1rem;
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.2), inset 0 0 20px rgba(0, 229, 255, 0.02);
+            background: rgba(0, 229, 255, 0.06);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
         }
 
         /* Loading */
@@ -403,77 +350,33 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 5rem 2rem;
+            gap: 20px;
+            padding: 80px;
         }
 
         .loader-ring {
             width: 60px;
             height: 60px;
-            border: 3px solid rgba(0, 229, 255, 0.1);
+            border: 3px solid transparent;
             border-top-color: var(--neon-blue);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
+            box-shadow: 0 0 30px var(--neon-glow);
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        .loader-text {
-            margin-top: 1.5rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        /* Empty State */
+        /* Empty state */
         .empty-state {
             text-align: center;
-            padding: 4rem 2rem;
-        }
-
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1.5rem;
-            color: var(--neon-blue-dim);
-            opacity: 0.5;
-        }
-
-        /* Toast Notification */
-        .toast {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 150, 255, 0.15));
-            border: 1px solid var(--neon-blue);
-            border-radius: 10px;
-            padding: 1rem 2rem;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 0 40px rgba(0, 229, 255, 0.3);
-            z-index: 1000;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
+            padding: 80px 20px;
         }
 
         /* Scrollbar */
         ::-webkit-scrollbar {
-            width: 10px;
+            width: 8px;
         }
 
         ::-webkit-scrollbar-track {
@@ -481,15 +384,38 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, var(--neon-blue-dim), var(--neon-blue));
-            border-radius: 5px;
+            background: linear-gradient(180deg, var(--neon-blue), var(--neon-blue-dim));
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--neon-blue);
+            background: var(--neon-blue-bright);
         }
 
-        /* Reduced Motion */
+        /* Notification toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(0, 150, 200, 0.1) 100%);
+            border: 1px solid var(--neon-blue);
+            border-radius: 12px;
+            padding: 14px 28px;
+            color: var(--neon-blue-bright);
+            font-weight: 600;
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -498,85 +424,81 @@
             }
         }
 
-        /* Mobile Responsive */
         @media (max-width: 640px) {
-            .report-card {
-                padding: 1rem;
+            .card-number {
+                font-size: 0.6rem;
+                padding: 4px 10px;
             }
             
-            .memo-grid {
-                grid-template-columns: 1fr;
+            .editable-field {
+                padding: 8px 10px;
             }
             
-            .stat-item {
-                padding: 0.75rem 1.25rem;
-            }
-            
-            .stat-value {
-                font-size: 1.5rem;
+            .editable-field.title-field {
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
     <!-- Background Effects -->
-    <div class="grid-bg"></div>
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
 
     <!-- Main Content -->
     <main class="relative z-10 min-h-screen px-4 py-10 md:px-8 lg:px-16">
         <!-- Header -->
-        <header class="text-center mb-12">
-            <h1 class="main-title mb-6" data-text="REPORT LINE">REPORT LINE</h1>
-            <div class="title-line max-w-lg mx-auto mb-8"></div>
-            
-            <!-- Stats -->
-            <div class="stats-panel mb-10">
-                <div class="stat-item">
-                    <div class="stat-value" id="totalCount">0</div>
-                    <div class="stat-label">Total Data</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="filteredCount">0</div>
-                    <div class="stat-label">Ditampilkan</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="editedCount">0</div>
-                    <div class="stat-label">Di Edit</div>
-                </div>
+        <header class="text-center mb-14">
+            <h1 class="header-title mb-6">REPORT LINE</h1>
+            <div class="header-line max-w-lg mx-auto mb-8"></div>
+            <p class="text-[var(--text-muted)] text-sm tracking-widest uppercase">Sistem Laporan Terintegrasi Real-time</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="flex flex-wrap justify-center gap-4 mb-10">
+            <div class="stat-box">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="text-xs text-[var(--text-muted)] mt-2 uppercase tracking-widest font-medium">Total Data</div>
             </div>
-            
-            <!-- Search -->
-            <div class="search-container">
-                <svg class="search-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="stat-box">
+                <div class="stat-number" id="filteredCount">0</div>
+                <div class="text-xs text-[var(--text-muted)] mt-2 uppercase tracking-widest font-medium">Ditampilkan</div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="max-w-2xl mx-auto mb-12">
+            <div class="search-wrapper">
+                <svg class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--neon-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input type="text" id="searchInput" class="search-input" placeholder="Cari judul, isi report, atau memo...">
             </div>
-        </header>
+        </div>
 
         <!-- Data Container -->
         <div id="dataContainer" class="max-w-5xl mx-auto">
-            <!-- Loading State -->
+            <!-- Loading -->
             <div class="loader-container" id="loader">
                 <div class="loader-ring"></div>
-                <div class="loader-text">Memuat data dari server...</div>
+                <p class="text-[var(--text-muted)] text-sm tracking-wide">Memuat data...</p>
             </div>
         </div>
 
         <!-- Empty State -->
         <div id="emptyState" class="empty-state hidden">
-            <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-20 h-20 mx-auto mb-6 text-[var(--neon-blue-dim)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            <p class="text-lg text-[var(--text-muted)]">Tidak ada data ditemukan</p>
+            <p class="text-xl text-[var(--text-muted)]">Tidak ada data ditemukan</p>
+            <p class="text-sm mt-3 text-[var(--text-muted)] opacity-70">Pastikan Google Sheet sudah dipublikasikan</p>
         </div>
     </main>
-
-    <!-- Toast -->
-    <div id="toast" class="toast"></div>
 
     <script>
         // Configuration
@@ -586,24 +508,26 @@
 
         // State
         let allData = [];
-        let originalData = {};
-        let editedCount = 0;
+        let filteredData = [];
 
-        // DOM Elements
-        const dataContainer = document.getElementById('dataContainer');
-        const loader = document.getElementById('loader');
-        const emptyState = document.getElementById('emptyState');
-        const searchInput = document.getElementById('searchInput');
-        const totalCountEl = document.getElementById('totalCount');
-        const filteredCountEl = document.getElementById('filteredCount');
-        const editedCountEl = document.getElementById('editedCount');
-        const toast = document.getElementById('toast');
+        // DOM Elements - initialized after DOM ready
+        let dataContainer = null;
+        let loader = null;
+        let emptyState = null;
+        let searchInput = null;
+        let totalCountEl = null;
+        let filteredCountEl = null;
+        let toastEl = null;
 
-        // Show toast notification
-        function showToast(message) {
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2500);
+        // Initialize DOM references
+        function initDOM() {
+            dataContainer = document.getElementById('dataContainer');
+            loader = document.getElementById('loader');
+            emptyState = document.getElementById('emptyState');
+            searchInput = document.getElementById('searchInput');
+            totalCountEl = document.getElementById('totalCount');
+            filteredCountEl = document.getElementById('filteredCount');
+            toastEl = document.getElementById('toast');
         }
 
         // Parse CSV with proper handling
@@ -614,22 +538,22 @@
             
             for (let i = 0; i < csv.length; i++) {
                 const char = csv[i];
-                const nextChar = csv[i + 1];
                 
-                if (char === '"' && inQuotes && nextChar === '"') {
-                    current += '"';
-                    i++;
-                } else if (char === '"') {
+                if (char === '"') {
                     inQuotes = !inQuotes;
-                } else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !inQuotes) {
-                    if (current.trim()) lines.push(current.trim());
+                } else if ((char === '\n' || (char === '\r' && csv[i + 1] === '\n')) && !inQuotes) {
+                    if (current.trim()) {
+                        lines.push(current.trim());
+                    }
                     current = '';
                     if (char === '\r') i++;
                 } else {
                     current += char;
                 }
             }
-            if (current.trim()) lines.push(current.trim());
+            if (current.trim()) {
+                lines.push(current.trim());
+            }
 
             return lines.map(line => {
                 const fields = [];
@@ -638,12 +562,7 @@
                 
                 for (let i = 0; i < line.length; i++) {
                     const c = line[i];
-                    const nc = line[i + 1];
-                    
-                    if (c === '"' && inQ && nc === '"') {
-                        field += '"';
-                        i++;
-                    } else if (c === '"') {
+                    if (c === '"') {
                         inQ = !inQ;
                     } else if (c === ',' && !inQ) {
                         fields.push(field.trim());
@@ -657,194 +576,206 @@
             });
         }
 
-        // Escape HTML
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Escape for JS string
-        function escapeJS(text) {
-            if (!text) return '';
-            return text
-                .replace(/\\/g, '\\\\')
-                .replace(/'/g, "\\'")
-                .replace(/"/g, '\\"')
-                .replace(/\n/g, '\\n')
-                .replace(/\r/g, '\\r');
-        }
-
-        // Fetch data from Google Sheets
+        // Fetch data
         async function fetchData() {
             try {
                 const response = await fetch(CSV_URL);
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) throw new Error('Failed to fetch');
                 
                 const csv = await response.text();
                 const rows = parseCSV(csv);
                 
-                // Process data (skip header)
+                // Skip header row and process data (columns A, B, C, D)
                 allData = rows.slice(1)
                     .map((row, index) => {
-                        const judul = (row[0] || '').trim();
-                        const isi = (row[1] || '').trim();
-                        const tujuanMemo = (row[2] || '').trim();
-                        const tujuanReport = (row[3] || '').trim();
+                        const judul = row[0] || '';
+                        const isi = row[1] || '';
+                        const tujuanMemo = row[2] || '';
+                        const tujuanReport = row[3] || '';
                         
-                        // Skip empty rows
+                        // Skip if all fields empty
                         if (!judul && !isi && !tujuanMemo && !tujuanReport) return null;
                         
-                        const item = {
-                            id: `item-${index + 1}`,
-                            index: index + 1,
+                        return {
+                            id: index + 1,
                             judul,
                             isi,
                             tujuanMemo,
                             tujuanReport
                         };
-                        
-                        // Store original
-                        originalData[item.id] = { ...item };
-                        
-                        return item;
                     })
                     .filter(item => item !== null);
                 
-                renderData(allData);
-                updateStats(allData.length);
+                filteredData = [...allData];
+                renderData();
             } catch (error) {
-                console.error('Fetch error:', error);
+                console.error('Error:', error);
                 showError();
             }
         }
 
-        // Show error state
+        // Show error
         function showError() {
-            loader.innerHTML = `
-                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-                <p class="text-lg text-red-400 mt-4">Gagal memuat data</p>
-                <p class="text-sm text-[var(--text-muted)] mt-2">Pastikan Google Sheet sudah dipublikasikan</p>
-                <p class="text-xs text-[var(--text-muted)] mt-1">File → Share → Publish to web</p>
-            `;
+            if (loader) loader.classList.add('hidden');
+            if (emptyState) {
+                emptyState.classList.remove('hidden');
+                emptyState.innerHTML = `
+                    <svg class="w-20 h-20 mx-auto mb-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <p class="text-xl text-red-400">Gagal memuat data</p>
+                    <p class="text-sm mt-3 text-[var(--text-muted)]">Pastikan Google Sheet sudah dipublikasikan:</p>
+                    <p class="text-xs mt-2 text-[var(--text-muted)] opacity-70">File → Share → Publish to web</p>
+                `;
+            }
         }
 
-        // Update stats
-        function updateStats(filtered) {
-            totalCountEl.textContent = allData.length;
-            filteredCountEl.textContent = filtered;
-            editedCountEl.textContent = editedCount;
+        // Show toast notification
+        function showToast(message) {
+            if (!toastEl) return;
+            toastEl.textContent = message;
+            toastEl.classList.add('show');
+            setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, 2500);
         }
 
         // Render data
-        function renderData(data) {
-            loader.classList.add('hidden');
+        function renderData() {
+            if (loader) loader.classList.add('hidden');
             
-            if (data.length === 0) {
-                emptyState.classList.remove('hidden');
-                dataContainer.innerHTML = '';
+            // Update counts
+            if (totalCountEl) totalCountEl.textContent = allData.length;
+            if (filteredCountEl) filteredCountEl.textContent = filteredData.length;
+            
+            if (filteredData.length === 0) {
+                if (emptyState) emptyState.classList.remove('hidden');
+                if (dataContainer) dataContainer.innerHTML = '';
                 return;
             }
             
-            emptyState.classList.add('hidden');
+            if (emptyState) emptyState.classList.add('hidden');
             
-            const html = data.map((item, i) => `
-                <article class="report-card mb-5" id="${item.id}" style="transition-delay: ${Math.min(i * 60, 500)}ms">
-                    <div class="card-header">
-                        <span class="card-number">#${String(item.index).padStart(3, '0')}</span>
-                        <div class="card-actions">
-                            <button class="btn btn-reset" onclick="resetItem('${item.id}')" title="Reset ke data asli">
+            // Build HTML
+            const html = filteredData.map((item, i) => `
+                <article class="report-card p-6 md:p-8 mb-5" style="transition-delay: ${Math.min(i * 60, 500)}ms" data-id="${item.id}">
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="card-number">#${String(item.id).padStart(3, '0')}</span>
+                        <div class="flex gap-2">
+                            <button class="action-btn" onclick="copyAllFields(${item.id}, this)" title="Copy Semua">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                 </svg>
-                                Reset
+                                Copy All
                             </button>
                         </div>
                     </div>
                     
-                    <!-- JUDUL -->
                     ${item.judul ? `
-                    <div class="field-group field-title">
+                    <div class="mb-5">
                         <div class="field-label">Judul</div>
-                        <div class="field-content">
-                            <textarea class="editable-field" id="${item.id}-judul" oninput="checkEdit('${item.id}')">${escapeHtml(item.judul)}</textarea>
-                            <div class="field-toolbar">
-                                <button class="btn btn-copy" onclick="copyField('${item.id}-judul', this)">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                    </svg>
-                                    <span>Copy</span>
-                                </button>
-                            </div>
+                        <div class="flex items-start gap-3">
+                            <div 
+                                class="editable-field title-field flex-1" 
+                                contenteditable="true" 
+                                data-field="judul" 
+                                data-id="${item.id}"
+                                onblur="saveEdit(this)"
+                            >${escapeHtml(item.judul)}</div>
+                            <button class="action-btn flex-shrink-0" onclick="copyField('judul', ${item.id}, this)" title="Copy Judul">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
-                    ` : ''}
+                    ` : `
+                    <div class="mb-5">
+                        <div class="field-label">Judul</div>
+                        <div class="flex items-start gap-3">
+                            <div 
+                                class="editable-field title-field flex-1 text-[var(--text-muted)] italic" 
+                                contenteditable="true" 
+                                data-field="judul" 
+                                data-id="${item.id}"
+                                onblur="saveEdit(this)"
+                                data-placeholder="true"
+                            >Klik untuk menambah judul...</div>
+                        </div>
+                    </div>
+                    `}
                     
-                    <!-- ISI REPORT -->
                     ${item.isi ? `
-                    <div class="field-group">
+                    <div class="mb-5">
                         <div class="field-label">Isi Report</div>
-                        <div class="field-content">
-                            <textarea class="editable-field" style="min-height: 100px" id="${item.id}-isi" oninput="checkEdit('${item.id}')">${escapeHtml(item.isi)}</textarea>
-                            <div class="field-toolbar">
-                                <button class="btn btn-copy" onclick="copyField('${item.id}-isi', this)">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                    </svg>
-                                    <span>Copy</span>
-                                </button>
-                            </div>
+                        <div class="flex items-start gap-3">
+                            <div 
+                                class="editable-field flex-1 whitespace-pre-wrap" 
+                                contenteditable="true" 
+                                data-field="isi" 
+                                data-id="${item.id}"
+                                onblur="saveEdit(this)"
+                            >${escapeHtml(item.isi)}</div>
+                            <button class="action-btn flex-shrink-0" onclick="copyField('isi', ${item.id}, this)" title="Copy Isi">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
-                    ` : ''}
+                    ` : `
+                    <div class="mb-5">
+                        <div class="field-label">Isi Report</div>
+                        <div class="flex items-start gap-3">
+                            <div 
+                                class="editable-field flex-1 text-[var(--text-muted)] italic" 
+                                contenteditable="true" 
+                                data-field="isi" 
+                                data-id="${item.id}"
+                                onblur="saveEdit(this)"
+                                data-placeholder="true"
+                            >Klik untuk menambah isi report...</div>
+                        </div>
+                    </div>
+                    `}
                     
-                    <!-- TUJUAN MEMO & REPORT -->
-                    ${(item.tujuanMemo || item.tujuanReport) ? `
-                    <div class="memo-grid">
-                        ${item.tujuanMemo ? `
-                        <div class="field-group" style="margin-bottom: 0">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${item.tujuanMemo || true ? `
+                        <div class="memo-section">
                             <div class="field-label">Tujuan Memo</div>
-                            <div class="field-content">
-                                <textarea class="editable-field" style="min-height: 70px" id="${item.id}-memo" oninput="checkEdit('${item.id}')">${escapeHtml(item.tujuanMemo)}</textarea>
-                                <div class="field-toolbar">
-                                    <button class="btn btn-copy" onclick="copyField('${item.id}-memo', this)">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span>Copy</span>
-                                    </button>
-                                </div>
-                            </div>
+                            <div 
+                                class="editable-field" 
+                                contenteditable="true" 
+                                data-field="tujuanMemo" 
+                                data-id="${item.id}"
+                                onblur="saveEdit(this)"
+                                data-placeholder="${!item.tujuanMemo ? 'true' : 'false'}"
+                            >${item.tujuanMemo ? escapeHtml(item.tujuanMemo) : '<span class="text-[var(--text-muted)] italic">Klik untuk edit...</span>'}</div>
                         </div>
                         ` : ''}
                         
-                        ${item.tujuanReport ? `
-                        <div class="field-group" style="margin-bottom: 0">
-                            <div class="field-label">Tujuan Report & Memo</div>
-                            <div class="field-content">
-                                <textarea class="editable-field" style="min-height: 70px" id="${item.id}-report" oninput="checkEdit('${item.id}')">${escapeHtml(item.tujuanReport)}</textarea>
-                                <div class="field-toolbar">
-                                    <button class="btn btn-copy" onclick="copyField('${item.id}-report', this)">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span>Copy</span>
-                                    </button>
-                                </div>
-                            </div>
+                        ${item.tujuanReport || true ? `
+                        <div class="memo-section">
+                            <div class="field-label">Tujuan Report dan Memo</div>
+                            <div 
+                                class="editable-field" 
+                                contenteditable="true" 
+                                data-field="tujuanReport" 
+                                data-id="${item.id}"
+                                onblur="saveEdit(this)"
+                                data-placeholder="${!item.tujuanReport ? 'true' : 'false'}"
+                            >${item.tujuanReport ? escapeHtml(item.tujuanReport) : '<span class="text-[var(--text-muted)] italic">Klik untuk edit...</span>'}</div>
                         </div>
                         ` : ''}
                     </div>
-                    ` : ''}
                 </article>
             `).join('');
             
-            dataContainer.innerHTML = html;
+            if (dataContainer) {
+                dataContainer.innerHTML = html;
+            }
             
-            // Animate cards
+            // Animate cards with IntersectionObserver
             requestAnimationFrame(() => {
                 const cards = document.querySelectorAll('.report-card');
                 const observer = new IntersectionObserver((entries) => {
@@ -853,154 +784,118 @@
                             entry.target.classList.add('visible');
                         }
                     });
-                }, { threshold: 0.05, rootMargin: '50px' });
+                }, { threshold: 0.1, rootMargin: '50px' });
                 
                 cards.forEach(card => observer.observe(card));
             });
+
+            // Setup placeholder handlers
+            setupPlaceholderHandlers();
         }
 
-        // Copy field content
-        function copyField(fieldId, btn) {
-            const field = document.getElementById(fieldId);
-            if (!field) return;
+        // Setup placeholder click handlers
+        function setupPlaceholderHandlers() {
+            const placeholders = document.querySelectorAll('[data-placeholder="true"]');
+            placeholders.forEach(el => {
+                el.addEventListener('focus', function() {
+                    if (this.dataset.placeholder === 'true') {
+                        this.innerHTML = '';
+                        this.classList.remove('text-[var(--text-muted)]', 'italic');
+                        this.dataset.placeholder = 'false';
+                    }
+                });
+            });
+        }
+
+        // Save edit
+        function saveEdit(element) {
+            const field = element.dataset.field;
+            const id = parseInt(element.dataset.id);
+            const value = element.textContent.trim();
             
-            navigator.clipboard.writeText(field.value).then(() => {
-                btn.classList.add('copied');
-                btn.querySelector('span').textContent = 'Copied!';
-                showToast('Berhasil disalin ke clipboard');
+            // Update local data
+            const item = allData.find(d => d.id === id);
+            if (item) {
+                item[field] = value;
+            }
+            
+            // Show notification
+            showToast('Data diperbarui secara lokal');
+        }
+
+        // Copy single field
+        function copyField(field, id, btn) {
+            const item = allData.find(d => d.id === id);
+            if (item && item[field]) {
+                navigator.clipboard.writeText(item[field]).then(() => {
+                    btn.classList.add('copied');
+                    showToast(`${field.charAt(0).toUpperCase() + field.slice(1)} berhasil dicopy`);
+                    setTimeout(() => btn.classList.remove('copied'), 2000);
+                });
+            }
+        }
+
+        // Copy all fields
+        function copyAllFields(id, btn) {
+            const item = allData.find(d => d.id === id);
+            if (item) {
+                const text = `JUDUL: ${item.judul || '-'}
+ISI REPORT: ${item.isi || '-'}
+TUJUAN MEMO: ${item.tujuanMemo || '-'}
+TUJUAN REPORT & MEMO: ${item.tujuanReport || '-'}`;
                 
-                setTimeout(() => {
-                    btn.classList.remove('copied');
-                    btn.querySelector('span').textContent = 'Copy';
-                }, 2000);
-            }).catch(() => {
-                showToast('Gagal menyalin');
-            });
-        }
-
-        // Check if edited
-        function checkEdit(itemId) {
-            const currentData = getCurrentData(itemId);
-            const original = originalData[itemId];
-            
-            let isEdited = false;
-            if (currentData.judul !== original.judul ||
-                currentData.isi !== original.isi ||
-                currentData.tujuanMemo !== original.tujuanMemo ||
-                currentData.tujuanReport !== original.tujuanReport) {
-                isEdited = true;
+                navigator.clipboard.writeText(text).then(() => {
+                    btn.classList.add('copied');
+                    showToast('Semua data berhasil dicopy');
+                    setTimeout(() => btn.classList.remove('copied'), 2000);
+                });
             }
-            
-            const card = document.getElementById(itemId);
-            if (card) {
-                if (isEdited) {
-                    card.style.borderColor = '#ffaa00';
-                    card.style.boxShadow = '0 0 40px rgba(255, 170, 0, 0.2)';
-                } else {
-                    card.style.borderColor = '';
-                    card.style.boxShadow = '';
-                }
-            }
-            
-            // Count edited items
-            countEdits();
         }
 
-        // Get current data from DOM
-        function getCurrentData(itemId) {
-            const judulEl = document.getElementById(`${itemId}-judul`);
-            const isiEl = document.getElementById(`${itemId}-isi`);
-            const memoEl = document.getElementById(`${itemId}-memo`);
-            const reportEl = document.getElementById(`${itemId}-report`);
-            
-            return {
-                judul: judulEl ? judulEl.value : '',
-                isi: isiEl ? isiEl.value : '',
-                tujuanMemo: memoEl ? memoEl.value : '',
-                tujuanReport: reportEl ? reportEl.value : ''
-            };
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
-        // Count total edits
-        function countEdits() {
-            let count = 0;
-            allData.forEach(item => {
-                const current = getCurrentData(item.id);
-                const original = originalData[item.id];
-                if (current.judul !== original.judul ||
-                    current.isi !== original.isi ||
-                    current.tujuanMemo !== original.tujuanMemo ||
-                    current.tujuanReport !== original.tujuanReport) {
-                    count++;
-                }
-            });
-            editedCount = count;
-            editedCountEl.textContent = editedCount;
-        }
-
-        // Reset item to original
-        function resetItem(itemId) {
-            const original = originalData[itemId];
-            if (!original) return;
-            
-            const judulEl = document.getElementById(`${itemId}-judul`);
-            const isiEl = document.getElementById(`${itemId}-isi`);
-            const memoEl = document.getElementById(`${itemId}-memo`);
-            const reportEl = document.getElementById(`${itemId}-report`);
-            
-            if (judulEl) judulEl.value = original.judul;
-            if (isiEl) isiEl.value = original.isi;
-            if (memoEl) memoEl.value = original.tujuanMemo;
-            if (reportEl) reportEl.value = original.tujuanReport;
-            
-            const card = document.getElementById(itemId);
-            if (card) {
-                card.style.borderColor = '';
-                card.style.boxShadow = '';
-            }
-            
-            countEdits();
-            showToast('Data berhasil direset');
-        }
-
-        // Search functionality
+        // Search handler
         function handleSearch(e) {
             const query = e.target.value.toLowerCase().trim();
             
-            let filtered;
             if (!query) {
-                filtered = allData;
+                filteredData = [...allData];
             } else {
-                filtered = allData.filter(item => {
-                    // Also search in edited values
-                    const current = getCurrentData(item.id);
-                    return (
-                        current.judul.toLowerCase().includes(query) ||
-                        current.isi.toLowerCase().includes(query) ||
-                        current.tujuanMemo.toLowerCase().includes(query) ||
-                        current.tujuanReport.toLowerCase().includes(query)
-                    );
-                });
+                filteredData = allData.filter(item => 
+                    (item.judul && item.judul.toLowerCase().includes(query)) ||
+                    (item.isi && item.isi.toLowerCase().includes(query)) ||
+                    (item.tujuanMemo && item.tujuanMemo.toLowerCase().includes(query)) ||
+                    (item.tujuanReport && item.tujuanReport.toLowerCase().includes(query))
+                );
             }
             
-            renderData(filtered);
-            updateStats(filtered.length);
+            renderData();
         }
 
-        // Debounce function
+        // Debounce utility
         function debounce(fn, delay) {
             let timer = null;
             return function(...args) {
-                clearTimeout(timer);
+                if (timer) clearTimeout(timer);
                 timer = setTimeout(() => fn.apply(this, args), delay);
             };
         }
 
-        // Event listeners
-        searchInput.addEventListener('input', debounce(handleSearch, 350));
-
         // Initialize
-        fetchData();
+        document.addEventListener('DOMContentLoaded', function() {
+            initDOM();
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(handleSearch, 300));
+            }
+            
+            fetchData();
+        });
     </script>
 </body>
 </html>
