@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LINE TOGEL - Bonus Event System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>LINE TOGEL - Bonus Event</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
-            --bg-deep: #000810;
-            --bg-primary: #001020;
-            --bg-secondary: #001830;
-            --bg-card: rgba(0, 40, 80, 0.4);
-            --neon-cyan: #00e5ff;
-            --neon-blue: #00a8e8;
-            --neon-electric: #00d4ff;
-            --neon-glow: #00ffff;
-            --neon-green: #00ff9d;
-            --neon-yellow: #ffd600;
-            --neon-red: #ff3d5a;
-            --text-primary: #e8f7ff;
-            --text-secondary: #7ec8e3;
-            --border-glow: rgba(0, 229, 255, 0.3);
+            --bg-primary: #000814;
+            --bg-secondary: #001d3d;
+            --bg-card: #002855;
+            --accent: #00d4ff;
+            --accent-glow: #00ffff;
+            --accent-dim: #0099cc;
+            --text-primary: #ffffff;
+            --text-secondary: #90e0ef;
+            --border: #00d4ff44;
+            --danger: #ff4757;
+            --success: #00ff88;
         }
 
         * {
@@ -33,109 +30,103 @@
 
         body {
             font-family: 'Rajdhani', sans-serif;
-            background: var(--bg-deep);
+            background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
-            position: relative;
         }
 
-        .bg-layer {
+        /* Animated Background */
+        .bg-animated {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -2;
+            z-index: -1;
             background: 
-                radial-gradient(ellipse at 20% 20%, rgba(0, 168, 232, 0.1) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(0, 229, 255, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 50%, rgba(0, 100, 150, 0.05) 0%, transparent 70%),
-                linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-primary) 50%, var(--bg-secondary) 100%);
+                radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0, 153, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(0, 40, 85, 0.8) 0%, transparent 70%),
+                var(--bg-primary);
         }
 
-        .grid-layer {
-            position: fixed;
+        .bg-animated::before {
+            content: '';
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
-            background-image: 
-                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: gridScroll 30s linear infinite;
-        }
-
-        @keyframes gridScroll {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
-        }
-
-        .particles-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
             pointer-events: none;
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
         }
 
         .particle {
             position: absolute;
             width: 4px;
             height: 4px;
-            background: var(--neon-cyan);
+            background: var(--accent);
             border-radius: 50%;
-            box-shadow: 
-                0 0 10px var(--neon-cyan),
-                0 0 20px var(--neon-electric),
-                0 0 30px rgba(0, 229, 255, 0.5);
-            animation: floatParticle 10s ease-in-out infinite;
+            box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent);
+            animation: float 15s infinite ease-in-out;
             opacity: 0.6;
         }
 
-        @keyframes floatParticle {
-            0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.3; }
-            50% { transform: translateY(-200px) translateX(-20px) scale(0.8); opacity: 0.5; }
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
         }
 
-        .glow-orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.15;
-            animation: orbPulse 8s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: -1;
+        /* Neon Glow Text */
+        .judul-glow {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 900;
+            text-align: center;
+            color: var(--accent);
+            text-shadow: 
+                0 0 10px var(--accent),
+                0 0 20px var(--accent),
+                0 0 40px var(--accent),
+                0 0 80px var(--accent-glow);
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+            animation: pulse-glow 2s ease-in-out infinite alternate;
         }
 
-        .glow-orb-1 {
-            width: 400px;
-            height: 400px;
-            background: var(--neon-blue);
-            top: -100px;
-            left: -100px;
+        @keyframes pulse-glow {
+            from { text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent), 0 0 40px var(--accent); }
+            to { text-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent), 0 0 80px var(--accent), 0 0 120px var(--accent-glow); }
         }
 
-        .glow-orb-2 {
-            width: 500px;
-            height: 500px;
-            background: var(--neon-cyan);
-            bottom: -150px;
-            right: -150px;
-            animation-delay: 4s;
+        .bonus-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-primary);
+            text-shadow: 0 0 20px var(--accent);
+            margin-bottom: 20px;
         }
 
-        @keyframes orbPulse {
-            0% { transform: scale(1); opacity: 0.1; }
-            100% { transform: scale(1.2); opacity: 0.2; }
-        }
-
-        .main-container {
+        /* Main Container */
+        .bonus-section {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
@@ -143,954 +134,1188 @@
             z-index: 1;
         }
 
-        .tab-content {
-            display: block;
-            animation: contentFadeIn 0.6s ease-out;
-        }
-
-        @keyframes contentFadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .bonus-section {
-            background: linear-gradient(145deg, var(--bg-card), rgba(0, 60, 100, 0.3));
-            border: 1px solid var(--border-glow);
-            border-radius: 24px;
-            padding: 32px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 0 60px rgba(0, 229, 255, 0.1), 0 20px 60px rgba(0, 0, 0, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .bonus-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-        }
-
-        .judul-glow {
-            font-family: 'Orbitron', monospace;
-            font-size: 32px;
-            font-weight: 900;
-            text-align: center;
-            color: var(--neon-glow);
-            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-blue);
-            margin-bottom: 8px;
-            letter-spacing: 6px;
-            animation: titleGlow 3s ease-in-out infinite alternate;
-        }
-
-        .bonus-title {
-            font-family: 'Orbitron', monospace;
-            font-size: 20px;
-            font-weight: 600;
-            text-align: center;
-            color: var(--text-primary);
-            text-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
-            margin-bottom: 28px;
-            letter-spacing: 3px;
-        }
-
-        @keyframes titleGlow {
-            0% { text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-blue); }
-            100% { text-shadow: 0 0 20px var(--neon-glow), 0 0 40px var(--neon-glow), 0 0 80px var(--neon-cyan); }
-        }
-
+        /* Neon Switch Button */
         .neon-switch-btn {
             font-family: 'Rajdhani', sans-serif;
             font-size: 14px;
             font-weight: 600;
-            padding: 14px 28px;
-            background: linear-gradient(145deg, rgba(0, 40, 80, 0.6), rgba(0, 60, 100, 0.4));
-            border: 1px solid rgba(0, 229, 255, 0.25);
-            color: var(--neon-cyan);
-            border-radius: 12px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 40, 85, 0.3));
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            color: var(--accent);
             cursor: pointer;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             position: relative;
             overflow: hidden;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+        }
+
+        .neon-switch-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .neon-switch-btn:hover::before {
+            left: 100%;
         }
 
         .neon-switch-btn:hover {
-            background: linear-gradient(145deg, rgba(0, 60, 100, 0.8), rgba(0, 80, 120, 0.6));
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
-            transform: translateY(-3px);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 40, 85, 0.5));
+            box-shadow: 0 0 20px var(--accent), inset 0 0 20px rgba(0, 212, 255, 0.1);
+            transform: translateY(-2px);
         }
 
         .neon-switch-btn.active {
-            background: linear-gradient(145deg, rgba(0, 100, 150, 0.9), rgba(0, 130, 180, 0.7));
-            border-color: var(--neon-glow);
-            color: #ffffff;
-            box-shadow: 0 0 40px rgba(0, 229, 255, 0.4);
+            background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+            color: var(--bg-primary);
+            box-shadow: 0 0 30px var(--accent), 0 0 60px rgba(0, 212, 255, 0.5);
+            font-weight: 700;
         }
 
         .neon-switch-btn.danger {
-            border-color: rgba(255, 61, 90, 0.3);
-            color: var(--neon-red);
+            border-color: var(--danger);
+            color: var(--danger);
         }
 
         .neon-switch-btn.danger:hover {
-            background: linear-gradient(145deg, rgba(100, 20, 40, 0.8), rgba(150, 30, 50, 0.6));
-            border-color: var(--neon-red);
-        }
-        
-        .neon-switch-btn.small {
-             padding: 6px 12px; 
-             font-size: 12px; 
-             letter-spacing: 0.5px;
+            background: rgba(255, 71, 87, 0.2);
+            box-shadow: 0 0 20px var(--danger);
         }
 
+        /* Bonus Mode Container */
         .bonus-mode {
-            animation: modeFadeIn 0.5s ease-out;
+            background: linear-gradient(180deg, rgba(0, 29, 61, 0.6), rgba(0, 8, 20, 0.8));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(0, 212, 255, 0.1);
         }
 
-        @keyframes modeFadeIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .bonus-textarea, textarea {
+        /* Textarea & Inputs */
+        .bonus-textarea {
             width: 100%;
-            min-height: 160px;
-            padding: 18px;
-            background: linear-gradient(145deg, rgba(0, 20, 40, 0.9), rgba(0, 30, 60, 0.8));
-            border: 1px solid rgba(0, 229, 255, 0.2);
-            border-radius: 14px;
+            min-height: 150px;
+            padding: 16px;
+            background: rgba(0, 8, 20, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 10px;
             color: var(--text-primary);
             font-family: 'Rajdhani', sans-serif;
-            font-size: 15px;
+            font-size: 14px;
             resize: vertical;
             transition: all 0.3s ease;
-            line-height: 1.7;
         }
 
-        .bonus-textarea:focus, textarea:focus {
+        .bonus-textarea:focus {
             outline: none;
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3), inset 0 0 10px rgba(0, 212, 255, 0.1);
         }
 
-        .bonus-input-group { margin: 18px 0; }
+        .bonus-textarea::placeholder {
+            color: rgba(144, 224, 239, 0.5);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 14px;
+            background: rgba(0, 8, 20, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .bonus-input-group {
+            margin: 15px 0;
+        }
 
         .bonus-label {
             display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--neon-cyan);
-            margin-bottom: 10px;
-            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .bonus-input, input[type="text"] {
+        .bonus-input {
             width: 100%;
-            padding: 14px 18px;
-            background: linear-gradient(145deg, rgba(0, 20, 40, 0.9), rgba(0, 30, 60, 0.8));
-            border: 1px solid rgba(0, 229, 255, 0.2);
-            border-radius: 12px;
+            padding: 12px 16px;
+            background: rgba(0, 8, 20, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
             color: var(--text-primary);
             font-family: 'Rajdhani', sans-serif;
             font-size: 15px;
             transition: all 0.3s ease;
         }
 
-        .bonus-input:focus, input[type="text"]:focus {
+        .bonus-input:focus {
             outline: none;
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 25px rgba(0, 229, 255, 0.2);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
         }
 
-        .bonus-button-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            justify-content: center;
-            margin: 24px 0;
+        .bonus-input::placeholder {
+            color: rgba(144, 224, 239, 0.4);
         }
 
+        /* Buttons */
         .bonus-btn {
             font-family: 'Rajdhani', sans-serif;
             font-size: 14px;
             font-weight: 600;
-            padding: 14px 32px;
-            background: linear-gradient(145deg, rgba(0, 100, 150, 0.8), rgba(0, 140, 180, 0.6));
-            border: 1px solid var(--neon-blue);
-            color: #ffffff;
-            border-radius: 12px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
             cursor: pointer;
-            transition: all 0.35s ease;
+            transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         .bonus-btn:hover {
-            background: linear-gradient(145deg, rgba(0, 140, 180, 0.9), rgba(0, 180, 220, 0.7));
-            box-shadow: 0 0 40px rgba(0, 229, 255, 0.4);
-            transform: translateY(-3px);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+        }
+
+        .bonus-btn:active {
+            transform: translateY(0);
         }
 
         .bonus-btn.danger {
-            background: linear-gradient(145deg, rgba(150, 30, 50, 0.8), rgba(200, 40, 60, 0.6));
-            border-color: var(--neon-red);
-        }
-        
-        .bonus-btn.danger:hover {
-            background: linear-gradient(145deg, rgba(200, 40, 60, 0.9), rgba(255, 50, 80, 0.7));
+            background: linear-gradient(135deg, var(--danger), #cc3344);
         }
 
+        .bonus-btn.danger:hover {
+            box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+        }
+
+        .bonus-button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        /* Result Display */
         .bonus-result {
-            margin-top: 24px;
-            padding: 24px;
-            background: linear-gradient(145deg, rgba(0, 50, 100, 0.3), rgba(0, 70, 120, 0.2));
-            border: 1px solid rgba(0, 229, 255, 0.15);
-            border-radius: 14px;
-            line-height: 2;
+            background: linear-gradient(135deg, rgba(0, 40, 85, 0.5), rgba(0, 29, 61, 0.5));
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            font-size: 16px;
+            line-height: 1.8;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
         }
 
         .bonus-angka {
-            font-family: 'Orbitron', monospace;
+            font-family: 'Orbitron', sans-serif;
             font-weight: 700;
-            color: var(--neon-glow);
-            text-shadow: 0 0 10px var(--neon-cyan);
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent);
         }
 
-        /* Gallery - LARGER IMAGES */
-        .gallery-container { width: 100%; perspective: 1000px; }
+        /* Gallery Container - ENLARGED */
+        .gallery-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            width: 100%;
+        }
 
         .combined-image-slot {
-            background: linear-gradient(145deg, rgba(0, 40, 80, 0.6), rgba(0, 60, 100, 0.4));
-            border: 1px solid var(--border-glow);
-            border-radius: 20px;
-            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0, 40, 85, 0.4), rgba(0, 29, 61, 0.6));
+            border: 2px solid var(--accent);
+            border-radius: 16px;
             cursor: pointer;
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
             width: 100%;
+            max-width: 100%;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
         }
 
         .combined-image-slot:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
-            border-color: var(--neon-cyan);
+            transform: scale(1.01);
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.4);
+            border-color: var(--accent-glow);
         }
 
-        .gallery-images-wrapper {
+        .combined-image-slot .images-row {
             display: flex;
-            gap: 12px;
             justify-content: center;
-            flex-wrap: wrap;
+            gap: 15px;
             width: 100%;
+            flex-wrap: wrap;
         }
 
-        .gallery-img-container {
-            position: relative;
-            flex: 1;
+        .combined-image-slot img {
+            width: calc((100% - 30px) / 3);
             min-width: 200px;
             max-width: 350px;
-        }
-
-        .gallery-img {
-            width: 100%;
             height: auto;
-            min-height: 200px;
-            max-height: 350px;
+            aspect-ratio: 4/3;
             object-fit: cover;
             border-radius: 12px;
-            border: 1px solid rgba(0, 229, 255, 0.15);
+            border: 2px solid var(--accent);
             transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
 
-        .gallery-img:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+        .combined-image-slot img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.4);
         }
 
         .caption-userid {
-            font-family: 'Orbitron', monospace;
+            font-family: 'Orbitron', sans-serif;
             font-size: 18px;
+            color: var(--accent);
+            text-align: center;
             font-weight: 700;
-            text-shadow: 0 0 15px var(--neon-cyan);
-            margin-bottom: 16px;
+            text-shadow: 0 0 10px var(--accent);
         }
 
-        .data-card {
-            background: linear-gradient(145deg, rgba(0, 30, 60, 0.6), rgba(0, 50, 90, 0.4));
-            border: 1px solid rgba(0, 229, 255, 0.15);
-            border-radius: 16px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .data-card::before {
-            content: '';
-            position: absolute;
+        /* Modal Styles */
+        .modal {
+            position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-        }
-
-        .close-btn {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-        }
-
-        .close-btn:hover {
-            transform: scale(1.2) rotate(90deg);
-            text-shadow: 0 0 30px var(--neon-glow);
-            color: var(--neon-glow);
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            padding: 16px 32px;
-            background: linear-gradient(145deg, rgba(0, 50, 100, 0.95), rgba(0, 80, 130, 0.9));
-            border: 1px solid var(--neon-cyan);
-            border-radius: 14px;
-            color: var(--text-primary);
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 15px;
-            z-index: 99999;
-            animation: toastSlide 0.5s ease-out;
-            box-shadow: 0 0 40px rgba(0, 229, 255, 0.3);
-        }
-
-        @keyframes toastSlide {
-            from { opacity: 0; transform: translateX(120px) scale(0.8); }
-            to { opacity: 1; transform: translateX(0) scale(1); }
-        }
-
-        .zoom-nav-button {
-            transition: all 0.3s ease;
-            font-family: 'Orbitron', monospace;
-            background: rgba(0, 229, 255, 0.15); 
-            border: 1px solid var(--neon-cyan); 
-            color: var(--neon-glow); 
-            padding: 14px 24px; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-size: 20px;
-        }
-
-        .zoom-nav-button:hover {
-            background: rgba(0, 229, 255, 0.4);
-            transform: scale(1.15);
-        }
-
-        .zoom-nav-button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-
-        /* Custom Button Styles for Input Scatter */
-        .input-action-group {
-            display: flex;
-            gap: 8px;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 8, 20, 0.98);
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            margin-top: 5px;
-        }
-
-        .scan-btn-custom {
-            background: var(--neon-blue);
-            color: #000;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .scan-btn-custom:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
-        }
-
-        .scan-btn-custom.green { background: var(--neon-green); }
-        .scan-btn-custom.lens { background: #fff; color: #000; border: 1px solid #fff; }
-        .scan-btn-custom.lens img { width: 14px; height: 14px; }
-
-        /* Modal for OCR Results */
-        .ocr-modal {
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100vw; height: 100vh; 
-            background: rgba(0, 5, 15, 0.97); 
-            z-index: 10001; 
-            padding: 15px; 
+            padding: 20px;
             box-sizing: border-box;
         }
 
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            color: var(--accent);
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10001;
+            text-shadow: 0 0 20px var(--accent);
+        }
+
+        .modal-close:hover {
+            transform: rotate(90deg);
+            color: var(--danger);
+        }
+
+        /* Zoom Modal Content */
+        .zoomed-content-wrapper {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .zoomed-content-wrapper img {
+            max-width: calc(33% - 15px);
+            min-width: 280px;
+            max-height: 75vh;
+            object-fit: contain;
+            border-radius: 12px;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+        }
+
+        .zoom-nav-button {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 40, 85, 0.4));
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .zoom-nav-button:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4), rgba(0, 40, 85, 0.6));
+            box-shadow: 0 0 25px var(--accent);
+        }
+
+        .zoom-nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Scan Result Container */
+        .scan-result-container {
+            background: rgba(0, 29, 61, 0.8);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .scan-result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: rgba(0, 40, 85, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .scan-result-item:hover {
+            background: rgba(0, 40, 85, 0.8);
+            border-color: var(--accent);
+        }
+
+        .scan-result-item code {
+            font-family: 'Orbitron', monospace;
+            color: var(--accent);
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .scan-result-item button {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+            border: 2px solid var(--accent);
+            color: var(--text-primary);
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            z-index: 99999;
+            opacity: 0;
+            transition: all 0.4s ease;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Scan Input Row */
+        .scan-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .scan-input-row input {
+            flex: 1;
+        }
+
+        .scan-btn-small {
+            padding: 8px 12px;
+            font-size: 18px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 44px;
+        }
+
+        .scan-btn-small:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .bonus-section { padding: 20px; }
-            .judul-glow { font-size: 24px; }
-            .gallery-img-container { min-width: 140px; }
-            .gallery-img { min-height: 140px; }
+            .neon-switch-btn {
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+
+            .combined-image-slot img {
+                width: 100%;
+                min-width: unset;
+                max-width: 100%;
+            }
+
+            .zoomed-content-wrapper img {
+                max-width: 100%;
+                min-width: unset;
+            }
+
+            .bonus-mode {
+                padding: 16px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-dim);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bonus-mode {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="bg-layer"></div>
-    <div class="grid-layer"></div>
-    <div class="glow-orb glow-orb-1"></div>
-    <div class="glow-orb glow-orb-2"></div>
-    <div class="particles-container" id="particlesContainer"></div>
+    <!-- Animated Background -->
+    <div class="bg-animated"></div>
+    
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
 
-    <div class="main-container">
-        <div id="cekBonusEventTab" class="tab-content">
-            <div class="bonus-section">
-                <h3 class="judul-glow">LINE TOGEL</h3>
-                <h2 class="bonus-title">BONUS EVENT</h2>
+    <!-- Main Content -->
+    <div id="cekBonusEventTab" class="tab-content">
+        <div class="bonus-section">
+            <h3 class="judul-glow">LINE TOGEL</h3>
+            <h2 class="bonus-title">BONUS EVENT</h2>
 
-                <div style="display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin: 20px 0;">
-                    <button class="neon-switch-btn active" onclick="switchBonusMode('bonusAsli')" id="btn-bonusAsli">Cek Bonus Asli</button>
-                    <button class="neon-switch-btn" onclick="switchBonusMode('galeri')" id="btn-galeri">Galeri Gambar</button>
-                    <button class="neon-switch-btn" onclick="switchBonusMode('inputScatter')" id="btn-inputScatter">Input Scatter (2 Data)</button>
+            <!-- Switch Mode Buttons -->
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 15px 0;">
+                <button class="neon-switch-btn active" onclick="switchBonusMode('bonusAsli')" id="btn-bonusAsli">
+                    Cek Bonus Asli
+                </button>
+                <button class="neon-switch-btn" onclick="switchBonusMode('galeri')" id="btn-galeri">
+                    Galeri Gambar
+                </button>
+                <button class="neon-switch-btn" onclick="switchBonusMode('inputScatter')" id="btn-inputScatter">
+                    Input Scatter
+                </button>
+            </div>
+
+            <!-- MODE 1: CEK BONUS ASLI -->
+            <div id="modeBonusAsli" class="bonus-mode">
+                <textarea id="bonusTextarea" class="bonus-textarea" placeholder="Tempelkan data transaksi di sini..."></textarea>
+                <div class="bonus-input-group">
+                    <label for="bonusPatokan" class="bonus-label">Nilai Patokan:</label>
+                    <input type="text" id="bonusPatokan" class="bonus-input" placeholder="Contoh: 5000000">
                 </div>
-
-                <!-- MODE 1: CEK BONUS ASLI -->
-                <div id="modeBonusAsli" class="bonus-mode">
-                    <textarea id="bonusTextarea" class="bonus-textarea" placeholder="Tempelkan data transaksi... (Hanya nominal Credit yang dihitung)"></textarea>
-                    <div class="bonus-input-group">
-                        <label for="bonusPatokan" class="bonus-label">Nilai Patokan</label>
-                        <input type="text" id="bonusPatokan" class="bonus-input" placeholder="Contoh: 5000000">
-                    </div>
-                    <div class="bonus-input-group">
-                        <label for="bonusSurplus" class="bonus-label">Nilai Surplus</label>
-                        <input type="text" id="bonusSurplus" class="bonus-input" placeholder="Contoh: 1500000">
-                    </div>
-                    <div class="bonus-button-group">
-                        <button onclick="hitungBonusEvent()" class="bonus-btn">Hitung Bonus</button>
-                        <button onclick="hapusBonusEvent()" class="bonus-btn danger">Bersihkan</button>
-                    </div>
-                    <div id="bonusHasil" class="bonus-result"></div>
+                <div class="bonus-input-group">
+                    <label for="bonusSurplus" class="bonus-label">Nilai Surplus:</label>
+                    <input type="text" id="bonusSurplus" class="bonus-input" placeholder="Contoh: 1500000">
                 </div>
-
-                <!-- MODE 2: GALERI GAMBAR -->
-                <div id="modeGaleri" class="bonus-mode" style="display: none;">
-                    <h2 class="bonus-title">GALERI GAMBAR</h2>
-                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px;">
-                        <strong style="color: var(--neon-cyan);">Format:</strong> USERID link1 link2 link3
-                    </p>
-                    <textarea id="bonusLinkInput" placeholder="Tempelkan data paket..." rows="5" oninput="handleBonusInput()" onpaste="handleBonusInput()"></textarea>
-                    <div class="bonus-button-group">
-                        <button onclick="clearBonusAllData()" class="bonus-btn danger">Hapus Semua</button>
+                <div class="bonus-button-group">
+                    <button onclick="hitungBonusEvent()" class="bonus-btn">Hitung Bonus</button>
+                    <button onclick="hapusBonusEvent()" class="bonus-btn danger">Bersihkan</button>
+                </div>
+                <div id="bonusHasil" class="bonus-result" style="display: none;"></div>
+                <div class="bonus-input-group" style="margin-top: 20px;">
+                    <label for="imageUrl" class="bonus-label">Link Gambar Transaksi:</label>
+                    <div class="scan-input-row">
+                        <input type="text" id="imageUrl" class="bonus-input" placeholder="Tempel link gambar untuk scan OCR...">
+                        <button onclick="scanFromMainUrl()" class="scan-btn-small" title="Scan Gambar">Scan</button>
                     </div>
-                    <hr style="margin: 24px 0; border-color: rgba(0, 229, 255, 0.15);">
-                    
-                    <div class="gallery-container" style="display: flex; justify-content: center; margin: 24px 0;">
-                        <div class="combined-image-slot" id="bonusCombinedImageSlot" onclick="openBonusZoom()">
-                            <p class="caption-userid" id="bonusCombinedSlotUserid">USER ID</p>
-                            <div class="gallery-images-wrapper" id="galleryImagesWrapper">
-                                <div class="gallery-img-container">
-                                    <img id="bonusImgSlot1" class="gallery-img" src="https://via.placeholder.com/350x250/001830/00e5ff?text=Gambar+1" onclick="event.stopPropagation(); openLightboxById('bonusImgSlot1');">
-                                </div>
-                                <div class="gallery-img-container">
-                                    <img id="bonusImgSlot2" class="gallery-img" src="https://via.placeholder.com/350x250/001830/00e5ff?text=Gambar+2" onclick="event.stopPropagation(); openLightboxById('bonusImgSlot2');">
-                                </div>
-                                <div class="gallery-img-container">
-                                    <img id="bonusImgSlot3" class="gallery-img" src="https://via.placeholder.com/350x250/001830/00e5ff?text=Gambar+3" onclick="event.stopPropagation(); openLightboxById('bonusImgSlot3');">
-                                </div>
-                            </div>
+                </div>
+            </div>
+
+            <!-- MODE 2: GALERI GAMBAR -->
+            <div id="modeGaleri" class="bonus-mode" style="display: none;">
+                <h2 class="bonus-title">GALERI GAMBAR</h2>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 12px;">
+                    Format: <strong>USERID link1 link2 link3</strong>
+                </p>
+                <textarea id="bonusLinkInput" placeholder="Tempelkan data paket di sini. Setiap baris = satu paket." rows="6" oninput="handleBonusInput()" onpaste="handleBonusInput()"></textarea>
+                <div class="bonus-button-group">
+                    <button onclick="clearBonusAllData()" class="bonus-btn danger">Hapus Semua</button>
+                </div>
+                <hr style="margin: 20px 0; border-color: var(--border);">
+                <div class="gallery-container">
+                    <div class="combined-image-slot" id="bonusCombinedImageSlot" onclick="openBonusZoom()">
+                        <p class="caption-userid" id="bonusCombinedSlotUserid">USER ID</p>
+                        <div class="images-row">
+                            <img id="bonusImgSlot1" src="https://via.placeholder.com/400x300/001d3d/00d4ff?text=Gambar+1" alt="Slot 1">
+                            <img id="bonusImgSlot2" src="https://via.placeholder.com/400x300/001d3d/00d4ff?text=Gambar+2" alt="Slot 2">
+                            <img id="bonusImgSlot3" src="https://via.placeholder.com/400x300/001d3d/00d4ff?text=Gambar+3" alt="Slot 3">
                         </div>
                     </div>
-                    <p class="package-info" style="text-align: center; color: var(--neon-cyan);">
-                        Paket: <span id="bonusCurrentPackageNum">0</span> / <span id="bonusMaxPackageNum">0</span>
-                    </p>
+                </div>
+                <p class="package-info" style="text-align: center; color: var(--accent); margin-top: 10px;">
+                    Paket: <span id="bonusCurrentPackageNum">0</span> / <span id="bonusMaxPackageNum">0</span>
+                </p>
+            </div>
+
+            <!-- MODE 3: INPUT SCATTER -->
+            <div id="modeInputScatter" class="bonus-mode" style="display: none;">
+                <div style="display: flex; gap: 16px; justify-content: space-between; flex-wrap: wrap;">
+
+                    <!-- DATA 1 -->
+                    <div style="flex: 1; min-width: 320px; background: rgba(0,29,61,0.5); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h4 style="color: var(--accent); margin: 0; font-size: 16px; font-family: 'Orbitron', sans-serif;">DATA SCATTER 1</h4>
+                            <button onclick="copyData1()" class="neon-switch-btn" style="padding: 6px 12px; font-size: 12px;">Copy</button>
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">1. UID:</label>
+                            <input type="text" id="bonusUserid1" class="bonus-input" placeholder="Contoh: San221">
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">2. S1 (Link PNG):</label>
+                            <div class="scan-input-row">
+                                <input type="text" id="bonusScatter1_1" class="bonus-input" placeholder="Link gambar PNG...">
+                                <button onclick="scanScatterField(1, 1)" class="scan-btn-small" title="Scan Gambar">Scan</button>
+                            </div>
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">3. S2 (Link PNG):</label>
+                            <div class="scan-input-row">
+                                <input type="text" id="bonusScatter2_1" class="bonus-input" placeholder="Link gambar PNG...">
+                                <button onclick="scanScatterField(1, 2)" class="scan-btn-small" title="Scan Gambar">Scan</button>
+                            </div>
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">4. S3 (Link PNG):</label>
+                            <div class="scan-input-row">
+                                <input type="text" id="bonusScatter3_1" class="bonus-input" placeholder="Link gambar PNG...">
+                                <button onclick="scanScatterField(1, 3)" class="scan-btn-small" title="Scan Gambar">Scan</button>
+                            </div>
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">5. Rek:</label>
+                            <input type="text" id="bonusRekening1" class="bonus-input" placeholder="NAMA,08xxxxxxxxxx">
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">6. Kode:</label>
+                            <input type="text" id="bonusKodeTransaksi1" class="bonus-input" placeholder="Kode transaksi (auto-fill dari scan)">
+                        </div>
+                    </div>
+
+                    <!-- DATA 2 -->
+                    <div style="flex: 1; min-width: 320px; background: rgba(0,29,61,0.5); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h4 style="color: var(--accent); margin: 0; font-size: 16px; font-family: 'Orbitron', sans-serif;">DATA SCATTER 2</h4>
+                            <button onclick="copyData2()" class="neon-switch-btn" style="padding: 6px 12px; font-size: 12px;">Copy</button>
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">1. UID:</label>
+                            <input type="text" id="bonusUserid2" class="bonus-input" placeholder="Contoh: Budi123">
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">2. S1 (Link PNG):</label>
+                            <div class="scan-input-row">
+                                <input type="text" id="bonusScatter1_2" class="bonus-input" placeholder="Link gambar PNG...">
+                                <button onclick="scanScatterField(2, 1)" class="scan-btn-small" title="Scan Gambar">Scan</button>
+                            </div>
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">3. S2 (Link PNG):</label>
+                            <div class="scan-input-row">
+                                <input type="text" id="bonusScatter2_2" class="bonus-input" placeholder="Link gambar PNG...">
+                                <button onclick="scanScatterField(2, 2)" class="scan-btn-small" title="Scan Gambar">Scan</button>
+                            </div>
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">4. S3 (Link PNG):</label>
+                            <div class="scan-input-row">
+                                <input type="text" id="bonusScatter3_2" class="bonus-input" placeholder="Link gambar PNG...">
+                                <button onclick="scanScatterField(2, 3)" class="scan-btn-small" title="Scan Gambar">Scan</button>
+                            </div>
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">5. Rek:</label>
+                            <input type="text" id="bonusRekening2" class="bonus-input" placeholder="NAMA,08xxxxxxxxxx">
+                        </div>
+                        <div class="bonus-input-group" style="margin: 8px 0;">
+                            <label class="bonus-label">6. Kode:</label>
+                            <input type="text" id="bonusKodeTransaksi2" class="bonus-input" placeholder="Kode transaksi (auto-fill dari scan)">
+                        </div>
+                    </div>
                 </div>
 
-                <!-- MODE 3: INPUT SCATTER (2 DATA) -->
-                <div id="modeInputScatter" class="bonus-mode" style="display: none;">
-                    <div style="display: flex; gap: 20px; justify-content: space-between; flex-wrap: wrap;">
-                        
-                        <!-- DATA 1 -->
-                        <div class="data-card" style="flex: 1; min-width: 300px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                                <h4 style="color: var(--neon-cyan); margin: 0; font-size: 15px; font-family: 'Orbitron', monospace;">DATA SCATTER 1</h4>
-                                <button onclick="copyData(1)" class="neon-switch-btn small">Copy</button>
-                            </div>
-                            
-                            <!-- S1 -->
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">1. S1 Link</label>
-                                <input type="text" id="bonusScatter1_1" class="bonus-input" placeholder="Link S1..." style="padding: 10px 14px; font-size: 14px;">
-                                <div class="input-action-group">
-                                    <button type="button" onclick="scanScatterField(1, 1)" class="scan-btn-custom">Scan OCR</button>
-                                    <button type="button" onclick="openLens(1, 1)" class="scan-btn-custom lens">Google Lens</button>
-                                </div>
-                            </div>
-                            <!-- S2 -->
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">2. S2 Link</label>
-                                <input type="text" id="bonusScatter2_1" class="bonus-input" placeholder="Link S2..." style="padding: 10px 14px; font-size: 14px;">
-                                <div class="input-action-group">
-                                    <button type="button" onclick="scanScatterField(1, 2)" class="scan-btn-custom">Scan OCR</button>
-                                    <button type="button" onclick="openLens(1, 2)" class="scan-btn-custom lens">Google Lens</button>
-                                </div>
-                            </div>
-                            <!-- S3 -->
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">3. S3 Link</label>
-                                <input type="text" id="bonusScatter3_1" class="bonus-input" placeholder="Link S3..." style="padding: 10px 14px; font-size: 14px;">
-                                <div class="input-action-group">
-                                    <button type="button" onclick="scanScatterField(1, 3)" class="scan-btn-custom">Scan OCR</button>
-                                    <button type="button" onclick="openLens(1, 3)" class="scan-btn-custom lens">Google Lens</button>
-                                </div>
-                            </div>
-                            
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">4. UID</label>
-                                <input type="text" id="bonusUserid1" class="bonus-input" placeholder="San221" style="padding: 10px 14px; font-size: 14px;">
-                            </div>
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">5. Rek</label>
-                                <input type="text" id="bonusRekening1" class="bonus-input" placeholder="A SUWARSAN,085882449440" style="padding: 10px 14px; font-size: 14px;">
-                            </div>
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">6. Kode</label>
-                                <input type="text" id="bonusKodeTransaksi1" class="bonus-input" placeholder="Kode..." style="padding: 10px 14px; font-size: 14px;">
-                            </div>
-                        </div>
-
-                        <!-- DATA 2 -->
-                        <div class="data-card" style="flex: 1; min-width: 300px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                                <h4 style="color: var(--neon-cyan); margin: 0; font-size: 15px; font-family: 'Orbitron', monospace;">DATA SCATTER 2</h4>
-                                <button onclick="copyData(2)" class="neon-switch-btn small">Copy</button>
-                            </div>
-
-                            <!-- S1 -->
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">1. S1 Link</label>
-                                <input type="text" id="bonusScatter1_2" class="bonus-input" placeholder="Link S1..." style="padding: 10px 14px; font-size: 14px;">
-                                <div class="input-action-group">
-                                    <button type="button" onclick="scanScatterField(2, 1)" class="scan-btn-custom">Scan OCR</button>
-                                    <button type="button" onclick="openLens(2, 1)" class="scan-btn-custom lens">Google Lens</button>
-                                </div>
-                            </div>
-                            <!-- S2 -->
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">2. S2 Link</label>
-                                <input type="text" id="bonusScatter2_2" class="bonus-input" placeholder="Link S2..." style="padding: 10px 14px; font-size: 14px;">
-                                <div class="input-action-group">
-                                    <button type="button" onclick="scanScatterField(2, 2)" class="scan-btn-custom">Scan OCR</button>
-                                    <button type="button" onclick="openLens(2, 2)" class="scan-btn-custom lens">Google Lens</button>
-                                </div>
-                            </div>
-                            <!-- S3 -->
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">3. S3 Link</label>
-                                <input type="text" id="bonusScatter3_2" class="bonus-input" placeholder="Link S3..." style="padding: 10px 14px; font-size: 14px;">
-                                <div class="input-action-group">
-                                    <button type="button" onclick="scanScatterField(2, 3)" class="scan-btn-custom">Scan OCR</button>
-                                    <button type="button" onclick="openLens(2, 3)" class="scan-btn-custom lens">Google Lens</button>
-                                </div>
-                            </div>
-
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">4. UID</label>
-                                <input type="text" id="bonusUserid2" class="bonus-input" placeholder="Budi123" style="padding: 10px 14px; font-size: 14px;">
-                            </div>
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">5. Rek</label>
-                                <input type="text" id="bonusRekening2" class="bonus-input" placeholder="BUDI,1234567890" style="padding: 10px 14px; font-size: 14px;">
-                            </div>
-                            <div class="bonus-input-group" style="margin: 8px 0;">
-                                <label class="bonus-label" style="font-size: 11px;">6. Kode</label>
-                                <input type="text" id="bonusKodeTransaksi2" class="bonus-input" placeholder="Kode..." style="padding: 10px 14px; font-size: 14px;">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 24px;">
-                        <button onclick="copySemuaData()" class="neon-switch-btn">Copy Semua (2 Baris)</button>
-                        <button onclick="hapusSemuaData()" class="neon-switch-btn danger">Hapus Semua</button>
-                    </div>
+                <!-- Action Buttons -->
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <button onclick="copySemuaData()" class="neon-switch-btn">Copy Semua (2 Baris)</button>
+                    <button onclick="hapusSemuaData()" class="neon-switch-btn danger">Hapus Semua</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Modal Scan OCR -->
-    <div id="scanOcrModal" class="ocr-modal">
-        <button class="close-btn" onclick="closeOcrModal()" style="position: absolute; top: 15px; right: 25px; font-size: 40px; color: var(--neon-cyan); background: none; border: none;">&times;</button>
-        <h3 style="color: var(--neon-cyan); text-align: center; margin: 25px 0; font-size: 22px; font-family: 'Orbitron', monospace;">Scan OCR</h3>
-        <div style="display: flex; gap: 20px; max-width: 100%; width: 95vw; margin: 0 auto; height: calc(90vh - 100px);">
+    <div id="scanScatter2Modal" class="modal">
+        <button class="modal-close" onclick="closeScanScatter2Modal()">&times;</button>
+        <h3 style="color: var(--accent); text-align: center; margin-bottom: 15px; font-family: 'Orbitron', sans-serif;">Scan Kode dari Gambar</h3>
+        <div style="display: flex; gap: 20px; max-width: 100%; width: 95vw; margin: 0 auto; height: 85vh; padding: 0 10px; flex-wrap: wrap;">
             <div style="flex: 1; display: flex; justify-content: center; align-items: center; min-width: 300px;">
-                <img id="ocrImage" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 14px; box-shadow: 0 0 50px rgba(0, 229, 255, 0.3);">
+                <img id="scanScatter2Image" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; border: 2px solid var(--accent); box-shadow: 0 0 40px rgba(0, 212, 255, 0.4);">
             </div>
-            <div style="flex: 1; min-width: 300px; max-width: 600px; overflow-y: auto; padding: 24px; background: var(--bg-card); border-radius: 14px; border: 1px solid var(--neon-cyan);">
-                <div id="ocrResult" style="color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 16px;"></div>
+            <div style="flex: 1; min-width: 300px; max-width: 500px; overflow-y: auto; padding: 20px; background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--accent);">
+                <div id="scanScatter2Result" style="color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 15px; line-height: 1.6;"></div>
             </div>
         </div>
     </div>
 
     <!-- Modal Zoom Galeri -->
-    <div id="bonusZoomModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 5, 15, 0.97); z-index: 10000; padding: 25px; box-sizing: border-box;">
-        <button class="close-btn" onclick="closeBonusZoom()" style="position: absolute; top: 20px; right: 30px; font-size: 40px; background: none; border: none; color: var(--neon-cyan);">&times;</button>
-        <span id="bonusZoomedUserid" style="display: block; text-align: center; font-size: 24px; margin: 25px 0; color: var(--neon-cyan); font-family: 'Orbitron', monospace;"></span>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 25px; flex-wrap: wrap; min-height: 65vh;">
-            <button class="zoom-nav-button" id="bonusPrevZoomBtn" onclick="navigateBonusPackage('prev')">←</button>
-            <div id="bonusZoomedContentWrapper" style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 90vw;"></div>
-            <button class="zoom-nav-button" id="bonusNextZoomBtn" onclick="navigateBonusPackage('next')">→</button>
+    <div id="bonusZoomModal" class="modal">
+        <button class="modal-close" onclick="closeBonusZoom()">&times;</button>
+        <span id="bonusZoomedUserid" style="display: block; text-align: center; font-size: 24px; margin-bottom: 20px; color: var(--accent); font-family: 'Orbitron', sans-serif;"></span>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; width: 100%;">
+            <button class="zoom-nav-button" id="bonusPrevZoomBtn" onclick="navigateBonusPackage('prev')">Prev</button>
+            <div class="zoomed-content-wrapper" id="bonusZoomedContentWrapper"></div>
+            <button class="zoom-nav-button" id="bonusNextZoomBtn" onclick="navigateBonusPackage('next')">Next</button>
         </div>
-        <p id="bonusCaption" style="text-align: center; margin-top: 20px; color: var(--text-secondary);">Navigasi: Panah kiri/kanan atau tombol di samping</p>
+        <p id="bonusCaption" style="text-align: center; margin-top: 20px; color: var(--text-secondary);">Gunakan tombol navigasi atau panah kiri/kanan.</p>
     </div>
 
-    <!-- Lightbox Modal -->
-    <div id="lightboxModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 5, 15, 0.97); z-index: 9998; flex-direction: column; justify-content: center; align-items: center;">
-        <span class="close-btn" onclick="closeLightbox()" style="position: absolute; top: 20px; right: 30px; font-size: 36px; color: var(--neon-cyan);">&times;</span>
-        <img id="lightboxImage" src="" style="max-width: 95%; max-height: 85%; border-radius: 14px; box-shadow: 0 0 50px rgba(0, 229, 255, 0.3);">
-        <div style="margin-top: 20px;">
-            <button onclick="prevImage()" class="zoom-nav-button" style="font-size: 16px; padding: 10px 20px;">Prev</button>
-            <button onclick="nextImage()" class="zoom-nav-button" style="font-size: 16px; padding: 10px 20px; margin-left: 10px;">Next</button>
-        </div>
-    </div>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ===================== INITIALIZATION =====================
         let currentBonusMode = 'bonusAsli';
+        let currentDataIndex = 1;
+        let currentScatterField = 1;
+        
+        // Gallery State
         let bonusAllPackagesData = [];
         let bonusCurrentPackageIndex = 0;
         const bonusPackageSize = 3;
         let isBonusZoomOpen = false;
-        let imageList = [];
-        let currentImageIndex = 0;
-        let bonusInputTimeout = null;
-        
-        // To track which input triggered the OCR modal
-        let currentOcrTarget = { dataIndex: 1, fieldIndex: 1 };
 
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            createParticles();
-            switchBonusMode('bonusAsli');
-        });
-
+        // Create floating particles
         function createParticles() {
-            const container = document.getElementById('particlesContainer');
+            const container = document.getElementById('particles');
             if (!container) return;
-            for (let i = 0; i < 20; i++) {
+            
+            for (let i = 0; i < 30; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
                 container.appendChild(particle);
             }
         }
+        
+        createParticles();
 
-        function showToast(message) {
-            const existingToast = document.querySelector('.toast');
-            if (existingToast) existingToast.remove();
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.remove(); }, 3500);
-        }
-
-        // ==================== MODE SWITCHER ====================
+        // ===================== MODE SWITCHING =====================
         function switchBonusMode(mode) {
-            ['modeBonusAsli', 'modeGaleri', 'modeInputScatter'].forEach(id => {
-                document.getElementById(id).style.display = 'none';
-            });
-            document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).style.display = 'block';
+            document.getElementById('modeBonusAsli').style.display = 'none';
+            document.getElementById('modeGaleri').style.display = 'none';
+            document.getElementById('modeInputScatter').style.display = 'none';
 
-            ['bonusAsli', 'galeri', 'inputScatter'].forEach(id => {
+            if (mode === 'bonusAsli') {
+                document.getElementById('modeBonusAsli').style.display = 'block';
+            } else if (mode === 'galeri') {
+                document.getElementById('modeGaleri').style.display = 'block';
+            } else if (mode === 'inputScatter') {
+                document.getElementById('modeInputScatter').style.display = 'block';
+            }
+
+            const buttons = ['bonusAsli', 'galeri', 'inputScatter'];
+            buttons.forEach(id => {
                 const btn = document.getElementById('btn-' + id);
-                if (btn) btn.classList.toggle('active', id === mode);
+                if (btn) {
+                    if (id === mode) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                }
             });
+            
             currentBonusMode = mode;
         }
 
-        // ==================== HITUNG BONUS (CREDIT ONLY) ====================
-        function hitungBonusEvent() {
-            const isi = document.getElementById("bonusTextarea").value.trim();
-            const patokan = parseInt(document.getElementById("bonusPatokan").value.replace(/[^\d]/g, '')) || 0;
-            const surplus = parseInt(document.getElementById("bonusSurplus").value.replace(/[^\d]/g, '')) || 0;
-
-            if (!isi) { showToast("Tempelkan data terlebih dahulu."); return; }
-
-            const lines = isi.split("\n");
-            let totalCredit = 0, creditCount = 0, totalDebit = 0, debitCount = 0;
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (line.toLowerCase() === 'credit') {
-                    const nextLine = lines[i + 1] ? lines[i + 1].trim() : '';
-                    const match = nextLine.match(/IDR\s([\d,\.]+)/i);
-                    if (match) {
-                        totalCredit += parseFloat(match[1].replace(/,/g, '').replace(/\./g, ''));
-                        creditCount++;
-                    }
-                }
-                if (line.toLowerCase() === 'debit') {
-                    const nextLine = lines[i + 1] ? lines[i + 1].trim() : '';
-                    const match = nextLine.match(/IDR\s([\d,\.]+)/i);
-                    if (match) {
-                        totalDebit += parseFloat(match[1].replace(/,/g, '').replace(/\./g, ''));
-                        debitCount++;
-                    }
-                }
-            }
-
-            const hasilDiv = document.getElementById("bonusHasil");
-            let html = `<div style="padding: 15px; background: rgba(0, 255, 157, 0.1); border-radius: 10px; border: 1px solid var(--neon-green); margin-bottom: 15px;">
-                            <div style="font-size: 14px; color: var(--text-secondary);">Total Credit (${creditCount} transaksi):</div>
-                            <span class="bonus-angka" style="font-size: 24px;">IDR ${totalCredit.toLocaleString('en-US')}</span>
-                        </div>`;
-            
-            if (debitCount > 0) {
-                html += `<div style="padding: 10px; background: rgba(255, 61, 90, 0.1); border-radius: 10px; border: 1px solid var(--neon-red); opacity: 0.6; margin-bottom: 15px;">
-                            <div style="font-size: 12px; color: var(--text-secondary);">Total Debit (${debitCount} transaksi) - Diabaikan:</div>
-                            <span style="color: var(--neon-red);">IDR ${totalDebit.toLocaleString('en-US')}</span>
-                        </div>`;
-            }
-
-            if (patokan || surplus) {
-                const totalPengurang = patokan + surplus;
-                const selisih = totalCredit - totalPengurang;
-                const color = selisih >= 0 ? 'var(--neon-green)' : 'var(--neon-red)';
-                html += `<hr style="border-color: rgba(0, 229, 255, 0.15); margin: 15px 0;">`;
-                html += `<div>Patokan: <span class="bonus-angka">IDR ${patokan.toLocaleString('en-US')}</span></div>`;
-                html += `<div>Surplus: <span class="bonus-angka">IDR ${surplus.toLocaleString('en-US')}</span></div>`;
-                html += `<div style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid ${color};">
-                            <div style="font-size: 14px;">Selisih:</div>
-                            <span class="bonus-angka" style="color: ${color}; font-size: 20px;">${selisih >= 0 ? '+' : ''}IDR ${selisih.toLocaleString('en-US')}</span>
-                        </div>`;
-            }
-            hasilDiv.innerHTML = html;
+        // ===================== TOAST NOTIFICATION =====================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
-        function hapusBonusEvent() {
-            document.getElementById('bonusTextarea').value = '';
-            document.getElementById('bonusPatokan').value = '';
-            document.getElementById('bonusSurplus').value = '';
-            document.getElementById('bonusHasil').innerHTML = '';
-            showToast('Form dibersihkan.');
-        }
-
-        // ==================== INPUT SCATTER: SCAN & LENS ====================
-        
-        // Open Google Lens
-        function openLens(dataIndex, fieldIndex) {
-            const input = document.getElementById(`bonusScatter${fieldIndex}_${dataIndex}`);
-            if (!input) return;
-            const url = input.value.trim();
-            if (!url) {
-                showToast('Masukkan link terlebih dahulu!');
-                return;
-            }
-            // Google Lens URL scheme for images
-            window.open(`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(url)}`, '_blank');
-        }
-
-        // OCR Functions
-        function scanScatterField(dataIndex, fieldIndex) {
-            const input = document.getElementById(`bonusScatter${fieldIndex}_${dataIndex}`);
-            const url = input ? input.value.trim() : '';
-            
-            if (!url) {
-                showToast('Masukkan link terlebih dahulu!');
-                return;
-            }
-
-            currentOcrTarget = { dataIndex, fieldIndex };
-            
-            const img = document.getElementById('ocrImage');
-            const resultDiv = document.getElementById('ocrResult');
-            const modal = document.getElementById('scanOcrModal');
-
-            img.src = url;
-            modal.style.display = 'block';
-            resultDiv.innerHTML = '<span style="color: var(--text-secondary);">Memindai...</span>';
-
-            if (typeof Tesseract === 'undefined') {
-                resultDiv.innerHTML = '<span style="color: var(--neon-red);">Tesseract.js belum dimuat.</span>';
-                return;
-            }
-
-            Tesseract.recognize(url, 'eng', { logger: m => {} })
-            .then(({ data: { text } }) => {
-                const codes = extractCodesFromText(text);
-                if (codes.length === 0) {
-                    resultDiv.innerHTML = '<span style="color: var(--neon-yellow);">Tidak ditemukan kode.</span>';
-                } else {
-                    resultDiv.innerHTML = `<b style="color: var(--neon-cyan);">Kode Ditemukan:</b><br><br>`;
-                    codes.forEach(code => {
-                        const div = document.createElement('div');
-                        div.style.cssText = 'margin-bottom: 10px; padding: 10px; background: rgba(0, 100, 150, 0.2); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
-                        div.innerHTML = `<span style="font-family: monospace; word-break: break-all;">${code}</span>
-                            <div style="display: flex; gap: 5px;">
-                                <button onclick="copyWithFeedback(this, '${code}')" class="scan-btn-custom">Copy</button>
-                                <button onclick="selectCodeForInput('${code}')" class="scan-btn-custom green">Pilih</button>
-                            </div>`;
-                        resultDiv.appendChild(div);
-                    });
-                }
-            }).catch(err => {
-                console.error(err);
-                resultDiv.innerHTML = '<span style="color: var(--neon-red);">Gagal membaca gambar.</span>';
+        // ===================== COPY TO CLIPBOARD =====================
+        function copyToClipboard(text, label) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Disalin: ' + (label || 'Teks'));
+            }).catch(() => {
+                showToast('Gagal menyalin');
             });
-        }
-
-        function selectCodeForInput(code) {
-            const kodeInput = document.getElementById(`bonusKodeTransaksi${currentOcrTarget.dataIndex}`);
-            if (kodeInput) kodeInput.value = code;
-            closeOcrModal();
-            showToast(`Kode dipilih: ${code}`);
-        }
-
-        function closeOcrModal() {
-            document.getElementById('scanOcrModal').style.display = 'none';
-        }
-
-        function extractCodesFromText(text) {
-            const rawLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            let hasilGabung = [];
-            let hasilLangsung = [];
-
-            for (let i = 0; i < rawLines.length; i++) {
-                const line = rawLines[i];
-                const match = line.match(/\b\d{9,10}\b/);
-                if (match) {
-                    if (i + 1 < rawLines.length) {
-                        const nextLine = rawLines[i + 1].trim();
-                        const nextMatch = nextLine.match(/\b\d{8,}\b/);
-                        if (nextMatch) {
-                            hasilGabung.push(match[0] + nextMatch[0]);
-                            i++;
-                            continue;
-                        }
-                    }
-                    hasilGabung.push(match[0]);
-                }
-            }
-            for (let i = 0; i < rawLines.length; i++) {
-                const matches = rawLines[i].match(/\d{8,}/g);
-                if (matches) matches.forEach(m => hasilLangsung.push(m));
-            }
-
-            const allCodes = [...new Set(hasilGabung), ...new Set(hasilLangsung)];
-            return [...new Set(allCodes)];
         }
 
         function copyWithFeedback(btn, text) {
             navigator.clipboard.writeText(text).then(() => {
-                const orig = btn.innerHTML;
-                btn.innerHTML = 'OK';
-                btn.style.background = 'var(--neon-green)';
-                setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 1000);
+                const original = btn.textContent;
+                btn.textContent = 'OK';
+                btn.style.background = 'var(--success)';
+                setTimeout(() => {
+                    btn.textContent = original;
+                    btn.style.background = '';
+                }, 1000);
+            }).catch(() => {
+                showToast('Gagal menyalin');
             });
         }
 
-        // ==================== INPUT SCATTER: COPY & CLEAR ====================
-        function copyData(dataIndex) {
-            const parts = [];
-            // Order: UID, S1, S2, S3, Rek, Kode
-            const uid = document.getElementById(`bonusUserid${dataIndex}`).value.trim();
-            const s1 = document.getElementById(`bonusScatter1_${dataIndex}`).value.trim();
-            const s2 = document.getElementById(`bonusScatter2_${dataIndex}`).value.trim();
-            const s3 = document.getElementById(`bonusScatter3_${dataIndex}`).value.trim();
-            const rek = document.getElementById(`bonusRekening${dataIndex}`).value.trim();
-            const kode = document.getElementById(`bonusKodeTransaksi${dataIndex}`).value.trim();
+        // ===================== HITUNG BONUS - ONLY CREDIT =====================
+        function hitungBonusEvent() {
+            const isi = document.getElementById('bonusTextarea');
+            const patokanRaw = document.getElementById('bonusPatokan');
+            const surplusRaw = document.getElementById('bonusSurplus');
+            const hasilDiv = document.getElementById('bonusHasil');
 
-            if(uid) parts.push(uid);
-            if(s1) parts.push(s1);
-            if(s2) parts.push(s2);
-            if(s3) parts.push(s3);
-            if(rek) {
-                const rParts = rek.split(',').map(p => p.trim());
-                if(rParts[1]) parts.push(rParts[1]); // Nomor
-                if(rParts[0]) parts.push(rParts[0]); // Nama
+            if (!isi || !isi.value.trim()) {
+                showToast('Tempelkan data terlebih dahulu');
+                return;
             }
-            if(kode) parts.push(kode);
 
-            const text = parts.join('\t');
-            navigator.clipboard.writeText(text).then(() => showToast(`Data ${dataIndex} disalin!`));
+            const patokan = parseInt((patokanRaw?.value || '').replace(/[^\d]/g, '')) || 0;
+            const surplus = parseInt((surplusRaw?.value || '').replace(/[^\d]/g, '')) || 0;
+
+            const lines = isi.value.split('\n');
+            let totalCredit = 0;
+            let creditEntries = [];
+
+            // Process line by line - ONLY Credit, ignore Debit
+            for (let i = 0; i < lines.length; i++) {
+                const currentLine = lines[i].trim();
+                
+                // Check if this line contains "Credit" (not Debit)
+                if (currentLine.toLowerCase() === 'credit') {
+                    // Look at the next line for the amount
+                    const nextLine = lines[i + 1] ? lines[i + 1].trim() : '';
+                    const amountMatch = nextLine.match(/IDR\s*([\d,]+)/i);
+                    
+                    if (amountMatch) {
+                        const amountStr = amountMatch[1].replace(/,/g, '');
+                        const amount = parseFloat(amountStr);
+                        
+                        if (!isNaN(amount)) {
+                            totalCredit += amount;
+                            creditEntries.push({
+                                line: i + 1,
+                                amount: amount
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Calculate results
+            const totalPengurang = patokan + surplus;
+            const selisih = totalCredit - totalPengurang;
+
+            // Display result
+            if (hasilDiv) {
+                hasilDiv.style.display = 'block';
+                
+                let html = '<div style="margin-bottom: 15px; padding: 12px; background: rgba(0,212,255,0.1); border-radius: 8px;">';
+                html += '<strong style="color: var(--accent);">TOTAL CREDIT:</strong><br>';
+                html += '<span class="bonus-angka" style="font-size: 24px;">IDR ' + totalCredit.toLocaleString('en-US') + '</span>';
+                html += '</div>';
+
+                if (creditEntries.length > 0) {
+                    html += '<details style="margin-bottom: 15px;">';
+                    html += '<summary style="cursor: pointer; color: var(--text-secondary); margin-bottom: 8px;">Detail Credit (' + creditEntries.length + ' entri)</summary>';
+                    html += '<div style="font-size: 13px; color: var(--text-secondary);">';
+                    creditEntries.forEach(entry => {
+                        html += 'Baris ' + entry.line + ': IDR ' + entry.amount.toLocaleString('en-US') + '<br>';
+                    });
+                    html += '</div></details>';
+                }
+
+                if (patokan > 0 || surplus > 0) {
+                    html += '<hr style="border-color: var(--border); margin: 15px 0;">';
+                    html += '<div style="line-height: 2;">';
+                    html += 'Patokan: <span class="bonus-angka">IDR ' + patokan.toLocaleString('en-US') + '</span><br>';
+                    html += 'Surplus: <span class="bonus-angka">IDR ' + surplus.toLocaleString('en-US') + '</span><br>';
+                    html += '<strong>Total Dikurang:</strong> <span class="bonus-angka">IDR ' + totalPengurang.toLocaleString('en-US') + '</span><br>';
+                    html += '</div>';
+                    
+                    const selisihColor = selisih >= 0 ? 'var(--success)' : 'var(--danger)';
+                    const selisihLabel = selisih >= 0 ? 'SISA' : 'KEKURANGAN';
+                    html += '<div style="margin-top: 15px; padding: 15px; background: rgba(0,212,255,0.1); border-radius: 8px; border: 1px solid ' + selisihColor + ';">';
+                    html += '<strong style="color: ' + selisihColor + ';">' + selisihLabel + ':</strong><br>';
+                    html += '<span class="bonus-angka" style="font-size: 24px; color: ' + selisihColor + ';">IDR ' + Math.abs(selisih).toLocaleString('en-US') + '</span>';
+                    html += '</div>';
+                }
+
+                hasilDiv.innerHTML = html;
+            }
+
+            showToast('Total Credit: IDR ' + totalCredit.toLocaleString('en-US'));
         }
 
-        function copySemuaData() {
-            const d1 = getDataString(1);
-            const d2 = getDataString(2);
-            let lines = [];
-            if(d1) lines.push(d1);
-            if(d2) lines.push(d2);
-            navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('Semua data disalin!'));
+        function hapusBonusEvent() {
+            const fields = ['bonusTextarea', 'bonusPatokan', 'bonusSurplus', 'imageUrl'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            
+            const hasilDiv = document.getElementById('bonusHasil');
+            if (hasilDiv) {
+                hasilDiv.style.display = 'none';
+                hasilDiv.innerHTML = '';
+            }
+            
+            showToast('Form dibersihkan');
         }
 
-        function getDataString(dataIndex) {
-             const parts = [];
-            const uid = document.getElementById(`bonusUserid${dataIndex}`).value.trim();
-            const s1 = document.getElementById(`bonusScatter1_${dataIndex}`).value.trim();
-            const s2 = document.getElementById(`bonusScatter2_${dataIndex}`).value.trim();
-            const s3 = document.getElementById(`bonusScatter3_${dataIndex}`).value.trim();
-            const rek = document.getElementById(`bonusRekening${dataIndex}`).value.trim();
-            const kode = document.getElementById(`bonusKodeTransaksi${dataIndex}`).value.trim();
-
-            if(uid) parts.push(uid);
-            if(s1) parts.push(s1);
-            if(s2) parts.push(s2);
-            if(s3) parts.push(s3);
-            if(rek) {
-                const rParts = rek.split(',').map(p => p.trim());
-                if(rParts[1]) parts.push(rParts[1]);
-                if(rParts[0]) parts.push(rParts[0]);
+        // ===================== SCAN FUNCTIONS FOR ALL PNG LINKS =====================
+        function scanFromMainUrl() {
+            const urlInput = document.getElementById('imageUrl');
+            if (!urlInput || !urlInput.value.trim()) {
+                showToast('Masukkan link gambar terlebih dahulu');
+                return;
             }
-            if(kode) parts.push(kode);
+            performOCRScan(urlInput.value.trim(), 'main');
+        }
+
+        function scanScatterField(dataIndex, fieldNum) {
+            currentDataIndex = dataIndex;
+            currentScatterField = fieldNum;
+            
+            const inputId = 'bonusScatter' + fieldNum + '_' + dataIndex;
+            const input = document.getElementById(inputId);
+            
+            if (!input || !input.value.trim()) {
+                showToast('Masukkan link gambar untuk S' + fieldNum);
+                return;
+            }
+            
+            performOCRScan(input.value.trim(), 'scatter', dataIndex, fieldNum);
+        }
+
+        function performOCRScan(imageUrl, sourceType, dataIndex, fieldNum) {
+            const modal = document.getElementById('scanScatter2Modal');
+            const img = document.getElementById('scanScatter2Image');
+            const resultDiv = document.getElementById('scanScatter2Result');
+
+            if (!modal || !img || !resultDiv) return;
+
+            img.src = imageUrl;
+            modal.style.display = 'flex';
+            resultDiv.innerHTML = '<span style="color: var(--text-secondary);">Memindai gambar...</span>';
+
+            if (typeof Tesseract === 'undefined') {
+                resultDiv.innerHTML = '<span style="color: var(--danger);">Error: Tesseract.js tidak tersedia</span>';
+                return;
+            }
+
+            Tesseract.recognize(imageUrl, 'eng', {
+                logger: m => console.log(m)
+            }).then(({ data: { text } }) => {
+                const rawLines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                let hasilGabung = [];
+                let hasilLangsung = [];
+
+                // Pattern for combined lines
+                for (let i = 0; i < rawLines.length; i++) {
+                    const line = rawLines[i];
+                    const match = line.match(/\b\d{9,10}\b/);
+                    if (match) {
+                        if (i + 1 < rawLines.length) {
+                            const nextLine = rawLines[i + 1].trim();
+                            const nextMatch = nextLine.match(/\b\d{8,}\b/);
+                            if (nextMatch) {
+                                hasilGabung.push(match[0] + nextMatch[0]);
+                                i++;
+                                continue;
+                            }
+                        }
+                        hasilGabung.push(match[0]);
+                    }
+                }
+
+                // All numbers >= 8 digits
+                for (const line of rawLines) {
+                    const matches = line.match(/\d{8,}/g);
+                    if (matches) matches.forEach(m => hasilLangsung.push(m));
+                }
+
+                hasilGabung = [...new Set(hasilGabung)];
+                hasilLangsung = [...new Set(hasilLangsung)];
+
+                if (hasilGabung.length === 0 && hasilLangsung.length === 0) {
+                    resultDiv.innerHTML = '<span style="color: orange;">Tidak ditemukan kode/angka panjang.</span>';
+                    return;
+                }
+
+                resultDiv.innerHTML = '';
+
+                if (hasilGabung.length > 0) {
+                    const title1 = document.createElement('div');
+                    title1.innerHTML = '<b style="color: var(--accent);">Hasil Gabungan:</b>';
+                    title1.style.margin = '12px 0 8px';
+                    resultDiv.appendChild(title1);
+
+                    hasilGabung.forEach(kode => {
+                        const div = document.createElement('div');
+                        div.className = 'scan-result-item';
+                        div.innerHTML = '<code>' + kode + '</code>';
+                        
+                        const btnGroup = document.createElement('div');
+                        btnGroup.style.display = 'flex';
+                        btnGroup.style.gap = '6px';
+                        
+                        const copyBtn = document.createElement('button');
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.style.cssText = 'background: var(--accent); color: var(--bg-primary); padding: 6px 12px; border-radius: 6px; font-weight: 600;';
+                        copyBtn.onclick = function() { copyWithFeedback(this, kode); };
+                        
+                        const selectBtn = document.createElement('button');
+                        selectBtn.textContent = 'Pilih';
+                        selectBtn.style.cssText = 'background: var(--success); color: var(--bg-primary); padding: 6px 12px; border-radius: 6px; font-weight: 600;';
+                        selectBtn.onclick = function() { selectKodeForScatter(kode, dataIndex); };
+                        
+                        btnGroup.appendChild(copyBtn);
+                        btnGroup.appendChild(selectBtn);
+                        div.appendChild(btnGroup);
+                        resultDiv.appendChild(div);
+                    });
+                }
+
+                if (hasilLangsung.length > 0) {
+                    const title2 = document.createElement('div');
+                    title2.innerHTML = '<b style="color: var(--success);">Hasil Angka Per Baris:</b>';
+                    title2.style.margin = '12px 0 8px';
+                    resultDiv.appendChild(title2);
+
+                    hasilLangsung.forEach(kode => {
+                        const div = document.createElement('div');
+                        div.className = 'scan-result-item';
+                        div.innerHTML = '<code>' + kode + '</code>';
+                        
+                        const btnGroup = document.createElement('div');
+                        btnGroup.style.display = 'flex';
+                        btnGroup.style.gap = '6px';
+                        
+                        const copyBtn = document.createElement('button');
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.style.cssText = 'background: var(--accent); color: var(--bg-primary); padding: 6px 12px; border-radius: 6px; font-weight: 600;';
+                        copyBtn.onclick = function() { copyWithFeedback(this, kode); };
+                        
+                        const selectBtn = document.createElement('button');
+                        selectBtn.textContent = 'Pilih';
+                        selectBtn.style.cssText = 'background: var(--success); color: var(--bg-primary); padding: 6px 12px; border-radius: 6px; font-weight: 600;';
+                        selectBtn.onclick = function() { selectKodeForScatter(kode, dataIndex); };
+                        
+                        btnGroup.appendChild(copyBtn);
+                        btnGroup.appendChild(selectBtn);
+                        div.appendChild(btnGroup);
+                        resultDiv.appendChild(div);
+                    });
+                }
+            }).catch(err => {
+                console.error('OCR Error:', err);
+                resultDiv.innerHTML = '<span style="color: var(--danger);">Gagal membaca gambar. Pastikan link valid dan dapat diakses.</span>';
+            });
+        }
+
+        function selectKodeForScatter(kode, dataIndex) {
+            const kodeInput = document.getElementById('bonusKodeTransaksi' + (dataIndex || currentDataIndex));
+            if (kodeInput) {
+                kodeInput.value = kode;
+                closeScanScatter2Modal();
+                showToast('Kode dipilih untuk Data ' + (dataIndex || currentDataIndex));
+            }
+        }
+
+        function closeScanScatter2Modal() {
+            const modal = document.getElementById('scanScatter2Modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        // ===================== COPY DATA FUNCTIONS =====================
+        function prosesRekening(rek) {
+            const parts = rek.split(',').map(p => p.trim());
+            const nama = parts[0] || '';
+            const nomor = parts.slice(1).join(',') || '';
+            return { nomor, nama };
+        }
+
+        function getDataAsColumns(dataIndex) {
+            const userid = document.getElementById('bonusUserid' + dataIndex)?.value.trim() || '';
+            const s1 = document.getElementById('bonusScatter1_' + dataIndex)?.value.trim() || '';
+            const s2 = document.getElementById('bonusScatter2_' + dataIndex)?.value.trim() || '';
+            const s3 = document.getElementById('bonusScatter3_' + dataIndex)?.value.trim() || '';
+            const rek = document.getElementById('bonusRekening' + dataIndex)?.value.trim() || '';
+            const kode = document.getElementById('bonusKodeTransaksi' + dataIndex)?.value.trim() || '';
+
+            let parts = [];
+            if (userid) parts.push(userid);
+            if (s1) parts.push(s1);
+            if (s2) parts.push(s2);
+            if (s3) parts.push(s3);
+
+            if (rek) {
+                const { nomor, nama } = prosesRekening(rek);
+                if (nomor) parts.push(nomor);
+                if (nama) parts.push(nama);
+            }
+
+            if (kode) parts.push(kode);
+
             return parts.join('\t');
         }
 
-        function hapusSemuaData() {
-            [1, 2].forEach(idx => {
-                ['bonusUserid', 'bonusScatter1', 'bonusScatter2', 'bonusScatter3', 'bonusRekening', 'bonusKodeTransaksi'].forEach(base => {
-                    const el = document.getElementById(`${base}${idx}`);
-                    if (el) el.value = '';
-                });
-            });
-            showToast('Semua input scatter dihapus.');
+        function copyData1() {
+            const data = getDataAsColumns(1);
+            if (data) {
+                copyToClipboard(data, 'Data 1');
+            } else {
+                showToast('Data 1 kosong');
+            }
         }
 
-        // ==================== GALERI GAMBAR LOGIC ====================
+        function copyData2() {
+            const data = getDataAsColumns(2);
+            if (data) {
+                copyToClipboard(data, 'Data 2');
+            } else {
+                showToast('Data 2 kosong');
+            }
+        }
+
+        function copySemuaData() {
+            const data1 = getDataAsColumns(1);
+            const data2 = getDataAsColumns(2);
+            
+            let lines = [];
+            if (data1) lines.push(data1);
+            if (data2) lines.push(data2);
+            
+            if (lines.length > 0) {
+                copyToClipboard(lines.join('\n'), 'Semua Data');
+            } else {
+                showToast('Tidak ada data untuk disalin');
+            }
+        }
+
+        function hapusSemuaData() {
+            const inputs = [
+                'bonusUserid1', 'bonusScatter1_1', 'bonusScatter2_1', 'bonusScatter3_1', 'bonusRekening1', 'bonusKodeTransaksi1',
+                'bonusUserid2', 'bonusScatter1_2', 'bonusScatter2_2', 'bonusScatter3_2', 'bonusRekening2', 'bonusKodeTransaksi2'
+            ];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            showToast('Semua data dihapus');
+        }
+
+        // ===================== GALLERY FUNCTIONS =====================
+        let bonusInputTimeout;
+        
         function handleBonusInput() {
             clearTimeout(bonusInputTimeout);
             bonusInputTimeout = setTimeout(loadBonusImages, 100);
         }
 
         function loadBonusImages() {
-            const input = document.getElementById('bonusLinkInput').value;
-            const lines = input.split('\n').map(l => l.trim()).filter(l => l);
+            const inputEl = document.getElementById('bonusLinkInput');
+            if (!inputEl) return;
+
+            const input = inputEl.value || '';
+            const lines = input.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
             bonusAllPackagesData = [];
 
             lines.forEach(line => {
-                const parts = line.split(/\s+/);
-                const urls = parts.filter(p => p.startsWith('http'));
-                const userid = parts[0] && !parts[0].startsWith('http') ? parts[0] : 'N/A';
-                if (urls.length > 0) {
-                    const links = urls.slice(0, 3);
-                    while(links.length < 3) links.push('');
+                const words = line.split(/\s+/).filter(w => w.length > 0);
+                const urls = words.filter(w => /^https?:\/\//.test(w));
+                const userid = words.length > 0 && !/^https?:\/\//.test(words[0]) ? words[0] : 'N/A';
+
+                if (urls.length >= 1) {
+                    const links = [...urls.slice(0, bonusPackageSize)];
+                    while (links.length < bonusPackageSize) links.push('');
                     bonusAllPackagesData.push({ userid, links });
                 }
             });
 
-            document.getElementById('bonusMaxPackageNum').textContent = bonusAllPackagesData.length;
+            const maxNumEl = document.getElementById('bonusMaxPackageNum');
+            if (maxNumEl) maxNumEl.textContent = bonusAllPackagesData.length;
+
             if (bonusAllPackagesData.length > 0) {
                 bonusCurrentPackageIndex = Math.max(0, Math.min(bonusCurrentPackageIndex, bonusAllPackagesData.length - 1));
                 updateBonusGallery(bonusCurrentPackageIndex);
@@ -1101,118 +1326,141 @@
 
         function updateBonusGallery(index) {
             const slots = ['bonusImgSlot1', 'bonusImgSlot2', 'bonusImgSlot3'].map(id => document.getElementById(id));
-            const uidEl = document.getElementById('bonusCombinedSlotUserid');
-            const curEl = document.getElementById('bonusCurrentPackageNum');
-            
+            const useridEl = document.getElementById('bonusCombinedSlotUserid');
+            const currentNumEl = document.getElementById('bonusCurrentPackageNum');
+            const combined = document.getElementById('bonusCombinedImageSlot');
+
             if (index >= 0 && index < bonusAllPackagesData.length) {
-                const pkg = bonusAllPackagesData[index];
-                uidEl.textContent = 'USER ID: ' + pkg.userid;
+                const { userid, links } = bonusAllPackagesData[index];
+                
+                if (useridEl) useridEl.textContent = 'USER ID: ' + userid;
+                if (combined) {
+                    combined.style.opacity = '1';
+                    combined.style.pointerEvents = 'auto';
+                }
+
                 slots.forEach((img, i) => {
-                    img.src = pkg.links[i] || 'https://via.placeholder.com/350x250/001830/00e5ff?text=-';
+                    if (!img) return;
+                    const src = links[i] || 'https://via.placeholder.com/400x300/001d3d/00d4ff?text=Kosong';
+                    img.src = src;
+                    img.style.display = 'inline-block';
                 });
-                curEl.textContent = index + 1;
+
+                if (currentNumEl) currentNumEl.textContent = index + 1;
             } else {
-                uidEl.textContent = 'Belum Ada Data';
+                if (useridEl) useridEl.textContent = 'Belum Ada Data';
+                if (combined) {
+                    combined.style.opacity = '0.5';
+                    combined.style.pointerEvents = 'none';
+                }
+
                 slots.forEach((img, i) => {
-                    img.src = `https://via.placeholder.com/350x250/001830/00e5ff?text=Gambar+${i+1}`;
+                    if (!img) return;
+                    img.src = 'https://via.placeholder.com/400x300/001d3d/00d4ff?text=Gambar+' + (i + 1);
+                    img.style.display = 'inline-block';
                 });
-                curEl.textContent = '0';
+
+                if (currentNumEl) currentNumEl.textContent = '0';
             }
-        }
-
-        function clearBonusAllData() {
-            document.getElementById('bonusLinkInput').value = '';
-            bonusAllPackagesData = [];
-            loadBonusImages();
-            showToast('Data galeri dihapus.');
-        }
-
-        // --- ZOOM & LIGHTBOX ---
-        function openBonusZoom() {
-            if (bonusAllPackagesData.length === 0) return;
-            isBonusZoomOpen = true;
-            updateZoomContent();
-            document.getElementById('bonusZoomModal').style.display = 'block';
-        }
-
-        function closeBonusZoom() {
-            document.getElementById('bonusZoomModal').style.display = 'none';
-            isBonusZoomOpen = false;
-        }
-
-        function updateZoomContent() {
-            const pkg = bonusAllPackagesData[bonusCurrentPackageIndex];
-            document.getElementById('bonusZoomedUserid').textContent = pkg.userid;
-            
-            const wrapper = document.getElementById('bonusZoomedContentWrapper');
-            wrapper.innerHTML = '';
-            
-            // Create 3 images side by side - LARGER
-            pkg.links.filter(Boolean).forEach(link => {
-                const img = document.createElement('img');
-                // Increased size: max-width 550px
-                img.style.cssText = 'max-width: 550px; max-height: 70vh; object-fit: contain; border-radius: 12px; box-shadow: 0 0 30px rgba(0, 229, 255, 0.3); cursor: pointer;';
-                img.src = link;
-                img.onclick = () => openLightbox(link, pkg.links.filter(Boolean));
-                wrapper.appendChild(img);
-            });
-
-            document.getElementById('bonusPrevZoomBtn').disabled = (bonusCurrentPackageIndex <= 0);
-            document.getElementById('bonusNextZoomBtn').disabled = (bonusCurrentPackageIndex >= bonusAllPackagesData.length - 1);
         }
 
         function navigateBonusPackage(dir) {
-            if (dir === 'next' && bonusCurrentPackageIndex < bonusAllPackagesData.length - 1) bonusCurrentPackageIndex++;
+            if (bonusAllPackagesData.length <= 1) return;
+            const total = bonusAllPackagesData.length;
+            
+            if (dir === 'next' && bonusCurrentPackageIndex < total - 1) bonusCurrentPackageIndex++;
             else if (dir === 'prev' && bonusCurrentPackageIndex > 0) bonusCurrentPackageIndex--;
             
             updateBonusGallery(bonusCurrentPackageIndex);
-            if(isBonusZoomOpen) updateZoomContent();
-        }
-
-        function openLightboxById(id) {
-            const img = document.getElementById(id);
-            if(!img) return;
-            openLightbox(img.src, bonusAllPackagesData[bonusCurrentPackageIndex].links.filter(Boolean));
-        }
-
-        function openLightbox(src, list) {
-            imageList = list;
-            currentImageIndex = imageList.indexOf(src);
-            if(currentImageIndex < 0) currentImageIndex = 0;
             
-            document.getElementById('lightboxImage').src = src;
-            document.getElementById('lightboxModal').style.display = 'flex';
+            if (isBonusZoomOpen) {
+                const pkg = bonusAllPackagesData[bonusCurrentPackageIndex];
+                updateBonusZoomDisplay(pkg.userid, pkg.links);
+            }
         }
 
-        function closeLightbox() {
-            document.getElementById('lightboxModal').style.display = 'none';
+        function updateBonusZoomDisplay(userid, links) {
+            const wrapper = document.getElementById('bonusZoomedContentWrapper');
+            const useridEl = document.getElementById('bonusZoomedUserid');
+            
+            if (!wrapper) return;
+
+            wrapper.innerHTML = '';
+            links.filter(Boolean).forEach(link => {
+                const img = document.createElement('img');
+                img.src = link;
+                img.alt = 'Gambar Galeri';
+                wrapper.appendChild(img);
+            });
+
+            if (useridEl) useridEl.textContent = userid;
+
+            const prevBtn = document.getElementById('bonusPrevZoomBtn');
+            const nextBtn = document.getElementById('bonusNextZoomBtn');
+            const index = bonusCurrentPackageIndex;
+            const total = bonusAllPackagesData.length;
+
+            if (prevBtn) prevBtn.disabled = (index <= 0);
+            if (nextBtn) nextBtn.disabled = (index >= total - 1);
         }
 
-        function nextImage() {
-            currentImageIndex = (currentImageIndex + 1) % imageList.length;
-            document.getElementById('lightboxImage').src = imageList[currentImageIndex];
+        function openBonusZoom() {
+            if (bonusAllPackagesData.length === 0) return;
+            const current = bonusAllPackagesData[bonusCurrentPackageIndex];
+            if (!current.links.some(l => l)) return;
+
+            isBonusZoomOpen = true;
+            updateBonusZoomDisplay(current.userid, current.links);
+            
+            const modal = document.getElementById('bonusZoomModal');
+            if (modal) modal.style.display = 'flex';
         }
 
-        function prevImage() {
-            currentImageIndex = (currentImageIndex - 1 + imageList.length) % imageList.length;
-            document.getElementById('lightboxImage').src = imageList[currentImageIndex];
+        function closeBonusZoom() {
+            const modal = document.getElementById('bonusZoomModal');
+            if (modal) modal.style.display = 'none';
+            isBonusZoomOpen = false;
         }
 
-        // Keyboard Navigation
+        function clearBonusAllData() {
+            bonusAllPackagesData = [];
+            bonusCurrentPackageIndex = 0;
+            
+            const inputEl = document.getElementById('bonusLinkInput');
+            if (inputEl) inputEl.value = '';
+            
+            updateBonusGallery(-1);
+            
+            const maxNumEl = document.getElementById('bonusMaxPackageNum');
+            if (maxNumEl) maxNumEl.textContent = '0';
+            
+            showToast('Semua data galeri dihapus');
+        }
+
+        // ===================== KEYBOARD SUPPORT =====================
         document.addEventListener('keydown', (e) => {
             if (isBonusZoomOpen) {
-                if (e.key === 'ArrowLeft') navigateBonusPackage('prev');
-                else if (e.key === 'ArrowRight') navigateBonusPackage('next');
-                else if (e.key === 'Escape') closeBonusZoom();
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    navigateBonusPackage('prev');
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    navigateBonusPackage('next');
+                } else if (e.key === 'Escape') {
+                    closeBonusZoom();
+                }
             }
-            if (document.getElementById('lightboxModal').style.display === 'flex') {
-                if (e.key === 'ArrowLeft') prevImage();
-                else if (e.key === 'ArrowRight') nextImage();
-                else if (e.key === 'Escape') closeLightbox();
+            
+            // Close scan modal with Escape
+            const scanModal = document.getElementById('scanScatter2Modal');
+            if (scanModal && scanModal.style.display === 'flex' && e.key === 'Escape') {
+                closeScanScatter2Modal();
             }
-            if (document.getElementById('scanOcrModal').style.display === 'block' && e.key === 'Escape') {
-                closeOcrModal();
-            }
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            switchBonusMode('bonusAsli');
         });
     </script>
 </body>
