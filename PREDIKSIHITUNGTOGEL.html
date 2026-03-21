@@ -4,244 +4,431 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PREDIKSI DAN HITUNG TOGEL</title>
-    <!-- ✅ FIX: Hapus spasi di URL Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <!-- ✅ FIX: Hapus spasi di URL Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --bg: #010810; --bg-secondary: #051525; --fg: #e0f4ff;
-            --muted: #5a8cb0; --accent: #00e5ff; --accent-dark: #0099cc;
-            --border: #0a4d75; --success: #00ff88;
+            --bg: #000814; --bg-secondary: #001228; --bg-tertiary: #001f4d;
+            --fg: #e6f7ff; --muted: #6bb6ff; --accent: #00f5ff;
+            --accent-glow: #00e5ff; --accent-dark: #00a8cc; --accent-bright: #66ffff;
+            --border: #006699; --border-glow: rgba(0, 245, 255, 0.5);
+            --success: #00ffaa; --warning: #ffcc00; --error: #ff4d8d;
+            --glow-small: 0 0 10px rgba(0, 245, 255, 0.6);
+            --glow-medium: 0 0 20px rgba(0, 245, 255, 0.8), 0 0 40px rgba(0, 245, 255, 0.4);
+            --glow-large: 0 0 30px rgba(0, 245, 255, 1), 0 0 60px rgba(0, 245, 255, 0.6), 0 0 90px rgba(0, 245, 255, 0.3);
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-bloom: 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Space Grotesk', sans-serif;
             background: var(--bg); color: var(--fg);
-            min-height: 100vh; overflow-x: hidden;
+            min-height: 100vh; overflow-x: hidden; position: relative;
         }
+        /* === BACKGROUND EFFECTS === */
         .bg-cyber {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0; overflow: hidden;
-            background: radial-gradient(ellipse at 50% 0%, rgba(0, 50, 80, 0.2) 0%, transparent 70%);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -3;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(0, 245, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 15%, rgba(0, 245, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 85%, rgba(0, 100, 150, 0.15) 0%, transparent 50%),
+                var(--bg);
+            animation: bgPulse 20s ease-in-out infinite alternate;
         }
+        @keyframes bgPulse { 0%, 100% { opacity: 1; filter: hue-rotate(0deg); } 50% { opacity: 0.95; filter: hue-rotate(10deg); } }
         .grid-lines {
-            position: absolute; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
             background-image: 
-                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: gridMove 25s linear infinite;
+                linear-gradient(rgba(0, 245, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px; animation: gridMove 30s linear infinite; opacity: 0.6;
         }
+        @keyframes gridMove { 0% { background-position: 0 0; } 100% { background-position: 40px 40px; } }
         .floating-orb {
-            position: absolute; border-radius: 50%;
-            filter: blur(100px); opacity: 0.3;
-            animation: floatOrb 20s ease-in-out infinite alternate;
+            position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.25;
+            animation: floatOrb 25s ease-in-out infinite alternate; z-index: -1;
         }
-        .orb-1 { width: 500px; height: 500px; background: var(--accent); top: -20%; left: -10%; }
-        .orb-2 { width: 400px; height: 400px; background: #0066ff; bottom: -10%; right: -5%; animation-delay: -10s; }
-        @keyframes gridMove { 0% { transform: translate(0, 0); } 100% { transform: translate(50px, 50px); } }
-        @keyframes floatOrb { 0% { transform: translate(0, 0); } 100% { transform: translate(50px, 30px); } }
+        .orb-1 { width: 600px; height: 600px; background: var(--accent); top: -15%; left: -10%; }
+        .orb-2 { width: 450px; height: 450px; background: #0088ff; bottom: -10%; right: -5%; animation-delay: -12s; }
+        @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(30px, -20px) scale(1.1); } 100% { transform: translate(-20px, 30px) scale(0.95); } }
+        /* === PARTICLES === */
+        .particles { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+        .particle {
+            position: absolute; width: 3px; height: 3px; background: var(--accent);
+            border-radius: 50%; opacity: 0.8; animation: particleFloat 20s infinite ease-in-out;
+            box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent-glow);
+        }
+        .particle:nth-child(2n) { background: var(--accent-bright); animation-delay: -5s; animation-duration: 25s; }
+        .particle:nth-child(3n) { background: #66ffff; animation-delay: -10s; animation-duration: 30s; }
+        @keyframes particleFloat { 0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; } }
+        /* === LAYOUT === */
         .main-container { position: relative; z-index: 10; max-width: 1400px; margin: 0 auto; padding: 20px; }
-        .header-section { text-align: center; padding: 30px 0 30px; }
+        .header-section { text-align: center; padding: 35px 0 35px; animation: headerEntrance 1s var(--transition-bloom) backwards; }
+        @keyframes headerEntrance { from { opacity: 0; transform: translateY(-40px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .main-title {
-            font-family: 'Orbitron', sans-serif; font-size: clamp(1.8rem, 5vw, 3.2rem);
-            font-weight: 900; letter-spacing: 2px;
-            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-family: 'Orbitron', sans-serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900;
+            letter-spacing: 3px; background: linear-gradient(135deg, #ffffff 0%, var(--accent-bright) 25%, var(--accent) 50%, var(--accent-dark) 75%, #0066cc 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            text-shadow: var(--glow-medium); animation: titleShimmer 4s ease-in-out infinite; position: relative;
         }
-        .tabs-container { display: flex; justify-content: center; gap: 0; margin-bottom: 0; }
+        @keyframes titleShimmer { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.3); } }
+        .main-title::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+            width: 80%; height: 3px; background: linear-gradient(90deg, transparent, var(--accent), var(--accent-bright), var(--accent), transparent);
+            border-radius: 2px; box-shadow: var(--glow-small); animation: titleGlow 3s ease-in-out infinite;
+        }
+        @keyframes titleGlow { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; box-shadow: var(--glow-medium); } }
+        /* === TABS === */
+        .tabs-container { display: flex; justify-content: center; gap: 0; margin-bottom: 0; position: relative; }
+        .tabs-container::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--border-glow), transparent); }
         .tab-btn {
-            padding: 12px 30px; font-family: 'Orbitron', sans-serif;
-            font-weight: 700; font-size: 0.9rem; color: var(--muted);
-            background: rgba(5, 21, 37, 0.5); border: 1px solid var(--border);
-            border-bottom: none; cursor: pointer; transition: all 0.3s; position: relative;
+            padding: 14px 35px; font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.95rem;
+            color: var(--muted); background: rgba(0, 18, 40, 0.6); border: 1px solid var(--border);
+            border-bottom: none; cursor: pointer; transition: all var(--transition-smooth);
+            position: relative; overflow: hidden; text-transform: uppercase; letter-spacing: 1px;
         }
-        .tab-btn:first-child { border-radius: 10px 0 0 0; }
-        .tab-btn:last-child { border-radius: 0 10px 0 0; }
-        .tab-btn.active { color: var(--accent); background: var(--bg-secondary); border-color: var(--accent); }
+        .tab-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.15), transparent); transition: left 0.5s ease; }
+        .tab-btn:hover::before { left: 100%; }
+        .tab-btn:first-child { border-radius: 12px 0 0 0; } .tab-btn:last-child { border-radius: 0 12px 0 0; }
+        .tab-btn:hover { color: var(--accent); background: rgba(0, 30, 60, 0.8); border-color: var(--accent-glow); transform: translateY(-2px); box-shadow: var(--glow-small); }
+        .tab-btn.active {
+            color: var(--accent-bright); background: linear-gradient(180deg, rgba(0, 30, 60, 0.9) 0%, rgba(0, 20, 45, 0.95) 100%);
+            border-color: var(--accent); border-bottom: 2px solid var(--accent); box-shadow: var(--glow-medium);
+        }
         .tab-btn.active::after {
-            content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px;
-            background: var(--accent); box-shadow: 0 0 15px var(--accent);
+            content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px;
+            background: var(--accent); box-shadow: 0 0 15px var(--accent); animation: activeGlow 2s ease-in-out infinite;
         }
+        @keyframes activeGlow { 0%, 100% { opacity: 0.8; box-shadow: 0 0 15px var(--accent); } 50% { opacity: 1; box-shadow: 0 0 25px var(--accent), 0 0 40px var(--accent-glow); } }
+        /* === CONTENT BOX === */
         .content-box {
-            background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(5, 21, 37, 0.9) 100%);
-            border: 1px solid var(--border); border-top: 1px solid var(--accent);
-            border-radius: 0 0 16px 16px; padding: 20px; position: relative;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(0, 20, 45, 0.95) 100%);
+            border: 1px solid var(--border); border-top: 2px solid var(--accent);
+            border-radius: 0 0 20px 20px; padding: 25px; position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
         }
+        .content-box::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--accent-bright), var(--accent), transparent);
+            animation: borderFlow 3s linear infinite;
+        }
+        @keyframes borderFlow { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        /* === SETTINGS PANEL === */
         .settings-panel {
-            background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
-            border-radius: 12px; padding: 15px; margin-bottom: 20px;
-            display: flex; flex-wrap: wrap; gap: 15px; align-items: center;
+            background: linear-gradient(135deg, rgba(0, 15, 35, 0.7) 0%, rgba(0, 25, 55, 0.6) 100%);
+            border: 1px solid var(--border); border-radius: 16px; padding: 18px;
+            margin-bottom: 25px; display: flex; flex-wrap: wrap; gap: 18px; align-items: center;
+            box-shadow: inset 0 0 20px rgba(0, 245, 255, 0.05); position: relative; overflow: hidden;
         }
-        .setting-item { display: flex; align-items: center; gap: 10px; }
-        .setting-label { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+        .settings-panel::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(0, 245, 255, 0.03) 0%, transparent 70%);
+            animation: panelGlow 8s ease-in-out infinite; pointer-events: none;
+        }
+        @keyframes panelGlow { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
+        .setting-item { display: flex; align-items: center; gap: 12px; }
+        .setting-label { color: var(--accent-bright); font-size: 0.85rem; white-space: nowrap; font-weight: 600; text-shadow: 0 0 8px rgba(0, 245, 255, 0.5); }
         .input-compact {
-            padding: 8px 10px; background: rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--border); border-radius: 6px;
-            color: var(--fg); font-size: 0.85rem; width: 140px; transition: all 0.3s;
+            padding: 10px 14px; background: linear-gradient(135deg, rgba(0, 10, 25, 0.8) 0%, rgba(0, 20, 45, 0.7) 100%);
+            border: 1px solid var(--border); border-radius: 8px; color: var(--fg); font-size: 0.9rem;
+            width: 150px; transition: all var(--transition-fast); font-family: 'Space Grotesk', sans-serif;
         }
-        .input-compact:focus { outline: none; border-color: var(--accent); }
+        .input-compact:focus { outline: none; border-color: var(--accent); box-shadow: var(--glow-medium);
+            background: linear-gradient(135deg, rgba(0, 15, 35, 0.9) 0%, rgba(0, 30, 65, 0.8) 100%); }
+        /* === BUTTONS === */
         .btn-action {
-            padding: 8px 16px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-            border: none; border-radius: 6px; color: var(--bg);
-            font-family: 'Orbitron', sans-serif; font-weight: 600;
-            font-size: 0.75rem; cursor: pointer; transition: all 0.3s; white-space: nowrap;
+            padding: 10px 20px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 50%, var(--accent) 100%);
+            border: none; border-radius: 10px; color: var(--bg); font-family: 'Orbitron', sans-serif;
+            font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: all var(--transition-smooth);
+            white-space: nowrap; position: relative; overflow: hidden; text-transform: uppercase;
+            letter-spacing: 1px; box-shadow: var(--glow-small);
         }
-        .btn-action:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(0, 229, 255, 0.3); }
-        .btn-action:disabled { opacity: 0.6; cursor: not-allowed; }
-        .status-text { font-size: 0.8rem; color: var(--accent); margin-left: 10px; }
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .btn-action::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); transition: left 0.4s ease; }
+        .btn-action:hover::before { left: 100%; }
+        .btn-action:hover { transform: translateY(-3px) scale(1.02); box-shadow: var(--glow-medium);
+            background: linear-gradient(135deg, var(--accent-bright) 0%, var(--accent) 50%, var(--accent-bright) 100%); }
+        .btn-action:active { transform: translateY(-1px) scale(1); }
+        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .status-text { font-size: 0.85rem; color: var(--accent); margin-left: 12px; font-weight: 600;
+            text-shadow: 0 0 10px rgba(0, 245, 255, 0.6); animation: statusPulse 2s ease-in-out infinite; }
+        @keyframes statusPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        /* === DATA GRID === */
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; }
+        /* === SECTION BOX === */
         .section-box {
-            background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border);
-            border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;
+            background: linear-gradient(135deg, rgba(0, 10, 25, 0.7) 0%, rgba(0, 20, 45, 0.6) 100%);
+            border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+            display: flex; flex-direction: column; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+            transition: all var(--transition-smooth);
         }
+        .section-box:hover { border-color: var(--accent-glow); box-shadow: var(--glow-medium); transform: translateY(-3px); }
         .section-header {
-            background: linear-gradient(90deg, rgba(0, 229, 255, 0.1) 0%, transparent 100%);
-            padding: 12px 16px; border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(90deg, rgba(0, 245, 255, 0.15) 0%, transparent 100%);
+            padding: 14px 18px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; position: relative;
         }
-        .section-title { font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--accent); font-size: 0.9rem; }
+        .section-header::after {
+            content: ''; position: absolute; bottom: -1px; left: 20px; right: 20px; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+        .section-title { font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--accent-bright);
+            font-size: 1rem; text-shadow: 0 0 12px rgba(0, 245, 255, 0.7); letter-spacing: 1px; }
         .badge-count {
-            background: rgba(0, 229, 255, 0.15); color: var(--accent);
-            padding: 3px 8px; border-radius: 20px; font-size: 0.7rem;
-            border: 1px solid rgba(0, 229, 255, 0.3);
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.2) 0%, rgba(0, 150, 200, 0.15) 100%);
+            color: var(--accent-bright); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;
+            font-weight: 700; border: 1px solid rgba(0, 245, 255, 0.4); box-shadow: 0 0 10px rgba(0, 245, 255, 0.3);
+            animation: badgePulse 3s ease-in-out infinite;
         }
-        .search-box { padding: 10px; border-bottom: 1px solid var(--border); }
+        @keyframes badgePulse { 0%, 100% { box-shadow: 0 0 10px rgba(0, 245, 255, 0.3); } 50% { box-shadow: 0 0 20px rgba(0, 245, 255, 0.6); } }
+        /* === SEARCH BOX === */
+        .search-box { padding: 12px; border-bottom: 1px solid var(--border); background: rgba(0, 10, 25, 0.3); }
         .search-input {
-            width: 100%; padding: 8px 10px; background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(10, 77, 117, 0.5); border-radius: 6px;
-            color: var(--fg); font-size: 0.85rem;
+            width: 100%; padding: 10px 14px; background: linear-gradient(135deg, rgba(0, 8, 20, 0.6) 0%, rgba(0, 15, 35, 0.5) 100%);
+            border: 1px solid rgba(10, 77, 117, 0.6); border-radius: 8px; color: var(--fg);
+            font-size: 0.9rem; transition: all var(--transition-fast); font-family: 'Space Grotesk', sans-serif;
         }
-        .search-input:focus { outline: none; border-color: var(--accent); }
-        .section-content { padding: 10px; overflow-y: auto; max-height: 450px; flex-grow: 1; }
+        .search-input:focus { outline: none; border-color: var(--accent); box-shadow: var(--glow-medium);
+            background: linear-gradient(135deg, rgba(0, 12, 30, 0.8) 0%, rgba(0, 25, 55, 0.7) 100%); }
+        .search-input::placeholder { color: var(--muted); opacity: 0.7; }
+        /* === SECTION CONTENT === */
+        .section-content { padding: 12px; overflow-y: auto; max-height: 450px; flex-grow: 1; }
+        /* === ITEM CARD === */
         .item-card {
-            background: rgba(0, 20, 40, 0.4); border: 1px solid rgba(10, 77, 117, 0.3);
-            border-radius: 8px; padding: 12px; margin-bottom: 8px;
-            cursor: pointer; transition: all 0.2s;
+            background: linear-gradient(135deg, rgba(0, 15, 35, 0.6) 0%, rgba(0, 25, 55, 0.5) 100%);
+            border: 1px solid rgba(10, 77, 117, 0.4); border-radius: 12px; padding: 14px;
+            margin-bottom: 10px; cursor: pointer; transition: all var(--transition-smooth);
+            position: relative; overflow: hidden;
         }
-        .item-card:hover { border-color: var(--accent); transform: translateY(-1px); }
-        .item-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
-        .item-title { color: var(--accent); font-weight: 600; margin-bottom: 4px; font-size: 0.9rem; }
-        .item-content { font-size: 0.8rem; color: var(--fg); line-height: 1.4; white-space: pre-wrap; word-break: break-all; }
+        .item-card::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.1), transparent); transition: left 0.5s ease; }
+        .item-card:hover::before { left: 100%; }
+        .item-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--glow-small);
+            background: linear-gradient(135deg, rgba(0, 20, 45, 0.7) 0%, rgba(0, 30, 65, 0.6) 100%); }
+        .item-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 3px; font-weight: 600; }
+        .item-title { color: var(--accent-bright); font-weight: 700; margin-bottom: 5px; font-size: 0.95rem; text-shadow: 0 0 8px rgba(0, 245, 255, 0.5); }
+        .item-content { font-size: 0.85rem; color: var(--fg); line-height: 1.5; white-space: pre-wrap; word-break: break-all; opacity: 0.9; }
+        /* === PASARAN BOX === */
         .pasaran-box {
-            background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border);
-            border-radius: 12px; overflow: hidden;
+            background: linear-gradient(135deg, rgba(0, 10, 25, 0.7) 0%, rgba(0, 20, 45, 0.6) 100%);
+            border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 12px;
+            transition: all var(--transition-fast);
         }
-        .pasaran-header {
-            background: linear-gradient(90deg, rgba(0, 229, 255, 0.15) 0%, transparent 100%);
-            padding: 12px 16px; border-bottom: 1px solid var(--border);
-        }
-        .pasaran-title { font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--accent); font-size: 0.85rem; }
-        .pasaran-content { padding: 8px; max-height: 350px; overflow-y: auto; }
+        .pasaran-box:hover { border-color: var(--accent-glow); box-shadow: var(--glow-small); }
+        .pasaran-header { background: linear-gradient(90deg, rgba(0, 245, 255, 0.2) 0%, transparent 100%); padding: 14px 18px; border-bottom: 1px solid var(--border); }
+        .pasaran-title { font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--accent-bright);
+            font-size: 0.9rem; text-shadow: 0 0 10px rgba(0, 245, 255, 0.6); }
+        .pasaran-content { padding: 10px; max-height: 350px; overflow-y: auto; }
+        /* === BET ITEM === */
         .bet-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 10px; background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(10, 77, 117, 0.3); border-radius: 6px;
-            margin-bottom: 5px; cursor: pointer; transition: all 0.2s;
+            display: flex; justify-content: space-between; align-items: center; padding: 10px 14px;
+            background: linear-gradient(135deg, rgba(0, 10, 25, 0.5) 0%, rgba(0, 20, 45, 0.4) 100%);
+            border: 1px solid rgba(10, 77, 117, 0.4); border-radius: 8px; margin-bottom: 6px;
+            cursor: pointer; transition: all var(--transition-fast);
         }
-        .bet-item:hover { border-color: var(--accent); }
-        .bet-type { color: var(--fg); font-size: 0.8rem; flex: 1; margin-right: 8px; }
+        .bet-item:hover { border-color: var(--accent); background: linear-gradient(135deg, rgba(0, 15, 35, 0.6) 0%, rgba(0, 25, 55, 0.5) 100%);
+            transform: translateX(3px); box-shadow: var(--glow-small); }
+        .bet-type { color: var(--fg); font-size: 0.85rem; flex: 1; margin-right: 10px; font-weight: 500; }
         .bet-result {
-            font-family: 'Orbitron', sans-serif; font-weight: 700;
-            color: var(--accent); font-size: 0.8rem;
-            background: rgba(0, 229, 255, 0.1); padding: 2px 6px; border-radius: 4px;
+            font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--accent-bright);
+            font-size: 0.85rem; background: linear-gradient(135deg, rgba(0, 245, 255, 0.15) 0%, rgba(0, 150, 200, 0.1) 100%);
+            padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(0, 245, 255, 0.3);
+            text-shadow: 0 0 8px rgba(0, 245, 255, 0.5); transition: all var(--transition-fast);
         }
+        .bet-item:hover .bet-result { background: linear-gradient(135deg, rgba(0, 245, 255, 0.25) 0%, rgba(0, 200, 255, 0.2) 100%);
+            box-shadow: 0 0 12px rgba(0, 245, 255, 0.4); }
+        /* === TOAST === */
         .toast {
-            position: fixed; bottom: 20px; left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--accent); color: var(--bg);
-            padding: 12px 25px; border-radius: 50px;
-            font-weight: 600; font-size: 0.9rem; opacity: 0;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 1000; box-shadow: 0 10px 30px rgba(0, 229, 255, 0.5);
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(0, 20, 45, 0.95) 100%);
+            color: var(--accent-bright); padding: 14px 28px; border-radius: 50px; font-weight: 700;
+            font-size: 0.95rem; opacity: 0; transition: all var(--transition-bloom); z-index: 1000;
+            box-shadow: var(--glow-large); border: 1px solid var(--accent); backdrop-filter: blur(10px);
+            text-shadow: 0 0 10px rgba(0, 245, 255, 0.7);
         }
-        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-        .spinner {
-            width: 30px; height: 30px; border: 3px solid var(--border);
-            border-top-color: var(--accent); border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); animation: toastBloom 0.5s var(--transition-bloom); }
+        @keyframes toastBloom { 0% { transform: translateX(-50%) translateY(100px) scale(0.9); opacity: 0; } 50% { transform: translateX(-50%) translateY(-10px) scale(1.02); } 100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; } }
+        /* === SPINNER === */
+        .spinner { width: 35px; height: 35px; border: 3px solid rgba(0, 102, 153, 0.4); border-top-color: var(--accent);
+            border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 15px rgba(0, 245, 255, 0.5); }
         @keyframes spin { to { transform: rotate(360deg); } }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        /* === SCROLLBAR === */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 8, 20, 0.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--accent), var(--accent-dark), var(--accent));
+            border-radius: 3px; border: 1px solid rgba(0, 245, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 245, 255, 0.4);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--accent-bright), var(--accent), var(--accent-bright));
+            box-shadow: 0 0 15px rgba(0, 245, 255, 0.7);
+        }
+        /* === RESPONSIVE === */
         @media (max-width: 768px) {
             .settings-panel { flex-direction: column; align-items: stretch; }
             .setting-item { width: 100%; justify-content: space-between; }
             .input-compact { width: 100%; }
             .data-grid { grid-template-columns: 1fr; }
+            .main-title { font-size: clamp(1.8rem, 6vw, 2.8rem); letter-spacing: 2px; }
+            .tab-btn { padding: 12px 25px; font-size: 0.85rem; }
+        }
+        /* === SELECTION & FOCUS === */
+        ::selection { background: rgba(0, 245, 255, 0.3); color: var(--fg); text-shadow: 0 0 8px rgba(0, 245, 255, 0.7); }
+        button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: var(--glow-medium); }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+        
+        /* === CUSTOM DROPDOWN NEON === */
+        .quantum-dropdown {
+            appearance: none; -webkit-appearance: none; width: 100%; padding: 12px 45px 12px 18px;
+            font-size: 15px; font-weight: 600; color: var(--accent-bright);
+            background: linear-gradient(135deg, rgba(0, 15, 40, 0.9) 0%, rgba(0, 25, 60, 0.8) 100%);
+            border: 2px solid rgba(0, 245, 255, 0.4); border-radius: 12px; outline: none; cursor: pointer;
+            transition: all 0.3s ease; font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 15px rgba(0, 245, 255, 0.2), inset 0 0 10px rgba(0, 245, 255, 0.1);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300f5ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 16px center;
+        }
+        .quantum-dropdown:hover { border-color: var(--accent); box-shadow: 0 0 25px rgba(0, 245, 255, 0.4), inset 0 0 15px rgba(0, 245, 255, 0.15); transform: translateY(-2px); }
+        .quantum-dropdown:focus { border-color: var(--accent-bright); box-shadow: 0 0 35px rgba(0, 245, 255, 0.6), inset 0 0 20px rgba(0, 245, 255, 0.2); }
+        .quantum-dropdown option { background: rgba(0, 10, 30, 0.95); color: var(--accent-bright); padding: 10px; font-family: 'Orbitron', sans-serif; }
+        
+        /* === HITUNG ROW - 1 BARIS LAYOUT === */
+        .hitung-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; margin-top: 20px; }
+        .hitung-group { display: flex; flex-direction: column; gap: 8px; }
+        .hitung-label { font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; color: var(--accent-bright);
+            text-shadow: 0 0 10px rgba(0, 245, 255, 0.6); letter-spacing: 1px; }
+        .hitung-btn {
+            padding: 14px 28px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            border: none; border-radius: 12px; color: var(--bg); font-family: 'Orbitron', sans-serif;
+            font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.4); white-space: nowrap;
+        }
+        .hitung-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 0 35px rgba(0, 245, 255, 0.7); }
+        .hitung-btn:active { transform: translateY(-1px); }
+        
+        /* === DETAIL HITUNGAN === */
+        #detailHitunganDropdown {
+            margin-top: 20px; padding: 20px; background: linear-gradient(135deg, rgba(0, 15, 40, 0.7) 0%, rgba(0, 25, 60, 0.6) 100%);
+            border: 2px solid rgba(0, 245, 255, 0.3); border-radius: 14px; font-family: 'Orbitron', sans-serif;
+            font-size: 16px; color: var(--accent-bright); text-align: center; min-height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 25px rgba(0, 245, 255, 0.2), inset 0 0 15px rgba(0, 245, 255, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .hitung-row { grid-template-columns: 1fr; gap: 14px; }
+            .hitung-btn { width: 100%; }
         }
     </style>
 </head>
 <body>
-    <div class="bg-cyber">
-        <div class="grid-lines"></div>
-        <div class="floating-orb orb-1"></div>
-        <div class="floating-orb orb-2"></div>
-    </div>
-    <div id="toast" class="toast">Berhasil!</div>
+    <div class="bg-cyber"></div>
+    <div class="grid-lines"></div>
+    <div class="floating-orb orb-1"></div>
+    <div class="floating-orb orb-2"></div>
+    <div class="particles" id="particles"></div>
+    <div id="toast" class="toast">✨ Berhasil!</div>
+    
     <div class="main-container">
         <header class="header-section">
-            <h1 class="main-title">PREDIKSI DAN HITUNG TOGEL</h1>
+            <h1 class="main-title">⚡ PREDIKSI & HITUNG TOGEL ⚡</h1>
         </header>
+        
         <nav class="tabs-container">
-            <button class="tab-btn active" data-tab="prediksi">PREDIKSI TOGEL</button>
-            <button class="tab-btn" data-tab="hitung">HITUNG TOGEL</button>
+            <button class="tab-btn active" data-tab="prediksi">🔮 PREDIKSI</button>
+            <button class="tab-btn" data-tab="hitung">🧮 HITUNG</button>
         </nav>
+        
         <div class="content-box">
             <!-- Tab Prediksi -->
             <div id="tab-prediksi" class="tab-content">
                 <div class="settings-panel">
                     <div class="setting-item">
-                        <span class="setting-label">Tanggal (B1)</span>
+                        <span class="setting-label">📅 Tanggal (B1)</span>
                         <input type="date" id="input-tanggal" class="input-compact">
                     </div>
-                    <button class="btn-action" id="btn-tanggal">UPDATE TANGGAL</button>
+                    <button class="btn-action" id="btn-tanggal">⚡ UPDATE</button>
                     <span class="status-text" id="status-tanggal"></span>
                 </div>
                 <div class="data-grid">
                     <div class="section-box">
                         <div class="section-header">
-                            <h3 class="section-title">PREDIKSI TOGEL</h3>
+                            <h3 class="section-title">🔮 PREDIKSI</h3>
                             <span class="badge-count" id="count-prediksi">0</span>
                         </div>
-                        <div class="search-box"><input type="text" class="search-input" id="search-prediksi" placeholder="Cari..."></div>
+                        <div class="search-box"><input type="text" class="search-input" id="search-prediksi" placeholder="🔍 Cari prediksi..."></div>
                         <div class="section-content" id="list-prediksi"><div style="display:flex;justify-content:center;padding:20px;"><div class="spinner"></div></div></div>
                     </div>
                     <div class="section-box">
                         <div class="section-header">
-                            <h3 class="section-title">JADWAL PASARAN</h3>
+                            <h3 class="section-title">📅 JADWAL</h3>
                             <span class="badge-count" id="count-jadwal">0</span>
                         </div>
-                        <div class="search-box"><input type="text" class="search-input" id="search-jadwal" placeholder="Cari..."></div>
+                        <div class="search-box"><input type="text" class="search-input" id="search-jadwal" placeholder="🔍 Cari jadwal..."></div>
                         <div class="section-content" id="list-jadwal"><div style="display:flex;justify-content:center;padding:20px;"><div class="spinner"></div></div></div>
                     </div>
                     <div class="section-box">
                         <div class="section-header">
-                            <h3 class="section-title">LINK LIVE PASARAN</h3>
+                            <h3 class="section-title">🔗 LINK LIVE</h3>
                             <span class="badge-count" id="count-link">0</span>
                         </div>
-                        <div class="search-box"><input type="text" class="search-input" id="search-link" placeholder="Cari..."></div>
+                        <div class="search-box"><input type="text" class="search-input" id="search-link" placeholder="🔍 Cari link..."></div>
                         <div class="section-content" id="list-link"><div style="display:flex;justify-content:center;padding:20px;"><div class="spinner"></div></div></div>
                     </div>
                 </div>
             </div>
+            
             <!-- Tab Hitung -->
             <div id="tab-hitung" class="tab-content" style="display:none;">
                 <div class="settings-panel">
                     <div class="setting-item">
-                        <span class="setting-label">Nominal (X1)</span>
-                        <input type="number" id="input-nominal" class="input-compact" placeholder="Nominal">
+                        <span class="setting-label">💰 Nominal (X1)</span>
+                        <input type="number" id="input-nominal" class="input-compact" placeholder="0">
                     </div>
-                    <button class="btn-action" id="btn-nominal">UPDATE NOMINAL</button>
+                    <button class="btn-action" id="btn-nominal">⚡ UPDATE</button>
                     <span class="status-text" id="status-nominal"></span>
                 </div>
-                <div class="data-grid" id="container-hitung"><div style="display:flex;justify-content:center;padding:40px;width:100%;"><div class="spinner"></div></div></div>
+                
+                <!-- HITUNG TOGEL - 1 BARIS LAYOUT -->
+                <div class="quantum-card">
+                    <div class="quantum-card-header">
+                        <span class="quantum-icon">🧮</span>
+                        <h3 class="quantum-card-title">Hitung Togel</h3>
+                    </div>
+                    
+                    <!-- Dropdowns - 1 BARIS === -->
+                    <div class="hitung-row">
+                        <div class="hitung-group">
+                            <label class="hitung-label">📊 Tipe Hitungan</label>
+                            <select id="kelompokDropdown" class="quantum-dropdown" onchange="isiDropdownLabel()">
+                                <option value="">-- Pilih Tipe Hitungan --</option>
+                            </select>
+                        </div>
+                        <div class="hitung-group">
+                            <label class="hitung-label">🏷️ Pilih Label</label>
+                            <select id="labelDropdown" class="quantum-dropdown" onchange="tampilkanValueHitungan()">
+                                <option value="">-- Pilih Label --</option>
+                            </select>
+                        </div>
+                        <button onclick="tampilkanValueHitungan()" class="hitung-btn">🔍 Tampilkan</button>
+                    </div>
+                    
+                    <!-- Detail Hitungan === -->
+                    <div id="detailHitunganDropdown" class="quantum-detail-box">
+                        <span style="color: var(--muted);">Silakan pilih tipe dan label hitungan</span>
+                    </div>
+                </div>
+                
+                <div class="data-grid" id="container-hitung" style="margin-top: 20px;">
+                    <div style="display:flex;justify-content:center;padding:40px;width:100%;"><div class="spinner"></div></div>
+                </div>
             </div>
         </div>
     </div>
+    
     <script>
         // ============ KONFIGURASI - SUDAH DISETUP ============
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbya8o-PPA76I8CsTlEVmcANKVuxapOGU5WhhienU7NNQ6HO-igG4Ly8yZPujUZE6DFRlw/exec'.trim();
@@ -251,6 +438,7 @@
             keyTanggal: 'togel_tanggal_v4',
             keyNominal: 'togel_nominal_v4'
         };
+        
         const state = { prediksi: [], jadwal: [], link: [], hitung: [] };
         const $ = id => document.getElementById(id);
         const dom = {
@@ -262,20 +450,38 @@
             cntP: $('count-prediksi'), cntJ: $('count-jadwal'), cntL: $('count-link'),
             contH: $('container-hitung'), toast: $('toast')
         };
-        function showToast(msg) {
-            dom.toast.textContent = msg;
-            dom.toast.classList.add('show');
-            setTimeout(() => dom.toast.classList.remove('show'), 2500);
+        
+        // Create particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            for(let i = 0; i < 60; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDelay = Math.random() * 20 + 's';
+                p.style.animationDuration = (15 + Math.random() * 20) + 's';
+                container.appendChild(p);
+            }
         }
+        
+        function showToast(msg) {
+            dom.toast.textContent = '✨ ' + msg;
+            dom.toast.classList.add('show');
+            setTimeout(() => dom.toast.classList.remove('show'), 3000);
+        }
+        
         function copyText(text) {
             let finalText = text;
             try { finalText = decodeURIComponent(text); } catch(e) {}
             navigator.clipboard.writeText(finalText).then(() => {
                 const preview = finalText.length > 20 ? finalText.substring(0, 20) + '...' : finalText;
-                showToast('Disalin: ' + preview);
-            }).catch(() => showToast('Gagal salin'));
+                showToast('📋 Disalin: ' + preview);
+            }).catch(() => showToast('❌ Gagal salin'));
         }
+        
         function formatNum(n) { return new Intl.NumberFormat('id-ID').format(n); }
+        
         function parseCSV(text) {
             let p = [], row = [], entry = "", state = 0;
             for (let i = 0; i < text.length; i++) {
@@ -295,10 +501,12 @@
             if (entry.length > 0 || row.length > 0) { row.push(entry); p.push(row); }
             return p;
         }
+        
         function safeGet(row, idx) { return row && row[idx] !== undefined ? row[idx] : ""; }
+        
         async function updateSheet(action, value) {
             if (SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
-                showToast('Error: Script URL belum disetup!');
+                showToast('❌ Script URL belum disetup!');
                 return false;
             }
             try {
@@ -313,11 +521,13 @@
                 return false;
             }
         }
+        
         async function fetchPrediksi() {
             try {
                 const res = await fetch(CONFIG.sheetPrediksi + '&t=' + new Date().getTime());
                 const data = parseCSV(await res.text());
                 state.prediksi = []; state.jadwal = []; state.link = [];
+                
                 if (data[0]) {
                     const raw = safeGet(data[0], 1);
                     if (raw) {
@@ -329,6 +539,7 @@
                         }
                     }
                 }
+                
                 for (let i = 2; i <= 84 && i < data.length; i++) {
                     const txt = safeGet(data[i], 1);
                     if (txt) state.prediksi.push({ title: txt.split(/[\s,]+/)[0], content: txt });
@@ -341,23 +552,27 @@
                     const txt = safeGet(data[i], 2);
                     if (txt) state.link.push({ title: txt.split(/[\s,]+/)[0], content: txt });
                 }
+                
                 renderPrediksi();
             } catch (e) {
                 console.error("Error Prediksi:", e);
-                dom.listP.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Gagal memuat data.</p>';
+                dom.listP.innerHTML = '<p style="color:var(--error);text-align:center;padding:20px;">❌ Gagal memuat data</p>';
             }
         }
+        
         async function fetchHitung() {
             try {
                 const res = await fetch(CONFIG.sheetHitung + '&t=' + new Date().getTime());
                 const data = parseCSV(await res.text());
+                
                 if (data[0]) {
                     const nom = safeGet(data[0], 23);
                     if (nom) {
                         dom.inNom.value = nom;
-                        dom.statNom.textContent = "Rp " + formatNum(nom);
+                        dom.statNom.textContent = "💰 Rp " + formatNum(nom);
                     }
                 }
+                
                 const secDef = [
                     { tRow: 0, tCol: 24, start: 2, end: 42 },
                     { tRow: 43, tCol: 24, start: 45, end: 80 },
@@ -369,6 +584,7 @@
                     { tRow: 249, tCol: 24, start: 251, end: 282 },
                     { tRow: 283, tCol: 24, start: 285, end: 316 }
                 ];
+                
                 state.hitung = secDef.map(s => {
                     let title = safeGet(data[s.tRow], s.tCol) || "PASARAN";
                     let items = [];
@@ -381,27 +597,30 @@
                     }
                     return { title, items };
                 }).filter(s => s.items.length > 0);
+                
                 renderHitung();
             } catch (e) {
                 console.error("Error Hitung:", e);
-                dom.contH.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Gagal memuat data.</p>';
+                dom.contH.innerHTML = '<p style="color:var(--error);text-align:center;padding:20px;">❌ Gagal memuat data</p>';
             }
         }
+        
         function renderList(container, items, search) {
             const filtered = items.filter(i => i.content.toLowerCase().includes(search.toLowerCase()));
             if (!filtered.length) {
-                container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;">Kosong</p>';
+                container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;">📭 Tidak ada data</p>';
                 return;
             }
             container.innerHTML = filtered.map(v => `
                 <div class="item-card" onclick="copyText('${encodeURIComponent(v.content)}')">
-                    <div class="item-label">Judul</div>
+                    <div class="item-label">📋 Judul</div>
                     <div class="item-title">${v.title}</div>
-                    <div class="item-label">Isi (Klik Copy)</div>
+                    <div class="item-label">💬 Isi (Klik untuk Copy)</div>
                     <div class="item-content">${v.content}</div>
                 </div>
             `).join('');
         }
+        
         function renderPrediksi() {
             renderList(dom.listP, state.prediksi, dom.srcP.value);
             renderList(dom.listJ, state.jadwal, dom.srcJ.value);
@@ -410,11 +629,15 @@
             dom.cntJ.textContent = state.jadwal.length;
             dom.cntL.textContent = state.link.length;
         }
+        
         function renderHitung() {
-            if (!state.hitung.length) return dom.contH.innerHTML = '<p style="color:var(--muted);text-align:center;">Kosong</p>';
+            if (!state.hitung.length) {
+                dom.contH.innerHTML = '<p style="color:var(--muted);text-align:center;">📭 Tidak ada data</p>';
+                return;
+            }
             dom.contH.innerHTML = state.hitung.map(s => `
                 <div class="pasaran-box">
-                    <div class="pasaran-header"><h3 class="pasaran-title">${s.title}</h3></div>
+                    <div class="pasaran-header"><h3 class="pasaran-title">🎯 ${s.title}</h3></div>
                     <div class="pasaran-content">
                         ${s.items.map(it => `
                             <div class="bet-item" onclick="copyText('${encodeURIComponent(it.res)}')">
@@ -426,52 +649,169 @@
                 </div>
             `).join('');
         }
+        
+        // === FUNGSI HITUNG TOGEL ===
+        let kelompokData = {};
+        
+        async function loadCaraHitungTogel() {
+            try {
+                const res = await fetch(CONFIG.sheetHitung + '&t=' + new Date().getTime());
+                const data = parseCSV(await res.text());
+                
+                // Load nominal dari X1 (column 24)
+                if (data[0]) {
+                    const nom = safeGet(data[0], 23);
+                    if (nom) {
+                        dom.inNom.value = nom;
+                        dom.statNom.textContent = "💰 Rp " + formatNum(nom);
+                    }
+                }
+                
+                // Parse kelompok hitungan
+                const secDef = [
+                    { tRow: 0, tCol: 24, start: 2, end: 42, title: "HITUNG HADIAH SEMUA PASARAN" },
+                    { tRow: 43, tCol: 24, start: 45, end: 80, title: "HITUNG HADIAH PASARAN TOTO MACAU 4D" },
+                    { tRow: 81, tCol: 24, start: 83, end: 119, title: "HITUNG HADIAH PASARAN TOTO MACAU 5D" },
+                    { tRow: 120, tCol: 24, start: 122, end: 153, title: "HITUNG HADIAH PASARAN KINGKONG 4D" },
+                    { tRow: 154, tCol: 24, start: 156, end: 179, title: "PERHITUNGAN BONUS" },
+                    { tRow: 180, tCol: 24, start: 182, end: 213, title: "HITUNG HADIAH PASARAN JAKARTA" },
+                    { tRow: 215, tCol: 24, start: 217, end: 248, title: "HITUNG HADIAH PASARAN TOTOMALI" },
+                    { tRow: 249, tCol: 24, start: 251, end: 282, title: "HITUNG HADIAH PASARAN HOKIDRAW" },
+                    { tRow: 283, tCol: 24, start: 285, end: 316, title: "HITUNG HADIAH PASARAN SYDNEY DAN HONGKONG" }
+                ];
+                
+                kelompokData = {};
+                const dropdown = document.getElementById('kelompokDropdown');
+                dropdown.innerHTML = '<option value="">-- Pilih Tipe Hitungan --</option>';
+                
+                secDef.forEach(sec => {
+                    const items = [];
+                    for (let i = sec.start; i <= sec.end && i < data.length; i++) {
+                        if (data[i]) {
+                            const label = safeGet(data[i], 23);
+                            const value = safeGet(data[i], 24);
+                            if (label || value) items.push({ label: label || "-", value: value || "-" });
+                        }
+                    }
+                    if (items.length > 0) {
+                        kelompokData[sec.title] = items;
+                        const opt = document.createElement('option');
+                        opt.value = sec.title;
+                        opt.textContent = sec.title;
+                        dropdown.appendChild(opt);
+                    }
+                });
+            } catch (e) {
+                console.error("Error loadCaraHitungTogel:", e);
+            }
+        }
+        
+        function isiDropdownLabel() {
+            const selected = document.getElementById('kelompokDropdown').value;
+            const labelDropdown = document.getElementById('labelDropdown');
+            labelDropdown.innerHTML = '<option value="">-- Pilih Label --</option>';
+            
+            if (selected && kelompokData[selected]) {
+                kelompokData[selected].forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.label;
+                    opt.textContent = item.label;
+                    labelDropdown.appendChild(opt);
+                });
+            }
+        }
+        
+        function tampilkanValueHitungan() {
+            const kelompok = document.getElementById('kelompokDropdown').value;
+            const label = document.getElementById('labelDropdown').value;
+            const detail = document.getElementById('detailHitunganDropdown');
+            
+            if (!kelompok || !label || !kelompokData[kelompok]) {
+                detail.innerHTML = '<span style="color: var(--muted);">Silakan pilih tipe dan label</span>';
+                return;
+            }
+            
+            const item = kelompokData[kelompok].find(i => i.label === label);
+            if (item) {
+                detail.innerHTML = `<span style="font-size: 1.2em; font-weight: 700;">${item.value}</span>`;
+                // Auto copy on click
+                detail.onclick = () => {
+                    copyText(item.value);
+                    detail.style.boxShadow = '0 0 30px rgba(0, 255, 170, 0.8)';
+                    setTimeout(() => detail.style.boxShadow = '', 300);
+                };
+            }
+        }
+        
         function init() {
+            // Tab switching
             document.querySelectorAll('.tab-btn').forEach(t => t.onclick = () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 t.classList.add('active');
                 dom.tabP.style.display = t.dataset.tab === 'prediksi' ? 'block' : 'none';
                 dom.tabH.style.display = t.dataset.tab === 'hitung' ? 'block' : 'none';
             });
+            
+            // Update Tanggal
             dom.btnTgl.onclick = async () => {
-                if (!dom.inTgl.value) return showToast("Pilih tanggal!");
+                if (!dom.inTgl.value) return showToast("⚠️ Pilih tanggal dulu!");
                 const parts = dom.inTgl.value.split('-');
                 const formattedDate = `${parts[1]}/${parts[2]}/${parts[0]}`;
+                
                 dom.btnTgl.disabled = true;
-                dom.statTgl.textContent = "Menyimpan...";
+                dom.statTgl.textContent = "⏳ Menyimpan...";
+                
                 const success = await updateSheet('updateTanggal', formattedDate);
+                
                 dom.btnTgl.disabled = false;
                 if (success) {
                     localStorage.setItem(CONFIG.keyTanggal, dom.inTgl.value);
-                    dom.statTgl.textContent = "Tersimpan!";
-                    showToast("Tanggal diupdate di Sheet!");
+                    dom.statTgl.textContent = "✅ Tersimpan!";
+                    showToast("📅 Tanggal diupdate!");
                     fetchPrediksi();
                 } else {
-                    dom.statTgl.textContent = "Gagal (Cek Script URL)";
+                    dom.statTgl.textContent = "❌ Gagal";
+                    showToast("❌ Cek Script URL");
                 }
             };
+            
+            // Update Nominal
             dom.btnNom.onclick = async () => {
-                if (!dom.inNom.value) return showToast("Isi nominal!");
+                if (!dom.inNom.value) return showToast("⚠️ Isi nominal dulu!");
+                
                 dom.btnNom.disabled = true;
-                dom.statNom.textContent = "Menyimpan...";
+                dom.statNom.textContent = "⏳ Menyimpan...";
+                
                 const success = await updateSheet('updateNominal', dom.inNom.value);
+                
                 dom.btnNom.disabled = false;
                 if (success) {
                     localStorage.setItem(CONFIG.keyNominal, dom.inNom.value);
-                    dom.statNom.textContent = "Rp " + formatNum(dom.inNom.value);
-                    showToast("Nominal diupdate di Sheet!");
+                    dom.statNom.textContent = "💰 Rp " + formatNum(dom.inNom.value);
+                    showToast("💰 Nominal diupdate!");
                     fetchHitung();
                 } else {
-                    dom.statNom.textContent = "Gagal (Cek Script URL)";
+                    dom.statNom.textContent = "❌ Gagal";
+                    showToast("❌ Cek Script URL");
                 }
             };
+            
+            // Search
             dom.srcP.oninput = () => renderList(dom.listP, state.prediksi, dom.srcP.value);
             dom.srcJ.oninput = () => renderList(dom.listJ, state.jadwal, dom.srcJ.value);
             dom.srcL.oninput = () => renderList(dom.listL, state.link, dom.srcL.value);
+            
+            // Load data
             fetchPrediksi();
             fetchHitung();
+            loadCaraHitungTogel();
         }
-        document.addEventListener('DOMContentLoaded', init);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            init();
+            setTimeout(() => showToast('🚀 Welcome to Neon Blue!'), 1000);
+        });
     </script>
 </body>
 </html>
