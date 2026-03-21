@@ -46,7 +46,6 @@ overflow-x: hidden;
 position: relative;
 line-height: 1.5;
 }
-/* ========== BACKGROUND EFFECTS 2026 ========== */
 .bg-canvas {
 position: fixed;
 inset: 0;
@@ -496,7 +495,6 @@ text-shadow: 0 0 15px var(--neon-electric);
 .menu-card.whatsapp .card-icon { color: #00ff9d; border-color: rgba(0, 255, 157, 0.5); }
 .menu-card.instagram .card-icon { color: #ff66b2; border-color: rgba(255, 102, 178, 0.5); }
 .menu-card.nawala .card-icon { color: var(--neon-gold); border-color: rgba(255, 215, 0, 0.5); }
-/* Coming Soon - Now Clickable */
 .menu-card.coming-soon {
 background: rgba(10, 20, 45, 0.6);
 border: 1px dashed rgba(84, 104, 154, 0.5);
@@ -1231,7 +1229,7 @@ box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
 </div>
 </section>
 
-<!-- COMING SOON - SEKARANG BISA DIKLIK -->
+<!-- COMING SOON -->
 <section class="menu-section">
 <h2 class="section-title">LINK LAUNCHER</h2>
 <div class="menu-grid">
@@ -1459,7 +1457,7 @@ container.appendChild(p);
 
 // ============================================
 // DEFAULT LINKS - TAMBAHKAN LINK BARU DI SINI
-// Akan otomatis muncul di menu pengaturan
+// Menu pengaturan akan AUTO-UPDATE!
 // ============================================
 const defaultLinks = {
 // Aplikasi Utama
@@ -1477,7 +1475,7 @@ const defaultLinks = {
 'hadiah': 'https://lineblog329.com/tabel-hadiah-togel-2/',
 // AI dan Utilitas
 'tanya-z': 'https://chat.z.ai/',
-// Coming Soon / Link Launcher
+// Link Launcher / Coming Soon
 'feature-1': 'https://tescatter.vercel.app/apkbukalink.html',
 'feature-2': '#',
 'feature-3': '#',
@@ -1488,10 +1486,6 @@ const defaultLinks = {
 'whatsapp': 'https://wa.me/YOUR_WHATSAPP',
 'instagram': 'https://instagram.com/YOUR_INSTAGRAM'
 };
-
-const DEFAULT_PIN = '1234';
-let currentPinInput = '';
-let nawalaResultsData = [];
 
 // ============================================
 // AUTO-GENERATE MENU NAMES FROM defaultLinks
@@ -1542,17 +1536,14 @@ const categories = {
 'Sosial Media': []
 };
 
-// Auto-categorize based on key patterns
 Object.keys(links).forEach(key => {
 if (key === 'app-utama') categories['Aplikasi Utama'].push(key);
 else if (['kendala-all', 'foto', 'cara-bermain'].includes(key)) categories['Catatan dan Info'].push(key);
 else if (['try-cari', 'prediksi', 'bonus-event'].includes(key)) categories['Analisis'].push(key);
 else if (['report-line', 'hadiah'].includes(key)) categories['Laporan'].push(key);
 else if (key === 'tanya-z') categories['AI dan Utilitas'].push(key);
-else if (key.startsWith('feature-') || key === 'feature-1') categories['Link Launcher'].push(key);
+else if (key.startsWith('feature-')) categories['Link Launcher'].push(key);
 else if (['telegram', 'whatsapp', 'instagram'].includes(key)) categories['Sosial Media'].push(key);
-else categories['Lainnya'] = categories['Lainnya'] || [];
-categories['Lainnya']?.push(key);
 });
 
 // Remove empty categories
@@ -1562,6 +1553,10 @@ if (categories[cat].length === 0) delete categories[cat];
 
 return categories;
 }
+
+const DEFAULT_PIN = '1234';
+let currentPinInput = '';
+let nawalaResultsData = [];
 
 function loadLinks() {
 const saved = localStorage.getItem('lineTogelLinks');
@@ -1580,7 +1575,6 @@ function savePin(pin) {
 localStorage.setItem('lineTogelPin', pin);
 }
 
-// Update Page Links - FIXED untuk membaca semua data-menu-id
 function updatePageLinks() {
 const links = loadLinks();
 document.querySelectorAll('[data-menu-id]').forEach(el => {
@@ -1663,7 +1657,9 @@ currentPinInput = currentPinInput.slice(0, -1);
 });
 });
 
-// Settings - AUTO-GENERATE dari defaultLinks
+// ============================================
+// SETTINGS - AUTO-GENERATE dari defaultLinks
+// ============================================
 function openSettings() {
 const modal = document.getElementById('settingsModal');
 const form = document.getElementById('settingsForm');
@@ -1768,17 +1764,178 @@ showToast('Input dibersihkan');
 }
 
 // ============================================
-// IMPROVED NAWALA CHECKER
-// Multiple checking methods for better accuracy
+// IMPROVED NAWALA CHECKER - ACCURATE VERSION
+// Multiple verification methods for accuracy
+// ============================================
+async function performNawalaCheck(url) {
+let checkUrl = url;
+if (!url.startsWith('http://') && !url.startsWith('https://')) {
+checkUrl = 'https://' + url;
+}
+
+const results = {
+fetch: null,
+image: null,
+final: null
+};
+
+// Method 1: Fetch dengan retry logic (3x retry)
+results.fetch = await testFetchWithRetry(checkUrl, 3);
+
+// Method 2: Image Load Test (favicon)
+results.image = await testImageLoad(checkUrl);
+
+// ============================================
+// ACCURATE STATUS DETERMINATION
+// 2 dari 3 method berhasil = AMAN
+// ============================================
+const successCount = [
+results.fetch.success,
+results.image.success
+].filter(Boolean).length;
+
+if (successCount >= 1) {
+// Minimal 1 method berhasil = AMAN
+if (results.fetch.success && results.fetch.loadTime < 10000) {
+return {
+status: 'safe',
+message: '✅ AMAN - Server Responds',
+url: checkUrl,
+loadTime: results.fetch.loadTime || 0
+};
+} else if (results.fetch.success) {
+return {
+status: 'safe',
+message: '⚠️ AMAN - Tapi Lambat (>10s)',
+url: checkUrl,
+loadTime: results.fetch.loadTime || 0
+};
+} else if (results.image.success) {
+return {
+status: 'safe',
+message: '✅ AMAN - Image Load Berhasil',
+url: checkUrl
+};
+}
+}
+
+// Semua gagal = TERBLOKIR
+if (results.fetch.error === 'AbortError' || results.fetch.error === 'timeout') {
+return {
+status: 'blocked',
+message: '❌ TERBLOKIR - Timeout (>15s)',
+url: checkUrl
+};
+}
+
+if (results.fetch.error === 'TypeError' || results.fetch.error === 'NetworkError') {
+return {
+status: 'blocked',
+message: '❌ TERBLOKIR - Network Error',
+url: checkUrl
+};
+}
+
+return {
+status: 'blocked',
+message: '❌ TERBLOKIR - Tidak Ada Response',
+url: checkUrl
+};
+}
+
+// ============================================
+// FETCH TEST DENGAN RETRY LOGIC
+// ============================================
+async function testFetchWithRetry(url, maxRetries = 3) {
+for (let i = 0; i < maxRetries; i++) {
+try {
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 detik
+const startTime = Date.now();
+
+const response = await fetch(url, {
+method: 'HEAD',
+mode: 'no-cors',
+cache: 'no-store',
+signal: controller.signal,
+redirect: 'follow'
+});
+
+clearTimeout(timeoutId);
+const loadTime = Date.now() - startTime;
+
+// no-cors selalu return opaque, tapi itu NORMAL (bukan blocked!)
+return {
+success: true,
+loadTime: loadTime,
+type: response.type,
+error: null
+};
+} catch (err) {
+if (i === maxRetries - 1) {
+return {
+success: false,
+loadTime: 0,
+type: null,
+error: err.name
+};
+}
+// Wait before retry (exponential backoff)
+await new Promise(r => setTimeout(r, 500 * (i + 1)));
+}
+}
+}
+
+// ============================================
+// IMAGE LOAD TEST
+// ============================================
+function testImageLoad(url) {
+return new Promise((resolve) => {
+const img = new Image();
+const timeout = setTimeout(() => {
+resolve({ success: false, error: 'timeout' });
+}, 8000);
+
+img.onload = () => {
+clearTimeout(timeout);
+resolve({ success: true, error: null });
+};
+
+img.onerror = () => {
+clearTimeout(timeout);
+// Error tidak selalu blocked (bisa 404 favicon)
+resolve({ success: false, error: 'load-error' });
+};
+
+try {
+const testUrl = new URL(url);
+testUrl.pathname = '/favicon.ico';
+testUrl.search = '';
+img.src = testUrl.href + '?t=' + Date.now(); // Cache busting
+img.crossOrigin = 'anonymous';
+} catch (e) {
+resolve({ success: false, error: 'invalid-url' });
+}
+});
+}
+
+// ============================================
+// MAIN NAWALA CHECK FUNCTION
 // ============================================
 async function checkNawalaBatch() {
 const input = document.getElementById('nawalaInput').value.trim();
-if (!input) { showToast('Masukkan minimal satu link!'); return; }
+if (!input) {
+showToast('Masukkan minimal satu link!');
+return;
+}
 
 let urls = input.split('\n').map(u => u.trim()).filter(u => u && u.length > 0);
 urls = [...new Set(urls)]; // Remove duplicates
 
-if (!urls.length) { showToast('Tidak ada URL valid!'); return; }
+if (!urls.length) {
+showToast('Tidak ada URL valid!');
+return;
+}
 
 const progress = document.getElementById('nawalaProgress');
 const progressBar = document.getElementById('progressBar');
@@ -1799,7 +1956,7 @@ progressStatus.textContent = `Memvalidasi: ${truncateUrl(url, 30)}`;
 // First validate URL format
 let checkResult = validateUrl(url);
 
-// If format is valid, perform connectivity check
+// If format is valid, perform comprehensive check
 if (checkResult.status !== 'error') {
 checkResult = await performNawalaCheck(url);
 }
@@ -1811,8 +1968,8 @@ const pct = ((i + 1) / urls.length) * 100;
 progressBar.style.width = `${pct}%`;
 progressText.textContent = `${i + 1}/${urls.length}`;
 
-// Small delay between checks
-await new Promise(r => setTimeout(r, 100));
+// Delay between checks to avoid rate limiting
+await new Promise(r => setTimeout(r, 300));
 }
 
 progressStatus.textContent = 'Selesai!';
@@ -1823,11 +1980,10 @@ progress.classList.remove('active');
 document.getElementById('nawalaResults').style.display = 'block';
 updateSummaryStats();
 const safeCount = nawalaResultsData.filter(r => r.status === 'safe').length;
-showToast(`Selesai! ${safeCount} Aman dari ${urls.length} link`);
+showToast(`Selesai! ${safeCount} AMAN dari ${urls.length} link`);
 }, 500);
 }
 
-// Validate URL format
 function validateUrl(url) {
 try {
 let checkUrl = url;
@@ -1842,102 +1998,6 @@ return { status: 'valid', url: checkUrl, message: 'Format valid' };
 } catch (e) {
 return { status: 'error', message: 'URL tidak valid (Format Salah)' };
 }
-}
-
-// ============================================
-// IMPROVED NAWALA CHECK WITH MULTIPLE METHODS
-// ============================================
-async function performNawalaCheck(url) {
-let checkUrl = url;
-if (!url.startsWith('http://') && !url.startsWith('https://')) {
-checkUrl = 'https://' + url;
-}
-
-const results = {
-fetch: null,
-image: null,
-final: null
-};
-
-// Method 1: Fetch with timeout
-try {
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 8000);
-const startTime = Date.now();
-const response = await fetch(checkUrl, {
-method: 'HEAD',
-mode: 'no-cors',
-cache: 'no-store',
-signal: controller.signal,
-redirect: 'follow'
-});
-clearTimeout(timeoutId);
-const loadTime = Date.now() - startTime;
-results.fetch = {
-success: true,
-loadTime: loadTime,
-type: response.type
-};
-} catch (err) {
-results.fetch = {
-success: false,
-error: err.name
-};
-}
-
-// Method 2: Image load test (for additional verification)
-results.image = await testImageLoad(checkUrl);
-
-// Determine final status based on multiple checks
-if (results.fetch.success) {
-// Fetch succeeded - likely accessible
-// But check if it's opaque (no-cors) which could mean blocked
-if (results.fetch.type === 'opaque') {
-// Opaque response - could be blocked or accessible
-// Use image test as secondary verification
-if (results.image.success) {
-return { status: 'safe', message: 'Aman - Reachable', url: checkUrl };
-} else {
-return { status: 'blocked', message: 'Mungkin Terblokir (Opaque Response)', url: checkUrl };
-}
-} else {
-return { status: 'safe', message: 'Aman - Reachable', url: checkUrl };
-}
-} else {
-// Fetch failed
-if (results.fetch.error === 'AbortError') {
-return { status: 'blocked', message: 'Timeout - Kemungkinan Diblokir Nawala', url: checkUrl };
-} else if (results.fetch.error === 'TypeError') {
-return { status: 'blocked', message: 'Gagal Akses - Terblokir/Down', url: checkUrl };
-} else {
-return { status: 'blocked', message: 'Gagal Akses - Terblokir/Down', url: checkUrl };
-}
-}
-}
-
-// Image load test for additional verification
-function testImageLoad(url) {
-return new Promise((resolve) => {
-const img = new Image();
-const timeout = setTimeout(() => {
-resolve({ success: false, error: 'timeout' });
-}, 5000);
-
-img.onload = () => {
-clearTimeout(timeout);
-resolve({ success: true, loadTime: Date.now() });
-};
-
-img.onerror = () => {
-clearTimeout(timeout);
-// Error doesn't necessarily mean blocked (could be no image at URL)
-resolve({ success: false, error: 'load-error' });
-};
-
-// Try to load a favicon or small resource
-const testUrl = url.replace(/\/$/, '') + '/favicon.ico';
-img.src = testUrl;
-});
 }
 
 function addResultRow(result) {
