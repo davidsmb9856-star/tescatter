@@ -3,579 +3,639 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>⚡ CYBER TERMINAL: PREDIKSI & HITUNG TOGEL ⚡</title>
+<title>⚡ HOLO-DECK: PREDIKSI & HITUNG TOGEL ⚡</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg-deep: #05050a; --bg-panel: rgba(8, 6, 22, 0.85); --bg-glass: rgba(12, 10, 35, 0.7);
-  --fg-main: #e8e8ff; --fg-dim: #8a94b0; --fg-muted: #5a6480;
-  --cyan: #00d4ff; --cyan-bright: #66f0ff; --purple: #7b2cbf; --pink: #ff006e; --green: #00f5a0;
-  --glow-cyan: 0 0 12px #00d4ff, 0 0 30px #00d4ff60, 0 0 60px #00d4ff30;
-  --glow-purple: 0 0 10px #7b2cbf, 0 0 25px #7b2cbf50;
-  --glow-pink: 0 0 8px #ff006e, 0 0 20px #ff006e40;
-  --transition: 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --bg-deep: #00020a;
+  --bg-panel: rgba(2, 6, 23, 0.92);
+  --bg-panel-alt: rgba(4, 12, 35, 0.88);
+  --fg-primary: #e6f9ff;
+  --fg-secondary: #7dd3fc;
+  --fg-dim: #478a9e;
+  --neon-core: #00e7ff;
+  --neon-edge: #00a3cc;
+  --neon-pulse: #00ffff;
+  --accent-alert: #ff2a6d;
+  --accent-warn: #ffaa00;
+  --accent-ok: #00ffaa;
+  --glow-core: 0 0 8px #00e7ff, 0 0 20px #00e7ff66, 0 0 45px #00e7ff33;
+  --glow-intense: 0 0 12px #00e7ff, 0 0 35px #00e7ff99, 0 0 70px #00e7ff55, 0 0 120px #00e7ff22;
+  --scanline: repeating-linear-gradient(0deg, rgba(0,231,255,0.03) 0px, rgba(0,231,255,0.03) 1px, transparent 1px, transparent 2px);
+  --transition-smooth: 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-glitch: 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
 body {
   font-family: 'JetBrains Mono', monospace;
-  background: var(--bg-deep); color: var(--fg-main);
-  min-height: 100vh; overflow-x: hidden; position: relative;
-  line-height: 1.6; font-size: 14px;
-}
-
-/* === MATRIX BACKGROUND === */
-#matrix-canvas {
-  position: fixed; inset: 0; z-index: -3; opacity: 0.18;
-  pointer-events: none;
-}
-.bg-noise {
-  position: fixed; inset: 0; z-index: -2; opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: noiseShift 0.5s steps(2) infinite;
-}
-@keyframes noiseShift { 0%{transform:translate(0,0)} 100%{transform:translate(-2px,2px)} }
-
-/* === SCANLINES & CRT EFFECT === */
-.scanlines {
-  position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);
-  opacity: 0.35;
-}
-.crt-curve {
-  position: fixed; inset: 0; z-index: 10000; pointer-events: none;
-  box-shadow: inset 0 0 120px rgba(0,0,0,0.4);
-  border-radius: 20px;
-}
-
-/* === LAYOUT GRID - ASYMMETRIC === */
-.app-grid {
-  display: grid;
-  grid-template-columns: 72px 1fr 320px;
-  grid-template-rows: 64px 1fr 56px;
-  grid-template-areas:
-    "sidebar header actions"
-    "sidebar main actions"
-    "sidebar footer actions";
+  background: var(--bg-deep);
+  color: var(--fg-primary);
   min-height: 100vh;
-  max-width: 1600px;
-  margin: 0 auto;
-  gap: 12px;
-  padding: 12px;
-}
-
-/* === SIDEBAR NAV - VERTICAL === */
-.sidebar {
-  grid-area: sidebar;
-  display: flex; flex-direction: column; align-items: center; gap: 16px;
-  padding: 16px 8px;
-  background: var(--bg-panel);
-  border: 1px solid rgba(0, 212, 255, 0.25);
-  border-radius: 16px;
-  backdrop-filter: blur(12px);
-}
-.nav-btn {
-  width: 48px; height: 48px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  background: transparent; border: 1px solid transparent;
-  color: var(--fg-dim); font-size: 1.3rem; cursor: pointer;
-  transition: all var(--transition);
+  overflow-x: hidden;
   position: relative;
-}
-.nav-btn::before {
-  content: ''; position: absolute; inset: 0; border-radius: 12px;
-  background: linear-gradient(135deg, rgba(0,212,255,0.2), transparent);
-  opacity: 0; transition: opacity var(--transition);
-}
-.nav-btn:hover { color: var(--cyan); border-color: rgba(0,212,255,0.4); }
-.nav-btn:hover::before { opacity: 1; }
-.nav-btn.active {
-  color: var(--fg-main); background: rgba(0,212,255,0.15);
-  border-color: var(--cyan); box-shadow: var(--glow-cyan);
-}
-.nav-btn.active::after {
-  content: ''; position: absolute; right: -8px; width: 3px; height: 60%;
-  background: var(--cyan); border-radius: 2px; box-shadow: 0 0 10px var(--cyan);
+  line-height: 1.4;
+  text-rendering: optimizeLegibility;
 }
 
-/* === HEADER - GLITCH TITLE === */
-.header {
+/* === HOLOGRAPHIC BACKGROUND === */
+.holo-bg {
+  position: fixed; inset: 0; z-index: -4;
+  background: 
+    radial-gradient(ellipse at 15% 25%, rgba(0, 231, 255, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 75%, rgba(0, 163, 204, 0.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 255, 255, 0.03) 0%, transparent 70%),
+    linear-gradient(180deg, #00020a 0%, #00081a 40%, #000410 100%);
+  animation: holoShift 45s ease-in-out infinite;
+}
+@keyframes holoShift {
+  0%, 100% { filter: hue-rotate(0deg) saturate(1); }
+  25% { filter: hue-rotate(8deg) saturate(1.1); }
+  50% { filter: hue-rotate(-5deg) saturate(0.95); }
+  75% { filter: hue-rotate(12deg) saturate(1.05); }
+}
+
+/* === SCANLINES & NOISE === */
+.scanlines {
+  position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background: var(--scanline);
+  animation: scanMove 8s linear infinite;
+  opacity: 0.4;
+}
+@keyframes scanMove { 0% { background-position: 0 0; } 100% { background-position: 0 100vh; } }
+
+.noise-overlay {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.04; animation: noisePulse 3s ease-in-out infinite;
+}
+@keyframes noisePulse { 0%, 100% { opacity: 0.04; } 50% { opacity: 0.06; } }
+
+/* === DATA PARTICLES === */
+.data-particles { position: fixed; inset: 0; z-index: -3; overflow: hidden; pointer-events: none; }
+.data-particle {
+  position: absolute; width: 1px; height: 12px;
+  background: linear-gradient(180deg, transparent, var(--neon-core), transparent);
+  opacity: 0; animation: dataStream 18s infinite linear;
+  box-shadow: 0 0 6px var(--neon-core);
+}
+.data-particle:nth-child(2n) { animation-duration: 22s; animation-delay: -11s; width: 2px; }
+.data-particle:nth-child(3n) { animation-duration: 15s; animation-delay: -7s; opacity: 0.7; }
+@keyframes dataStream {
+  0% { transform: translateY(-20vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(120vh) rotate(15deg); opacity: 0; }
+}
+
+/* === MAIN LAYOUT - CYBER DECK STYLE === */
+.cyber-deck {
+  position: relative; z-index: 10;
+  max-width: 1300px; margin: 0 auto; padding: 12px;
+  display: grid; grid-template-areas: 
+    "header header"
+    "nav main"
+    "status status";
+  grid-template-columns: 180px 1fr; grid-template-rows: auto 1fr auto;
+  gap: 14px; min-height: 100vh;
+}
+
+/* === HEADER - TERMINAL STYLE === */
+.deck-header {
   grid-area: header;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 20px;
-  background: var(--bg-panel); border: 1px solid rgba(123,44,191,0.3);
-  border-radius: 16px; backdrop-filter: blur(10px);
+  background: var(--bg-panel);
+  border: 1px solid rgba(0, 231, 255, 0.25);
+  border-radius: 0; clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
+  padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
+  backdrop-filter: blur(6px); position: relative; overflow: hidden;
 }
-.logo {
-  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.4rem;
-  background: linear-gradient(90deg, var(--cyan), var(--purple), var(--pink));
+.deck-header::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon-core), var(--neon-pulse), var(--neon-core), transparent);
+  animation: headerGlow 3s ease-in-out infinite;
+}
+@keyframes headerGlow { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; filter: blur(0.3px); } }
+.deck-title {
+  font-family: 'Rajdhani', sans-serif; font-size: clamp(1.4rem, 4vw, 2.1rem);
+  font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  background: linear-gradient(90deg, var(--fg-primary), var(--neon-core), var(--neon-pulse));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  position: relative; animation: glitchTitle 4s infinite;
+  text-shadow: 0 0 15px rgba(0, 231, 255, 0.5); position: relative;
+  animation: titleFlicker 4s infinite;
 }
-@keyframes glitchTitle {
-  0%,90%,100% { text-shadow: none; transform: translate(0); }
-  92% { text-shadow: -2px 0 var(--pink), 2px 0 var(--cyan); transform: translate(-1px,1px); }
-  94% { text-shadow: 2px 0 var(--pink), -2px 0 var(--cyan); transform: translate(1px,-1px); }
-  96% { text-shadow: -1px 0 var(--purple), 1px 0 var(--cyan); transform: translate(0.5px,0); }
+@keyframes titleFlicker { 0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; } 20%, 24%, 55% { opacity: 0.85; } }
+.deck-title::after {
+  content: '⚡'; position: absolute; right: -28px; top: 50%; transform: translateY(-50%);
+  font-size: 1.2em; animation: sparkPulse 1.5s ease-in-out infinite;
 }
-.header-actions { display: flex; gap: 10px; align-items: center; }
-.status-dot {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--green); box-shadow: 0 0 12px var(--green);
-  animation: pulse 1.5s infinite;
+@keyframes sparkPulse { 0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); } 50% { opacity: 0.7; transform: translateY(-50%) scale(1.15); } }
+
+/* === RADIAL NAVIGATION - LEFT PANEL === */
+.deck-nav {
+  grid-area: nav;
+  background: var(--bg-panel);
+  border: 1px solid rgba(0, 231, 255, 0.2);
+  border-radius: 0; clip-path: polygon(0 0, 100% 0, 100% 96%, 0 100%);
+  padding: 18px 12px; display: flex; flex-direction: column; gap: 10px;
+  backdrop-filter: blur(4px);
 }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.nav-item {
+  padding: 11px 14px; border-left: 3px solid transparent;
+  background: rgba(4, 12, 35, 0.4); cursor: pointer;
+  transition: all var(--transition-smooth); position: relative;
+  font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.88rem;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.nav-item::before {
+  content: ''; position: absolute; inset: 0; border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, transparent, rgba(0, 231, 255, 0.08), transparent);
+  opacity: 0; transition: opacity var(--transition-smooth);
+}
+.nav-item:hover { border-left-color: var(--neon-edge); background: rgba(6, 18, 48, 0.6); }
+.nav-item:hover::before { opacity: 1; }
+.nav-item.active {
+  border-left-color: var(--neon-core);
+  background: linear-gradient(90deg, rgba(0, 231, 255, 0.12), rgba(4, 12, 35, 0.7));
+  box-shadow: var(--glow-core);
+}
+.nav-item.active::after {
+  content: ''; position: absolute; right: -1px; top: 8px; bottom: 8px; width: 2px;
+  background: var(--neon-core); box-shadow: 0 0 10px var(--neon-core);
+}
+.nav-icon { display: inline-block; width: 18px; text-align: center; margin-right: 8px; }
 
 /* === MAIN CONTENT AREA === */
-.main {
+.deck-main {
   grid-area: main;
-  display: flex; flex-direction: column; gap: 16px;
-  overflow: hidden;
+  display: grid; grid-template-rows: auto 1fr; gap: 14px;
 }
 
-/* === PANELS - ANGLED CORNERS === */
-.panel {
-  background: var(--bg-glass);
-  border: 1px solid rgba(0,212,255,0.2);
-  border-radius: 4px;
-  clip-path: polygon(
-    20px 0, 100% 0,
-    100% calc(100% - 20px), calc(100% - 20px) 100%,
-    0 100%, 0 20px
-  );
-  padding: 18px;
-  position: relative;
-  transition: all var(--transition);
+/* === CONTROL BAR - SEGMENTED INPUT === */
+.control-bar {
+  background: var(--bg-panel-alt);
+  border: 1px solid rgba(0, 231, 255, 0.18);
+  border-radius: 0; clip-path: polygon(2% 0, 100% 0, 98% 100%, 0 100%);
+  padding: 12px 16px; display: flex; align-items: center; gap: 14px;
+  backdrop-filter: blur(4px); flex-wrap: wrap;
 }
-.panel::before {
-  content: ''; position: absolute; inset: 0; border-radius: 4px;
-  padding: 1px; background: linear-gradient(135deg, transparent, rgba(0,212,255,0.3), transparent);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
-  opacity: 0; transition: opacity var(--transition); pointer-events: none;
+.control-group { display: flex; align-items: center; gap: 10px; }
+.control-label {
+  font-family: 'Rajdhani', sans-serif; font-size: 0.8rem; font-weight: 600;
+  color: var(--neon-core); text-transform: uppercase; letter-spacing: 1px;
+  text-shadow: 0 0 8px rgba(0, 231, 255, 0.4);
 }
-.panel:hover::before { opacity: 1; }
-.panel-header {
-  display: flex; align-items: center; gap: 10px; padding-bottom: 12px;
-  border-bottom: 1px dashed rgba(0,212,255,0.25); margin-bottom: 14px;
+.input-terminal {
+  padding: 8px 12px; background: rgba(2, 8, 22, 0.85);
+  border: 1px solid rgba(0, 231, 255, 0.3); border-radius: 0;
+  color: var(--fg-primary); font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem; width: 150px; transition: all var(--transition-smooth);
 }
-.panel-title {
-  font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--cyan);
-  font-size: 0.95rem; letter-spacing: 1px; text-transform: uppercase;
+.input-terminal:focus {
+  outline: none; border-color: var(--neon-core);
+  box-shadow: var(--glow-core); background: rgba(4, 14, 38, 0.92);
 }
-.panel-badge {
-  margin-left: auto; padding: 3px 10px; border-radius: 20px;
-  background: rgba(0,212,255,0.15); color: var(--cyan);
-  font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(0,212,255,0.35);
-}
-
-/* === COMMAND PALETTE - REPLACES DROPDOWN === */
-.cmd-trigger {
-  display: flex; align-items: center; gap: 10px;
-  padding: 11px 14px; background: rgba(15,13,38,0.8);
-  border: 1px dashed rgba(0,212,255,0.35); border-radius: 8px;
-  color: var(--fg-dim); cursor: pointer; transition: all var(--transition);
-  font-family: 'JetBrains Mono', monospace;
-}
-.cmd-trigger:hover { border-style: solid; border-color: var(--cyan); color: var(--cyan); box-shadow: var(--glow-cyan); }
-.cmd-icon { font-size: 1.1rem; }
-.cmd-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cmd-hint { color: var(--fg-muted); font-size: 0.75rem; background: rgba(123,44,191,0.2); padding: 2px 6px; border-radius: 4px; }
-
-.cmd-palette {
-  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
-  width: 95%; max-width: 520px; max-height: 70vh;
-  background: linear-gradient(145deg, rgba(10,8,30,0.96), rgba(18,14,48,0.94));
-  border: 1px solid var(--cyan); border-radius: 16px;
-  box-shadow: var(--glow-cyan), 0 20px 60px rgba(0,0,0,0.5);
-  backdrop-filter: blur(20px); z-index: 3000;
-  opacity: 0; visibility: hidden; transition: all var(--transition-smooth);
-  display: flex; flex-direction: column; overflow: hidden;
-}
-.cmd-palette.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
-.cmd-header {
-  padding: 14px 18px; border-bottom: 1px solid rgba(0,212,255,0.2);
-  display: flex; align-items: center; gap: 10px;
-}
-.cmd-input {
-  flex: 1; background: transparent; border: none; outline: none;
-  color: var(--cyan); font-family: 'JetBrains Mono', monospace; font-size: 0.95rem;
-}
-.cmd-input::placeholder { color: var(--fg-muted); }
-.cmd-list { padding: 8px; overflow-y: auto; flex-grow: 1; }
-.cmd-item {
-  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
-  border-radius: 10px; cursor: pointer; margin-bottom: 4px;
-  transition: all var(--transition); border: 1px solid transparent;
-}
-.cmd-item:hover {
-  background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.35);
-  transform: translateX(4px); box-shadow: 0 0 15px rgba(0,212,255,0.25);
-}
-.cmd-item.active {
-  background: rgba(0,245,160,0.15); border-color: var(--green);
-  box-shadow: 0 0 18px rgba(0,245,160,0.35);
-}
-.cmd-kbd {
-  margin-left: auto; padding: 3px 8px; border-radius: 6px;
-  background: rgba(123,44,191,0.25); color: var(--purple);
-  font-size: 0.7rem; font-weight: 600;
-}
-.cmd-footer {
-  padding: 12px 18px; border-top: 1px solid rgba(0,212,255,0.2);
-  display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--fg-muted);
-}
-
-/* === DATA DISPLAY - HORIZONTAL SCROLL CARDS === */
-.data-scroll {
-  display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px;
-  scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--cyan) transparent;
-}
-.data-scroll::-webkit-scrollbar { height: 4px; }
-.data-scroll::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
-.data-card {
-  min-width: 260px; scroll-snap-align: start;
-  background: linear-gradient(135deg, rgba(14,12,36,0.7), rgba(22,18,52,0.6));
-  border: 1px solid rgba(0,212,255,0.2); border-radius: 12px;
-  padding: 14px; cursor: pointer; transition: all var(--transition);
+.btn-terminal {
+  padding: 8px 18px; background: linear-gradient(180deg, rgba(0, 231, 255, 0.2), rgba(0, 163, 204, 0.15));
+  border: 1px solid var(--neon-edge); border-radius: 0;
+  color: var(--neon-core); font-family: 'Rajdhani', sans-serif;
+  font-weight: 600; font-size: 0.82rem; text-transform: uppercase;
+  letter-spacing: 1px; cursor: pointer; transition: all var(--transition-glitch);
   position: relative; overflow: hidden;
 }
-.data-card::after {
+.btn-terminal::before {
   content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.15), transparent);
-  transition: left 0.4s ease; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.25), transparent);
+  transition: left 0.4s ease;
 }
-.data-card:hover::after { left: 100%; }
-.data-card:hover { border-color: var(--cyan); box-shadow: var(--glow-cyan); transform: translateY(-3px); }
-.data-card .label { font-size: 0.7rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
-.data-card .title { color: var(--cyan-bright); font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
-.data-card .content { font-size: 0.85rem; color: var(--fg-main); line-height: 1.5; white-space: pre-wrap; word-break: break-word; opacity: 0.95; }
+.btn-terminal:hover::before { left: 100%; }
+.btn-terminal:hover {
+  border-color: var(--neon-core); background: linear-gradient(180deg, rgba(0, 231, 255, 0.35), rgba(0, 163, 204, 0.25));
+  box-shadow: var(--glow-core); transform: translateX(2px);
+}
+.btn-terminal:active { transform: translateX(0); }
+.btn-terminal:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.status-indicator {
+  font-size: 0.78rem; color: var(--accent-ok); font-weight: 600;
+  text-shadow: 0 0 10px rgba(0, 255, 170, 0.5); animation: statusBlink 2s infinite;
+}
+@keyframes statusBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
 
-/* === CALCULATION SECTION - RADIAL STYLE === */
-.calc-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;
+/* === SEGMENTED SELECTOR - NO DROPDOWN === */
+.segmented-control {
+  display: inline-flex; background: rgba(2, 8, 22, 0.85);
+  border: 1px solid rgba(0, 231, 255, 0.25); border-radius: 0; overflow: hidden;
 }
-.calc-field {
-  display: flex; flex-direction: column; gap: 6px;
+.segment-btn {
+  padding: 7px 14px; background: transparent; border: none; border-right: 1px solid rgba(0, 231, 255, 0.15);
+  color: var(--fg-secondary); font-family: 'Rajdhani', sans-serif; font-size: 0.8rem;
+  font-weight: 600; cursor: pointer; transition: all var(--transition-smooth);
+  text-transform: uppercase; letter-spacing: 0.5px; position: relative;
 }
-.calc-field label {
-  font-size: 0.75rem; color: var(--purple); font-weight: 600; letter-spacing: 0.5px;
+.segment-btn:last-child { border-right: none; }
+.segment-btn:hover { color: var(--neon-core); background: rgba(0, 231, 255, 0.08); }
+.segment-btn.active {
+  color: var(--fg-primary); background: linear-gradient(180deg, rgba(0, 231, 255, 0.25), rgba(0, 163, 204, 0.18));
+  box-shadow: inset 0 0 12px rgba(0, 231, 255, 0.3);
 }
-.calc-field input {
-  padding: 10px 12px; background: rgba(15,13,38,0.85);
-  border: 1px solid rgba(123,44,191,0.4); border-radius: 10px;
-  color: var(--fg-main); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
-  transition: all var(--transition);
-}
-.calc-field input:focus {
-  outline: none; border-color: var(--purple); box-shadow: var(--glow-purple);
+.segment-btn.active::after {
+  content: ''; position: absolute; bottom: 0; left: 10%; right: 10%; height: 2px;
+  background: var(--neon-core); box-shadow: 0 0 8px var(--neon-core);
 }
 
-/* === RADIAL PROGRESS INDICATOR === */
-.radial-wrap {
-  display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px;
+/* === DATA STREAM DISPLAY === */
+.stream-container {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px; padding: 4px;
 }
-.radial-bg {
-  width: 100px; height: 100px; border-radius: 50%;
-  background: conic-gradient(var(--cyan) 0%, var(--purple) 30%, var(--pink) 60%, var(--cyan) 100%);
+.stream-panel {
+  background: var(--bg-panel);
+  border: 1px solid rgba(0, 231, 255, 0.15);
+  border-radius: 0; clip-path: polygon(0 0, 100% 0, 97% 100%, 3% 100%);
+  display: flex; flex-direction: column; overflow: hidden;
+  backdrop-filter: blur(3px); transition: all var(--transition-smooth);
+}
+.stream-panel:hover {
+  border-color: rgba(0, 231, 255, 0.4);
+  box-shadow: var(--glow-core);
+  transform: translateX(3px);
+}
+.stream-header {
+  padding: 10px 14px; border-bottom: 1px solid rgba(0, 231, 255, 0.12);
+  background: linear-gradient(90deg, rgba(0, 231, 255, 0.08), transparent 80%);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.stream-title {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700; color: var(--neon-core);
+  font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 231, 255, 0.5);
+}
+.stream-count {
+  background: rgba(0, 231, 255, 0.12); color: var(--neon-core);
+  padding: 2px 8px; border-radius: 0; font-size: 0.72rem; font-weight: 700;
+  border: 1px solid rgba(0, 231, 255, 0.3);
+}
+.stream-search { padding: 8px 12px; border-bottom: 1px solid rgba(0, 231, 255, 0.1); }
+.stream-search input {
+  width: 100%; padding: 7px 10px; background: rgba(2, 8, 22, 0.7);
+  border: 1px solid rgba(0, 231, 255, 0.2); border-radius: 0;
+  color: var(--fg-primary); font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem; transition: all var(--transition-smooth);
+}
+.stream-search input:focus { outline: none; border-color: var(--neon-core); box-shadow: var(--glow-core); }
+.stream-content {
+  padding: 8px; overflow-y: auto; max-height: 380px; flex-grow: 1;
+}
+
+/* === STREAM ITEM - TERMINAL OUTPUT STYLE === */
+.stream-item {
+  padding: 9px 12px; margin-bottom: 6px;
+  background: rgba(4, 12, 35, 0.5);
+  border-left: 2px solid rgba(0, 231, 255, 0.3);
+  cursor: pointer; transition: all var(--transition-smooth);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+  position: relative; overflow: hidden;
+}
+.stream-item::before {
+  content: '>'; position: absolute; left: 4px; top: 50%; transform: translateY(-50%);
+  color: var(--neon-core); opacity: 0.6; font-weight: bold;
+}
+.stream-item:hover {
+  border-left-color: var(--neon-core);
+  background: rgba(6, 18, 48, 0.7);
+  box-shadow: 0 0 15px rgba(0, 231, 255, 0.25);
+  padding-left: 18px;
+}
+.stream-item:hover::before { opacity: 1; animation: cursorBlink 1s infinite; }
+@keyframes cursorBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.3; } }
+.item-meta { color: var(--fg-dim); font-size: 0.72rem; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.8px; }
+.item-label { color: var(--neon-core); font-weight: 600; margin-bottom: 2px; }
+.item-value { color: var(--fg-primary); line-height: 1.3; word-break: break-word; }
+
+/* === CALCULATOR PANEL - UNIQUE STYLE === */
+.calc-panel {
+  background: var(--bg-panel-alt);
+  border: 1px solid rgba(183, 42, 255, 0.22);
+  border-radius: 0; clip-path: polygon(3% 0, 100% 0, 97% 100%, 0 100%);
+  padding: 16px; margin: 8px 0; backdrop-filter: blur(5px);
+}
+.calc-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+  padding-bottom: 10px; border-bottom: 1px dashed rgba(183, 42, 255, 0.25);
+}
+.calc-icon { font-size: 1.3rem; color: var(--neon-pulse); animation: iconPulse 2s infinite; }
+@keyframes iconPulse { 0%, 100% { text-shadow: 0 0 8px rgba(0, 255, 255, 0.6); } 50% { text-shadow: 0 0 18px rgba(0, 255, 255, 0.9), 0 0 35px rgba(183, 42, 255, 0.7); } }
+.calc-title {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700; color: var(--neon-pulse);
+  font-size: 1rem; text-transform: uppercase; letter-spacing: 1.5px;
+  text-shadow: 0 0 10px rgba(183, 42, 255, 0.6);
+}
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
+.calc-field { display: flex; flex-direction: column; gap: 6px; }
+.calc-field-label {
+  font-family: 'Rajdhani', sans-serif; font-size: 0.78rem; font-weight: 600;
+  color: var(--neon-core); text-transform: uppercase; letter-spacing: 1px;
+}
+.calc-select {
+  padding: 9px 12px; background: rgba(2, 8, 22, 0.85);
+  border: 1px solid rgba(0, 231, 255, 0.3); border-radius: 0;
+  color: var(--fg-primary); font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88rem; cursor: pointer; transition: all var(--transition-smooth);
+}
+.calc-select:focus { outline: none; border-color: var(--neon-core); box-shadow: var(--glow-core); }
+.calc-btn {
+  padding: 9px 20px; background: linear-gradient(180deg, var(--neon-core), var(--neon-edge));
+  border: none; border-radius: 0; color: var(--bg-deep); font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
+  cursor: pointer; transition: all var(--transition-glitch);
+}
+.calc-btn:hover { box-shadow: var(--glow-intense); transform: translateX(3px) scale(1.02); }
+.calc-btn:active { transform: translateX(0) scale(1); }
+
+.calc-result {
+  margin-top: 14px; padding: 14px; background: rgba(4, 12, 35, 0.7);
+  border: 1px solid rgba(0, 231, 255, 0.25); border-radius: 0;
+  font-family: 'JetBrains Mono', monospace; font-size: 1.05rem;
+  color: var(--neon-core); text-align: center; min-height: 50px;
   display: flex; align-items: center; justify-content: center;
-  position: relative; animation: rotateGradient 8s linear infinite;
+  transition: all var(--transition-smooth); cursor: pointer;
 }
-@keyframes rotateGradient { to { transform: rotate(360deg); } }
-.radial-inner {
-  width: 84px; height: 84px; border-radius: 50%;
-  background: var(--bg-deep); display: flex; align-items: center; justify-content: center;
-  font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--cyan);
-  font-size: 1.1rem; text-shadow: 0 0 10px rgba(0,212,255,0.6);
-}
-.radial-label { font-size: 0.75rem; color: var(--fg-dim); text-align: center; }
+.calc-result:hover { border-color: var(--neon-core); box-shadow: var(--glow-core); }
+.calc-result.copied { animation: resultFlash 0.4s ease-out; }
+@keyframes resultFlash { 0% { box-shadow: 0 0 0 rgba(0, 255, 170, 0); } 50% { box-shadow: 0 0 25px rgba(0, 255, 170, 0.8); } 100% { box-shadow: 0 0 0 rgba(0, 255, 170, 0); } }
 
-/* === ACTION BAR - BOTTOM FIXED === */
-.action-bar {
-  grid-area: actions;
-  display: flex; flex-direction: column; gap: 12px; padding: 12px;
+/* === STATUS BAR === */
+.deck-status {
+  grid-area: status;
+  background: var(--bg-panel);
+  border: 1px solid rgba(0, 231, 255, 0.15);
+  border-radius: 0; clip-path: polygon(2% 0, 100% 0, 98% 100%, 0 100%);
+  padding: 8px 16px; display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.75rem; color: var(--fg-dim); font-family: 'JetBrains Mono', monospace;
 }
-.action-btn {
-  flex: 1; padding: 14px 18px; border-radius: 14px; border: none;
-  font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.85rem;
-  cursor: pointer; transition: all var(--transition); position: relative; overflow: hidden;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+.status-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent-ok); margin-right: 6px;
+  box-shadow: 0 0 8px var(--accent-ok); animation: dotPulse 2s infinite;
 }
-.action-btn.primary {
-  background: linear-gradient(135deg, var(--cyan), var(--purple));
-  color: var(--bg-deep); box-shadow: var(--glow-cyan);
-}
-.action-btn.primary:hover {
-  transform: translateY(-2px); box-shadow: 0 0 20px #00d4ff, 0 0 45px #7b2cbf;
-}
-.action-btn.secondary {
-  background: rgba(123,44,191,0.2); color: var(--purple);
-  border: 1px solid rgba(123,44,191,0.4);
-}
-.action-btn.secondary:hover {
-  background: rgba(123,44,191,0.35); box-shadow: var(--glow-purple);
-}
-.action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+@keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.9); } }
 
-/* === RESULT DISPLAY - TERMINAL STYLE === */
-.terminal-output {
-  background: rgba(5,5,12,0.9); border: 1px solid rgba(0,212,255,0.3);
-  border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', monospace;
-  min-height: 80px; display: flex; align-items: center; justify-content: center;
-  color: var(--cyan); font-size: 1.05rem; font-weight: 600;
-  text-align: center; cursor: pointer; transition: all var(--transition);
+/* === TOAST - TERMINAL STYLE === */
+.terminal-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+  background: rgba(2, 8, 22, 0.95); border: 1px solid var(--neon-core);
+  border-radius: 0; padding: 11px 26px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88rem; color: var(--neon-core); opacity: 0; transition: all var(--transition-glitch);
+  z-index: 1000; backdrop-filter: blur(8px); text-shadow: 0 0 10px rgba(0, 231, 255, 0.7);
+  box-shadow: var(--glow-intense); clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
 }
-.terminal-output:hover { border-color: var(--cyan-bright); box-shadow: var(--glow-cyan); }
-.terminal-output::after {
-  content: '▋'; animation: blink 1s step-end infinite; margin-left: 4px; color: var(--green);
+.terminal-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); animation: toastGlitch 0.4s var(--transition-glitch); }
+@keyframes toastGlitch {
+  0% { transform: translateX(-50%) translateY(100px) skewX(0); }
+  25% { transform: translateX(-50%) translateY(10px) skewX(-1deg); }
+  50% { transform: translateX(-50%) translateY(-5px) skewX(1deg); }
+  100% { transform: translateX(-50%) translateY(0) skewX(0); opacity: 1; }
 }
-@keyframes blink { 50% { opacity: 0; } }
 
-/* === TOAST - SLIDE IN FROM TOP === */
-.toast {
-  position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-  background: linear-gradient(135deg, rgba(10,8,30,0.96), rgba(18,14,48,0.94));
-  color: var(--cyan); padding: 12px 28px; border-radius: 50px;
-  font-weight: 600; font-size: 0.9rem; z-index: 4000;
-  border: 1px solid var(--cyan); box-shadow: var(--glow-cyan);
-  backdrop-filter: blur(15px); transition: top var(--transition-smooth);
-  display: flex; align-items: center; gap: 10px;
+/* === SPINNER - DATA LOADING === */
+.data-spinner {
+  width: 28px; height: 28px; border: 2px solid rgba(0, 231, 255, 0.25);
+  border-top-color: var(--neon-core); border-radius: 50%;
+  animation: spinData 0.8s linear infinite; margin: 20px auto;
 }
-.toast.show { top: 20px; }
-.toast-icon { font-size: 1.2rem; }
+@keyframes spinData { to { transform: rotate(360deg); } }
 
-/* === FOOTER === */
-.footer {
-  grid-area: footer;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px; font-size: 0.75rem; color: var(--fg-muted);
+/* === SCROLLBAR - TERMINAL === */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: rgba(2, 8, 22, 0.5); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--neon-core), var(--neon-edge));
+  border-radius: 0; border: 1px solid rgba(0, 231, 255, 0.2);
 }
-.footer-link { color: var(--cyan); text-decoration: none; transition: color var(--transition); }
-.footer-link:hover { color: var(--cyan-bright); text-shadow: 0 0 8px rgba(0,212,255,0.6); }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--neon-pulse), var(--neon-core)); }
 
 /* === RESPONSIVE === */
-@media (max-width: 1100px) {
-  .app-grid {
-    grid-template-columns: 1fr; grid-template-rows: 56px 1fr auto auto;
-    grid-template-areas: "header" "main" "actions" "footer";
+@media (max-width: 900px) {
+  .cyber-deck {
+    grid-template-areas: "header" "nav" "main" "status";
+    grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto;
   }
-  .sidebar { display: none; }
+  .deck-nav { flex-direction: row; overflow-x: auto; padding: 10px 8px; }
+  .nav-item { padding: 9px 12px; font-size: 0.8rem; white-space: nowrap; }
   .calc-grid { grid-template-columns: 1fr; }
+  .control-bar { gap: 10px; }
+  .input-terminal { width: 130px; }
 }
-@media (max-width: 600px) {
-  .header { padding: 0 12px; }
-  .logo { font-size: 1.1rem; }
-  .panel { padding: 14px; }
-  .data-card { min-width: 220px; }
-  .action-btn { padding: 12px 14px; font-size: 0.8rem; }
+@media (max-width: 500px) {
+  .deck-header { padding: 12px 14px; }
+  .deck-title { font-size: 1.3rem; letter-spacing: 2px; }
+  .control-bar { padding: 10px 12px; }
+  .input-terminal { width: 100%; }
+  .segmented-control { width: 100%; }
+  .segment-btn { flex: 1; padding: 6px 8px; font-size: 0.75rem; }
 }
 
-/* === UTILS === */
-.hidden { display: none !important; }
-.text-cyan { color: var(--cyan) !important; }
-.text-purple { color: var(--purple) !important; }
-.text-pink { color: var(--pink) !important; }
-.text-green { color: var(--green) !important; }
-.glow-cyan { box-shadow: var(--glow-cyan) !important; }
-::selection { background: rgba(0,212,255,0.3); color: var(--fg-main); }
-input::selection { background: rgba(0,212,255,0.4); }
+/* === SELECTION & FOCUS === */
+::selection { background: rgba(0, 231, 255, 0.3); color: var(--fg-primary); }
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--neon-core); outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0, 231, 255, 0.15);
+}
+
+/* === REDUCED MOTION === */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 </style>
 </head>
 <body>
-<canvas id="matrix-canvas"></canvas>
-<div class="bg-noise"></div>
+<div class="holo-bg"></div>
 <div class="scanlines"></div>
-<div class="crt-curve"></div>
+<div class="noise-overlay"></div>
+<div class="data-particles" id="dataParticles"></div>
+<div id="terminalToast" class="terminal-toast">⚡ SYSTEM: OK</div>
 
-<div id="toast" class="toast"><span class="toast-icon">⚡</span><span id="toast-msg">System Ready</span></div>
-
-<div class="app-grid">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <button class="nav-btn active" data-tab="prediksi" title="Prediksi">🔮</button>
-    <button class="nav-btn" data-tab="hitung" title="Hitung">🧮</button>
-    <button class="nav-btn" title="Settings">⚙️</button>
-    <div style="flex:1"></div>
-    <button class="nav-btn" title="Help">❓</button>
-  </aside>
-
+<div class="cyber-deck">
   <!-- HEADER -->
-  <header class="header">
-    <div class="logo">CYBER<span class="text-purple">TERMINAL</span></div>
-    <div class="header-actions">
+  <header class="deck-header">
+    <h1 class="deck-title">HOLO-DECK: PREDIKSI & HITUNG TOGEL</h1>
+    <div style="display:flex;align-items:center;gap:8px">
       <span class="status-dot"></span>
-      <span style="font-size:0.8rem;color:var(--fg-dim)">ONLINE</span>
+      <span style="color:var(--accent-ok);font-weight:600">ONLINE</span>
     </div>
   </header>
 
+  <!-- RADIAL NAV -->
+  <nav class="deck-nav">
+    <div class="nav-item active" data-view="prediksi">
+      <span class="nav-icon">🔮</span>PREDIKSI
+    </div>
+    <div class="nav-item" data-view="hitung">
+      <span class="nav-icon">🧮</span>HITUNG
+    </div>
+    <div class="nav-item" data-view="jadwal">
+      <span class="nav-icon">📅</span>JADWAL
+    </div>
+    <div class="nav-item" data-view="link">
+      <span class="nav-icon">🔗</span>LIVE LINK
+    </div>
+  </nav>
+
   <!-- MAIN CONTENT -->
-  <main class="main">
-    <!-- TAB: PREDIKSI -->
-    <section id="tab-prediksi" class="tab-panel">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">📅 Input Parameter</span>
-          <span class="panel-badge" id="badge-tanggal">--</span>
+  <main class="deck-main">
+    <!-- CONTROL BAR -->
+    <div class="control-bar">
+      <div class="control-group">
+        <span class="control-label">📅 TGL:</span>
+        <input type="date" id="inputTanggal" class="input-terminal" onchange="autoUpdateTanggal()">
+      </div>
+      <div class="control-group">
+        <span class="control-label">💰 NOM:</span>
+        <input type="number" id="inputNominal" class="input-terminal" placeholder="0" onchange="autoUpdateNominal()">
+      </div>
+      <button class="btn-terminal" id="btnUpdate" onclick="manualUpdate()">⚡ EXECUTE</button>
+      <span class="status-indicator" id="statusText">● READY</span>
+    </div>
+
+    <!-- PREDIKSI VIEW -->
+    <div id="view-prediksi" class="stream-container">
+      <div class="stream-panel">
+        <div class="stream-header">
+          <span class="stream-title">🔮 PREDIKSI STREAM</span>
+          <span class="stream-count" id="countPrediksi">0</span>
         </div>
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <input type="date" id="input-tanggal" style="padding:10px 12px;background:rgba(15,13,38,0.85);border:1px solid rgba(0,212,255,0.3);border-radius:10px;color:var(--fg-main);font-family:'JetBrains Mono',monospace">
-          <button class="action-btn primary" onclick="updateTanggal()" style="padding:10px 20px;font-size:0.8rem">⚡ SYNC</button>
-          <span id="status-tanggal" style="font-size:0.8rem;color:var(--fg-muted)"></span>
+        <div class="stream-search"><input type="text" id="searchPrediksi" placeholder="> filter prediksi..."></div>
+        <div class="stream-content" id="listPrediksi">
+          <div style="text-align:center;padding:25px"><div class="data-spinner"></div></div>
         </div>
       </div>
-
-      <div class="panel" style="margin-top:16px">
-        <div class="panel-header">
-          <span class="panel-title">🔮 Data Stream</span>
-          <span class="panel-badge" id="count-prediksi">0</span>
+      <div class="stream-panel">
+        <div class="stream-header">
+          <span class="stream-title">📊 ANALYSIS</span>
+          <span class="stream-count" id="countAnalysis">0</span>
         </div>
-        <div class="data-scroll" id="list-prediksi">
-          <div style="display:flex;justify-content:center;padding:30px;width:100%"><div class="spinner"></div></div>
-        </div>
-      </div>
-
-      <div class="panel" style="margin-top:16px">
-        <div class="panel-header">
-          <span class="panel-title">📅 Schedule Feed</span>
-          <span class="panel-badge" id="count-jadwal">0</span>
-        </div>
-        <div class="data-scroll" id="list-jadwal"></div>
-      </div>
-
-      <div class="panel" style="margin-top:16px">
-        <div class="panel-header">
-          <span class="panel-title">🔗 Live Links</span>
-          <span class="panel-badge" id="count-link">0</span>
-        </div>
-        <div class="data-scroll" id="list-link"></div>
-      </div>
-    </section>
-
-    <!-- TAB: HITUNG -->
-    <section id="tab-hitung" class="tab-panel hidden">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">💰 Nominal Base</span>
-          <span class="panel-badge" id="badge-nominal">Rp 0</span>
-        </div>
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <input type="number" id="input-nominal" placeholder="0" style="padding:10px 12px;background:rgba(15,13,38,0.85);border:1px solid rgba(123,44,191,0.4);border-radius:10px;color:var(--fg-main);font-family:'JetBrains Mono',monospace;width:150px">
-          <button class="action-btn secondary" onclick="updateNominal()" style="padding:10px 20px;font-size:0.8rem">⚡ CALC</button>
-          <span id="status-nominal" style="font-size:0.8rem;color:var(--fg-muted)"></span>
+        <div class="stream-search"><input type="text" id="searchAnalysis" placeholder="> filter analysis..."></div>
+        <div class="stream-content" id="listAnalysis">
+          <div style="text-align:center;padding:25px"><div class="data-spinner"></div></div>
         </div>
       </div>
+      <div class="stream-panel">
+        <div class="stream-header">
+          <span class="stream-title">⚡ SIGNAL</span>
+          <span class="stream-count" id="countSignal">0</span>
+        </div>
+        <div class="stream-search"><input type="text" id="searchSignal" placeholder="> filter signal..."></div>
+        <div class="stream-content" id="listSignal">
+          <div style="text-align:center;padding:25px"><div class="data-spinner"></div></div>
+        </div>
+      </div>
+    </div>
 
-      <div class="panel" style="margin-top:16px">
-        <div class="panel-header">
-          <span class="panel-title">🧮 Calculation Matrix</span>
+    <!-- HITUNG VIEW (hidden by default) -->
+    <div id="view-hitung" class="stream-container" style="display:none">
+      <div class="calc-panel">
+        <div class="calc-header">
+          <span class="calc-icon">🧮</span>
+          <span class="calc-title">CALCULATION MODULE</span>
         </div>
         <div class="calc-grid">
           <div class="calc-field">
-            <label>TIPE HITUNGAN</label>
-            <div class="cmd-trigger" onclick="openCmd('kelompok')">
-              <span class="cmd-icon">▶</span>
-              <span class="cmd-text" id="cmdKelompok">-- SELECT TYPE --</span>
-              <span class="cmd-hint">CMD+K</span>
-            </div>
+            <label class="calc-field-label">TYPE SELECT</label>
+            <select id="calcType" class="calc-select" onchange="populateLabels()">
+              <option value="">-- SELECT CALC TYPE --</option>
+            </select>
           </div>
           <div class="calc-field">
-            <label>LABEL</label>
-            <div class="cmd-trigger" onclick="openCmd('label')" id="cmdLabelTrigger" style="opacity:0.5;pointer-events:none">
-              <span class="cmd-icon">▶</span>
-              <span class="cmd-text" id="cmdLabel">-- SELECT LABEL --</span>
-              <span class="cmd-hint">CMD+K</span>
-            </div>
+            <label class="calc-field-label">LABEL SELECT</label>
+            <select id="calcLabel" class="calc-select" onchange="showResult()">
+              <option value="">-- SELECT LABEL --</option>
+            </select>
           </div>
+          <button class="calc-btn" onclick="showResult()">▶ EXECUTE</button>
         </div>
-        <button class="action-btn primary" onclick="runCalculation()" style="width:100%;margin-top:8px">🚀 EXECUTE CALCULATION</button>
-        <div class="terminal-output" id="terminalResult" style="margin-top:14px" onclick="copyResult()">
-          <span style="color:var(--fg-muted)">Waiting for input...</span>
-        </div>
-      </div>
-
-      <div class="panel" style="margin-top:16px">
-        <div class="panel-header">
-          <span class="panel-title">📊 Market Results</span>
-        </div>
-        <div id="container-hitung" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
-          <div style="display:flex;justify-content:center;padding:40px;width:100%"><div class="spinner"></div></div>
+        <div class="calc-result" id="calcResult" onclick="copyResult()">
+          <span style="color:var(--fg-dim)">awaiting input parameters...</span>
         </div>
       </div>
-    </section>
+      <div class="stream-panel" style="grid-column:1/-1">
+        <div class="stream-header">
+          <span class="stream-title">📈 CALCULATION OUTPUT</span>
+          <span class="stream-count" id="countCalc">0</span>
+        </div>
+        <div class="stream-content" id="listCalc">
+          <div style="text-align:center;padding:25px"><div class="data-spinner"></div></div>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <!-- ACTION BAR -->
-  <aside class="action-bar">
-    <button class="action-btn primary" id="btn-refresh" onclick="refreshAll()">🔄 REFRESH ALL</button>
-    <button class="action-btn secondary" id="btn-copy-all" onclick="copyAllData()">📋 COPY ALL</button>
-  </aside>
-
-  <!-- FOOTER -->
-  <footer class="footer">
-    <span>CYBER TERMINAL v2.0</span>
-    <a href="#" class="footer-link">DOCS</a>
-    <a href="#" class="footer-link">STATUS</a>
+  <!-- STATUS BAR -->
+  <footer class="deck-status">
+    <span><span class="status-dot"></span>HOLO-DECK v2.1.7 // NEON CORE ACTIVE</span>
+    <span id="timestamp"></span>
   </footer>
 </div>
 
-<!-- COMMAND PALETTE MODAL -->
-<div class="cmd-palette" id="cmdPalette">
-  <div class="cmd-header">
-    <span style="font-size:1.2rem">⌨️</span>
-    <input type="text" class="cmd-input" id="cmdSearch" placeholder="Type to search commands..." autofocus>
-  </div>
-  <div class="cmd-list" id="cmdList"></div>
-  <div class="cmd-footer">
-    <span>↑↓ Navigate</span>
-    <span>Enter Select</span>
-    <span>Esc Close</span>
-  </div>
-</div>
-
 <script>
-// === MATRIX BACKGROUND ===
-function initMatrix() {
-  const canvas = document.getElementById('matrix-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-  const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヰヱヲン';
-  const fontSize = 14, columns = canvas.width / fontSize;
-  const drops = Array(Math.floor(columns)).fill(1);
-  function draw() {
-    ctx.fillStyle = 'rgba(5, 5, 10, 0.08)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#00d4ff'; ctx.font = fontSize + 'px "JetBrains Mono"';
-    for (let i = 0; i < drops.length; i++) {
-      const text = chars.charAt(Math.floor(Math.random() * chars.length));
-      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-      drops[i]++;
-    }
+// === CONFIG ===
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbya8o-PPA76I8CsTlEVmcANKVuxapOGU5WhhienU7NNQ6HO-igG4Ly8yZPujUZE6DFRlw/exec'.trim();
+const CONFIG = {
+  sheetPrediksi: 'https://docs.google.com/spreadsheets/d/1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0/export?format=csv&gid=1065490622'.trim(),
+  sheetHitung: 'https://docs.google.com/spreadsheets/d/1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0/export?format=csv&gid=1584456810'.trim(),
+  keyTanggal: 'togel_tanggal_v4', keyNominal: 'togel_nominal_v4'
+};
+const state = { prediksi: [], jadwal: [], link: [], hitung: [], calcData: {} };
+const $ = id => document.getElementById(id);
+
+// === PARTICLES ===
+function createDataParticles() {
+  const container = $('dataParticles'); if (!container) return;
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div'); p.className = 'data-particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 18 + 's';
+    p.style.animationDuration = (14 + Math.random() * 12) + 's';
+    container.appendChild(p);
   }
-  setInterval(draw, 45);
-  window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 }
 
-// === CORE UTILS ===
-const $ = id => document.getElementById(id);
-const showToast = (msg, icon = '⚡') => {
-  const t = $('toast'); $('toast-msg').textContent = msg; t.querySelector('.toast-icon').textContent = icon;
-  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
-};
-const copyText = (text) => {
-  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard', '📋'))
-    .catch(() => showToast('Copy failed', '❌'));
-};
-const formatNum = n => new Intl.NumberFormat('id-ID').format(n);
+// === TOAST ===
+function showTerminalToast(msg) {
+  const toast = $('terminalToast');
+  toast.textContent = '⚡ ' + msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+// === COPY UTILS ===
+function copyToClipboard(text) {
+  let clean = text; try { clean = decodeURIComponent(text); } catch(e) {}
+  navigator.clipboard.writeText(clean).then(() => {
+    const preview = clean.length > 25 ? clean.substring(0, 25) + '...' : clean;
+    showTerminalToast('COPIED: ' + preview);
+  }).catch(() => showTerminalToast('ERROR: Clipboard access denied'));
+}
+
+function copyResult() {
+  const result = $('calcResult');
+  const text = result.textContent.trim();
+  if (text && !text.includes('awaiting')) {
+    copyToClipboard(text);
+    result.classList.add('copied');
+    setTimeout(() => result.classList.remove('copied'), 400);
+  }
+}
+
+// === FORMAT ===
+function formatNum(n) { return new Intl.NumberFormat('id-ID').format(n); }
+function updateTimestamp() {
+  const now = new Date();
+  $('timestamp').textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' // ' + now.toLocaleDateString('id-ID');
+}
+setInterval(updateTimestamp, 1000); updateTimestamp();
 
 // === CSV PARSER ===
-const parseCSV = (text) => {
-  let rows = [], row = [], cell = '', inQuotes = false;
+function parseCSV(text) {
+  let rows = [], row = [], cell = "", inQuotes = false;
   for (let i = 0; i < text.length; i++) {
     const c = text[i], next = text[i+1];
     if (inQuotes) {
@@ -584,227 +644,292 @@ const parseCSV = (text) => {
       else cell += c;
     } else {
       if (c === '"') inQuotes = true;
-      else if (c === ',') { row.push(cell); cell = ''; }
-      else if (c === '\n' || c === '\r' && next === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; if (c === '\r') i++; }
-      else if (c === '\r') { row.push(cell); rows.push(row); row = []; cell = ''; }
-      else cell += c;
+      else if (c === ',') { row.push(cell); cell = ""; }
+      else if ((c === '\r' && next === '\n') || c === '\n' || c === '\r') {
+        row.push(cell); rows.push(row); row = []; cell = "";
+        if (c === '\r' && next === '\n') i++;
+      } else cell += c;
     }
   }
   if (cell || row.length) { row.push(cell); rows.push(row); }
   return rows;
-};
-const safe = (row, i) => row?.[i] ?? '';
+}
+function safeGet(row, idx) { return row && row[idx] !== undefined ? row[idx] : ""; }
 
-// === CONFIG ===
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbya8o-PPA76I8CsTlEVmcANKVuxapOGU5WhhienU7NNQ6HO-igG4Ly8yZPujUZE6DFRlw/exec'.trim();
-const CONFIG = {
-  prediksi: 'https://docs.google.com/spreadsheets/d/1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0/export?format=csv&gid=1065490622'.trim(),
-  hitung: 'https://docs.google.com/spreadsheets/d/1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0/export?format=csv&gid=1584456810'.trim(),
-  keys: { tgl: 'togel_tanggal_v4', nom: 'togel_nominal_v4' }
-};
-const state = { prediksi: [], jadwal: [], link: [], hitung: [], kelompok: {} };
-
-// === DATA FETCH ===
-async function fetchPrediksi() {
+// === API ===
+async function updateSheet(action, value) {
+  if (SCRIPT_URL.includes('YOUR_SCRIPT_ID')) { showTerminalToast('ERROR: Script URL not configured'); return false; }
   try {
-    const res = await fetch(CONFIG.prediksi + '&t=' + Date.now()), data = parseCSV(await res.text());
-    state.prediksi = state.jadwal = state.link = [];
-    if (data[0]?.[1]) {
-      const p = safe(data[0],1).split('/');
-      if (p.length === 3) $('input-tanggal').value = `${p[2]}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`;
-    }
-    for (let i = 2; i <= 84 && i < data.length; i++) {
-      const t = safe(data[i], 1); if (t) state.prediksi.push({ title: t.split(/[\s,]+/)[0], content: t });
-    }
-    for (let i = 2; i <= 55 && i < data.length; i++) {
-      const t = safe(data[i], 2); if (t) state.jadwal.push({ title: t.split(/[\s,]+/)[0], content: t });
-    }
-    for (let i = 56; i <= 82 && i < data.length; i++) {
-      const t = safe(data[i], 2); if (t) state.link.push({ title: t.split(/[\s,]+/)[0], content: t });
-    }
-    renderPrediksi();
-  } catch (e) { console.error(e); $('list-prediksi').innerHTML = '<p style="color:var(--fg-muted);text-align:center;padding:20px">⚠️ Connection error</p>'; }
+    const params = new URLSearchParams({ action, value });
+    const res = await fetch(SCRIPT_URL + '?' + params.toString());
+    return (await res.text()).includes('SUCCESS');
+  } catch (e) { console.error('API Error:', e); return false; }
 }
 
-async function fetchHitung() {
+// === DATA FETCH ===
+async function fetchPrediksiData() {
   try {
-    const res = await fetch(CONFIG.hitung + '&t=' + Date.now()), data = parseCSV(await res.text());
-    if (data[0]?.[23]) { $('input-nominal').value = safe(data[0],23); $('badge-nominal').textContent = 'Rp ' + formatNum(safe(data[0],23)); }
-    const sections = [
-      { r:0, c:24, s:2, e:42 }, { r:43, c:24, s:45, e:80 }, { r:81, c:24, s:83, e:119 },
-      { r:120, c:24, s:122, e:153 }, { r:154, c:24, s:156, e:179 }, { r:180, c:24, s:182, e:213 },
-      { r:215, c:24, s:217, e:248 }, { r:249, c:24, s:251, e:282 }, { r:283, c:24, s:285, e:316 }
-    ];
-    state.hitung = sections.map(sec => {
-      const title = safe(data[sec.r], sec.c) || 'MARKET';
-      const items = [];
-      for (let i = sec.s; i <= sec.e && i < data.length; i++) {
-        if (data[i]) {
-          const type = safe(data[i],23), val = safe(data[i],24);
-          if (type || val) items.push({ type, val });
+    const res = await fetch(CONFIG.sheetPrediksi + '&t=' + Date.now());
+    const data = parseCSV(await res.text());
+    state.prediksi = []; state.jadwal = []; state.link = [];
+    
+    // Parse tanggal
+    if (data[0]) {
+      const raw = safeGet(data[0], 1);
+      if (raw) {
+        const parts = raw.split('/');
+        if (parts.length === 3) {
+          const formatted = `${parts[2]}-${parts[0].padStart(2,'0')}-${parts[1].padStart(2,'0')}`;
+          $('inputTanggal').value = formatted;
         }
       }
-      return { title, items };
-    }).filter(x => x.items.length);
-    renderHitung();
-  } catch (e) { console.error(e); $('container-hitung').innerHTML = '<p style="color:var(--fg-muted);text-align:center;padding:20px">⚠️ Connection error</p>'; }
+    }
+    
+    // Parse data streams
+    for (let i = 2; i <= 84 && i < data.length; i++) {
+      const txt = safeGet(data[i], 1);
+      if (txt) state.prediksi.push({ label: 'PRED', value: txt, meta: 'STREAM-A' });
+    }
+    for (let i = 2; i <= 55 && i < data.length; i++) {
+      const txt = safeGet(data[i], 2);
+      if (txt) state.jadwal.push({ label: 'JADWAL', value: txt, meta: 'STREAM-B' });
+    }
+    for (let i = 56; i <= 82 && i < data.length; i++) {
+      const txt = safeGet(data[i], 2);
+      if (txt) state.link.push({ label: 'LINK', value: txt, meta: 'STREAM-C' });
+    }
+    renderStreams();
+  } catch (e) {
+    console.error('Fetch Error:', e);
+    $('listPrediksi').innerHTML = '<div style="color:var(--accent-alert);text-align:center;padding:20px">⚠ CONNECTION ERROR</div>';
+  }
+}
+
+async function fetchHitungData() {
+  try {
+    const res = await fetch(CONFIG.sheetHitung + '&t=' + Date.now());
+    const data = parseCSV(await res.text());
+    
+    // Parse nominal
+    if (data[0]) {
+      const nom = safeGet(data[0], 23);
+      if (nom) { $('inputNominal').value = nom; }
+    }
+    
+    // Parse calculation sections
+    const sections = [
+      { start: 2, end: 42, title: "ALL MARKETS" },
+      { start: 45, end: 80, title: "MACAU 4D" },
+      { start: 83, end: 119, title: "MACAU 5D" },
+      { start: 122, end: 153, title: "KINGKONG 4D" },
+      { start: 156, end: 179, title: "BONUS CALC" },
+      { start: 182, end: 213, title: "JAKARTA" },
+      { start: 217, end: 248, title: "TOTOMALI" },
+      { start: 251, end: 282, title: "HOKIDRAW" },
+      { start: 285, end: 316, title: "SYDNEY/HK" }
+    ];
+    
+    state.calcData = {};
+    const typeSelect = $('calcType');
+    typeSelect.innerHTML = '<option value="">-- SELECT CALC TYPE --</option>';
+    
+    sections.forEach(sec => {
+      const items = [];
+      for (let i = sec.start; i <= sec.end && i < data.length; i++) {
+        if (data[i]) {
+          const label = safeGet(data[i], 23), value = safeGet(data[i], 24);
+          if (label || value) items.push({ label: label || '-', value: value || '-' });
+        }
+      }
+      if (items.length > 0) {
+        state.calcData[sec.title] = items;
+        const opt = document.createElement('option');
+        opt.value = sec.title; opt.textContent = sec.title;
+        typeSelect.appendChild(opt);
+      }
+    });
+    
+    // Render output panel
+    renderCalcOutput();
+  } catch (e) {
+    console.error('Calc Fetch Error:', e);
+    $('listCalc').innerHTML = '<div style="color:var(--accent-alert);text-align:center;padding:20px">⚠ DATA UNAVAILABLE</div>';
+  }
 }
 
 // === RENDER ===
-const renderCard = (v) => `<div class="data-card" onclick="copyText('${encodeURIComponent(v.content)}')"><div class="label">ENTRY</div><div class="title">${v.title}</div><div class="label">PAYLOAD</div><div class="content">${v.content}</div></div>`;
-const renderList = (container, items) => {
-  if (!items.length) { container.innerHTML = '<p style="color:var(--fg-muted);text-align:center;padding:20px">📭 No data</p>'; return; }
-  container.innerHTML = items.map(renderCard).join('');
-};
-const renderPrediksi = () => {
-  renderList($('list-prediksi'), state.prediksi); renderList($('list-jadwal'), state.jadwal); renderList($('list-link'), state.link);
-  $('count-prediksi').textContent = state.prediksi.length; $('count-jadwal').textContent = state.jadwal.length; $('count-link').textContent = state.link.length;
-};
-const renderHitung = () => {
-  if (!state.hitung.length) { $('container-hitung').innerHTML = '<p style="color:var(--fg-muted);text-align:center">📭 No data</p>'; return; }
-  $('container-hitung').innerHTML = state.hitung.map(s => `
-    <div class="panel" style="padding:14px">
-      <div style="font-family:'Orbitron';font-weight:700;color:var(--purple);margin-bottom:10px;font-size:0.9rem">${s.title}</div>
-      ${s.items.map(it => `<div class="data-card" style="min-width:100%;margin-bottom:8px" onclick="copyText('${encodeURIComponent(it.val)}')"><div class="label">${it.type||'-'}</div><div class="content" style="color:var(--cyan);font-weight:600">${it.val||'-'}</div></div>`).join('')}
+function renderStreamItem(container, items, filter = '') {
+  const filtered = items.filter(i => 
+    i.value.toLowerCase().includes(filter.toLowerCase()) || 
+    i.label.toLowerCase().includes(filter.toLowerCase())
+  );
+  
+  if (!filtered.length) {
+    container.innerHTML = '<div style="color:var(--fg-dim);text-align:center;padding:20px">> no matching records</div>';
+    return;
+  }
+  
+  container.innerHTML = filtered.map(item => `
+    <div class="stream-item" onclick="copyToClipboard('${encodeURIComponent(item.value)}')">
+      <div class="item-meta">${item.meta || 'DATA'}</div>
+      <div class="item-label">${item.label}</div>
+      <div class="item-value">${item.value}</div>
     </div>
   `).join('');
-};
+}
 
-// === COMMAND PALETTE ===
-let cmdMode = '', cmdData = [], cmdIndex = 0;
-const openCmd = (mode) => {
-  cmdMode = mode; cmdIndex = 0;
-  const palette = $('cmdPalette'), list = $('cmdList'), search = $('cmdSearch');
-  if (mode === 'kelompok') {
-    cmdData = Object.keys(state.kelompok);
-    list.innerHTML = cmdData.map((d,i) => `<div class="cmd-item ${i===0?'active':''}" data-i="${i}"><span>📊</span><span>${d}</span><span class="cmd-kbd">↵</span></div>`).join('');
-  } else if (mode === 'label') {
-    const sel = $('cmdKelompok').textContent;
-    if (!state.kelompok[sel]) { showToast('Select type first', '⚠️'); return; }
-    cmdData = state.kelompok[sel];
-    list.innerHTML = cmdData.map((d,i) => `<div class="cmd-item ${i===0?'active':''}" data-i="${i}"><span>🏷️</span><span>${d.label}</span><span class="cmd-kbd">↵</span></div>`).join('');
-    $('cmdLabelTrigger').style.opacity = '1'; $('cmdLabelTrigger').style.pointerEvents = 'auto';
-  }
-  search.value = ''; filterCmd(); palette.classList.add('open'); setTimeout(() => search.focus(), 50);
-};
-const closeCmd = () => { $('cmdPalette').classList.remove('open'); $('cmdSearch').value = ''; };
-const filterCmd = () => {
-  const q = $('cmdSearch').value.toLowerCase();
-  document.querySelectorAll('.cmd-item').forEach((el, i) => {
-    const t = el.textContent.toLowerCase(); el.style.display = t.includes(q) ? 'flex' : 'none';
-    if (t.includes(q) && cmdIndex === 0) { el.classList.add('active'); cmdIndex = i; }
-  });
-};
-const selectCmd = (idx) => {
-  const items = [...document.querySelectorAll('.cmd-item')].filter(el => el.style.display !== 'none');
-  items.forEach(el => el.classList.remove('active'));
-  if (items[idx]) {
-    items[idx].classList.add('active'); cmdIndex = idx;
-    const val = cmdMode === 'kelompok' ? cmdData[+items[idx].dataset.i] : cmdData[+items[idx].dataset.i].label;
-    if (cmdMode === 'kelompok') {
-      $('cmdKelompok').textContent = val; $('cmdKelompok').classList.remove('text-muted');
-      $('cmdLabel').textContent = '-- SELECT LABEL --'; $('cmdLabelTrigger').style.opacity = '0.5'; $('cmdLabelTrigger').style.pointerEvents = 'none';
-    } else $('cmdLabel').textContent = val;
-  }
-};
-$('cmdList').addEventListener('click', e => { const item = e.target.closest('.cmd-item'); if (item) selectCmd(+item.dataset.i); });
-$('cmdSearch').addEventListener('input', filterCmd);
-$('cmdPalette').addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeCmd(); e.preventDefault(); }
-  else if (e.key === 'Enter') { closeCmd(); if (cmdMode === 'label') runCalculation(); }
-  else if (e.key === 'ArrowDown') { e.preventDefault(); const items = [...document.querySelectorAll('.cmd-item')].filter(el => el.style.display !== 'none'); if (cmdIndex < items.length - 1) { cmdIndex++; selectCmd(cmdIndex); } }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); if (cmdIndex > 0) { cmdIndex--; selectCmd(cmdIndex); } }
-});
-document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if ($('tab-hitung').classList.contains('hidden')) return; openCmd('kelompok'); } });
+function renderStreams() {
+  renderStreamItem($('listPrediksi'), state.prediksi, $('searchPrediksi').value);
+  renderStreamItem($('listAnalysis'), state.jadwal, $('searchAnalysis').value);
+  renderStreamItem($('listSignal'), state.link, $('searchSignal').value);
+  
+  $('countPrediksi').textContent = state.prediksi.length;
+  $('countAnalysis').textContent = state.jadwal.length;
+  $('countSignal').textContent = state.link.length;
+}
 
-// === CALCULATION ===
-async function loadKelompok() {
-  try {
-    const res = await fetch(CONFIG.hitung + '&t=' + Date.now()), data = parseCSV(await res.text());
-    const defs = [
-      { r:0, c:24, s:2, e:42, t:"ALL MARKETS" }, { r:43, c:24, s:45, e:80, t:"TOTO MACAU 4D" },
-      { r:81, c:24, s:83, e:119, t:"TOTO MACAU 5D" }, { r:120, c:24, s:122, e:153, t:"KINGKONG 4D" },
-      { r:154, c:24, s:156, e:179, t:"BONUS CALC" }, { r:180, c:24, s:182, e:213, t:"JAKARTA" },
-      { r:215, c:24, s:217, e:248, t:"TOTOMALI" }, { r:249, c:24, s:251, e:282, t:"HOKIDRAW" },
-      { r:283, c:24, s:285, e:316, t:"SYDNEY & HK" }
-    ];
-    state.kelompok = {};
-    defs.forEach(d => {
-      const items = [];
-      for (let i = d.s; i <= d.e && i < data.length; i++) {
-        if (data[i]) {
-          const lb = safe(data[i],23), vl = safe(data[i],24);
-          if (lb || vl) items.push({ label: lb||'-', value: vl||'-' });
-        }
-      }
-      if (items.length) state.kelompok[d.t] = items;
+function renderCalcOutput() {
+  const container = $('listCalc');
+  let allItems = [];
+  Object.values(state.calcData).forEach(items => allItems.push(...items));
+  
+  if (!allItems.length) {
+    container.innerHTML = '<div style="color:var(--fg-dim);text-align:center;padding:20px">> awaiting calculation parameters</div>';
+    return;
+  }
+  
+  container.innerHTML = allItems.map(it => `
+    <div class="stream-item" onclick="copyToClipboard('${encodeURIComponent(it.value)}')">
+      <div class="item-meta">CALC</div>
+      <div class="item-label">${it.label}</div>
+      <div class="item-value">${it.value}</div>
+    </div>
+  `).join('');
+  $('countCalc').textContent = allItems.length;
+}
+
+// === CALC LOGIC ===
+function populateLabels() {
+  const type = $('calcType').value;
+  const labelSelect = $('calcLabel');
+  labelSelect.innerHTML = '<option value="">-- SELECT LABEL --</option>';
+  
+  if (type && state.calcData[type]) {
+    state.calcData[type].forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.label; opt.textContent = item.label;
+      labelSelect.appendChild(opt);
     });
-  } catch (e) { console.error(e); }
-}
-const runCalculation = () => {
-  const tipe = $('cmdKelompok').textContent, label = $('cmdLabel').textContent;
-  const out = $('terminalResult');
-  if (!state.kelompok[tipe] || label === '-- SELECT LABEL --') {
-    out.innerHTML = '<span style="color:var(--fg-muted)">⚠️ Complete selection first</span>'; showToast('Select type & label', '⚠️'); return;
   }
-  const item = state.kelompok[tipe].find(i => i.label === label);
+}
+
+function showResult() {
+  const type = $('calcType').value;
+  const label = $('calcLabel').value;
+  const result = $('calcResult');
+  
+  if (!type || !label || !state.calcData[type]) {
+    result.innerHTML = '<span style="color:var(--accent-alert)">⚠ INVALID PARAMETERS</span>';
+    showTerminalToast('ERROR: Select type and label first');
+    return;
+  }
+  
+  const item = state.calcData[type].find(i => i.label === label);
   if (item) {
-    out.innerHTML = `<span class="text-cyan">${item.value}</span>`;
-    out.onclick = () => { copyText(item.value); out.style.boxShadow = '0 0 25px rgba(0,245,160,0.6)'; setTimeout(() => out.style.boxShadow = '', 200); };
-    showToast('Result ready', '✅');
+    result.textContent = item.value;
+    result.title = 'Click to copy';
+    showTerminalToast('RESULT GENERATED');
   }
-};
-const copyResult = () => { const txt = $('terminalResult').textContent.trim(); if (txt && !txt.includes('Waiting')) copyText(txt); };
-
-// === SYNC FUNCTIONS ===
-async function updateSheet(action, value) {
-  if (SCRIPT_URL.includes('YOUR_SCRIPT_ID')) { showToast('Script not configured', '❌'); return false; }
-  try {
-    const res = await fetch(`${SCRIPT_URL}?action=${action}&value=${encodeURIComponent(value)}`);
-    return (await res.text()).includes('SUCCESS');
-  } catch (e) { console.error(e); return false; }
 }
-const updateTanggal = async () => {
-  const val = $('input-tanggal').value; if (!val) return showToast('Select date', '⚠️');
-  const parts = val.split('-'), formatted = `${parts[1]}/${parts[2]}/${parts[0]}`;
-  $('status-tanggal').textContent = 'Syncing...';
-  const ok = await updateSheet('updateTanggal', formatted);
-  $('status-tanggal').textContent = ok ? '✓ Synced' : '✗ Failed';
-  if (ok) { localStorage.setItem(CONFIG.keys.tgl, val); $('badge-tanggal').textContent = val; showToast('Date updated', '📅'); refreshAll(); }
-  else showToast('Check script URL', '❌');
-};
-const updateNominal = async () => {
-  const val = $('input-nominal').value; if (!val) return showToast('Enter nominal', '⚠️');
-  $('status-nominal').textContent = 'Calculating...';
-  const ok = await updateSheet('updateNominal', val);
-  $('status-nominal').textContent = ok ? '✓ Done' : '✗ Failed';
-  if (ok) { localStorage.setItem(CONFIG.keys.nom, val); $('badge-nominal').textContent = 'Rp ' + formatNum(val); showToast('Nominal updated', '💰'); refreshAll(); }
-  else showToast('Check script URL', '❌');
-};
-const refreshAll = () => { showToast('Refreshing...', '🔄'); fetchPrediksi(); fetchHitung(); loadKelompok(); };
-const copyAllData = () => {
-  const all = [...state.prediksi, ...state.jadwal, ...state.link].map(x => x.content).join('\n---\n');
-  copyText(all); showToast('All data copied', '📋');
-};
 
-// === TAB SWITCHING ===
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const tab = btn.dataset.tab;
-    $('tab-prediksi').classList.toggle('hidden', tab !== 'prediksi');
-    $('tab-hitung').classList.toggle('hidden', tab !== 'hitung');
+// === AUTO-UPDATE ===
+let autoUpdateTimer = null;
+function autoUpdateTanggal() {
+  clearTimeout(autoUpdateTimer);
+  autoUpdateTimer = setTimeout(() => manualUpdate(), 1000);
+}
+function autoUpdateNominal() {
+  clearTimeout(autoUpdateTimer);
+  autoUpdateTimer = setTimeout(() => manualUpdate(), 1000);
+}
+
+function manualUpdate() {
+  const tgl = $('inputTanggal').value;
+  const nom = $('inputNominal').value;
+  const btn = $('btnUpdate');
+  const status = $('statusText');
+  
+  if (!tgl && !nom) return showTerminalToast('⚠ NO PARAMETERS TO UPDATE');
+  
+  btn.disabled = true;
+  status.textContent = '● PROCESSING...';
+  status.style.color = 'var(--accent-warn)';
+  
+  let completed = 0;
+  const checkDone = () => {
+    completed++;
+    if (completed >= 2) {
+      btn.disabled = false;
+      status.textContent = '● READY';
+      status.style.color = 'var(--accent-ok)';
+      showTerminalToast('✓ EXECUTION COMPLETE');
+      fetchPrediksiData();
+      fetchHitungData();
+    }
   };
-});
+  
+  if (tgl) {
+    const parts = tgl.split('-');
+    const formatted = `${parts[1]}/${parts[2]}/${parts[0]}`;
+    updateSheet('updateTanggal', formatted).then(ok => {
+      if (ok) localStorage.setItem(CONFIG.keyTanggal, tgl);
+      checkDone();
+    });
+  } else checkDone();
+  
+  if (nom) {
+    updateSheet('updateNominal', nom).then(ok => {
+      if (ok) localStorage.setItem(CONFIG.keyNominal, nom);
+      checkDone();
+    });
+  } else checkDone();
+}
+
+// === NAVIGATION ===
+function switchView(view) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  
+  $('view-prediksi').style.display = view === 'prediksi' ? 'grid' : 'none';
+  $('view-hitung').style.display = view === 'hitung' ? 'grid' : 'none';
+  
+  showTerminalToast(`VIEW: ${view.toUpperCase()} ACTIVE`);
+}
 
 // === INIT ===
+function init() {
+  // Nav clicks
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.onclick = switchView;
+  });
+  
+  // Search filters
+  $('searchPrediksi').oninput = () => renderStreamItem($('listPrediksi'), state.prediksi, $('searchPrediksi').value);
+  $('searchAnalysis').oninput = () => renderStreamItem($('listAnalysis'), state.jadwal, $('searchAnalysis').value);
+  $('searchSignal').oninput = () => renderStreamItem($('listSignal'), state.link, $('searchSignal').value);
+  
+  // Load data
+  fetchPrediksiData();
+  fetchHitungData();
+  
+  // Welcome
+  setTimeout(() => showTerminalToast('HOLO-DECK INITIALIZED // NEON CORE ONLINE'), 1500);
+}
+
+// === START ===
 document.addEventListener('DOMContentLoaded', () => {
-  initMatrix();
-  fetchPrediksi(); fetchHitung(); loadKelompok();
-  showToast('System initialized', '🚀');
-  // Auto refresh every 5 min
-  setInterval(refreshAll, 300000);
+  createDataParticles();
+  init();
 });
 </script>
 </body>
