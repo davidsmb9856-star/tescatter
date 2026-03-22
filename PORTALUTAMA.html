@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>⚡ HOLO-DECK: PREDIKSI & HITUNG TOGEL ⚡</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* === CORE VARIABLES - DARK & SUBTLE === */
 :root {
@@ -351,6 +352,60 @@ body {
 .result-box.copied { animation: copiedFlash 0.35s var(--transition-bloom); border-color: #00d6aa; box-shadow: 0 0 16px rgba(0,214,170,0.45); }
 @keyframes copiedFlash { 0%{transform:scale(1)} 50%{transform:scale(1.02);background:rgba(0,214,170,0.12)} 100%{transform:scale(1)} }
 
+/* === NEW EDITABLE INPUT === */
+.edit-result-container {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(4, 7, 22, 0.6);
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px dashed var(--border-soft);
+}
+.edit-result-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.input-edit-result {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(2, 4, 14, 0.8);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all var(--transition);
+}
+.input-edit-result:focus {
+  outline: none;
+  border-color: var(--neon-blue);
+  box-shadow: var(--glow-blue);
+  background: rgba(6, 10, 30, 0.9);
+}
+.btn-save-edit {
+  padding: 8px 14px;
+  background: rgba(0, 214, 170, 0.15);
+  border: 1px solid rgba(0, 214, 170, 0.4);
+  border-radius: 8px;
+  color: #00d6aa;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.btn-save-edit:hover {
+  background: rgba(0, 214, 170, 0.25);
+  box-shadow: 0 0 10px rgba(0, 214, 170, 0.4);
+  transform: translateY(-1px);
+}
+
 .hitung-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; margin-top: 6px; }
 .hitung-btn {
   padding: 10px 22px; background: linear-gradient(135deg, var(--neon-blue), var(--neon-blue-dark));
@@ -409,6 +464,8 @@ body {
   .hitung-row { grid-template-columns: 1fr; gap: 10px; }
   .hitung-btn { width: 100%; }
   .chips-row { justify-content: center; }
+  .edit-result-container { flex-direction: column; align-items: stretch; }
+  .btn-save-edit { width: 100%; }
 }
 
 ::selection { background: rgba(0,184,230,0.22); color: var(--fg); }
@@ -456,7 +513,17 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--neon-blue);
         <div class="chip-group"><div class="chip-label">📊 Tipe Hitungan</div><div class="chips-row" id="chipTipe"><div class="chip" data-value="">Semua</div></div></div>
         <div class="chip-group"><div class="chip-label">🏷️ Pilih Label</div><div class="chips-row" id="chipLabel"><div class="chip" data-value="">Semua</div></div></div>
         <div class="hitung-row"><button onclick="tampilkanValueHitungan()" class="hitung-btn">✨ Tampilkan Hasil</button></div>
+        
+        <!-- RESULT DISPLAY -->
         <div id="resultBox" class="result-box"><span style="color:var(--fg-muted)">Pilih tipe & label untuk melihat hasil</span></div>
+        
+        <!-- ✏️ NEW: EDITABLE RESULT COLUMN -->
+        <div class="edit-result-container">
+          <span class="edit-result-label">✏️ Edit Hasil:</span>
+          <input type="text" id="inputEditResult" class="input-edit-result" placeholder="Hasil otomatis muncul di sini...">
+          <button class="btn-save-edit" onclick="saveEditedResult()">💾 Simpan</button>
+        </div>
+        
       </div>
       <div class="data-grid" id="container-hitung" style="margin-top:12px"><div style="display:flex;justify-content:center;padding:40px;width:100%"><div class="spinner"></div></div></div>
     </div>
@@ -480,7 +547,8 @@ const dom = {
   listP: $('list-prediksi'), listJ: $('list-jadwal'), listL: $('list-link'),
   cntP: $('count-prediksi'), cntJ: $('count-jadwal'), cntL: $('count-link'), contH: $('container-hitung'),
   toast: $('toast'), autoUpdate: $('autoUpdateIndicator'),
-  chipTipe: $('chipTipe'), chipLabel: $('chipLabel'), resultBox: $('resultBox')
+  chipTipe: $('chipTipe'), chipLabel: $('chipLabel'), resultBox: $('resultBox'),
+  inputEditResult: $('inputEditResult') // ✏️ NEW DOM ELEMENT
 };
 let selectedTipe = '', selectedLabel = '', autoRefreshEnabled = true;
 
@@ -592,7 +660,9 @@ async function loadHitungData() {
 function tampilkanValueHitungan() {
   const result = dom.resultBox;
   if (!selectedTipe || !selectedLabel || !state.kelompok[selectedTipe]) {
-    result.innerHTML = '<span style="color:var(--fg-muted)">Pilih tipe & label terlebih dahulu</span>'; result.classList.remove('auto-updating'); return;
+    result.innerHTML = '<span style="color:var(--fg-muted)">Pilih tipe & label terlebih dahulu</span>'; result.classList.remove('auto-updating'); 
+    dom.inputEditResult.value = ''; // Clear edit box
+    return;
   }
   const item = state.kelompok[selectedTipe].find(i => i.label === selectedLabel);
   if (item) {
@@ -600,6 +670,9 @@ function tampilkanValueHitungan() {
     result.innerHTML = `<span style="font-weight:600;color:#ffffff">${item.value}</span>`;
     result.title = 'Klik untuk copy'; result.onclick = () => copyText(item.value, result);
     result.classList.remove('auto-updating');
+    
+    // ✏️ AUTO-FILL EDITABLE INPUT
+    dom.inputEditResult.value = item.value;
   }
 }
 function refreshResultAuto() {
@@ -613,9 +686,26 @@ function refreshResultAuto() {
       result.innerHTML = `<span style="font-weight:600;color:#ffffff">${item.value}</span>`;
       result.title = 'Klik untuk copy'; result.onclick = () => copyText(item.value, result);
       showToast('🔄 Hasil diperbarui');
+      
+      // ✏️ AUTO-FILL EDITABLE INPUT
+      dom.inputEditResult.value = item.value;
     }
     result.classList.remove('auto-updating');
   }, 300);
+}
+
+// ✏️ NEW: SAVE EDITED RESULT FUNCTION
+function saveEditedResult() {
+  const editedValue = dom.inputEditResult.value.trim();
+  if (!editedValue) {
+    showToast('⚠️ Kolom edit kosong!');
+    return;
+  }
+  // Update the display box to match the edited value
+  dom.resultBox.innerHTML = `<span style="font-weight:600;color:#ffffff">${editedValue} (Edited)</span>`;
+  dom.resultBox.classList.add('copied'); // Visual feedback
+  setTimeout(() => dom.resultBox.classList.remove('copied'), 500);
+  showToast('✅ Hasil manual disimpan!');
 }
 
 // === AUTO-UPDATE ===
