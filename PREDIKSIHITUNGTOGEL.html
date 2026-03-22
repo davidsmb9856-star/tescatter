@@ -8,15 +8,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #030014; --bg-card: rgba(10, 8, 35, 0.7); --bg-card-hover: rgba(20, 15, 55, 0.85);
-  --fg: #f0f9ff; --fg-muted: #94a3b8;
+  --bg: #030014; --bg-card: rgba(10, 8, 35, 0.7); --fg: #f0f9ff; --fg-muted: #94a3b8;
   --neon-cyan: #00f5ff; --neon-pink: #ff00aa; --neon-purple: #b72aff; --neon-blue: #00a8ff;
-  --neon-green: #00ff9d; --border-glow: rgba(0, 245, 255, 0.5);
   --glow-cyan: 0 0 10px #00f5ff, 0 0 25px #00f5ff80, 0 0 50px #00f5ff40;
-  --glow-cyan-lg: 0 0 15px #00f5ff, 0 0 35px #00f5ff90, 0 0 70px #00f5ff50, 0 0 100px #00f5ff30;
-  --glow-blue: 0 0 12px #00a8ff, 0 0 28px #00a8ff80;
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bloom: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --glow-cyan-lg: 0 0 15px #00f5ff, 0 0 35px #00f5ff90, 0 0 70px #00f5ff50;
+  --glow-purple: 0 0 12px #b72aff, 0 0 30px #b72aff70;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bloom: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -27,28 +25,27 @@ body {
 /* === BACKGROUND === */
 .bg-animated {
   position: fixed; inset: 0; z-index: -3;
-  background: 
-    radial-gradient(1200px 600px at 10% 10%, rgba(0, 245, 255, 0.08), transparent 60%),
-    radial-gradient(800px 400px at 90% 20%, rgba(0, 168, 255, 0.07), transparent 60%),
-    radial-gradient(1000px 500px at 50% 90%, rgba(183, 42, 255, 0.07), transparent 60%),
-    linear-gradient(180deg, #030014 0%, #0a0823 50%, #030014 100%);
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(0,245,255,0.08), transparent 60%),
+              radial-gradient(800px 400px at 90% 20%, rgba(255,0,170,0.06), transparent 60%),
+              radial-gradient(1000px 500px at 50% 90%, rgba(183,42,255,0.07), transparent 60%),
+              linear-gradient(180deg, #030014 0%, #0a0823 50%, #030014 100%);
   animation: bgShift 30s ease-in-out infinite;
 }
 @keyframes bgShift { 0%,100%{filter:hue-rotate(0deg)} 50%{filter:hue-rotate(12deg)} }
 
 .grid-overlay {
   position: fixed; inset: 0; z-index: -2;
-  background-image: linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),
-                    linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);
-  background-size: 50px 50px; animation: gridSlide 40s linear infinite; pointer-events: none;
+  background-image: linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+  background-size: 50px 50px; animation: gridSlide 40s linear infinite; opacity: 0.7; pointer-events: none;
 }
 @keyframes gridSlide { 0%{transform:perspective(500px) rotateX(60deg) translateY(0)} 100%{transform:perspective(500px) rotateX(60deg) translateY(50px)} }
 
 .orb { position: fixed; border-radius: 50%; filter: blur(60px); opacity: 0.15; animation: orbFloat 35s ease-in-out infinite alternate; z-index: -1; }
 .orb-1 { width:700px;height:700px;background:var(--neon-cyan);top:-20%;left:-15% }
-.orb-2 { width:500px;height:500px;background:var(--neon-blue);bottom:-15%;right:-10%;animation-delay:-15s }
-.orb-3 { width:400px;height:400px;background:var(--neon-purple);top:40%;left:50%;animation-delay:-25s }
-@keyframes orbFloat { 0%{transform:translate(0,0)scale(1);opacity:.12} 50%{transform:translate(40px,-30px)scale(1.08);opacity:.18} 100%{transform:translate(-25px,35px)scale(.95);opacity:.14} }
+.orb-2 { width:500px;height:500px;background:var(--neon-purple);bottom:-15%;right:-10%;animation-delay:-15s }
+.orb-3 { width:400px;height:400px;background:var(--neon-pink);top:40%;left:50%;animation-delay:-25s }
+@keyframes orbFloat { 0%{transform:translate(0,0)scale(1)} 50%{transform:translate(40px,-30px)scale(1.08)} 100%{transform:translate(-25px,35px)scale(0.95)} }
 
 .particles { position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden }
 .particle {
@@ -58,292 +55,302 @@ body {
 }
 .particle:nth-child(2n){background:var(--neon-purple);animation-delay:-8s;animation-duration:30s}
 .particle:nth-child(3n){background:var(--neon-pink);animation-delay:-15s;animation-duration:28s}
-@keyframes particleRise { 0%,100%{transform:translateY(110vh) rotate(0) scale(.8);opacity:0} 10%,90%{opacity:1} 100%{transform:translateY(-10vh) rotate(720deg) scale(1.2);opacity:0} }
+@keyframes particleRise {
+  0%,100%{transform:translateY(110vh) rotate(0deg) scale(0.8);opacity:0}
+  10%,90%{opacity:1}
+  100%{transform:translateY(-10vh) rotate(720deg) scale(1.2);opacity:0}
+}
 
+/* === LAYOUT === */
 .main-container { position:relative;z-index:10;max-width:1400px;margin:0 auto;padding:16px }
-.header-section { text-align:center;padding:28px 0 20px;animation:bloomIn .8s var(--transition-bloom) backwards }
-@keyframes bloomIn { from{opacity:0;transform:translateY(-20px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+.header-section { text-align:center;padding:28px 0 20px;animation:bloomIn 0.8s var(--transition-bloom) backwards }
+@keyframes bloomIn { from{opacity:0;transform:translateY(-20px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
 
 .main-title {
   font-family:'Orbitron',sans-serif;font-size:clamp(1.8rem,5.5vw,3.2rem);font-weight:900;letter-spacing:2px;
-  background:linear-gradient(135deg,#fff 0%,var(--neon-cyan)30%,var(--neon-blue)60%,var(--neon-purple)100%);
+  background:linear-gradient(135deg,#fff 0%,var(--neon-cyan) 30%,var(--neon-purple) 60%,var(--neon-pink) 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  text-shadow:var(--glow-cyan);animation:titlePulse 3s ease-in-out infinite;position:relative;display:inline-block
+  text-shadow:var(--glow-cyan);animation:titlePulse 3s ease-in-out infinite;position:relative;display:inline-block;
 }
 @keyframes titlePulse { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.25)} }
 .main-title::after {
   content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
-  width:70%;height:2px;background:linear-gradient(90deg,transparent,var(--neon-cyan),var(--neon-blue),transparent);
-  animation:lineGlow 2.5s ease-in-out infinite
+  width:70%;height:2px;background:linear-gradient(90deg,transparent,var(--neon-cyan),var(--neon-purple),transparent);
+  animation:lineGlow 2.5s ease-in-out infinite;
 }
-@keyframes lineGlow { 0%,100%{opacity:.6} 50%{opacity:1} }
+@keyframes lineGlow { 0%,100%{opacity:0.6} 50%{opacity:1} }
 
 /* === TABS === */
 .tabs-container {
   display:flex;justify-content:center;gap:4px;margin:12px 0 20px;
-  background:rgba(15,12,40,.5);border:1px solid rgba(0,245,255,.25);
-  border-radius:14px;padding:4px;max-width:fit-content;margin-left:auto;margin-right:auto;backdrop-filter:blur(12px)
+  background:rgba(15,12,40,0.5);border:1px solid rgba(0,245,255,0.25);
+  border-radius:14px;padding:4px;max-width:fit-content;margin-left:auto;margin-right:auto;backdrop-filter:blur(12px);
 }
 .tab-btn {
-  padding:12px 28px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:.9rem;
+  padding:12px 28px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:0.9rem;
   color:var(--fg-muted);background:transparent;border:none;border-radius:10px;cursor:pointer;
-  transition:all var(--transition);position:relative;overflow:hidden;text-transform:uppercase;letter-spacing:1px
+  transition:all var(--transition);position:relative;overflow:hidden;text-transform:uppercase;letter-spacing:1px;
 }
-.tab-btn:hover{color:var(--neon-cyan)}
+.tab-btn:hover { color:var(--neon-cyan) }
 .tab-btn.active {
-  color:var(--fg);background:linear-gradient(135deg,rgba(0,245,255,.15),rgba(0,168,255,.12));
-  border:1px solid var(--border-glow);box-shadow:var(--glow-cyan)
+  color:var(--fg);background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(183,42,255,0.12));
+  border:1px solid rgba(0,245,255,0.4);box-shadow:var(--glow-cyan);
 }
 .tab-btn.active::after {
   content:'';position:absolute;bottom:-1px;left:15%;right:15%;height:2px;
-  background:var(--neon-cyan);border-radius:2px;box-shadow:0 0 12px var(--neon-cyan)
+  background:var(--neon-cyan);border-radius:2px;box-shadow:0 0 12px var(--neon-cyan);
 }
 
 /* === CONTENT BOX === */
 .content-box {
-  background:var(--bg-card);border:1px solid rgba(0,245,255,.2);border-radius:20px;padding:22px;
-  backdrop-filter:blur(20px);position:relative;overflow:hidden
+  background:var(--bg-card);border:1px solid rgba(0,245,255,0.2);border-radius:20px;padding:22px;
+  backdrop-filter:blur(20px);position:relative;overflow:hidden;
 }
 .content-box::before {
   content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--neon-cyan),var(--neon-blue),transparent);
-  animation:borderScan 4s linear infinite
+  background:linear-gradient(90deg,transparent,var(--neon-cyan),var(--neon-purple),transparent);
+  animation:borderScan 4s linear infinite;
 }
 @keyframes borderScan { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 
 /* === SETTINGS PANEL === */
 .settings-panel {
-  background:linear-gradient(135deg,rgba(20,15,50,.6),rgba(30,20,70,.5));
-  border:1px solid rgba(0,245,255,.25);border-radius:16px;
-  padding:16px 20px;margin-bottom:22px;display:flex;flex-wrap:nowrap;gap:16px;align-items:center;
-  backdrop-filter:blur(10px)
+  background:linear-gradient(135deg,rgba(20,15,50,0.6),rgba(30,20,70,0.5));
+  border:1px solid rgba(0,245,255,0.25);border-radius:16px;padding:16px 20px;margin-bottom:22px;
+  display:flex;flex-wrap:nowrap;gap:16px;align-items:center;backdrop-filter:blur(10px);
 }
 .setting-item { display:flex;align-items:center;gap:10px;white-space:nowrap }
-.setting-label { color:var(--neon-cyan);font-size:.82rem;font-weight:600;text-shadow:0 0 8px rgba(0,245,255,.5) }
+.setting-label { color:var(--neon-cyan);font-size:0.82rem;font-weight:600;text-shadow:0 0 8px rgba(0,245,255,0.5) }
 .input-neon {
-  padding:10px 14px;background:rgba(8,6,25,.7);border:1px solid rgba(0,245,255,.3);
-  border-radius:10px;color:var(--fg);font-size:.92rem;width:170px;transition:all var(--transition);
-  font-family:'Space Grotesk',sans-serif
+  padding:10px 14px;background:rgba(8,6,25,0.7);border:1px solid rgba(0,245,255,0.3);
+  border-radius:10px;color:var(--fg);font-size:0.92rem;width:170px;transition:all var(--transition);
+  font-family:'Space Grotesk',sans-serif;
 }
-.input-neon:focus { outline:none;border-color:var(--neon-cyan);box-shadow:var(--glow-cyan);background:rgba(12,10,35,.85) }
+.input-neon:focus { outline:none;border-color:var(--neon-cyan);box-shadow:var(--glow-cyan);background:rgba(12,10,35,0.85) }
 
+/* === BUTTONS === */
 .btn-neon {
-  padding:10px 22px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));
+  padding:10px 22px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-purple));
   border:none;border-radius:12px;color:#030014;font-family:'Orbitron',sans-serif;
-  font-weight:700;font-size:.82rem;cursor:pointer;transition:all var(--transition);
-  white-space:nowrap;text-transform:uppercase;letter-spacing:1px;position:relative;overflow:hidden
+  font-weight:700;font-size:0.82rem;cursor:pointer;transition:all var(--transition);
+  white-space:nowrap;text-transform:uppercase;letter-spacing:1px;position:relative;overflow:hidden;
 }
 .btn-neon:hover { transform:translateY(-2px);box-shadow:var(--glow-cyan-lg) }
 .btn-neon:active { transform:translateY(0) }
-.btn-neon:disabled { opacity:.5;cursor:not-allowed;transform:none;box-shadow:none }
+.btn-neon:disabled { opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none }
+.status-badge { font-size:0.82rem;color:#00ff9d;margin-left:8px;font-weight:600;text-shadow:0 0 10px rgba(0,255,157,0.6);animation:statusBlink 2s ease-in-out infinite }
+@keyframes statusBlink { 0%,100%{opacity:1} 50%{opacity:0.75} }
 
-.status-badge { font-size:.82rem;color:var(--neon-green);margin-left:8px;font-weight:600;text-shadow:0 0 10px rgba(0,255,157,.6);animation:statusBlink 2s ease-in-out infinite }
-@keyframes statusBlink { 0%,100%{opacity:1} 50%{opacity:.75} }
-
-/* === DATA GRID === */
+/* === DATA GRID & SECTION === */
 .data-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px }
-
-/* === SECTION BOX === */
 .section-box {
-  background:linear-gradient(145deg,rgba(18,14,45,.7),rgba(25,18,60,.6));
-  border:1px solid rgba(0,245,255,.18);border-radius:18px;overflow:hidden;
-  display:flex;flex-direction:column;backdrop-filter:blur(8px);transition:all var(--transition)
+  background:linear-gradient(145deg,rgba(18,14,45,0.7),rgba(25,18,60,0.6));
+  border:1px solid rgba(0,245,255,0.18);border-radius:18px;overflow:hidden;
+  display:flex;flex-direction:column;backdrop-filter:blur(8px);transition:all var(--transition);
 }
-.section-box:hover { border-color:rgba(0,245,255,.45);box-shadow:var(--glow-cyan);transform:translateY(-2px) }
+.section-box:hover { border-color:rgba(0,245,255,0.45);box-shadow:var(--glow-cyan);transform:translateY(-2px) }
 .section-header {
-  background:linear-gradient(90deg,rgba(0,245,255,.12),transparent 70%);
-  padding:12px 16px;border-bottom:1px solid rgba(0,245,255,.15);
-  display:flex;justify-content:space-between;align-items:center
+  background:linear-gradient(90deg,rgba(0,245,255,0.12),transparent 70%);
+  padding:12px 16px;border-bottom:1px solid rgba(0,245,255,0.15);
+  display:flex;justify-content:space-between;align-items:center;
 }
-.section-title { font-family:'Orbitron',sans-serif;font-weight:700;color:var(--neon-cyan);font-size:.95rem;text-shadow:0 0 10px rgba(0,245,255,.6);letter-spacing:.5px }
-.badge-count { background:rgba(0,245,255,.15);color:var(--neon-cyan);padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;border:1px solid rgba(0,245,255,.35) }
-
-.search-box { padding:10px 14px;border-bottom:1px solid rgba(0,245,255,.12) }
+.section-title { font-family:'Orbitron',sans-serif;font-weight:700;color:var(--neon-cyan);font-size:0.95rem }
+.badge-count { background:rgba(0,245,255,0.15);color:var(--neon-cyan);padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;border:1px solid rgba(0,245,255,0.35) }
+.search-box { padding:10px 14px;border-bottom:1px solid rgba(0,245,255,0.12) }
 .search-input {
-  width:100%;padding:9px 13px;background:rgba(10,8,30,.6);border:1px solid rgba(0,245,255,.25);
-  border-radius:10px;color:var(--fg);font-size:.88rem;transition:all var(--transition);font-family:'Space Grotesk',sans-serif
+  width:100%;padding:9px 13px;background:rgba(10,8,30,0.6);border:1px solid rgba(0,245,255,0.25);
+  border-radius:10px;color:var(--fg);font-size:0.88rem;transition:all var(--transition);font-family:'Space Grotesk',sans-serif;
 }
 .search-input:focus { outline:none;border-color:var(--neon-cyan);box-shadow:var(--glow-cyan) }
-.search-input::placeholder { color:var(--fg-muted);opacity:.7 }
+.search-input::placeholder { color:var(--fg-muted);opacity:0.7 }
 .section-content { padding:10px;overflow-y:auto;max-height:420px;flex-grow:1 }
 
 /* === ITEM CARD === */
 .item-card {
-  background:linear-gradient(135deg,rgba(15,12,40,.65),rgba(22,17,55,.55));
-  border:1px solid rgba(0,245,255,.2);border-radius:14px;padding:13px 15px;margin-bottom:9px;
-  cursor:pointer;transition:all var(--transition);position:relative;overflow:hidden
+  background:linear-gradient(135deg,rgba(15,12,40,0.65),rgba(22,17,55,0.55));
+  border:1px solid rgba(0,245,255,0.2);border-radius:14px;padding:13px 15px;margin-bottom:9px;
+  cursor:pointer;transition:all var(--transition);position:relative;overflow:hidden;
 }
 .item-card:hover { border-color:var(--neon-cyan);box-shadow:var(--glow-cyan);transform:translateY(-2px) }
-.item-label { font-size:.68rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:1.8px;margin-bottom:2px;font-weight:600 }
-.item-title { color:var(--neon-cyan);font-weight:700;margin-bottom:4px;font-size:.92rem }
-.item-content { font-size:.83rem;color:var(--fg);line-height:1.45;white-space:pre-wrap;word-break:break-word;opacity:.95 }
+.item-label { font-size:0.68rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:1.8px;margin-bottom:2px;font-weight:600 }
+.item-title { color:var(--neon-cyan);font-weight:700;margin-bottom:4px;font-size:0.92rem }
+.item-content { font-size:0.83rem;color:var(--fg);line-height:1.45;white-space:pre-wrap;word-break:break-word }
 
-/* === PASARAN BOX === */
+/* === PASARAN & BET === */
 .pasaran-box {
-  background:linear-gradient(135deg,rgba(16,13,42,.68),rgba(24,19,58,.58));
-  border:1px solid rgba(0,245,255,.2);border-radius:16px;overflow:hidden;margin-bottom:11px;transition:all var(--transition)
+  background:linear-gradient(135deg,rgba(16,13,42,0.68),rgba(24,19,58,0.58));
+  border:1px solid rgba(0,245,255,0.2);border-radius:16px;overflow:hidden;margin-bottom:11px;transition:all var(--transition);
 }
-.pasaran-box:hover { border-color:rgba(0,245,255,.45);box-shadow:var(--glow-cyan) }
-.pasaran-header { background:linear-gradient(90deg,rgba(0,245,255,.15),transparent 75%);padding:12px 16px;border-bottom:1px solid rgba(0,245,255,.15) }
-.pasaran-title { font-family:'Orbitron',sans-serif;font-weight:700;color:var(--neon-cyan);font-size:.88rem;text-shadow:0 0 9px rgba(0,245,255,.55) }
+.pasaran-box:hover { border-color:rgba(0,245,255,0.45);box-shadow:var(--glow-cyan) }
+.pasaran-header { background:linear-gradient(90deg,rgba(0,245,255,0.15),transparent 75%);padding:12px 16px;border-bottom:1px solid rgba(0,245,255,0.15) }
+.pasaran-title { font-family:'Orbitron',sans-serif;font-weight:700;color:var(--neon-cyan);font-size:0.88rem }
 .pasaran-content { padding:8px 12px;max-height:340px;overflow-y:auto }
-
 .bet-item {
   display:flex;justify-content:space-between;align-items:center;padding:9px 13px;margin-bottom:5px;
-  background:rgba(12,10,32,.55);border:1px solid rgba(0,245,255,.18);border-radius:10px;
-  cursor:pointer;transition:all var(--transition)
+  background:rgba(12,10,32,0.55);border:1px solid rgba(0,245,255,0.18);border-radius:10px;
+  cursor:pointer;transition:all var(--transition);
 }
-.bet-item:hover { border-color:var(--neon-cyan);background:rgba(18,14,45,.7);box-shadow:var(--glow-cyan);transform:translateX(3px) }
-.bet-type { color:var(--fg);font-size:.83rem;flex:1;margin-right:10px;font-weight:500 }
+.bet-item:hover { border-color:var(--neon-cyan);background:rgba(18,14,45,0.7);box-shadow:var(--glow-cyan);transform:translateX(3px) }
+.bet-type { color:var(--fg);font-size:0.83rem;flex:1;margin-right:10px;font-weight:500 }
 .bet-result {
-  font-family:'Orbitron',sans-serif;font-weight:700;color:var(--neon-cyan);font-size:.83rem;
-  background:rgba(0,245,255,.12);padding:3px 9px;border-radius:8px;border:1px solid rgba(0,245,255,.3);transition:all var(--transition)
+  font-family:'Orbitron',sans-serif;font-weight:700;color:var(--neon-cyan);font-size:0.83rem;
+  background:rgba(0,245,255,0.12);padding:3px 9px;border-radius:8px;border:1px solid rgba(0,245,255,0.3)
 }
-.bet-item:hover .bet-result { background:rgba(0,245,255,.22);box-shadow:0 0 12px rgba(0,245,255,.35) }
 
-/* === NEON CHIP SELECTOR - NO DROPDOWN! === */
+/* === 🔥 NEON CHIP SELECTOR (NO DROPDOWN) 🔥 === */
 .selector-section { margin:18px 0 }
 .selector-label {
-  font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--neon-cyan);
-  margin-bottom:10px;text-shadow:0 0 9px rgba(0,245,255,.55);letter-spacing:.8px;display:flex;align-items:center;gap:6px
+  font-family:'Orbitron',sans-serif;font-size:0.8rem;font-weight:700;color:var(--neon-cyan);
+  margin-bottom:10px;text-shadow:0 0 9px rgba(0,245,255,0.55);letter-spacing:0.8px;display:block;
 }
-.selector-label::before { content:'▸';color:var(--neon-blue);animation:arrowPulse 1.5s ease-in-out infinite }
-@keyframes arrowPulse { 0%,100%{opacity:.6;transform:translateX(0)} 50%{opacity:1;transform:translateX(3px)} }
+.chips-container {
+  display:flex;flex-wrap:wrap;gap:8px;max-height:120px;overflow-y:auto;padding:2px;
+  scrollbar-width:thin;scrollbar-color:var(--neon-cyan) transparent;
+}
+.chips-container::-webkit-scrollbar { width:4px }
+.chips-container::-webkit-scrollbar-thumb { background:var(--neon-cyan);border-radius:2px }
 
-.chip-container {
-  display:flex;flex-wrap:wrap;gap:8px;max-height:120px;overflow-y:auto;padding:4px;
-  scrollbar-width:thin;scrollbar-color:var(--neon-cyan) transparent
+.chip {
+  padding:8px 14px;background:rgba(14,11,38,0.8);border:1px solid rgba(0,245,255,0.25);
+  border-radius:10px;color:var(--fg-muted);font-size:0.82rem;font-weight:500;cursor:pointer;
+  transition:all var(--transition);white-space:nowrap;position:relative;overflow:hidden;
+  font-family:'Space Grotesk',sans-serif;
 }
-.chip-container::-webkit-scrollbar { width:4px }
-.chip-container::-webkit-scrollbar-thumb { background:var(--neon-cyan);border-radius:2px }
-
-.chip-btn {
-  padding:8px 16px;background:rgba(14,11,38,.85);border:1px solid rgba(0,245,255,.3);
-  border-radius:20px;color:var(--fg-muted);font-size:.82rem;font-weight:600;cursor:pointer;
-  transition:all var(--transition);white-space:nowrap;font-family:'Space Grotesk',sans-serif;
-  position:relative;overflow:hidden
+.chip::before {
+  content:'';position:absolute;inset:0;border-radius:10px;padding:1px;
+  background:linear-gradient(135deg,transparent,rgba(0,245,255,0.3),transparent);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity var(--transition);
 }
-.chip-btn::before {
-  content:'';position:absolute;inset:0;border-radius:20px;padding:1px;
-  background:linear-gradient(135deg,transparent,rgba(0,245,255,.25),transparent);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity var(--transition)
-}
-.chip-btn:hover { color:var(--neon-cyan);border-color:var(--neon-cyan) }
-.chip-btn:hover::before { opacity:1 }
-.chip-btn.active {
+.chip:hover { color:var(--neon-cyan);border-color:rgba(0,245,255,0.5) }
+.chip:hover::before { opacity:1 }
+.chip.active {
   color:#030014;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));
-  border-color:var(--neon-cyan);box-shadow:var(--glow-cyan);font-weight:700
+  border-color:var(--neon-cyan);font-weight:700;box-shadow:var(--glow-cyan);
+  animation:chipBloom 0.3s var(--transition-bloom);
 }
+@keyframes chipBloom { 0%{transform:scale(0.98)} 50%{transform:scale(1.03)} 100%{transform:scale(1)} }
 
-/* === LABEL GRID CARDS === */
-.label-grid {
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;
-  margin-top:12px;max-height:200px;overflow-y:auto;padding:4px
+/* === SEGMENTED CONTROL STYLE === */
+.segmented {
+  display:inline-flex;background:rgba(14,11,38,0.7);border:1px solid rgba(0,245,255,0.25);
+  border-radius:12px;overflow:hidden;padding:3px;
 }
-.label-card {
-  background:linear-gradient(135deg,rgba(15,12,40,.7),rgba(22,17,55,.6));
-  border:1px solid rgba(0,168,255,.25);border-radius:12px;padding:10px 12px;
-  cursor:pointer;transition:all var(--transition);text-align:center;position:relative;overflow:hidden
+.segment-btn {
+  padding:9px 18px;background:transparent;border:none;color:var(--fg-muted);
+  font-family:'Orbitron',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;
+  transition:all var(--transition);position:relative;
 }
-.label-card::after {
-  content:'';position:absolute;inset:0;border-radius:12px;padding:1px;
-  background:linear-gradient(135deg,transparent,rgba(0,168,255,.2),transparent);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity var(--transition)
+.segment-btn:hover { color:var(--neon-cyan) }
+.segment-btn.active {
+  color:#030014;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-purple));
+  border-radius:9px;box-shadow:var(--glow-cyan);
 }
-.label-card:hover { border-color:var(--neon-blue);box-shadow:var(--glow-blue);transform:translateY(-2px) }
-.label-card:hover::after { opacity:1 }
-.label-card.active {
-  background:linear-gradient(135deg,rgba(0,168,255,.25),rgba(0,245,255,.2));
-  border-color:var(--neon-cyan);box-shadow:var(--glow-cyan)
-}
-.label-card-title { font-size:.78rem;font-weight:600;color:var(--fg);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis }
-.label-card-value { font-size:.7rem;color:var(--neon-cyan);font-family:'Orbitron',sans-serif }
-
-/* === ACTION BUTTON ROW === */
-.action-row { display:flex;gap:10px;margin-top:16px;flex-wrap:wrap }
-.btn-show {
-  padding:11px 24px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));
-  border:none;border-radius:12px;color:#030014;font-family:'Orbitron',sans-serif;
-  font-weight:700;font-size:.85rem;cursor:pointer;transition:all var(--transition);
-  white-space:nowrap;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px
-}
-.btn-show:hover { transform:translateY(-2px);box-shadow:var(--glow-cyan-lg) }
-.btn-show:active { transform:translateY(0) }
-.btn-show:disabled { opacity:.5;cursor:not-allowed;transform:none;box-shadow:none }
 
 /* === DETAIL BOX === */
 #detailHitungan {
-  margin-top:18px;padding:18px 22px;background:rgba(14,11,40,.75);
-  border:1px solid rgba(0,245,255,.3);border-radius:14px;
+  margin-top:18px;padding:18px 22px;background:rgba(14,11,40,0.75);
+  border:1px solid rgba(0,245,255,0.3);border-radius:14px;
   font-family:'Orbitron',sans-serif;font-size:1.05rem;color:var(--neon-cyan);
   text-align:center;min-height:55px;display:flex;align-items:center;justify-content:center;
-  transition:all var(--transition);cursor:pointer
+  transition:all var(--transition);cursor:pointer;
 }
-#detailHitungan:hover { border-color:var(--neon-cyan);box-shadow:var(--glow-cyan);background:rgba(18,14,48,.85) }
-#detailHitungan.copied { animation:copyFlash .3s ease }
-@keyframes copyFlash { 0%{box-shadow:0 0 0 rgba(0,255,157,0)} 50%{box-shadow:0 0 25px rgba(0,255,157,.8)} 100%{box-shadow:0 0 0 rgba(0,255,157,0)} }
+#detailHitungan:hover { border-color:var(--neon-cyan);box-shadow:var(--glow-cyan);background:rgba(18,14,48,0.85) }
+
+/* === MODAL CYBERPUNK === */
+.modal-overlay {
+  position:fixed;inset:0;background:rgba(3,0,20,0.85);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;z-index:2000;padding:20px;
+  animation:modalFade 0.25s ease;
+}
+.modal-overlay.show { display:flex }
+@keyframes modalFade { from{opacity:0} to{opacity:1} }
+
+.modal-content {
+  background:linear-gradient(135deg,rgba(18,14,48,0.95),rgba(26,20,62,0.92));
+  border:1px solid var(--neon-cyan);border-radius:20px;max-width:500px;width:100%;
+  max-height:80vh;overflow:hidden;box-shadow:var(--glow-cyan-lg);animation:modalBloom 0.4s var(--transition-bloom);
+}
+@keyframes modalBloom { from{opacity:0;transform:scale(0.95) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+.modal-header {
+  padding:16px 20px;border-bottom:1px solid rgba(0,245,255,0.2);
+  display:flex;justify-content:space-between;align-items:center;
+  background:linear-gradient(90deg,rgba(0,245,255,0.1),transparent);
+}
+.modal-title { font-family:'Orbitron',sans-serif;font-weight:700;color:var(--neon-cyan);font-size:1rem }
+.modal-close {
+  background:none;border:none;color:var(--fg-muted);font-size:1.5rem;cursor:pointer;
+  transition:color var(--transition);line-height:1;
+}
+.modal-close:hover { color:var(--neon-pink) }
+
+.modal-body { padding:16px 20px;max-height:50vh;overflow-y:auto }
+.modal-chip {
+  display:block;width:100%;padding:12px 16px;margin-bottom:8px;
+  background:rgba(12,10,32,0.6);border:1px solid rgba(0,245,255,0.2);
+  border-radius:12px;color:var(--fg);text-align:left;cursor:pointer;
+  transition:all var(--transition);font-size:0.9rem;
+}
+.modal-chip:hover, .modal-chip.active {
+  border-color:var(--neon-cyan);background:rgba(0,245,255,0.1);
+  box-shadow:var(--glow-cyan);color:var(--neon-cyan);font-weight:600;
+}
 
 /* === TOAST === */
 .toast {
-  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(120px) scale(.9);
-  background:linear-gradient(135deg,rgba(18,14,45,.95),rgba(26,20,62,.92));
-  color:var(--neon-cyan);padding:13px 30px;border-radius:50px;font-weight:700;font-size:.92rem;
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(120px) scale(0.9);
+  background:linear-gradient(135deg,rgba(18,14,45,0.95),rgba(26,20,62,0.92));
+  color:var(--neon-cyan);padding:13px 30px;border-radius:50px;font-weight:700;font-size:0.92rem;
   opacity:0;transition:all var(--transition-bloom);z-index:1000;
   border:1px solid var(--neon-cyan);backdrop-filter:blur(15px);
-  text-shadow:0 0 10px rgba(0,245,255,.7);box-shadow:var(--glow-cyan-lg)
+  text-shadow:0 0 10px rgba(0,245,255,0.7);box-shadow:var(--glow-cyan-lg);
 }
-.toast.show { opacity:1;transform:translateX(-50%) translateY(0) scale(1);animation:toastBloom .5s var(--transition-bloom) }
-@keyframes toastBloom { 0%{transform:translateX(-50%) translateY(120px) scale(.88);opacity:0} 40%{transform:translateX(-50%) translateY(-8px) scale(1.03)} 100%{transform:translateX(-50%) translateY(0) scale(1);opacity:1} }
+.toast.show { opacity:1;transform:translateX(-50%) translateY(0) scale(1);animation:toastBloom 0.5s var(--transition-bloom) }
+@keyframes toastBloom { 0%{transform:translateX(-50%) translateY(120px) scale(0.88);opacity:0} 40%{transform:translateX(-50%) translateY(-8px) scale(1.03)} 100%{transform:translateX(-50%) translateY(0) scale(1);opacity:1} }
 
-.spinner { width:32px;height:32px;border:3px solid rgba(0,245,255,.25);border-top-color:var(--neon-cyan);border-radius:50%;animation:spin .9s linear infinite }
+/* === SPINNER & SCROLLBAR === */
+.spinner { width:32px;height:32px;border:3px solid rgba(0,245,255,0.25);border-top-color:var(--neon-cyan);border-radius:50%;animation:spin 0.9s linear infinite }
 @keyframes spin { to{transform:rotate(360deg)} }
-
-/* === SCROLLBAR === */
 ::-webkit-scrollbar { width:5px;height:5px }
-::-webkit-scrollbar-track { background:rgba(8,6,28,.4) }
-::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--neon-cyan),var(--neon-blue));border-radius:3px }
-::-webkit-scrollbar-thumb:hover { background:linear-gradient(180deg,var(--neon-blue),var(--neon-purple)) }
+::-webkit-scrollbar-track { background:rgba(8,6,28,0.4) }
+::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--neon-cyan),var(--neon-purple));border-radius:3px }
 
+/* === AUTO-UPDATE === */
 .auto-update-indicator {
-  position:fixed;top:18px;right:18px;background:rgba(0,245,255,.12);
-  border:1px solid var(--neon-cyan);border-radius:10px;padding:7px 14px;font-size:.78rem;
-  color:var(--neon-cyan);display:none;align-items:center;gap:7px;z-index:1000;
-  backdrop-filter:blur(10px);animation:pulse 1.2s infinite
+  position:fixed;top:18px;right:18px;background:rgba(0,245,255,0.12);
+  border:1px solid var(--neon-cyan);border-radius:10px;padding:7px 14px;
+  font-size:0.78rem;color:var(--neon-cyan);display:none;align-items:center;gap:7px;
+  z-index:1000;backdrop-filter:blur(10px);animation:pulse 1.2s infinite;
 }
 .auto-update-indicator.show { display:flex }
-@keyframes pulse { 0%,100%{opacity:.75} 50%{opacity:1} }
+@keyframes pulse { 0%,100%{opacity:0.75} 50%{opacity:1} }
 
+/* === RESPONSIVE === */
 @media (max-width:768px) {
   .settings-panel { flex-direction:column;align-items:stretch }
   .setting-item { width:100%;justify-content:space-between }
   .input-neon { width:100% }
   .data-grid { grid-template-columns:1fr }
   .main-title { font-size:clamp(1.6rem,6.5vw,2.6rem) }
-  .tab-btn { padding:10px 22px;font-size:.85rem }
-  .label-grid { grid-template-columns:repeat(auto-fill,minmax(120px,1fr)) }
-  .action-row { flex-direction:column }
-  .btn-show { width:100%;justify-content:center }
+  .tab-btn { padding:10px 22px;font-size:0.85rem }
+  .chips-container { max-height:100px }
+  .chip { padding:7px 12px;font-size:0.78rem }
 }
-
-::selection { background:rgba(0,245,255,.25);color:var(--fg) }
-button:focus-visible,input:focus-visible { outline:2px solid var(--neon-cyan);outline-offset:2px;box-shadow:var(--glow-cyan) }
-@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important;transition-duration:.01ms!important } }
+::selection { background:rgba(0,245,255,0.25);color:var(--fg) }
+button:focus-visible, input:focus-visible { outline:2px solid var(--neon-cyan);outline-offset:2px;box-shadow:var(--glow-cyan) }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:0.01ms!important;transition-duration:0.01ms!important } }
 </style>
 </head>
 <body>
-<div class="bg-animated"></div>
-<div class="grid-overlay"></div>
+<div class="bg-animated"></div><div class="grid-overlay"></div>
 <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
 <div class="particles" id="particles"></div>
 <div id="toast" class="toast">✨ Berhasil!</div>
 <div class="auto-update-indicator" id="autoUpdateIndicator"><span>🔄</span><span>Auto-Update Aktif</span></div>
 
 <div class="main-container">
-  <header class="header-section">
-    <h1 class="main-title">⚡ PREDIKSI & HITUNG TOGEL ⚡</h1>
-  </header>
+  <header class="header-section"><h1 class="main-title">⚡ PREDIKSI & HITUNG TOGEL ⚡</h1></header>
 
   <nav class="tabs-container">
     <button class="tab-btn active" data-tab="prediksi">🔮 Prediksi</button>
@@ -364,23 +371,23 @@ button:focus-visible,input:focus-visible { outline:2px solid var(--neon-cyan);ou
       <div class="data-grid">
         <div class="section-box">
           <div class="section-header"><h3 class="section-title">🔮 Prediksi</h3><span class="badge-count" id="count-prediksi">0</span></div>
-          <div class="search-box"><input type="text" class="search-input" id="search-prediksi" placeholder="🔍 Cari prediksi..."></div>
+          <div class="search-box"><input type="text" class="search-input" id="search-prediksi" placeholder="🔍 Cari..."></div>
           <div class="section-content" id="list-prediksi"><div style="display:flex;justify-content:center;padding:20px;"><div class="spinner"></div></div></div>
         </div>
         <div class="section-box">
           <div class="section-header"><h3 class="section-title">📅 Jadwal</h3><span class="badge-count" id="count-jadwal">0</span></div>
-          <div class="search-box"><input type="text" class="search-input" id="search-jadwal" placeholder="🔍 Cari jadwal..."></div>
+          <div class="search-box"><input type="text" class="search-input" id="search-jadwal" placeholder="🔍 Cari..."></div>
           <div class="section-content" id="list-jadwal"><div style="display:flex;justify-content:center;padding:20px;"><div class="spinner"></div></div></div>
         </div>
         <div class="section-box">
           <div class="section-header"><h3 class="section-title">🔗 Link Live</h3><span class="badge-count" id="count-link">0</span></div>
-          <div class="search-box"><input type="text" class="search-input" id="search-link" placeholder="🔍 Cari link..."></div>
+          <div class="search-box"><input type="text" class="search-input" id="search-link" placeholder="🔍 Cari..."></div>
           <div class="section-content" id="list-link"><div style="display:flex;justify-content:center;padding:20px;"><div class="spinner"></div></div></div>
         </div>
       </div>
     </div>
 
-    <!-- TAB HITUNG - NO DROPDOWN! -->
+    <!-- TAB HITUNG - NO DROPDOWN STYLE -->
     <div id="tab-hitung" class="tab-content" style="display:none;">
       <div class="settings-panel">
         <div class="setting-item">
@@ -391,42 +398,39 @@ button:focus-visible,input:focus-visible { outline:2px solid var(--neon-cyan);ou
         <span class="status-badge" id="status-nominal"></span>
       </div>
 
-      <div class="quantum-card" style="background:linear-gradient(135deg,rgba(18,14,48,.72),rgba(26,20,62,.62));border:1px solid rgba(0,168,255,.25);border-radius:18px;padding:18px;margin:18px 0;backdrop-filter:blur(10px)">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(0,168,255,.2)">
+      <!-- 🔥 NEON CHIP SELECTOR - NO DROPDOWN 🔥 -->
+      <div class="quantum-card" style="background:linear-gradient(135deg,rgba(18,14,48,0.72),rgba(26,20,62,0.62));border:1px solid rgba(183,42,255,0.25);border-radius:18px;padding:18px;margin:18px 0;backdrop-filter:blur(10px)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(183,42,255,0.2)">
           <span style="font-size:1.4rem">🧮</span>
-          <h3 style="font-family:'Orbitron',sans-serif;font-weight:700;color:var(--neon-blue);font-size:1.05rem;text-shadow:0 0 10px rgba(0,168,255,.6)">Hitung Togel - Neon Select</h3>
+          <h3 style="font-family:'Orbitron',sans-serif;font-weight:700;color:var(--neon-purple);font-size:1.05rem;text-shadow:0 0 10px rgba(183,42,255,0.6)">Hitung Togel</h3>
         </div>
 
-        <!-- NEON CHIP SELECTOR FOR TYPE -->
+        <!-- Tipe Hitungan - CHIP SELECTOR -->
         <div class="selector-section">
-          <div class="selector-label">📊 Pilih Tipe Hitungan</div>
-          <div class="chip-container" id="chipContainer"></div>
-        </div>
-
-        <!-- LABEL GRID CARDS -->
-        <div class="selector-section">
-          <div class="selector-label">🏷️ Pilih Label</div>
-          <div class="label-grid" id="labelGrid">
-            <div style="grid-column:1/-1;text-align:center;color:var(--fg-muted);padding:20px">
-              👈 Pilih tipe hitungan terlebih dahulu
-            </div>
+          <label class="selector-label">📊 Pilih Tipe Hitungan</label>
+          <div class="chips-container" id="chipTipe">
+            <div class="chip active" data-value="">✨ Semua</div>
+            <!-- Chips will be injected by JS -->
           </div>
         </div>
 
-        <!-- ACTION BUTTON -->
-        <div class="action-row">
-          <button onclick="tampilkanValueHitungan()" class="btn-show" id="btnTampilkan">
-            <span>🔍</span> Tampilkan Hasil
-          </button>
-          <button onclick="resetSelection()" class="btn-show" style="background:linear-gradient(135deg,rgba(148,163,184,.2),rgba(100,116,139,.15));color:var(--fg-muted);border:1px solid rgba(148,163,184,.3)">
-            <span>↺</span> Reset
-          </button>
+        <!-- Label - CHIP SELECTOR -->
+        <div class="selector-section">
+          <label class="selector-label">🏷️ Pilih Label</label>
+          <div class="chips-container" id="chipLabel">
+            <div class="chip active" data-value="">✨ Semua</div>
+            <!-- Chips will be injected by JS -->
+          </div>
         </div>
 
-        <!-- RESULT BOX -->
-        <div id="detailHitungan">
-          <span style="color:var(--fg-muted)">Silakan pilih tipe dan label, lalu klik "Tampilkan Hasil"</span>
+        <!-- Action Button -->
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+          <button onclick="tampilkanValueHitungan()" class="btn-neon" style="flex:1;min-width:120px">🔍 Tampilkan</button>
+          <button onclick="openModal('label')" class="btn-neon" style="background:linear-gradient(135deg,var(--neon-purple),var(--neon-pink));flex:1;min-width:120px">📋 Semua Label</button>
         </div>
+
+        <!-- Result Box -->
+        <div id="detailHitungan"><span style="color:var(--fg-muted)">Silakan pilih tipe dan label hitungan</span></div>
       </div>
 
       <div class="data-grid" id="container-hitung" style="margin-top:16px">
@@ -436,178 +440,275 @@ button:focus-visible,input:focus-visible { outline:2px solid var(--neon-cyan);ou
   </div>
 </div>
 
+<!-- 🔥 MODAL CYBERPUNK 🔥 -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Pilih Opsi</span>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
 <script>
-// ============ KONFIGURASI ============
+// === KONFIGURASI ===
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbya8o-PPA76I8CsTlEVmcANKVuxapOGU5WhhienU7NNQ6HO-igG4Ly8yZPujUZE6DFRlw/exec'.trim();
 const CONFIG = {
   sheetPrediksi: 'https://docs.google.com/spreadsheets/d/1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0/export?format=csv&gid=1065490622'.trim(),
   sheetHitung: 'https://docs.google.com/spreadsheets/d/1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0/export?format=csv&gid=1584456810'.trim(),
   keyTanggal: 'togel_tanggal_v4', keyNominal: 'togel_nominal_v4'
 };
-const state = { prediksi:[], jadwal:[], link:[], hitung:[] };
+const state = { prediksi: [], jadwal: [], link: [], hitung: [] }, kelompokData = {};
 const $ = id => document.getElementById(id);
 const dom = {
-  tabP:$('tab-prediksi'), tabH:$('tab-hitung'), inTgl:$('input-tanggal'), btnTgl:$('btn-tanggal'), statTgl:$('status-tanggal'),
-  inNom:$('input-nominal'), btnNom:$('btn-nominal'), statNom:$('status-nominal'),
-  srcP:$('search-prediksi'), srcJ:$('search-jadwal'), srcL:$('search-link'),
-  listP:$('list-prediksi'), listJ:$('list-jadwal'), listL:$('list-link'),
-  cntP:$('count-prediksi'), cntJ:$('count-jadwal'), cntL:$('count-link'),
-  contH:$('container-hitung'), toast:$('toast'), autoUpdate:$('autoUpdateIndicator'),
-  chipContainer:$('chipContainer'), labelGrid:$('labelGrid'), detail:$('detailHitungan'), btnTampilkan:$('btnTampilkan')
+  tabP: $('tab-prediksi'), tabH: $('tab-hitung'), inTgl: $('input-tanggal'), btnTgl: $('btn-tanggal'), statTgl: $('status-tanggal'),
+  inNom: $('input-nominal'), btnNom: $('btn-nominal'), statNom: $('status-nominal'),
+  srcP: $('search-prediksi'), srcJ: $('search-jadwal'), srcL: $('search-link'),
+  listP: $('list-prediksi'), listJ: $('list-jadwal'), listL: $('list-link'),
+  cntP: $('count-prediksi'), cntJ: $('count-jadwal'), cntL: $('count-link'), contH: $('container-hitung'),
+  toast: $('toast'), autoUpdate: $('autoUpdateIndicator'), chipTipe: $('chipTipe'), chipLabel: $('chipLabel'),
+  detail: $('detailHitungan'), modalOverlay: $('modalOverlay'), modalBody: $('modalBody'), modalTitle: $('modalTitle')
 };
 
-// Particles
+// === PARTICLES ===
 function createParticles() {
   const container = document.getElementById('particles'); if(!container) return;
   for(let i=0;i<50;i++) {
-    const p=document.createElement('div'); p.className='particle';
-    p.style.left=Math.random()*100+'%'; p.style.animationDelay=Math.random()*25+'s';
-    p.style.animationDuration=(20+Math.random()*15)+'s'; container.appendChild(p);
+    const p = document.createElement('div'); p.className = 'particle';
+    p.style.left = Math.random()*100+'%'; p.style.animationDelay = Math.random()*25+'s';
+    p.style.animationDuration = (20+Math.random()*15)+'s'; container.appendChild(p);
   }
 }
+
+// === UTILS ===
 function showToast(msg) { dom.toast.textContent='✨ '+msg; dom.toast.classList.add('show'); setTimeout(()=>dom.toast.classList.remove('show'),3000) }
 function showAutoUpdate() { if(dom.autoUpdate) { dom.autoUpdate.classList.add('show'); setTimeout(()=>dom.autoUpdate.classList.remove('show'),2000) } }
 function copyText(text) {
-  let finalText=text; try{finalText=decodeURIComponent(text)}catch(e){}
+  let finalText = text; try { finalText = decodeURIComponent(text) } catch(e) {}
   navigator.clipboard.writeText(finalText).then(()=>{
-    const preview=finalText.length>20?finalText.substring(0,20)+'...':finalText;
-    showToast('📋 Disalin: '+preview); dom.detail.classList.add('copied'); setTimeout(()=>dom.detail.classList.remove('copied'),300)
+    const preview = finalText.length>20 ? finalText.substring(0,20)+'...' : finalText;
+    showToast('📋 Disalin: '+preview)
   }).catch(()=>showToast('❌ Gagal salin'))
 }
-function formatNum(n){return new Intl.NumberFormat('id-ID').format(n)}
+function formatNum(n) { return new Intl.NumberFormat('id-ID').format(n) }
+
+// === CSV PARSER ===
 function parseCSV(text) {
   let p=[],row=[],entry="",st=0;
-  for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];
-    if(st===0){if(c==='"')st=1;else if(c===','){row.push(entry);entry=""}
-    else if(c==='\r'&&n==='\n'){row.push(entry);p.push(row);row=[];entry="";i++}
-    else if(c==='\n'||c==='\r'){row.push(entry);p.push(row);row=[];entry=""}else entry+=c}
-    else if(st===1){if(c==='"'&&n==='"'){entry+='"';i++}else if(c==='"')st=0;else entry+=c}}
-  if(entry.length>0||row.length>0){row.push(entry);p.push(row)} return p
+  for(let i=0;i<text.length;i++) {
+    const c=text[i],n=text[i+1];
+    if(st===0) {
+      if(c==='"') st=1; else if(c===',') { row.push(entry);entry="" }
+      else if(c==='\r'&&n==='\n') { row.push(entry);p.push(row);row=[];entry="";i++ }
+      else if(c==='\n'||c==='\r') { row.push(entry);p.push(row);row=[];entry="" }
+      else entry+=c
+    } else if(st===1) {
+      if(c==='"'&&n==='"') { entry+='"';i++ } else if(c==='"') st=0; else entry+=c
+    }
+  }
+  if(entry.length>0||row.length>0) { row.push(entry);p.push(row) }
+  return p
 }
-function safeGet(row,idx){return row&&row[idx]!==undefined?row[idx]:""}
+function safeGet(row,idx) { return row&&row[idx]!==undefined?row[idx]:"" }
+
+// === API ===
 async function updateSheet(action,value) {
-  if(SCRIPT_URL.includes('YOUR_SCRIPT_ID')){showToast('❌ Script URL belum disetup!');return false}
-  try{const params=new URLSearchParams({action,value});const res=await fetch(SCRIPT_URL+'?'+params.toString());return (await res.text()).includes('SUCCESS')}
-  catch(e){console.error("Fetch Error:",e);return false}
-}
-async function fetchPrediksi() {
+  if(SCRIPT_URL.includes('YOUR_SCRIPT_ID')) { showToast('❌ Script URL belum disetup!'); return false }
   try {
-    const res=await fetch(CONFIG.sheetPrediksi+'&t='+Date.now()), data=parseCSV(await res.text());
-    state.prediksi=[];state.jadwal=[];state.link=[];
-    if(data[0]){const raw=safeGet(data[0],1);if(raw){const p=raw.split('/');if(p.length===3){const f=`${p[2]}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`;dom.inTgl.value=f;dom.statTgl.textContent=f}}}
-    for(let i=2;i<=84&&i<data.length;i++){const t=safeGet(data[i],1);if(t)state.prediksi.push({title:t.split(/[\s,]+/)[0],content:t})}
-    for(let i=2;i<=55&&i<data.length;i++){const t=safeGet(data[i],2);if(t)state.jadwal.push({title:t.split(/[\s,]+/)[0],content:t})}
-    for(let i=56;i<=82&&i<data.length;i++){const t=safeGet(data[i],2);if(t)state.link.push({title:t.split(/[\s,]+/)[0],content:t})}
-    renderPrediksi()
-  } catch(e){console.error("Error Prediksi:",e);dom.listP.innerHTML='<p style="color:var(--fg-muted);text-align:center;padding:20px">❌ Gagal memuat data</p>'}
-}
-async function fetchHitung() {
-  try {
-    const res=await fetch(CONFIG.sheetHitung+'&t='+Date.now()), data=parseCSV(await res.text());
-    if(data[0]){const nom=safeGet(data[0],23);if(nom){dom.inNom.value=nom;dom.statNom.textContent="💰 Rp "+formatNum(nom)}}
-    const secDef=[{tRow:0,tCol:24,start:2,end:42},{tRow:43,tCol:24,start:45,end:80},{tRow:81,tCol:24,start:83,end:119},{tRow:120,tCol:24,start:122,end:153},{tRow:154,tCol:24,start:156,end:179},{tRow:180,tCol:24,start:182,end:213},{tRow:215,tCol:24,start:217,end:248},{tRow:249,tCol:24,start:251,end:282},{tRow:283,tCol:24,start:285,end:316}];
-    state.hitung=secDef.map(s=>{let title=safeGet(data[s.tRow],s.tCol)||"PASARAN",items=[];
-      for(let i=s.start;i<=s.end&&i<data.length;i++){if(data[i]){const type=safeGet(data[i],23),rv=safeGet(data[i],24);if(type||rv)items.push({type,res:rv})}} return{title,items}}).filter(s=>s.items.length>0);
-    renderHitung()
-  } catch(e){console.error("Error Hitung:",e);dom.contH.innerHTML='<p style="color:var(--fg-muted);text-align:center;padding:20px">❌ Gagal memuat data</p>'}
-}
-function renderList(container,items,search) {
-  const filtered=items.filter(i=>i.content.toLowerCase().includes(search.toLowerCase()));
-  if(!filtered.length){container.innerHTML='<p style="color:var(--fg-muted);text-align:center;padding:20px">📭 Tidak ada data</p>';return}
-  container.innerHTML=filtered.map(v=>`<div class="item-card" onclick="copyText('${encodeURIComponent(v.content)}')"><div class="item-label">📋 Judul</div><div class="item-title">${v.title}</div><div class="item-label">💬 Isi (Klik untuk Copy)</div><div class="item-content">${v.content}</div></div>`).join('')
-}
-function renderPrediksi() {
-  renderList(dom.listP,state.prediksi,dom.srcP.value);renderList(dom.listJ,state.jadwal,dom.srcJ.value);renderList(dom.listL,state.link,dom.srcL.value);
-  dom.cntP.textContent=state.prediksi.length;dom.cntJ.textContent=state.jadwal.length;dom.cntL.textContent=state.link.length
-}
-function renderHitung() {
-  if(!state.hitung.length){dom.contH.innerHTML='<p style="color:var(--fg-muted);text-align:center">📭 Tidak ada data</p>';return}
-  dom.contH.innerHTML=state.hitung.map(s=>`<div class="pasaran-box"><div class="pasaran-header"><h3 class="pasaran-title">🎯 ${s.title}</h3></div><div class="pasaran-content">${s.items.map(it=>`<div class="bet-item" onclick="copyText('${encodeURIComponent(it.res)}')"><span class="bet-type">${it.type}</span><span class="bet-result">${it.res}</span></div>`).join('')}</div></div>`).join('')
+    const res = await fetch(SCRIPT_URL+'?'+new URLSearchParams({action,value}));
+    return (await res.text()).includes('SUCCESS')
+  } catch(e) { console.error(e); return false }
 }
 
-// === NEON CHIP SELECTOR LOGIC ===
-let kelompokData={},selectedType=null,selectedLabel=null;
+// === FETCH DATA ===
+async function fetchPrediksi() {
+  try {
+    const data = parseCSV(await (await fetch(CONFIG.sheetPrediksi+'?t='+Date.now())).text());
+    state.prediksi=[];state.jadwal=[];state.link=[];
+    if(data[0]) {
+      const raw=safeGet(data[0],1); if(raw) {
+        const p=raw.split('/'); if(p.length===3) {
+          dom.inTgl.value=`${p[2]}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`; dom.statTgl.textContent=dom.inTgl.value
+        }
+      }
+    }
+    for(let i=2;i<=84&&i<data.length;i++) { const t=safeGet(data[i],1); if(t) state.prediksi.push({title:t.split(/[\s,]+/)[0],content:t}) }
+    for(let i=2;i<=55&&i<data.length;i++) { const t=safeGet(data[i],2); if(t) state.jadwal.push({title:t.split(/[\s,]+/)[0],content:t}) }
+    for(let i=56;i<=82&&i<data.length;i++) { const t=safeGet(data[i],2); if(t) state.link.push({title:t.split(/[\s,]+/)[0],content:t}) }
+    renderPrediksi()
+  } catch(e) { console.error(e); dom.listP.innerHTML='<p style="color:var(--fg-muted);text-align:center;padding:20px">❌ Gagal memuat</p>' }
+}
+
+async function fetchHitung() {
+  try {
+    const data = parseCSV(await (await fetch(CONFIG.sheetHitung+'?t='+Date.now())).text());
+    if(data[0]) { const nom=safeGet(data[0],23); if(nom) { dom.inNom.value=nom; dom.statNom.textContent="💰 Rp "+formatNum(nom) } }
+    const secDef = [
+      {tRow:0,tCol:24,start:2,end:42},{tRow:43,tCol:24,start:45,end:80},{tRow:81,tCol:24,start:83,end:119},
+      {tRow:120,tCol:24,start:122,end:153},{tRow:154,tCol:24,start:156,end:179},{tRow:180,tCol:24,start:182,end:213},
+      {tRow:215,tCol:24,start:217,end:248},{tRow:249,tCol:24,start:251,end:282},{tRow:283,tCol:24,start:285,end:316}
+    ];
+    state.hitung = secDef.map(s=>{
+      let title=safeGet(data[s.tRow],s.tCol)||"PASARAN", items=[];
+      for(let i=s.start;i<=s.end&&i<data.length;i++) if(data[i]) {
+        const type=safeGet(data[i],23),res=safeGet(data[i],24); if(type||res) items.push({type,res})
+      }
+      return {title,items}
+    }).filter(s=>s.items.length>0);
+    renderHitung()
+  } catch(e) { console.error(e); dom.contH.innerHTML='<p style="color:var(--fg-muted);text-align:center;padding:20px">❌ Gagal memuat</p>' }
+}
+
+// === RENDER ===
+function renderList(container,items,search) {
+  const f=items.filter(i=>i.content.toLowerCase().includes(search.toLowerCase()));
+  if(!f.length) { container.innerHTML='<p style="color:var(--fg-muted);text-align:center;padding:20px">📭 Tidak ada data</p>'; return }
+  container.innerHTML = f.map(v=>`<div class="item-card" onclick="copyText('${encodeURIComponent(v.content)}')">
+    <div class="item-label">📋 Judul</div><div class="item-title">${v.title}</div>
+    <div class="item-label">💬 Isi (Klik Copy)</div><div class="item-content">${v.content}</div></div>`).join('')
+}
+function renderPrediksi() {
+  renderList(dom.listP,state.prediksi,dom.srcP.value); renderList(dom.listJ,state.jadwal,dom.srcJ.value);
+  renderList(dom.listL,state.link,dom.srcL.value);
+  dom.cntP.textContent=state.prediksi.length; dom.cntJ.textContent=state.jadwal.length; dom.cntL.textContent=state.link.length
+}
+function renderHitung() {
+  if(!state.hitung.length) { dom.contH.innerHTML='<p style="color:var(--fg-muted);text-align:center">📭 Tidak ada data</p>'; return }
+  dom.contH.innerHTML = state.hitung.map(s=>`<div class="pasaran-box">
+    <div class="pasaran-header"><h3 class="pasaran-title">🎯 ${s.title}</h3></div>
+    <div class="pasaran-content">${s.items.map(it=>`<div class="bet-item" onclick="copyText('${encodeURIComponent(it.res)}')">
+      <span class="bet-type">${it.type}</span><span class="bet-result">${it.res}</span></div>`).join('')}</div></div>`).join('')
+}
+
+// === 🔥 CHIP SELECTOR LOGIC 🔥 ===
+function renderChips() {
+  // Tipe Hitungan Chips
+  const tipeContainer = dom.chipTipe; tipeContainer.innerHTML = '<div class="chip active" data-value="">✨ Semua</div>';
+  Object.keys(kelompokData).forEach(title => {
+    const chip = document.createElement('div'); chip.className = 'chip'; chip.textContent = title; chip.dataset.value = title;
+    chip.onclick = () => { document.querySelectorAll('#chipTipe .chip').forEach(c=>c.classList.remove('active')); chip.classList.add('active'); filterLabels(title) };
+    tipeContainer.appendChild(chip);
+  });
+  // Label Chips (default all)
+  filterLabels('');
+}
+
+function filterLabels(tipe) {
+  const labelContainer = dom.chipLabel; labelContainer.innerHTML = '<div class="chip active" data-value="">✨ Semua</div>';
+  const items = tipe && kelompokData[tipe] ? kelompokData[tipe] : Object.values(kelompokData).flat();
+  const labels = [...new Set(items.map(i=>i.label).filter(l=>l&&l!=="-"))];
+  labels.slice(0,20).forEach(label => { // Limit to 20 for performance
+    const chip = document.createElement('div'); chip.className = 'chip'; chip.textContent = label; chip.dataset.value = label;
+    chip.onclick = () => { document.querySelectorAll('#chipLabel .chip').forEach(c=>c.classList.remove('active')); chip.classList.add('active'); };
+    labelContainer.appendChild(chip);
+  });
+}
+
+function getSelectedChip(containerId) {
+  const active = document.querySelector(`#${containerId} .chip.active`);
+  return active ? active.dataset.value : "";
+}
+
+function tampilkanValueHitungan() {
+  const tipe = getSelectedChip('chipTipe'), label = getSelectedChip('chipLabel');
+  const detail = dom.detail;
+  if(!tipe && !label) { detail.innerHTML='<span style="color:var(--fg-muted)">Pilih tipe atau label untuk melihat hasil</span>'; return; }
+  
+  let items = [];
+  if(tipe && kelompokData[tipe]) items = kelompokData[tipe];
+  else if(!tipe) items = Object.values(kelompokData).flat();
+  
+  const result = label ? items.find(i=>i.label===label) : items[0];
+  if(result) {
+    detail.innerHTML = `<span style="font-size:1.15em;font-weight:700">${result.value}</span>`;
+    detail.onclick = () => { copyText(result.value); detail.style.boxShadow='0 0 25px rgba(0,255,157,0.7)'; setTimeout(()=>detail.style.boxShadow='',250) };
+  } else { detail.innerHTML='<span style="color:var(--fg-muted)">Tidak ditemukan</span>' }
+}
+
+// === 🔥 MODAL CYBERPUNK 🔥 ===
+function openModal(type) {
+  dom.modalTitle.textContent = type==='label' ? '🏷️ Semua Label' : '📊 Semua Tipe';
+  let html = '';
+  if(type==='label') {
+    const allLabels = [...new Set(Object.values(kelompokData).flat().map(i=>i.label).filter(l=>l&&l!=="-"))];
+    html = allLabels.map(l=>`<button class="modal-chip" onclick="selectFromModal('${l}')">${l}</button>`).join('');
+  } else {
+    html = Object.keys(kelompokData).map(t=>`<button class="modal-chip" onclick="selectTipeFromModal('${t}')">${t}</button>`).join('');
+  }
+  dom.modalBody.innerHTML = html || '<p style="color:var(--fg-muted);text-align:center">Tidak ada data</p>';
+  dom.modalOverlay.classList.add('show');
+}
+function closeModal() { dom.modalOverlay.classList.remove('show') }
+function selectFromModal(label) {
+  document.querySelectorAll('#chipLabel .chip').forEach(c=>{ if(c.dataset.value===label) c.classList.add('active'); else c.classList.remove('active') });
+  closeModal(); tampilkanValueHitungan();
+}
+function selectTipeFromModal(tipe) {
+  document.querySelectorAll('#chipTipe .chip').forEach(c=>{ if(c.dataset.value===tipe) c.classList.add('active'); else c.classList.remove('active') });
+  filterLabels(tipe); closeModal();
+}
+
+// === LOAD DATA ===
 async function loadCaraHitungTogel() {
   try {
-    const res=await fetch(CONFIG.sheetHitung+'&t='+Date.now()), data=parseCSV(await res.text());
-    if(data[0]){const nom=safeGet(data[0],23);if(nom){dom.inNom.value=nom;dom.statNom.textContent="💰 Rp "+formatNum(nom)}}
-    const secDef=[
-      {tRow:0,tCol:24,start:2,end:42,title:"🎰 Semua Pasaran"},{tRow:43,tCol:24,start:45,end:80,title:"🇲🇴 Macau 4D"},
-      {tRow:81,tCol:24,start:83,end:119,title:"🇲🇴 Macau 5D"},{tRow:120,tCol:24,start:122,end:153,title:"🦍 Kingkong 4D"},
-      {tRow:154,tCol:24,start:156,end:179,title:"🎁 Bonus"},{tRow:180,tCol:24,start:182,end:213,title:"🇮🇩 Jakarta"},
-      {tRow:215,tCol:24,start:217,end:248,title:"🇲🇾 TotoMali"},{tRow:249,tCol:24,start:251,end:282,title:"🎯 HokiDraw"},
-      {tRow:283,tCol:24,start:285,end:316,title:"🇦🇺 Sydney & 🇭🇰 HK"}
+    const data = parseCSV(await (await fetch(CONFIG.sheetHitung+'?t='+Date.now())).text());
+    if(data[0]) { const nom=safeGet(data[0],23); if(nom) { dom.inNom.value=nom; dom.statNom.textContent="💰 Rp "+formatNum(nom) } }
+    const secDef = [
+      {tRow:0,tCol:24,start:2,end:42,title:"HITUNG HADIAH SEMUA PASARAN"},{tRow:43,tCol:24,start:45,end:80,title:"TOTO MACAU 4D"},
+      {tRow:81,tCol:24,start:83,end:119,title:"TOTO MACAU 5D"},{tRow:120,tCol:24,start:122,end:153,title:"KINGKONG 4D"},
+      {tRow:154,tCol:24,start:156,end:179,title:"PERHITUNGAN BONUS"},{tRow:180,tCol:24,start:182,end:213,title:"JAKARTA"},
+      {tRow:215,tCol:24,start:217,end:248,title:"TOTOMALI"},{tRow:249,tCol:24,start:251,end:282,title:"HOKIDRAW"},
+      {tRow:283,tCol:24,start:285,end:316,title:"SYDNEY & HONGKONG"}
     ];
-    kelompokData={};dom.chipContainer.innerHTML='';
+    Object.keys(kelompokData).forEach(k=>delete kelompokData[k]);
     secDef.forEach(sec=>{
-      const items=[];for(let i=sec.start;i<=sec.end&&i<data.length;i++){if(data[i]){const lbl=safeGet(data[i],23),val=safeGet(data[i],24);if(lbl||val)items.push({label:lbl||"-",value:val||"-"})}}
-      if(items.length>0){kelompokData[sec.title]=items;const chip=document.createElement('button');chip.className='chip-btn';chip.textContent=sec.title;chip.dataset.type=sec.title;chip.onclick=()=>selectType(sec.title);dom.chipContainer.appendChild(chip)}
-    })
-  } catch(e){console.error("Error loadCaraHitungTogel:",e)}
-}
-function selectType(type) {
-  selectedType=type;selectedLabel=null;
-  document.querySelectorAll('.chip-btn').forEach(c=>c.classList.toggle('active',c.dataset.type===type));
-  const items=kelompokData[type]||[];
-  if(items.length===0){dom.labelGrid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--fg-muted);padding:20px">📭 Tidak ada label</div>';return}
-  dom.labelGrid.innerHTML=items.map(it=>`<div class="label-card" data-label="${it.label}" onclick="selectLabel('${it.label.replace(/'/g,"\\'")}')"><div class="label-card-title">${it.label}</div><div class="label-card-value">${it.value}</div></div>`).join('')
-}
-function selectLabel(label) {
-  selectedLabel=label;
-  document.querySelectorAll('.label-card').forEach(c=>c.classList.toggle('active',c.dataset.label===label));
-  dom.detail.innerHTML='<span style="color:var(--neon-green)">✅ Label terpilih! Klik "Tampilkan Hasil"</span>';
-}
-function resetSelection() {
-  selectedType=null;selectedLabel=null;
-  document.querySelectorAll('.chip-btn,.label-card').forEach(el=>el.classList.remove('active'));
-  dom.labelGrid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--fg-muted);padding:20px">👈 Pilih tipe hitungan terlebih dahulu</div>';
-  dom.detail.innerHTML='<span style="color:var(--fg-muted)">Silakan pilih tipe dan label, lalu klik "Tampilkan Hasil"</span>';
-}
-function tampilkanValueHitungan() {
-  if(!selectedType||!selectedLabel||!kelompokData[selectedType]){
-    dom.detail.innerHTML='<span style="color:var(--neon-pink)">⚠️ Pilih tipe dan label terlebih dahulu</span>';
-    dom.detail.style.borderColor='var(--neon-pink)';setTimeout(()=>dom.detail.style.borderColor='',500);return
-  }
-  const item=kelompokData[selectedType].find(i=>i.label===selectedLabel);
-  if(item){
-    dom.detail.innerHTML=`<span style="font-size:1.15em;font-weight:700">${item.value}</span>`;
-    dom.detail.onclick=()=>copyText(item.value)
-  }
+      const items=[]; for(let i=sec.start;i<=sec.end&&i<data.length;i++) if(data[i]) {
+        const label=safeGet(data[i],23),value=safeGet(data[i],24); if(label||value) items.push({label:label||"-",value:value||"-"})
+      }
+      if(items.length>0) kelompokData[sec.title]=items;
+    });
+    renderChips();
+  } catch(e) { console.error("Error:",e) }
 }
 
 // === AUTO-UPDATE ===
-let autoUpdateTimeout=null;
-function autoUpdateTanggal(){showAutoUpdate();clearTimeout(autoUpdateTimeout);autoUpdateTimeout=setTimeout(()=>manualUpdateTanggal(),1000)}
+let autoTimeout=null;
+function autoUpdateTanggal() { showAutoUpdate(); clearTimeout(autoTimeout); autoTimeout=setTimeout(manualUpdateTanggal,1000) }
 function manualUpdateTanggal() {
-  if(!dom.inTgl.value)return showToast("⚠️ Pilih tanggal dulu!");
-  const parts=dom.inTgl.value.split('-'),formattedDate=`${parts[1]}/${parts[2]}/${parts[0]}`;
-  dom.btnTgl.disabled=true;dom.statTgl.textContent="⏳ Menyimpan...";
-  updateSheet('updateTanggal',formattedDate).then(success=>{
-    dom.btnTgl.disabled=false;if(success){localStorage.setItem(CONFIG.keyTanggal,dom.inTgl.value);dom.statTgl.textContent="✅ Tersimpan!";showToast("📅 Tanggal diupdate!");fetchPrediksi();fetchHitung();loadCaraHitungTogel()}
-    else{dom.statTgl.textContent="❌ Gagal";showToast("❌ Cek Script URL")}
+  if(!dom.inTgl.value) return showToast("⚠️ Pilih tanggal!");
+  const p=dom.inTgl.value.split('-'), formatted=`${p[1]}/${p[2]}/${p[0]}`;
+  dom.btnTgl.disabled=true; dom.statTgl.textContent="⏳ Menyimpan...";
+  updateSheet('updateTanggal',formatted).then(ok=>{
+    dom.btnTgl.disabled=false;
+    if(ok) { localStorage.setItem(CONFIG.keyTanggal,dom.inTgl.value); dom.statTgl.textContent="✅ Tersimpan!"; showToast("📅 Tanggal diupdate!"); fetchPrediksi();fetchHitung();loadCaraHitungTogel() }
+    else { dom.statTgl.textContent="❌ Gagal"; showToast("❌ Cek Script URL") }
   })
 }
-function autoUpdateNominal(){showAutoUpdate();clearTimeout(autoUpdateTimeout);autoUpdateTimeout=setTimeout(()=>manualUpdateNominal(),1000)}
+function autoUpdateNominal() { showAutoUpdate(); clearTimeout(autoTimeout); autoTimeout=setTimeout(manualUpdateNominal,1000) }
 function manualUpdateNominal() {
-  if(!dom.inNom.value)return showToast("⚠️ Isi nominal dulu!");
-  dom.btnNom.disabled=true;dom.statNom.textContent="⏳ Menyimpan...";
-  updateSheet('updateNominal',dom.inNom.value).then(success=>{
-    dom.btnNom.disabled=false;if(success){localStorage.setItem(CONFIG.keyNominal,dom.inNom.value);dom.statNom.textContent="💰 Rp "+formatNum(dom.inNom.value);showToast("💰 Nominal diupdate!");fetchPrediksi();fetchHitung();loadCaraHitungTogel()}
-    else{dom.statNom.textContent="❌ Gagal";showToast("❌ Cek Script URL")}
+  if(!dom.inNom.value) return showToast("⚠️ Isi nominal!");
+  dom.btnNom.disabled=true; dom.statNom.textContent="⏳ Menyimpan...";
+  updateSheet('updateNominal',dom.inNom.value).then(ok=>{
+    dom.btnNom.disabled=false;
+    if(ok) { localStorage.setItem(CONFIG.keyNominal,dom.inNom.value); dom.statNom.textContent="💰 Rp "+formatNum(dom.inNom.value); showToast("💰 Nominal diupdate!"); fetchPrediksi();fetchHitung();loadCaraHitungTogel() }
+    else { dom.statNom.textContent="❌ Gagal"; showToast("❌ Cek Script URL") }
   })
 }
 
+// === INIT ===
 function init() {
   document.querySelectorAll('.tab-btn').forEach(t=>t.onclick=()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));t.classList.add('active');
-    dom.tabP.style.display=t.dataset.tab==='prediksi'?'block':'none';dom.tabH.style.display=t.dataset.tab==='hitung'?'block':'none'
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); t.classList.add('active');
+    dom.tabP.style.display=t.dataset.tab==='prediksi'?'block':'none'; dom.tabH.style.display=t.dataset.tab==='hitung'?'block':'none'
   });
   dom.srcP.oninput=()=>renderList(dom.listP,state.prediksi,dom.srcP.value);
   dom.srcJ.oninput=()=>renderList(dom.listJ,state.jadwal,dom.srcJ.value);
   dom.srcL.oninput=()=>renderList(dom.listL,state.link,dom.srcL.value);
-  fetchPrediksi();fetchHitung();loadCaraHitungTogel()
+  fetchPrediksi(); fetchHitung(); loadCaraHitungTogel();
 }
-document.addEventListener('DOMContentLoaded',()=>{createParticles();init();setTimeout(()=>showToast('🚀 Neon Blue Ultra Loaded!'),1200)})
+
+document.addEventListener('DOMContentLoaded',()=>{ createParticles(); init(); setTimeout(()=>showToast('🚀 Neon Blue Ultra Loaded!'),1200) });
 </script>
 </body>
 </html>
