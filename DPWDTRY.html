@@ -596,6 +596,7 @@ const dom = {
 let selectedTipe = '', selectedLabel = '';
 let lastNominal = '';
 let autoRefreshTimer = null;
+let hasResultDisplayed = false;
 
 // =============================================
 // FORMAT TEXT FUNCTION - RAPI DENGAN SPASI
@@ -764,8 +765,17 @@ function renderChips(container, items, type) {
     chip.onclick = () => {
       container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
-      if (type === 'tipe') { selectedTipe = chip.dataset.value; updateLabelChips(); }
-      else { selectedLabel = chip.dataset.value; }
+      if (type === 'tipe') { 
+        selectedTipe = chip.dataset.value; 
+        updateLabelChips();
+        // Auto show result jika kedua sudah dipilih
+        if (selectedLabel) setTimeout(() => tampilkanValueHitungan(), 100);
+      }
+      else { 
+        selectedLabel = chip.dataset.value;
+        // Auto show result jika kedua sudah dipilih
+        if (selectedTipe) setTimeout(() => tampilkanValueHitungan(), 100);
+      }
     };
   });
 }
@@ -791,17 +801,15 @@ async function loadHitungData() {
 function handleNominalInput() {
   const currentNominal = dom.inNom.value.trim();
   
-  // Debounce: tunggu 500ms setelah user berhenti mengetik
+  // Debounce: tunggu 600ms setelah user berhenti mengetik
   clearTimeout(autoRefreshTimer);
   autoRefreshTimer = setTimeout(() => {
-    // Hanya auto-refresh jika:
-    // 1. Ada tipe dan label yang dipilih
-    // 2. Nominal berubah dari nilai terakhir
-    if (selectedTipe && selectedLabel && state.kelompok[selectedTipe] && currentNominal !== lastNominal) {
+    // Auto-refresh jika ada hasil yang sudah ditampilkan
+    if (hasResultDisplayed && currentNominal !== lastNominal) {
       autoRefreshResult(currentNominal);
     }
     lastNominal = currentNominal;
-  }, 500);
+  }, 600);
 }
 
 // Fungsi untuk auto-refresh hasil tanpa klik tombol
@@ -843,7 +851,7 @@ async function autoRefreshResult(nominal) {
       r.classList.add('copied');
       setTimeout(() => r.classList.remove('copied'), 350);
       
-      showToast('🔄 Hasil diperbarui!', '⚡');
+      showToast('🔄 Hasil diperbarui otomatis!', '⚡');
     }
   } catch(e) {
     console.error('Auto-refresh error:', e);
@@ -858,6 +866,7 @@ function tampilkanValueHitungan() {
   if (!selectedTipe || !selectedLabel || !state.kelompok[selectedTipe]) { 
     r.innerHTML = '<span class="result-placeholder">Pilih tipe & label terlebih dahulu</span>'; 
     r.classList.remove('active'); 
+    hasResultDisplayed = false;
     return; 
   }
   const item = state.kelompok[selectedTipe].find(i => i.label === selectedLabel);
@@ -873,8 +882,11 @@ function tampilkanValueHitungan() {
     r.classList.add('copied');
     setTimeout(() => r.classList.remove('copied'), 350);
     
-    // Simpan nominal terakhir untuk referensi auto-refresh
+    // Set flag bahwa hasil sudah ditampilkan
+    hasResultDisplayed = true;
     lastNominal = dom.inNom.value;
+    
+    showToast('✅ Hasil ditampilkan!', '✨');
   }
 }
 
@@ -911,7 +923,7 @@ function manualUpdateNominal() {
       showToast('Nominal berhasil disimpan', '💰'); 
       fetchPrediksi(); fetchHitung(); loadHitungData();
       // Jika ada hasil yang ditampilkan, refresh juga
-      if (selectedTipe && selectedLabel) autoRefreshResult(dom.inNom.value);
+      if (hasResultDisplayed) autoRefreshResult(dom.inNom.value);
     }
     else { dom.statNom.textContent = '✗ Error'; showToast('Cek URL Script', '❌'); }
   });
