@@ -19,7 +19,6 @@ body {
   font-family: 'Rajdhani', sans-serif; background: var(--bg-dark); color: var(--text-primary);
   min-height: 100vh; overflow-x: hidden; position: relative; line-height: 1.5;
 }
-/* Background - non-interactive */
 .bg-animated, .bg-grid, #particles {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   z-index: -2; pointer-events: none; user-select: none;
@@ -261,7 +260,18 @@ body {
   max-width: 90%; max-height: 80vh; object-fit: contain; border-radius: 12px;
   border: 2px solid var(--neon-blue); box-shadow: 0 0 40px rgba(0,212,255,0.5);
 }
-/* Responsive */
+.fallback-panel {
+  background: linear-gradient(135deg, rgba(255,71,87,0.08) 0%, rgba(6,20,32,0.8) 100%);
+  border: 1px solid var(--accent-red); border-radius: 12px; padding: 15px; margin-top: 15px;
+}
+.fallback-title { color: var(--accent-red); font-weight: 700; margin-bottom: 12px; font-size: 15px; }
+.fallback-label { color: var(--neon-blue); font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block; }
+.fallback-input-group { display: flex; gap: 8px; margin-top: 4px; margin-bottom: 12px; }
+.fallback-input { flex: 1; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 14px; }
+.fallback-input:focus { outline: none; border-color: var(--neon-blue); }
+.file-upload-wrapper { position: relative; width: 100%; }
+.file-upload-wrapper input[type="file"] { width: 100%; padding: 8px; background: var(--bg-input); border: 1px dashed var(--border-color); border-radius: 6px; color: var(--text-muted); font-size: 13px; cursor: pointer; }
+.fallback-hint { color: var(--text-muted); font-size: 12px; margin-top: 3px; display: block; }
 @media (max-width: 768px) {
   .bonus-section { padding: 15px; margin: 5px; }
   .neon-switch-btn { padding: 10px 15px; font-size: 13px; }
@@ -272,17 +282,16 @@ body {
   .input-with-buttons { flex-wrap: wrap; }
   .input-with-buttons .bonus-input { width: 100%; }
   .input-with-buttons .bonus-btn { flex: 1; min-width: 80px; }
+  .fallback-input-group { flex-direction: column; }
 }
 button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--neon-blue); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
-/* CRITICAL FIX: Semua elemen interaktif HARUS bisa diklik */
 button, input, textarea, .neon-switch-btn, .bonus-btn, .combined-image-slot,
 .modal-close, .zoom-nav-button, .copy-btn, .result-item button {
   pointer-events: auto !important; cursor: pointer !important;
 }
-/* Prevent text selection on buttons */
 .neon-switch-btn, .bonus-btn, .copy-btn, .zoom-nav-button { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
 </style>
 </head>
@@ -413,16 +422,16 @@ Format: <strong style="color:var(--neon-blue)">USERID link1 link2 link3</strong>
 
 <script>
 // ═══════════════════════════════════════════════════════
-// 🔗 UNIVERSAL IMAGE URL HANDLER - SUPPORT SEMUA LINK
+// 🔗 UNIVERSAL IMAGE URL HANDLER
 // ═══════════════════════════════════════════════════════
 function normalizeImageUrl(url){if(!url||!url.trim())return'';let u=url.trim();if(u.startsWith('image')||u.startsWith('blob:'))return u;if(u.includes('tawk.link')||u.includes('tawk.to'))return u;if(u.includes('drive.google.com')){const m=u.match(/\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/);if(m)return`https://drive.google.com/uc?export=view&id=${m[1]||m[2]}`}if(u.includes('dropbox.com'))return u.replace('?dl=0','?dl=1');if(u.includes('imgur.com')){u=u.replace(/\/gallery\//i,'/').replace(/\/a\//i,'/');if(!u.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i)){u=u.replace('imgur.com/','i.imgur.com/');if(!u.match(/\.[a-z]+$/i))u+='.jpg'}return u}if(u.includes('postimg.cc')||u.includes('postimages.org'))return u.replace(/\/[a-z]+\/?$/,'');if(u.startsWith('//'))return'https:'+u;if(!u.startsWith('http')&&u.includes('.')&&!u.startsWith('data')&&!u.startsWith('blob')){if(u.match(/^[a-z0-9.-]+\.[a-z]{2,}/i))return'https://'+u}if(!u.startsWith('http'))u='https://'+u;return u}
 function isValidImageUrl(u){if(!u)return false;const n=normalizeImageUrl(u);return n.startsWith('image')||n.startsWith('blob:')||/^https?:\/\//.test(n)||n.includes('tawk.link')||n.includes('tawk.to')||n.includes('drive.google.com')||n.includes('dropbox.com')||n.includes('imgur.com')||n.includes('postimg.cc')||n.includes('postimages.org')||n.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg|ico)(\?.*)?$/i)}
-function isLikelyImageUrl(u){return u&&(isValidImageUrl(u)||u.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg|ico)(\?.*)?$/i)||u.startsWith('data:image')||u.startsWith('blob:'))}
+function isLikelyImageUrl(u){return u&&(isValidImageUrl(u)||u.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg|ico)(\?.*)?$/i)||u.startsWith('image')||u.startsWith('blob:'))}
 
 // ═══════════════════════════════════════════════════════
 // 🎯 GLOBAL VARIABLES
 // ═══════════════════════════════════════════════════════
-let currentBonusMode='bonusAsli',currentDataIndex=1,bonusAllPackagesData=[],bonusCurrentPackageIndex=0,bonusPackageSize=3,isBonusZoomOpen=false,imageList=[],currentImageIndex=0,scatterZoomImages=[],scatterZoomIndex=0,currentScatterDataIndex=1;
+let currentBonusMode='bonusAsli',currentDataIndex=1,currentScanIndex=1,bonusAllPackagesData=[],bonusCurrentPackageIndex=0,bonusPackageSize=3,isBonusZoomOpen=false,imageList=[],currentImageIndex=0,scatterZoomImages=[],scatterZoomIndex=0;
 
 // ═══════════════════════════════════════════════════════
 // ⚡ HELPER FUNCTIONS
@@ -431,35 +440,79 @@ function createParticles(){const c=document.getElementById('particles');if(!c)re
 function showToast(msg,type='info'){const t=document.getElementById('toast');if(!t){alert(msg);return}t.textContent=msg;t.style.borderColor=type==='error'?'var(--accent-red)':type==='success'?'var(--accent-green)':'var(--neon-blue)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 
 // ═══════════════════════════════════════════════════════
-// 🔄 MODE SWITCHING - FIXED & RELIABLE
+// 🔄 MODE SWITCHING
 // ═══════════════════════════════════════════════════════
 function switchBonusMode(mode){['modeBonusAsli','modeGaleri','modeInputScatter'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none'});const map={'bonusAsli':'modeBonusAsli','galeri':'modeGaleri','inputScatter':'modeInputScatter'};const target=document.getElementById(map[mode]);if(target)target.style.display='block';['bonusAsli','galeri','inputScatter'].forEach(id=>{const btn=document.getElementById('btn-'+id);if(btn)btn.classList.toggle('active',id===mode)});currentBonusMode=mode;console.log('✓ Mode:',mode)}
 
-// ═══════════════════════════════════════════════════════
-// ⚙️ SETUP IMAGE INPUT NORMALIZATION
-// ═══════════════════════════════════════════════════════
 function setupImageInputNormalization(){['imageUrl','bonusScatter1_1','bonusScatter2_1','bonusScatter3_1','bonusScatter1_2','bonusScatter2_2','bonusScatter3_2','imageUrlZoom'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('blur',function(){if(this.value&&this.id!=='bonusLinkInput')this.value=normalizeImageUrl(this.value)})})}
 
 // ═══════════════════════════════════════════════════════
 // 🖼️ VIEW ALL 3 SCATTER PHOTOS
 // ═══════════════════════════════════════════════════════
-function viewAllScatterPhotos(idx){currentScatterDataIndex=idx;const s1=normalizeImageUrl(document.getElementById('bonusScatter1_'+idx).value.trim()),s2=normalizeImageUrl(document.getElementById('bonusScatter2_'+idx).value.trim()),s3=normalizeImageUrl(document.getElementById('bonusScatter3_'+idx).value.trim());scatterZoomImages=[s1,s2,s3].filter(l=>isValidImageUrl(l)||isLikelyImageUrl(l));if(scatterZoomImages.length===0){showToast('Tidak ada link gambar valid!','error');return}scatterZoomIndex=0;updateScatterZoomDisplay();const modal=document.getElementById('scatterZoomModal'),title=document.getElementById('scatterZoomTitle'),cap=document.getElementById('scatterZoomCaption');if(title)title.textContent=`Lihat 3 Foto - Data ${idx}`;if(cap)cap.textContent=`Menampilkan ${scatterZoomImages.length} foto`;if(modal){modal.style.display='flex';modal.classList.add('active')}}
+function viewAllScatterPhotos(idx){scatterZoomIndex=0;const s1=normalizeImageUrl(document.getElementById('bonusScatter1_'+idx).value.trim()),s2=normalizeImageUrl(document.getElementById('bonusScatter2_'+idx).value.trim()),s3=normalizeImageUrl(document.getElementById('bonusScatter3_'+idx).value.trim());scatterZoomImages=[s1,s2,s3].filter(l=>isValidImageUrl(l)||isLikelyImageUrl(l));if(scatterZoomImages.length===0){showToast('Tidak ada link gambar valid!','error');return}updateScatterZoomDisplay();const modal=document.getElementById('scatterZoomModal'),title=document.getElementById('scatterZoomTitle'),cap=document.getElementById('scatterZoomCaption');if(title)title.textContent=`Lihat 3 Foto - Data ${idx}`;if(cap)cap.textContent=`Menampilkan ${scatterZoomImages.length} foto`;if(modal){modal.style.display='flex';modal.classList.add('active')}}
 function updateScatterZoomDisplay(){const w=document.getElementById('scatterZoomContent');if(!w)return;w.innerHTML='';scatterZoomImages.forEach((link,i)=>{const img=document.createElement('img');img.src=normalizeImageUrl(link);img.alt=`Scatter ${i+1}`;img.style.cssText='max-width:30%;min-width:200px;max-height:70vh;object-fit:contain;border-radius:12px;border:2px solid var(--neon-blue);box-shadow:0 0 30px rgba(0,212,255,0.3);cursor:pointer';img.onclick=()=>openLightboxScatter(img);img.onerror=function(){this.src='https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=Error';this.style.borderColor='var(--accent-red)'};w.appendChild(img)})}
 function closeScatterZoom(){const m=document.getElementById('scatterZoomModal'),w=document.getElementById('scatterZoomContent');if(m){m.style.display='none';m.classList.remove('active')}if(w)w.innerHTML='';scatterZoomImages=[]}
 function openLightboxScatter(el){imageList=[...scatterZoomImages];currentImageIndex=imageList.indexOf(el.src);if(currentImageIndex===-1)currentImageIndex=0;const lb=document.getElementById('lightboxImage');if(lb)lb.src=imageList[currentImageIndex]||el.src;const lm=document.getElementById('lightboxModal');if(lm){lm.style.display='flex';lm.classList.add('active')}}
 function prevScatterImage(){showToast('Gunakan lightbox untuk navigasi')}function nextScatterImage(){showToast('Gunakan lightbox untuk navigasi')}
 
 // ═══════════════════════════════════════════════════════
-// 🔍 SCAN SCATTER 2 (OCR)
+// 🔍 SCAN SCATTER 2 + FALLBACK SYSTEM
 // ═══════════════════════════════════════════════════════
-function scanScatter2(idx){currentDataIndex=idx;const raw=document.getElementById('bonusScatter2_'+idx).value.trim();if(!raw){showToast('Masukkan link gambar Scatter 2!','error');return}const link=normalizeImageUrl(raw),img=document.getElementById('scanScatter2Image'),res=document.getElementById('scanScatter2Result'),modal=document.getElementById('scanScatter2Modal');if(img){img.src=link;img.onerror=function(){this.src='https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=Error';showToast('Gambar tidak dapat dimuat','error')}}if(modal){modal.style.display='flex';modal.classList.add('active')}if(res)res.innerHTML='<span style="color:var(--text-muted)">⏳ Memindai...</span>';if(typeof Tesseract==='undefined'){if(res)res.innerHTML='<span style="color:var(--accent-red)">❌ Tesseract.js belum dimuat</span>';return}Tesseract.recognize(link,'eng').then(({data:{text}})=>{const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>0),gab=[],lng=[];for(let i=0;i<lines.length;i++){const m=lines[i].match(/\b\d{9,10}\b/);if(m){if(i+1<lines.length){const nm=lines[i+1].trim().match(/\b\d{8,}\b/);if(nm){gab.push(m[0]+nm[0]);i++;continue}}gab.push(m[0])}}lines.forEach(l=>{const ms=l.match(/\d{8,}/g);if(ms)ms.forEach(x=>lng.push(x))});[...new Set(gab)].forEach(k=>{if(res){const d=document.createElement('div');d.className='result-item';d.innerHTML=`<span>${k}</span><div style="display:flex;gap:8px"><button onclick="copyWithFeedback(this,'${k}')" class="copy-btn">Copy</button><button onclick="pilihKode('${k}')" class="copy-btn" style="background:var(--accent-green)">Pilih</button></div>`;res.appendChild(d)}});[...new Set(lng)].forEach(k=>{if(res){const d=document.createElement('div');d.className='result-item green';d.innerHTML=`<span>${k}</span><div style="display:flex;gap:8px"><button onclick="copyWithFeedback(this,'${k}')" class="copy-btn">Copy</button><button onclick="pilihKode('${k}')" class="copy-btn" style="background:var(--accent-green)">Pilih</button></div>`;res.appendChild(d)}});if(gab.length===0&&lng.length===0&&res)res.innerHTML='<span style="color:var(--accent-red)">⚠️ Tidak ditemukan angka</span>'}).catch(e=>{console.error(e);if(res)res.innerHTML='<span style="color:var(--accent-red)">❌ Gagal memindai</span>'})}
+function scanScatter2(idx){
+    currentScanIndex=idx;currentDataIndex=idx;
+    const raw=document.getElementById('bonusScatter2_'+idx).value.trim();
+    if(!raw){showToast('Masukkan link gambar Scatter 2!','error');return}
+    const link=normalizeImageUrl(raw),img=document.getElementById('scanScatter2Image'),res=document.getElementById('scanScatter2Result'),modal=document.getElementById('scanScatter2Modal');
+    if(img){img.src=link;img.onerror=function(){this.src='https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=Error';showToast('Gambar tidak dapat dimuat','error')}}
+    if(modal){modal.style.display='flex';modal.classList.add('active')}
+    if(res)res.innerHTML='<span style="color:var(--text-muted)">⏳ Memindai gambar...</span>';
+    if(typeof Tesseract==='undefined'){if(res)res.innerHTML='<span style="color:var(--accent-red)">❌ Tesseract.js belum dimuat</span>';return}
+    
+    Tesseract.recognize(link,'eng').then(({{text}})=>{processOCRResult(text)}).catch(err=>{
+        console.error(err);
+        if(res)res.innerHTML='<span style="color:var(--accent-red)">❌ Gagal membaca gambar via link</span>';
+        setTimeout(()=>showFallbackOptions(),500);
+    });
+}
+
+function processOCRResult(text){
+    const res=document.getElementById('scanScatter2Result');if(!res)return;
+    const rawLines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+    let gab=[],lng=[];
+    for(let i=0;i<rawLines.length;i++){
+        const m=rawLines[i].match(/\b\d{9,10}\b/);if(m){
+            if(i+1<rawLines.length){const nm=rawLines[i+1].trim().match(/\b\d{8,}\b/);if(nm){gab.push(m[0]+nm[0]);i++;continue}}gab.push(m[0])}}
+    rawLines.forEach(l=>{const ms=l.match(/\d{8,}/g);if(ms)ms.forEach(x=>lng.push(x))});
+    res.innerHTML='';
+    if(gab.length>0||lng.length>0){
+        if(gab.length>0){const t=document.createElement('div');t.innerHTML='<b style="color:var(--neon-blue)">📋 Hasil Gabungan:</b>';t.style.margin='10px 0';res.appendChild(t);[...new Set(gab)].forEach(k=>{const d=document.createElement('div');d.className='result-item';d.innerHTML=`<span>${k}</span><div style="display:flex;gap:8px"><button onclick="copyWithFeedback(this,'${k}')" class="copy-btn">Copy</button><button onclick="pilihKode('${k}')" class="copy-btn" style="background:var(--accent-green)">Pilih</button></div>`;res.appendChild(d)})}
+        if(lng.length>0){const t=document.createElement('div');t.innerHTML='<b style="color:var(--accent-green)">🔢 Hasil Per Baris:</b>';t.style.margin='10px 0';res.appendChild(t);[...new Set(lng)].forEach(k=>{const d=document.createElement('div');d.className='result-item green';d.innerHTML=`<span>${k}</span><div style="display:flex;gap:8px"><button onclick="copyWithFeedback(this,'${k}')" class="copy-btn">Copy</button><button onclick="pilihKode('${k}')" class="copy-btn" style="background:var(--accent-green)">Pilih</button></div>`;res.appendChild(d)})}
+    } else { res.innerHTML='<span style="color:var(--accent-red)">⚠️ Tidak ditemukan angka panjang</span>'; setTimeout(()=>showFallbackOptions(),500); }
+}
+
+function showFallbackOptions(){
+    const res=document.getElementById('scanScatter2Result');if(!res)return;
+    res.innerHTML=`<div class="fallback-panel">
+        <div class="fallback-title">❌ OCR Gagal - Gunakan Opsi Alternatif:</div>
+        <span class="fallback-label">📝 1. Input Manual Kode:</span>
+        <div class="fallback-input-group"><input type="text" id="manualCodeInput" class="fallback-input" placeholder="Masukkan kode transaksi..."><button onclick="useManualCode()" class="bonus-btn" style="padding:8px 12px;font-size:13px;white-space:nowrap">✓ Gunakan</button></div>
+        <span class="fallback-label">📁 2. Upload Gambar dari Perangkat:</span>
+        <div class="file-upload-wrapper"><input type="file" id="imageUploadInput" accept="image/*" onchange="handleFileUpload(this)"><span class="fallback-hint">Lewati masalah link/CORS - Upload langsung</span></div>
+        <button onclick="retryScan()" class="neon-switch-btn" style="width:100%;padding:10px;font-size:14px;margin-top:10px">🔄 Coba Scan Ulang Link</button>
+    </div>`;
+}
+
+function useManualCode(){const inp=document.getElementById('manualCodeInput');if(!inp||!inp.value.trim()){showToast('Masukkan kode terlebih dahulu!','error');return}const code=inp.value.trim();document.getElementById('bonusKodeTransaksi'+currentScanIndex).value=code;showToast('✓ Kode manual diterapkan: '+code,'success');closeScanScatter2Modal()}
+function retryScan(){scanScatter2(currentScanIndex)}
+function handleFileUpload(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){const dataUrl=e.target.result;const imgEl=document.getElementById('scanScatter2Image');if(imgEl)imgEl.src=dataUrl;const res=document.getElementById('scanScatter2Result');if(res)res.innerHTML='<span style="color:var(--text-muted)">⏳ Memindai gambar yang diupload...</span>';if(typeof Tesseract!=='undefined'){Tesseract.recognize(dataUrl,'eng').then(({{text}})=>{processOCRResult(text)}).catch(err=>{console.error(err);if(res)res.innerHTML='<span style="color:var(--accent-red)">❌ Gagal memindai file</span>';setTimeout(showFallbackOptions,800)})}};reader.readAsDataURL(file)}
+
+// ═══════════════════════════════════════════════════════
+// 📋 COPY & DATA FUNCTIONS
+// ═══════════════════════════════════════════════════════
 function copyWithFeedback(btn,text){navigator.clipboard.writeText(text).then(()=>{const org=btn.innerHTML;btn.innerHTML='✓ OK';btn.classList.add('copied');showToast('Disalin!','success');setTimeout(()=>{btn.innerHTML=org;btn.classList.remove('copied')},1000)}).catch(()=>showToast('Gagal menyalin','error'))}
 function pilihKode(k){document.getElementById('bonusKodeTransaksi'+currentDataIndex).value=k;closeScanScatter2Modal();showToast('✓ Kode dipilih','success')}
 function closeScanScatter2Modal(){const m=document.getElementById('scanScatter2Modal');if(m){m.style.display='none';m.classList.remove('active')}}
 
-// ═══════════════════════════════════════════════════════
-// 📋 COPY FUNCTIONS
-// ═══════════════════════════════════════════════════════
 function prosesRekening(r){const p=r.split(',').map(x=>x.trim());return{nomor:p.slice(1).join(',')||'',nama:p[0]||''}}
 function getDataAs7Columns(pf){const uid=document.getElementById('bonusUserid'+pf).value.trim(),s1=normalizeImageUrl(document.getElementById('bonusScatter1_'+pf).value.trim()),s2=normalizeImageUrl(document.getElementById('bonusScatter2_'+pf).value.trim()),s3=normalizeImageUrl(document.getElementById('bonusScatter3_'+pf).value.trim()),rek=document.getElementById('bonusRekening'+pf).value.trim(),kode=document.getElementById('bonusKodeTransaksi'+pf).value.trim(),parts=[];if(uid)parts.push(uid);if(s1)parts.push(s1);if(s2)parts.push(s2);if(s3)parts.push(s3);if(rek){const{nomor,nama}=prosesRekening(rek);if(nomor)parts.push(nomor);if(nama)parts.push(nama)}if(kode)parts.push(kode);return parts.join('\t')}
 function copyData1(){const d=getDataAs7Columns('1');navigator.clipboard.writeText(d||'');showToast(d?'✓ Data 1 disalin!':'⚠️ Kosong',d?'success':'info')}
@@ -500,7 +553,7 @@ function prevImage(){if(imageList.length===0)return;currentImageIndex=(currentIm
 document.addEventListener('keydown',e=>{if(isBonusZoomOpen&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();navigateBonusPackage(e.key==='ArrowLeft'?'prev':'next')}else if(e.key==='Escape'){[closeBonusZoom,closeScatterZoom,closeScanScatter2Modal,closeLightbox].forEach(fn=>{try{fn()}catch(err){}})}});
 
 // ═══════════════════════════════════════════════════════
-// 🚀 INITIALIZE - GUARANTEED TO RUN
+// 🚀 INITIALIZE
 // ═══════════════════════════════════════════════════════
 function initApp(){try{createParticles();switchBonusMode('bonusAsli');setupImageInputNormalization();console.log('✅ LINE TOGEL Bonus Event - Ready!')}catch(err){console.error('❌ Init error:',err);showToast('Error memuat aplikasi','error')}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);else initApp();
