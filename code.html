@@ -6,7 +6,6 @@
 <title>LINE TOGEL - Bonus Event</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
 --bg-dark: #020810;
@@ -409,6 +408,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <label class="bonus-label" style="font-size: 13px;">6. Kode:</label>
 <input type="text" id="bonusKodeTransaksi1" class="bonus-input" placeholder="Kode hasil scan..." style="padding: 8px; font-size: 14px;">
 </div>
+<!-- Tombol Lihat 3 Foto Sekaligus - DIPINDAH KE BAWAH -->
 <div style="margin-top: 20px; text-align: center;">
 <button onclick="viewAllScatterPhotos(1)" class="neon-switch-btn orange" style="width: 100%; padding: 12px; font-size: 14px;">
 <i class="fas fa-images"></i> Lihat 3 Foto (S1+S2+S3)
@@ -449,6 +449,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <label class="bonus-label" style="font-size: 13px;">6. Kode:</label>
 <input type="text" id="bonusKodeTransaksi2" class="bonus-input" placeholder="Kode hasil scan..." style="padding: 8px; font-size: 14px;">
 </div>
+<!-- Tombol Lihat 3 Foto Sekaligus - DIPINDAH KE BAWAH -->
 <div style="margin-top: 20px; text-align: center;">
 <button onclick="viewAllScatterPhotos(2)" class="neon-switch-btn orange" style="width: 100%; padding: 12px; font-size: 14px;">
 <i class="fas fa-images"></i> Lihat 3 Foto (S1+S2+S3)
@@ -530,130 +531,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// 🔗 UNIVERSAL IMAGE URL HANDLER - SUPPORT SEMUA TIPE LINK
-// ═══════════════════════════════════════════════════════
-
-function normalizeImageUrl(url) {
-    if (!url || !url.trim()) return '';
-    let cleanUrl = url.trim();
-    
-    // 1. Handle data:image URLs (base64)
-    if (cleanUrl.startsWith('data:image')) {
-        return cleanUrl;
-    }
-    
-    // 2. Handle blob: URLs
-    if (cleanUrl.startsWith('blob:')) {
-        return cleanUrl;
-    }
-    
-    // 3. Handle tawk.link / tawk.to (pass through - browser handles redirect)
-    if (cleanUrl.includes('tawk.link') || cleanUrl.includes('tawk.to')) {
-        return cleanUrl;
-    }
-    
-    // 4. Handle Google Drive share links → convert to direct download
-    if (cleanUrl.includes('drive.google.com')) {
-        // Extract file ID from various Google Drive URL formats
-        const fileIdMatch = cleanUrl.match(/\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/);
-        if (fileIdMatch) {
-            const fileId = fileIdMatch[1] || fileIdMatch[2];
-            return `https://drive.google.com/uc?export=view&id=${fileId}`;
-        }
-        return cleanUrl;
-    }
-    
-    // 5. Handle Dropbox links → convert to direct link
-    if (cleanUrl.includes('dropbox.com')) {
-        return cleanUrl.replace('?dl=0', '?dl=1').replace('?dl=1&', '?dl=1&');
-    }
-    
-    // 6. Handle Imgur links
-    if (cleanUrl.includes('imgur.com')) {
-        // Convert gallery/view links to direct image links
-        cleanUrl = cleanUrl.replace(/\/gallery\//i, '/').replace(/\/a\//i, '/');
-        if (!cleanUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i)) {
-            cleanUrl = cleanUrl.replace('imgur.com/', 'i.imgur.com/');
-            if (!cleanUrl.match(/\.[a-z]+$/i)) cleanUrl += '.jpg';
-        }
-        return cleanUrl;
-    }
-    
-    // 7. Handle postimages.org / postimg.cc
-    if (cleanUrl.includes('postimg.cc') || cleanUrl.includes('postimages.org')) {
-        cleanUrl = cleanUrl.replace(/\/[a-z]+\/?$/, ''); // Remove /thumb, /small, etc.
-        return cleanUrl;
-    }
-    
-    // 8. Handle relative URLs or missing protocol
-    if (cleanUrl.startsWith('//')) {
-        return 'https:' + cleanUrl;
-    }
-    if (!cleanUrl.startsWith('http') && cleanUrl.includes('.') && !cleanUrl.startsWith('data') && !cleanUrl.startsWith('blob')) {
-        // Check if it looks like a domain
-        if (cleanUrl.match(/^[a-z0-9.-]+\.[a-z]{2,}/i)) {
-            return 'https://' + cleanUrl;
-        }
-    }
-    
-    // 9. Handle URLs with authentication tokens or session params (keep as-is)
-    if (cleanUrl.includes('?') || cleanUrl.includes('&') || cleanUrl.includes('token=')) {
-        return cleanUrl;
-    }
-    
-    // 10. Default: ensure https protocol
-    if (!cleanUrl.startsWith('http')) {
-        cleanUrl = 'https://' + cleanUrl;
-    }
-    
-    return cleanUrl;
-}
-
-function isValidImageUrl(url) {
-    if (!url) return false;
-    const normalized = normalizeImageUrl(url);
-    
-    // Accept these patterns:
-    return (
-        // Data URLs
-        normalized.startsWith('data:image') ||
-        // Blob URLs
-        normalized.startsWith('blob:') ||
-        // HTTP/HTTPS URLs
-        /^https?:\/\//.test(normalized) ||
-        // Special services
-        normalized.includes('tawk.link') ||
-        normalized.includes('tawk.to') ||
-        normalized.includes('drive.google.com') ||
-        normalized.includes('dropbox.com') ||
-        normalized.includes('imgur.com') ||
-        normalized.includes('postimg.cc') ||
-        normalized.includes('postimages.org') ||
-        // Image file extensions
-        normalized.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg|ico)(\?.*)?$/i)
-    );
-}
-
-function getImageExtension(url) {
-    if (!url) return null;
-    const match = url.match(/\.([a-z0-9]+)(\?.*)?$/i);
-    return match ? match[1].toLowerCase() : null;
-}
-
-function isLikelyImageUrl(url) {
-    if (!url) return false;
-    // Check for image extensions or data/blob URLs
-    return isValidImageUrl(url) || 
-           url.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg|ico)(\?.*)?$/i) ||
-           url.startsWith('data:image') ||
-           url.startsWith('blob:');
-}
-
-// ═══════════════════════════════════════════════════════
-// 🎯 INITIALIZATION & GLOBAL VARIABLES
-// ═══════════════════════════════════════════════════════
-
+// ================= INITIALIZATION =================
 let currentBonusMode = 'bonusAsli';
 let currentDataIndex = 1;
 let bonusAllPackagesData = [];
@@ -667,619 +545,490 @@ let scatterZoomIndex = 0;
 let currentScatterDataIndex = 1;
 
 function createParticles() {
-    const container = document.getElementById('particles');
-    if (!container) return;
-    container.innerHTML = '';
-    for (let i = 0; i < 20; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 15 + 's';
-        particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-        container.appendChild(particle);
-    }
+const container = document.getElementById('particles');
+if (!container) return;
+container.innerHTML = '';
+for (let i = 0; i < 20; i++) {
+const particle = document.createElement('div');
+particle.className = 'particle';
+particle.style.left = Math.random() * 100 + '%';
+particle.style.animationDelay = Math.random() * 15 + 's';
+particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+container.appendChild(particle);
+}
 }
 
-function showToast(message, type = 'info') {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.textContent = message;
-    toast.style.borderColor = type === 'error' ? 'var(--accent-red)' : 
-                             type === 'success' ? 'var(--accent-green)' : 'var(--neon-blue)';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+function showToast(message) {
+const toast = document.getElementById('toast');
+if (!toast) return;
+toast.textContent = message;
+toast.classList.add('show');
+setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-// ═══════════════════════════════════════════════════════
-// 🔄 MODE SWITCHING
-// ═══════════════════════════════════════════════════════
-
+// ================= MODE SWITCHING =================
 function switchBonusMode(mode) {
-    document.getElementById('modeBonusAsli').style.display = 'none';
-    document.getElementById('modeGaleri').style.display = 'none';
-    document.getElementById('modeInputScatter').style.display = 'none';
-    
-    if (mode === 'bonusAsli') document.getElementById('modeBonusAsli').style.display = 'block';
-    else if (mode === 'galeri') document.getElementById('modeGaleri').style.display = 'block';
-    else if (mode === 'inputScatter') document.getElementById('modeInputScatter').style.display = 'block';
-    
-    ['bonusAsli', 'galeri', 'inputScatter'].forEach(id => {
-        const btn = document.getElementById('btn-' + id);
-        if (btn) btn.classList.toggle('active', id === mode);
-    });
+document.getElementById('modeBonusAsli').style.display = 'none';
+document.getElementById('modeGaleri').style.display = 'none';
+document.getElementById('modeInputScatter').style.display = 'none';
+if (mode === 'bonusAsli') document.getElementById('modeBonusAsli').style.display = 'block';
+else if (mode === 'galeri') document.getElementById('modeGaleri').style.display = 'block';
+else if (mode === 'inputScatter') document.getElementById('modeInputScatter').style.display = 'block';
+['bonusAsli', 'galeri', 'inputScatter'].forEach(id => {
+const btn = document.getElementById('btn-' + id);
+if (btn) btn.classList.toggle('active', id === mode);
+});
 }
 
-// ═══════════════════════════════════════════════════════
-// ⚙️ SETUP IMAGE INPUT NORMALIZATION
-// ═══════════════════════════════════════════════════════
-
-function setupImageInputNormalization() {
-    const imageInputs = [
-        'imageUrl', 'bonusScatter1_1', 'bonusScatter2_1', 'bonusScatter3_1',
-        'bonusScatter1_2', 'bonusScatter2_2', 'bonusScatter3_2', 'imageUrlZoom'
-    ];
-    
-    imageInputs.forEach(inputId => {
-        const el = document.getElementById(inputId);
-        if (el) {
-            el.addEventListener('blur', function() {
-                if (this.value && this.id !== 'bonusLinkInput') {
-                    this.value = normalizeImageUrl(this.value);
-                }
-            });
-        }
-    });
-}
-
-// ═══════════════════════════════════════════════════════
-// 🖼️ VIEW ALL 3 SCATTER PHOTOS
-// ═══════════════════════════════════════════════════════
-
+// ================= VIEW ALL 3 SCATTER PHOTOS =================
 function viewAllScatterPhotos(dataIndex) {
-    currentScatterDataIndex = dataIndex;
-    const s1 = normalizeImageUrl(document.getElementById('bonusScatter1_' + dataIndex).value.trim());
-    const s2 = normalizeImageUrl(document.getElementById('bonusScatter2_' + dataIndex).value.trim());
-    const s3 = normalizeImageUrl(document.getElementById('bonusScatter3_' + dataIndex).value.trim());
-    
-    // Filter valid links only using universal validator
-    scatterZoomImages = [s1, s2, s3].filter(link => isValidImageUrl(link) || isLikelyImageUrl(link));
-    
-    if (scatterZoomImages.length === 0) {
-        showToast("Tidak ada link gambar yang valid!", 'error');
-        return;
-    }
-    
-    scatterZoomIndex = 0;
-    updateScatterZoomDisplay();
-    
-    const modal = document.getElementById('scatterZoomModal');
-    const title = document.getElementById('scatterZoomTitle');
-    const caption = document.getElementById('scatterZoomCaption');
-    
-    if (title) title.textContent = `Lihat 3 Foto - Data ${dataIndex}`;
-    if (caption) caption.textContent = `Menampilkan ${scatterZoomImages.length} foto. Gunakan tombol Prev/Next atau panah keyboard.`;
-    if (modal) modal.style.display = 'flex';
+currentScatterDataIndex = dataIndex;
+const s1 = document.getElementById('bonusScatter1_' + dataIndex).value.trim();
+const s2 = document.getElementById('bonusScatter2_' + dataIndex).value.trim();
+const s3 = document.getElementById('bonusScatter3_' + dataIndex).value.trim();
+
+// Filter valid links only
+scatterZoomImages = [s1, s2, s3].filter(link => link && link.startsWith('http'));
+
+if (scatterZoomImages.length === 0) {
+showToast("Tidak ada link gambar yang valid!");
+return;
+}
+
+scatterZoomIndex = 0;
+updateScatterZoomDisplay();
+
+const modal = document.getElementById('scatterZoomModal');
+const title = document.getElementById('scatterZoomTitle');
+const caption = document.getElementById('scatterZoomCaption');
+
+if (title) title.textContent = `Lihat 3 Foto - Data ${dataIndex}`;
+if (caption) caption.textContent = `Menampilkan ${scatterZoomImages.length} foto. Gunakan tombol Prev/Next atau panah keyboard.`;
+if (modal) modal.style.display = 'flex';
 }
 
 function updateScatterZoomDisplay() {
-    const wrapper = document.getElementById('scatterZoomContent');
-    if (!wrapper) return;
-    
-    wrapper.innerHTML = '';
-    scatterZoomImages.forEach((link, idx) => {
-        const img = document.createElement('img');
-        img.src = normalizeImageUrl(link);
-        img.alt = `Scatter ${idx + 1}`;
-        img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); cursor: pointer;';
-        img.onclick = () => openLightboxScatter(img);
-        img.onerror = function() {
-            this.src = "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=Load+Error";
-            this.alt = "Gambar tidak dapat dimuat";
-            this.style.borderColor = 'var(--accent-red)';
-        };
-        img.onload = function() {
-            this.style.borderColor = 'var(--accent-green)';
-        };
-        wrapper.appendChild(img);
-    });
+const wrapper = document.getElementById('scatterZoomContent');
+if (!wrapper) return;
+
+wrapper.innerHTML = '';
+scatterZoomImages.forEach((link, idx) => {
+const img = document.createElement('img');
+img.src = link;
+img.alt = `Scatter ${idx + 1}`;
+img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); cursor: pointer;';
+img.onclick = () => openLightboxScatter(img);
+wrapper.appendChild(img);
+});
+
+// Update navigation buttons state
+const total = scatterZoomImages.length;
+// Navigation is for package switching, not individual images in this view
 }
 
 function closeScatterZoom() {
-    const modal = document.getElementById('scatterZoomModal');
-    const wrapper = document.getElementById('scatterZoomContent');
-    if (modal) modal.style.display = 'none';
-    if (wrapper) wrapper.innerHTML = '';
-    scatterZoomImages = [];
-    scatterZoomIndex = 0;
+const modal = document.getElementById('scatterZoomModal');
+const wrapper = document.getElementById('scatterZoomContent');
+if (modal) modal.style.display = 'none';
+if (wrapper) wrapper.innerHTML = '';
+scatterZoomImages = [];
+scatterZoomIndex = 0;
 }
 
 function openLightboxScatter(imgElement) {
-    imageList = [...scatterZoomImages];
-    currentImageIndex = imageList.indexOf(imgElement.src);
-    if (currentImageIndex === -1) currentImageIndex = 0;
-    
-    const lightboxImage = document.getElementById("lightboxImage");
-    if (lightboxImage) lightboxImage.src = imageList[currentImageIndex] || imgElement.src;
-    const lightboxModal = document.getElementById("lightboxModal");
-    if (lightboxModal) lightboxModal.style.display = 'flex';
+// Use existing lightbox for single image zoom
+imageList = [...scatterZoomImages];
+currentImageIndex = imageList.indexOf(imgElement.src);
+const lightboxImage = document.getElementById("lightboxImage");
+if (lightboxImage) lightboxImage.src = imgElement.src;
+const lightboxModal = document.getElementById("lightboxModal");
+if (lightboxModal) lightboxModal.style.display = 'flex';
 }
 
 function prevScatterImage() {
-    if (scatterZoomImages.length <= 1) return;
-    showToast("Gunakan modal lightbox untuk zoom per gambar");
+if (scatterZoomImages.length <= 1) return;
+// For now, this navigates packages in gallery mode
+// Individual image navigation is handled by lightbox
+showToast("Gunakan modal lightbox untuk zoom per gambar");
 }
 
 function nextScatterImage() {
-    if (scatterZoomImages.length <= 1) return;
-    showToast("Gunakan modal lightbox untuk zoom per gambar");
+if (scatterZoomImages.length <= 1) return;
+showToast("Gunakan modal lightbox untuk zoom per gambar");
 }
 
-// ═══════════════════════════════════════════════════════
-// 🔍 SCAN SCATTER 2 (OCR) - UNIVERSAL URL SUPPORT
-// ═══════════════════════════════════════════════════════
-
+// ================= SCAN SCATTER 2 (OCR) =================
 function scanScatter2(index) {
-    currentDataIndex = index;
-    const rawLink = document.getElementById('bonusScatter2_' + index).value.trim();
-    
-    if (!rawLink) { showToast("Masukkan link gambar Scatter 2!", 'error'); return; }
-    
-    // Universal URL normalization
-    const link = normalizeImageUrl(rawLink);
-    
-    const img = document.getElementById('scanScatter2Image');
-    const resultDiv = document.getElementById('scanScatter2Result');
-    const modal = document.getElementById('scanScatter2Modal');
-    
-    if (img) {
-        img.src = link;
-        img.onerror = function() {
-            this.src = "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=Load+Error";
-            showToast("Gambar tidak dapat dimuat. Periksa link atau CORS.", 'error');
-        };
-    }
-    if (modal) modal.style.display = 'flex';
-    if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--text-muted); font-weight: 600;">⏳ Memindai gambar dengan Tesseract.js...</span>';
-    
-    if (typeof Tesseract === 'undefined') {
-        if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">❌ Tesseract.js belum dimuat.</span>';
-        return;
-    }
-    
-    Tesseract.recognize(link, 'eng', { 
-        logger: m => console.log(m)
-    }).then(({  { text } }) => {
-        const rawLines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-        let hasilGabung = [], hasilLangsung = [];
-        
-        // Pattern 1: Gabungkan angka dari baris berurutan
-        for (let i = 0; i < rawLines.length; i++) {
-            const line = rawLines[i];
-            const match = line.match(/\b\d{9,10}\b/);
-            if (match) {
-                if (i + 1 < rawLines.length) {
-                    const nextLine = rawLines[i + 1].trim();
-                    const nextMatch = nextLine.match(/\b\d{8,}\b/);
-                    if (nextMatch) { hasilGabung.push(match[0] + nextMatch[0]); i++; continue; }
-                }
-                hasilGabung.push(match[0]);
-            }
-        }
-        
-        // Pattern 2: Ambil semua angka panjang per baris
-        for (const line of rawLines) {
-            const matches = line.match(/\d{8,}/g);
-            if (matches) matches.forEach(m => hasilLangsung.push(m));
-        }
-        
-        // Remove duplicates
-        hasilGabung = [...new Set(hasilGabung)];
-        hasilLangsung = [...new Set(hasilLangsung)];
-        
-        if (resultDiv) resultDiv.innerHTML = "";
-        
-        if (hasilGabung.length > 0) {
-            const title1 = document.createElement("div");
-            title1.innerHTML = '<b style="color: var(--neon-blue); font-size: 16px;">📋 Hasil Gabungan Baris:</b>';
-            title1.style.margin = "15px 0 8px";
-            if (resultDiv) resultDiv.appendChild(title1);
-            hasilGabung.forEach(kode => {
-                const div = document.createElement("div");
-                div.className = "result-item";
-                div.innerHTML = `<span style="font-weight: 600;">${kode}</span>
-                <div style="display:flex; gap:8px;">
-                    <button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button>
-                    <button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
-                </div>`;
-                if (resultDiv) resultDiv.appendChild(div);
-            });
-        }
-        
-        if (hasilLangsung.length > 0) {
-            const title2 = document.createElement("div");
-            title2.innerHTML = '<b style="color: var(--accent-green); font-size: 16px;">🔢 Hasil Angka Per Baris:</b>';
-            title2.style.margin = "15px 0 8px";
-            if (resultDiv) resultDiv.appendChild(title2);
-            hasilLangsung.forEach(kode => {
-                const div = document.createElement("div");
-                div.className = "result-item green";
-                div.innerHTML = `<span style="font-weight: 600;">${kode}</span>
-                <div style="display:flex; gap:8px;">
-                    <button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button>
-                    <button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
-                </div>`;
-                if (resultDiv) resultDiv.appendChild(div);
-            });
-        }
-        
-        if (hasilGabung.length === 0 && hasilLangsung.length === 0) {
-            if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">⚠️ Tidak ditemukan angka panjang dalam gambar.</span>';
-        }
-    }).catch(err => {
-        console.error(err);
-        if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">❌ Gagal membaca gambar. Pastikan link dapat diakses publik.</span>';
-    });
+currentDataIndex = index;
+const link = document.getElementById('bonusScatter2_' + index).value.trim();
+if (!link) { showToast("Masukkan link gambar Scatter 2!"); return; }
+const img = document.getElementById('scanScatter2Image');
+const resultDiv = document.getElementById('scanScatter2Result');
+const modal = document.getElementById('scanScatter2Modal');
+if (img) img.src = link;
+if (modal) modal.style.display = 'flex';
+if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--text-muted); font-weight: 600;">Memindai gambar...</span>';
+if (typeof Tesseract === 'undefined') {
+if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Tesseract.js belum dimuat.</span>';
+return;
+}
+Tesseract.recognize(link, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
+const rawLines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+let hasilGabung = [], hasilLangsung = [];
+for (let i = 0; i < rawLines.length; i++) {
+const line = rawLines[i];
+const match = line.match(/\b\d{9,10}\b/);
+if (match) {
+if (i + 1 < rawLines.length) {
+const nextLine = rawLines[i + 1].trim();
+const nextMatch = nextLine.match(/\b\d{8,}\b/);
+if (nextMatch) { hasilGabung.push(match[0] + nextMatch[0]); i++; continue; }
+}
+hasilGabung.push(match[0]);
+}
+}
+for (const line of rawLines) {
+const matches = line.match(/\d{8,}/g);
+if (matches) matches.forEach(m => hasilLangsung.push(m));
+}
+hasilGabung = [...new Set(hasilGabung)];
+hasilLangsung = [...new Set(hasilLangsung)];
+if (resultDiv) resultDiv.innerHTML = "";
+if (hasilGabung.length > 0) {
+const title1 = document.createElement("div");
+title1.innerHTML = '<b style="color: var(--neon-blue); font-size: 16px;">Hasil Gabungan Baris:</b>';
+title1.style.margin = "15px 0 8px";
+if (resultDiv) resultDiv.appendChild(title1);
+hasilGabung.forEach(kode => {
+const div = document.createElement("div");
+div.className = "result-item";
+div.innerHTML = `<span style="font-weight: 600;">${kode}</span>
+<div style="display:flex; gap:8px;">
+<button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button>
+<button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
+</div>`;
+if (resultDiv) resultDiv.appendChild(div);
+});
+}
+if (hasilLangsung.length > 0) {
+const title2 = document.createElement("div");
+title2.innerHTML = '<b style="color: var(--accent-green); font-size: 16px;">Hasil Angka Per Baris:</b>';
+title2.style.margin = "15px 0 8px";
+if (resultDiv) resultDiv.appendChild(title2);
+hasilLangsung.forEach(kode => {
+const div = document.createElement("div");
+div.className = "result-item green";
+div.innerHTML = `<span style="font-weight: 600;">${kode}</span>
+<div style="display:flex; gap:8px;">
+<button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button>
+<button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
+</div>`;
+if (resultDiv) resultDiv.appendChild(div);
+});
+}
+if (hasilGabung.length === 0 && hasilLangsung.length === 0) {
+if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Tidak ditemukan angka panjang dalam gambar.</span>';
+}
+}).catch(err => {
+console.error(err);
+if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal membaca gambar.</span>';
+});
 }
 
 function copyWithFeedback(btn, text) {
-    navigator.clipboard.writeText(text).then(() => {
-        const original = btn.innerHTML;
-        btn.innerHTML = '✓ OK';
-        btn.classList.add('copied');
-        showToast("Disalin ke clipboard!", 'success');
-        setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1000);
-    }).catch(() => showToast("Gagal menyalin", 'error'));
+navigator.clipboard.writeText(text).then(() => {
+const original = btn.innerHTML;
+btn.innerHTML = 'OK';
+btn.classList.add('copied');
+setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1000);
+}).catch(() => showToast("Gagal menyalin"));
 }
 
 function pilihKodeTransaksi(kode) {
-    document.getElementById('bonusKodeTransaksi' + currentDataIndex).value = kode;
-    closeScanScatter2Modal();
-    showToast("✓ Kode untuk Data " + currentDataIndex + " dipilih: " + kode, 'success');
+document.getElementById('bonusKodeTransaksi' + currentDataIndex).value = kode;
+closeScanScatter2Modal();
+showToast("Kode untuk Data " + currentDataIndex + " dipilih: " + kode);
 }
 
 function closeScanScatter2Modal() {
-    const modal = document.getElementById('scanScatter2Modal');
-    if (modal) modal.style.display = 'none';
+const modal = document.getElementById('scanScatter2Modal');
+if (modal) modal.style.display = 'none';
 }
 
-// ═══════════════════════════════════════════════════════
-// 📋 COPY FUNCTIONS
-// ═══════════════════════════════════════════════════════
-
+// ================= COPY FUNCTIONS =================
 function prosesRekening(rek) {
-    const parts = rek.split(',').map(p => p.trim());
-    return { nomor: parts.slice(1).join(',') || '', nama: parts[0] || '' };
+const parts = rek.split(',').map(p => p.trim());
+return { nomor: parts.slice(1).join(',') || '', nama: parts[0] || '' };
 }
 
 function getDataAs7Columns(prefix) {
-    const userid = document.getElementById('bonusUserid' + prefix).value.trim();
-    const s1 = normalizeImageUrl(document.getElementById('bonusScatter1_' + prefix).value.trim());
-    const s2 = normalizeImageUrl(document.getElementById('bonusScatter2_' + prefix).value.trim());
-    const s3 = normalizeImageUrl(document.getElementById('bonusScatter3_' + prefix).value.trim());
-    const rek = document.getElementById('bonusRekening' + prefix).value.trim();
-    const kode = document.getElementById('bonusKodeTransaksi' + prefix).value.trim();
-    
-    let parts = [];
-    if (userid) parts.push(userid);
-    if (s1) parts.push(s1);
-    if (s2) parts.push(s2);
-    if (s3) parts.push(s3);
-    if (rek) {
-        const { nomor, nama } = prosesRekening(rek);
-        if (nomor) parts.push(nomor);
-        if (nama) parts.push(nama);
-    }
-    if (kode) parts.push(kode);
-    return parts.join('\t');
+const userid = document.getElementById('bonusUserid' + prefix).value.trim();
+const s1 = document.getElementById('bonusScatter1_' + prefix).value.trim();
+const s2 = document.getElementById('bonusScatter2_' + prefix).value.trim();
+const s3 = document.getElementById('bonusScatter3_' + prefix).value.trim();
+const rek = document.getElementById('bonusRekening' + prefix).value.trim();
+const kode = document.getElementById('bonusKodeTransaksi' + prefix).value.trim();
+let parts = [];
+if (userid) parts.push(userid);
+if (s1) parts.push(s1);
+if (s2) parts.push(s2);
+if (s3) parts.push(s3);
+if (rek) {
+const { nomor, nama } = prosesRekening(rek);
+if (nomor) parts.push(nomor);
+if (nama) parts.push(nama);
+}
+if (kode) parts.push(kode);
+return parts.join('\t');
 }
 
 function copyData1() {
-    const data = getDataAs7Columns('1');
-    navigator.clipboard.writeText(data || '');
-    showToast(data ? "✓ Data 1 disalin!" : "⚠️ Data 1 kosong", data ? 'success' : 'info');
+const data = getDataAs7Columns('1');
+navigator.clipboard.writeText(data || '');
+showToast(data ? "Data 1 disalin!" : "Data 1 kosong");
 }
 
 function copyData2() {
-    const data = getDataAs7Columns('2');
-    navigator.clipboard.writeText(data || '');
-    showToast(data ? "✓ Data 2 disalin!" : "⚠️ Data 2 kosong", data ? 'success' : 'info');
+const data = getDataAs7Columns('2');
+navigator.clipboard.writeText(data || '');
+showToast(data ? "Data 2 disalin!" : "Data 2 kosong");
 }
 
 function copySemuaData() {
-    const data1 = getDataAs7Columns('1');
-    const data2 = getDataAs7Columns('2');
-    let lines = [];
-    if (data1 !== '') lines.push(data1);
-    if (data2 !== '') lines.push(data2);
-    const teks = lines.join('\n');
-    navigator.clipboard.writeText(teks);
-    showToast(teks ? "✓ Semua data valid disalin!" : "⚠️ Tidak ada data terisi", teks ? 'success' : 'info');
+const data1 = getDataAs7Columns('1');
+const data2 = getDataAs7Columns('2');
+let lines = [];
+if (data1 !== '') lines.push(data1);
+if (data2 !== '') lines.push(data2);
+const teks = lines.join('\n');
+navigator.clipboard.writeText(teks);
+showToast(teks ? "Semua data valid disalin!" : "Tidak ada data terisi");
 }
 
 function hapusSemuaData() {
-    ['1','2'].forEach(p => {
-        ['bonusUserid','bonusScatter1_','bonusScatter2_','bonusScatter3_','bonusRekening','bonusKodeTransaksi'].forEach(field => {
-            const el = document.getElementById(field + p);
-            if (el) el.value = '';
-        });
-    });
-    showToast("✓ Semua data dihapus", 'success');
+['1','2'].forEach(p => {
+['bonusUserid','bonusScatter1_','bonusScatter2_','bonusScatter3_','bonusRekening','bonusKodeTransaksi'].forEach(field => {
+const el = document.getElementById(field + p);
+if (el) el.value = '';
+});
+});
+showToast("Semua data dihapus");
 }
 
-// ═══════════════════════════════════════════════════════
-// 🧮 HITUNG BONUS EVENT
-// ═══════════════════════════════════════════════════════
-
+// ================= HITUNG BONUS EVENT =================
 function hitungBonusEvent() {
-    const isi = document.getElementById("bonusTextarea").value.trim();
-    const patokan = parseInt((document.getElementById("bonusPatokan").value || '').replace(/[^\d]/g, '')) || 0;
-    const surplus = parseInt((document.getElementById("bonusSurplus").value || '').replace(/[^\d]/g, '')) || 0;
-    
-    if (!isi) { showToast("⚠️ Tempelkan data terlebih dahulu", 'error'); return; }
-    
-    const lines = isi.split("\n");
-    let total = 0, i = 0;
-    
-    while (i < lines.length) {
-        if (lines[i].trim() === 'Credit' && i + 1 < lines.length) {
-            const amountMatch = lines[i + 1].trim().match(/IDR\s([\d,]+)/i);
-            if (amountMatch) {
-                const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-                if (!isNaN(amount)) total += amount;
-            }
-        }
-        i++;
-    }
-    
-    const hasilDiv = document.getElementById("bonusHasil");
-    if (hasilDiv) {
-        let output = '<strong>💰 Total Hitungan:</strong> <span class="bonus-angka">IDR ' + total.toLocaleString("en-US") + '</span>';
-        if (patokan || surplus) {
-            const totalPengurang = patokan + surplus;
-            const selisih = total - totalPengurang;
-            const selisihColor = selisih >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-            output += '<br><strong>📊 Patokan:</strong> <span class="bonus-angka">IDR ' + patokan.toLocaleString("en-US") + '</span>';
-            output += '<br><strong>📈 Surplus:</strong> <span class="bonus-angka">IDR ' + surplus.toLocaleString("en-US") + '</span>';
-            output += '<br><strong>➖ Total Dikurang:</strong> <span class="bonus-angka">IDR ' + totalPengurang.toLocaleString("en-US") + '</span>';
-            output += '<br><strong>🎯 Selisih:</strong> <span class="bonus-angka" style="color:' + selisihColor + '">IDR ' + Math.abs(selisih).toLocaleString("en-US") + '</span>';
-        }
-        hasilDiv.innerHTML = output;
-    }
+const isi = document.getElementById("bonusTextarea").value.trim();
+const patokan = parseInt((document.getElementById("bonusPatokan").value || '').replace(/[^\d]/g, '')) || 0;
+const surplus = parseInt((document.getElementById("bonusSurplus").value || '').replace(/[^\d]/g, '')) || 0;
+if (!isi) { showToast("Tempelkan data terlebih dahulu"); return; }
+const lines = isi.split("\n");
+let total = 0, i = 0;
+while (i < lines.length) {
+if (lines[i].trim() === 'Credit' && i + 1 < lines.length) {
+const amountMatch = lines[i + 1].trim().match(/IDR\s([\d,]+)/i);
+if (amountMatch) {
+const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+if (!isNaN(amount)) total += amount;
+}
+}
+i++;
+}
+const hasilDiv = document.getElementById("bonusHasil");
+if (hasilDiv) {
+let output = '<strong>Total Hitungan:</strong> <span class="bonus-angka">IDR ' + total.toLocaleString("en-US") + '</span>';
+if (patokan || surplus) {
+const totalPengurang = patokan + surplus;
+const selisih = total - totalPengurang;
+const selisihColor = selisih >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+output += '<br><strong>Patokan:</strong> <span class="bonus-angka">IDR ' + patokan.toLocaleString("en-US") + '</span>';
+output += '<br><strong>Surplus:</strong> <span class="bonus-angka">IDR ' + surplus.toLocaleString("en-US") + '</span>';
+output += '<br><strong>Total Dikurang:</strong> <span class="bonus-angka">IDR ' + totalPengurang.toLocaleString("en-US") + '</span>';
+output += '<br><strong>Selisih:</strong> <span class="bonus-angka" style="color:' + selisihColor + '">IDR ' + Math.abs(selisih).toLocaleString("en-US") + '</span>';
+}
+hasilDiv.innerHTML = output;
+}
 }
 
 function hapusBonusEvent() {
-    ["bonusTextarea","bonusPatokan","bonusSurplus","bonusHasil","imageUrl"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.value = ""; else el.innerHTML = ""; }
-    });
-    showToast("✓ Form berhasil dibersihkan", 'success');
+["bonusTextarea","bonusPatokan","bonusSurplus","bonusHasil","imageUrl"].forEach(id => {
+const el = document.getElementById(id);
+if (el) { if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.value = ""; else el.innerHTML = ""; }
+});
+showToast("Form berhasil dibersihkan");
 }
 
-// ═══════════════════════════════════════════════════════
-// 🖼️ GALERI OTOMATIS - UNIVERSAL LINK SUPPORT
-// ═══════════════════════════════════════════════════════
-
+// ================= GALERI OTOMATIS =================
 let bonusInputTimeout;
 function handleBonusInput() {
-    clearTimeout(bonusInputTimeout);
-    bonusInputTimeout = setTimeout(loadBonusImages, 100);
+clearTimeout(bonusInputTimeout);
+bonusInputTimeout = setTimeout(loadBonusImages, 50);
 }
 
 function loadBonusImages() {
-    const inputEl = document.getElementById('bonusLinkInput');
-    if (!inputEl) return;
-    const input = inputEl.value || '';
-    const lines = input.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    bonusAllPackagesData = [];
-    
-    lines.forEach(line => {
-        const words = line.split(/\s+/).filter(w => w.length > 0);
-        
-        // Use universal validator for ALL link types
-        const urls = words.filter(w => isValidImageUrl(w) || isLikelyImageUrl(w)).map(w => normalizeImageUrl(w));
-        const userid = words.length > 0 && !(isValidImageUrl(words[0]) || isLikelyImageUrl(words[0])) ? words[0] : 'N/A';
-        
-        if (urls.length >= 1) {
-            const links = [...urls.slice(0, bonusPackageSize)];
-            while (links.length < bonusPackageSize) links.push('');
-            bonusAllPackagesData.push({ userid, links });
-        }
-    });
-    
-    const maxNumEl = document.getElementById('bonusMaxPackageNum');
-    if (maxNumEl) maxNumEl.textContent = bonusAllPackagesData.length;
-    
-    if (bonusAllPackagesData.length > 0) {
-        bonusCurrentPackageIndex = Math.max(0, Math.min(bonusCurrentPackageIndex, bonusAllPackagesData.length - 1));
-        updateBonusGallery(bonusCurrentPackageIndex);
-    } else {
-        updateBonusGallery(-1);
-        const currentNumEl = document.getElementById('bonusCurrentPackageNum');
-        if (currentNumEl) currentNumEl.textContent = '0';
-    }
+const inputEl = document.getElementById('bonusLinkInput');
+if (!inputEl) return;
+const input = inputEl.value || '';
+const lines = input.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+bonusAllPackagesData = [];
+lines.forEach(line => {
+const words = line.split(/\s+/).filter(w => w.length > 0);
+const urls = words.filter(w => /^https?:\/\//.test(w));
+const userid = words.length > 0 && !/^https?:\/\//.test(words[0]) ? words[0] : 'N/A';
+if (urls.length >= 1) {
+const links = [...urls.slice(0, bonusPackageSize)];
+while (links.length < bonusPackageSize) links.push('');
+bonusAllPackagesData.push({ userid, links });
+}
+});
+const maxNumEl = document.getElementById('bonusMaxPackageNum');
+if (maxNumEl) maxNumEl.textContent = bonusAllPackagesData.length;
+if (bonusAllPackagesData.length > 0) {
+bonusCurrentPackageIndex = Math.max(0, Math.min(bonusCurrentPackageIndex, bonusAllPackagesData.length - 1));
+updateBonusGallery(bonusCurrentPackageIndex);
+} else {
+updateBonusGallery(-1);
+const currentNumEl = document.getElementById('bonusCurrentPackageNum');
+if (currentNumEl) currentNumEl.textContent = '0';
+}
 }
 
 function updateBonusGallery(index) {
-    const slots = ['bonusImgSlot1', 'bonusImgSlot2', 'bonusImgSlot3'].map(id => document.getElementById(id));
-    const combined = document.getElementById('bonusCombinedImageSlot');
-    const useridEl = document.getElementById('bonusCombinedSlotUserid');
-    const currentNumEl = document.getElementById('bonusCurrentPackageNum');
-    
-    if (index >= 0 && index < bonusAllPackagesData.length) {
-        const { userid, links } = bonusAllPackagesData[index];
-        if (useridEl) useridEl.textContent = '👤 USER ID: ' + userid;
-        if (combined) { combined.style.opacity = '1'; combined.style.pointerEvents = 'auto'; }
-        
-        slots.forEach((img, i) => {
-            if (!img) return;
-            const src = links[i] || '';
-            
-            if (src && (isValidImageUrl(src) || isLikelyImageUrl(src))) {
-                const normalizedSrc = normalizeImageUrl(src);
-                img.src = normalizedSrc;
-                img.style.display = 'inline-block';
-                img.dataset.originalSrc = normalizedSrc;
-                
-                // Universal fallback handler
-                img.onerror = function() {
-                    console.warn('⚠️ Gagal load gambar:', src);
-                    this.src = "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=🔗+Link+Error";
-                    this.alt = "Gambar tidak dapat dimuat";
-                    this.style.borderColor = 'var(--accent-red)';
-                    this.style.opacity = '0.6';
-                };
-                img.onload = function() {
-                    this.style.borderColor = 'var(--neon-blue)';
-                    this.style.opacity = '1';
-                };
-            } else {
-                img.src = "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=-";
-                img.style.display = 'inline-block';
-            }
-        });
-        if (currentNumEl) currentNumEl.textContent = index + 1;
-    } else {
-        if (useridEl) useridEl.textContent = '⏳ Belum Ada Data';
-        if (combined) { combined.style.opacity = '0.4'; combined.style.pointerEvents = 'none'; }
-        slots.forEach((img, i) => {
-            if (!img) return;
-            img.src = "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=-";
-            img.style.display = 'inline-block';
-        });
-        if (currentNumEl) currentNumEl.textContent = '0';
-    }
+const slots = ['bonusImgSlot1', 'bonusImgSlot2', 'bonusImgSlot3'].map(id => document.getElementById(id));
+const combined = document.getElementById('bonusCombinedImageSlot');
+const useridEl = document.getElementById('bonusCombinedSlotUserid');
+const currentNumEl = document.getElementById('bonusCurrentPackageNum');
+if (index >= 0 && index < bonusAllPackagesData.length) {
+const { userid, links } = bonusAllPackagesData[index];
+if (useridEl) useridEl.textContent = 'USER ID: ' + userid;
+if (combined) { combined.style.opacity = '1'; combined.style.pointerEvents = 'auto'; }
+slots.forEach((img, i) => {
+if (!img) return;
+img.src = links[i] || "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=-";
+img.style.display = 'inline-block';
+});
+if (currentNumEl) currentNumEl.textContent = index + 1;
+} else {
+if (useridEl) useridEl.textContent = 'Belum Ada Data';
+if (combined) { combined.style.opacity = '0.4'; combined.style.pointerEvents = 'none'; }
+slots.forEach((img, i) => {
+if (!img) return;
+img.src = "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=-";
+img.style.display = 'inline-block';
+});
+if (currentNumEl) currentNumEl.textContent = '0';
+}
 }
 
 function navigateBonusPackage(dir) {
-    if (bonusAllPackagesData.length <= 1) return;
-    const total = bonusAllPackagesData.length;
-    if (dir === 'next' && bonusCurrentPackageIndex < total - 1) bonusCurrentPackageIndex++;
-    else if (dir === 'prev' && bonusCurrentPackageIndex > 0) bonusCurrentPackageIndex--;
-    updateBonusGallery(bonusCurrentPackageIndex);
-    if (isBonusZoomOpen) {
-        const pkg = bonusAllPackagesData[bonusCurrentPackageIndex];
-        updateBonusZoomDisplay(pkg.userid, pkg.links);
-    }
+if (bonusAllPackagesData.length <= 1) return;
+const total = bonusAllPackagesData.length;
+if (dir === 'next' && bonusCurrentPackageIndex < total - 1) bonusCurrentPackageIndex++;
+else if (dir === 'prev' && bonusCurrentPackageIndex > 0) bonusCurrentPackageIndex--;
+updateBonusGallery(bonusCurrentPackageIndex);
+if (isBonusZoomOpen) {
+const pkg = bonusAllPackagesData[bonusCurrentPackageIndex];
+updateBonusZoomDisplay(pkg.userid, pkg.links);
+}
 }
 
 function updateBonusZoomDisplay(userid, links) {
-    const wrapper = document.getElementById('bonusZoomedContentWrapper');
-    const useridEl = document.getElementById('bonusZoomedUserid');
-    if (!wrapper) return;
-    
-    wrapper.innerHTML = '';
-    links.filter(Boolean).forEach(link => {
-        const img = document.createElement('img');
-        img.src = normalizeImageUrl(link);
-        img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);';
-        img.onerror = function() {
-            this.src = "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=Error";
-        };
-        wrapper.appendChild(img);
-    });
-    if (useridEl) useridEl.textContent = '👤 ' + userid;
-    
-    const prevBtn = document.getElementById('bonusPrevZoomBtn');
-    const nextBtn = document.getElementById('bonusNextZoomBtn');
-    const index = bonusCurrentPackageIndex;
-    const total = bonusAllPackagesData.length;
-    if (prevBtn) prevBtn.disabled = (index <= 0);
-    if (nextBtn) nextBtn.disabled = (index >= total - 1);
+const wrapper = document.getElementById('bonusZoomedContentWrapper');
+const useridEl = document.getElementById('bonusZoomedUserid');
+if (!wrapper) return;
+wrapper.innerHTML = '';
+links.filter(Boolean).forEach(link => {
+const img = document.createElement('img');
+img.src = link;
+img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);';
+wrapper.appendChild(img);
+});
+if (useridEl) useridEl.textContent = userid;
+const prevBtn = document.getElementById('bonusPrevZoomBtn');
+const nextBtn = document.getElementById('bonusNextZoomBtn');
+const index = bonusCurrentPackageIndex;
+const total = bonusAllPackagesData.length;
+if (prevBtn) prevBtn.disabled = (index <= 0);
+if (nextBtn) nextBtn.disabled = (index >= total - 1);
 }
 
 function openBonusZoom() {
-    if (bonusAllPackagesData.length === 0) return;
-    const current = bonusAllPackagesData[bonusCurrentPackageIndex];
-    if (!current.links.some(l => isValidImageUrl(l) || isLikelyImageUrl(l))) return;
-    isBonusZoomOpen = true;
-    updateBonusZoomDisplay(current.userid, current.links);
-    const modal = document.getElementById('bonusZoomModal');
-    if (modal) modal.style.display = 'flex';
+if (bonusAllPackagesData.length === 0) return;
+const current = bonusAllPackagesData[bonusCurrentPackageIndex];
+if (!current.links.some(l => l)) return;
+isBonusZoomOpen = true;
+updateBonusZoomDisplay(current.userid, current.links);
+const modal = document.getElementById('bonusZoomModal');
+if (modal) modal.style.display = 'flex';
 }
 
 function closeBonusZoom() {
-    const modal = document.getElementById('bonusZoomModal');
-    if (modal) modal.style.display = 'none';
-    isBonusZoomOpen = false;
+const modal = document.getElementById('bonusZoomModal');
+if (modal) modal.style.display = 'none';
+isBonusZoomOpen = false;
 }
 
 function clearBonusAllData() {
-    bonusAllPackagesData = [];
-    const inputEl = document.getElementById('bonusLinkInput');
-    if (inputEl) inputEl.value = '';
-    updateBonusGallery(-1);
-    const maxNumEl = document.getElementById('bonusMaxPackageNum');
-    if (maxNumEl) maxNumEl.textContent = '0';
-    showToast("✓ Semua data galeri dihapus", 'success');
+bonusAllPackagesData = [];
+const inputEl = document.getElementById('bonusLinkInput');
+if (inputEl) inputEl.value = '';
+updateBonusGallery(-1);
+const maxNumEl = document.getElementById('bonusMaxPackageNum');
+if (maxNumEl) maxNumEl.textContent = '0';
+showToast("Semua data galeri dihapus");
 }
 
-// ═══════════════════════════════════════════════════════
-// 🔍 ZOOM & LIGHTBOX
-// ═══════════════════════════════════════════════════════
-
+// ================= ZOOM & LIGHTBOX =================
 function closeZoom() {
-    ['zoomModal','zoomedImage','imageUrl','kodeHasilZoom'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { if (el.tagName === 'IMG' || el.tagName === 'INPUT') el.src = el.value = ''; else el.innerHTML = ''; }
-    });
+['zoomModal','zoomedImage','imageUrl','kodeHasilZoom'].forEach(id => {
+const el = document.getElementById(id);
+if (el) { if (el.tagName === 'IMG' || el.tagName === 'INPUT') el.src = el.value = ''; else el.innerHTML = ''; }
+});
 }
 
 function openLightbox(imgElement) {
-    imageList = Array.from(document.querySelectorAll("#bonusCombinedImageSlot img"))
-        .filter(img => img.style.display !== "none" && img.dataset.originalSrc)
-        .map(img => img.dataset.originalSrc);
-    
-    currentImageIndex = imageList.indexOf(imgElement.dataset.originalSrc || imgElement.src);
-    if (currentImageIndex === -1) currentImageIndex = 0;
-    
-    const lightboxImage = document.getElementById("lightboxImage");
-    if (lightboxImage) lightboxImage.src = imageList[currentImageIndex] || imgElement.src;
-    const lightboxModal = document.getElementById("lightboxModal");
-    if (lightboxModal) lightboxModal.style.display = 'flex';
+imageList = Array.from(document.querySelectorAll("#bonusCombinedImageSlot img")).filter(img => img.style.display !== "none").map(img => img.src);
+currentImageIndex = imageList.indexOf(imgElement.src);
+const lightboxImage = document.getElementById("lightboxImage");
+if (lightboxImage) lightboxImage.src = imgElement.src;
+const lightboxModal = document.getElementById("lightboxModal");
+if (lightboxModal) lightboxModal.style.display = 'flex';
 }
 
 function closeLightbox() {
-    const lightboxModal = document.getElementById("lightboxModal");
-    const lightboxImage = document.getElementById("lightboxImage");
-    if (lightboxModal) lightboxModal.style.display = 'none';
-    if (lightboxImage) lightboxImage.src = '';
+const lightboxModal = document.getElementById("lightboxModal");
+const lightboxImage = document.getElementById("lightboxImage");
+if (lightboxModal) lightboxModal.style.display = 'none';
+if (lightboxImage) lightboxImage.src = '';
 }
 
 function nextImage() {
-    if (imageList.length === 0) return;
-    currentImageIndex = (currentImageIndex + 1) % imageList.length;
-    const lightboxImage = document.getElementById("lightboxImage");
-    if (lightboxImage) lightboxImage.src = imageList[currentImageIndex];
+if (imageList.length === 0) return;
+currentImageIndex = (currentImageIndex + 1) % imageList.length;
+const lightboxImage = document.getElementById("lightboxImage");
+if (lightboxImage) lightboxImage.src = imageList[currentImageIndex];
 }
 
 function prevImage() {
-    if (imageList.length === 0) return;
-    currentImageIndex = (currentImageIndex - 1 + imageList.length) % imageList.length;
-    const lightboxImage = document.getElementById("lightboxImage");
-    if (lightboxImage) lightboxImage.src = imageList[currentImageIndex];
+if (imageList.length === 0) return;
+currentImageIndex = (currentImageIndex - 1 + imageList.length) % imageList.length;
+const lightboxImage = document.getElementById("lightboxImage");
+if (lightboxImage) lightboxImage.src = imageList[currentImageIndex];
 }
 
-// ═══════════════════════════════════════════════════════
-// ⌨️ KEYBOARD SUPPORT
-// ═══════════════════════════════════════════════════════
-
+// ================= KEYBOARD SUPPORT =================
 document.addEventListener('keydown', (e) => {
-    if (isBonusZoomOpen && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-        e.preventDefault();
-        navigateBonusPackage(e.key === 'ArrowLeft' ? 'prev' : 'next');
-    } else if (e.key === 'Escape') {
-        [closeBonusZoom, closeScatterZoom, closeScanScatter2Modal, closeLightbox].forEach(fn => fn());
-    }
+if (isBonusZoomOpen && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+e.preventDefault();
+navigateBonusPackage(e.key === 'ArrowLeft' ? 'prev' : 'next');
+} else if (e.key === 'Escape') {
+[closeBonusZoom, closeScatterZoom, closeScanScatter2Modal].forEach(fn => fn());
+}
 });
 
-// ═══════════════════════════════════════════════════════
-// 🚀 INITIALIZE
-// ═══════════════════════════════════════════════════════
-
+// ================= INITIALIZE =================
 document.addEventListener('DOMContentLoaded', function() {
-    createParticles();
-    switchBonusMode('bonusAsli');
-    setupImageInputNormalization();
+createParticles();
+switchBonusMode('bonusAsli');
 });
 </script>
 </body>
