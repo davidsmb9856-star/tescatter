@@ -28,6 +28,7 @@ background: var(--bg-dark);
 color: var(--text-primary);
 min-height: 100vh;
 overflow-x: hidden;
+user-select: none; /* Mencegah seleksi teks saat drag */
 }
 .bg-animated {
 position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
@@ -210,6 +211,7 @@ to { opacity: 1; backdrop-filter: blur(10px); }
 .modal-close {
 position: absolute; top: 15px; right: 25px; font-size: 40px; color: var(--neon-blue);
 background: none; border: none; cursor: pointer; transition: all 0.3s ease; line-height: 1;
+z-index: 10002;
 }
 .modal-close:hover { color: var(--neon-cyan); transform: rotate(90deg); }
 .zoom-nav-button {
@@ -228,48 +230,58 @@ max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain;
 border-radius: 12px; border: 2px solid var(--neon-blue);
 box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
 }
-
-/* Styles for Interactive Crop Modal */
-#cropModal .modal-content {
-    display: flex; flex-direction: column; gap: 10px; max-width: 95vw; width: 100%; height: 90vh;
-}
-.crop-container {
-    flex: 1; position: relative; overflow: hidden; background: #000;
-    border: 2px solid var(--border-color); border-radius: 12px; cursor: grab;
-    display: flex; justify-content: center; align-items: center;
-}
-.crop-container:active { cursor: grabbing; }
-#cropImage {
-    max-width: none; transform-origin: center; transition: transform 0.1s ease-out;
-    user-select: none; -webkit-user-drag: none;
-}
-.crop-overlay {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 80%; height: 150px; /* Kotak Tengah */
-    border: 2px dashed var(--accent-green);
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
-    pointer-events: none; z-index: 10;
-    display: flex; justify-content: center; align-items: center;
-}
-.crop-overlay::after {
-    content: 'AREA SCAN'; color: var(--accent-green); font-weight: bold;
-    background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px; font-size: 12px;
-}
-.controls-area {
-    padding: 15px; background: var(--bg-card); border-radius: 12px;
-    border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px;
-}
-
 #scanScatter2Modal .modal-content {
 display: flex; gap: 20px; max-width: 95vw; width: 100%; height: 85vh;
 }
-#scanScatter2Modal .image-section {
-flex: 1; display: flex; justify-content: center; align-items: center; min-width: 300px;
+/* Container untuk Zoom/Pan Image */
+#scanImageContainer {
+    flex: 1; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-width: 300px;
+    overflow: hidden; /* Penting agar tidak keluar batas */
+    position: relative;
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    cursor: grab;
 }
-#scanScatter2Modal .image-section img {
-max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px;
-box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+#scanImageContainer:active {
+    cursor: grabbing;
 }
+#scanScatter2Image {
+    max-width: 100%; 
+    max-height: 100%; 
+    object-fit: contain; 
+    border-radius: 12px;
+    /* Transform akan dikontrol JS */
+    transform-origin: center center;
+    transition: transform 0.1s ease-out; 
+    pointer-events: none; /* Agar event mouse masuk ke container */
+}
+/* Kotak Indikator Scan Tengah */
+.scan-area-indicator {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px; height: 100px;
+    border: 2px dashed var(--accent-green);
+    box-shadow: 0 0 15px var(--accent-green);
+    pointer-events: none;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.scan-area-indicator::after {
+    content: 'AREA SCAN';
+    color: var(--accent-green);
+    font-size: 12px;
+    font-weight: bold;
+    background: rgba(0,0,0,0.7);
+    padding: 2px 5px;
+}
+
 #scanScatter2Modal .result-section {
 flex: 1; min-width: 300px; max-width: 500px; overflow-y: auto; padding: 20px;
 background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);
@@ -421,7 +433,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <label class="bonus-label" style="font-size: 13px;">3. S2 (Scan OCR):</label>
 <div class="input-with-buttons">
 <input type="text" id="bonusScatter2_1" class="bonus-input" placeholder="Link gambar PNG/JPG..." style="padding: 8px; font-size: 14px;">
-<button type="button" onclick="openCropModal(1)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+<button type="button" onclick="scanScatter2(1)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
 </div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
@@ -436,6 +448,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <label class="bonus-label" style="font-size: 13px;">6. Kode:</label>
 <input type="text" id="bonusKodeTransaksi1" class="bonus-input" placeholder="Kode hasil scan..." style="padding: 8px; font-size: 14px;">
 </div>
+<!-- Tombol Lihat 3 Foto Sekaligus -->
 <div style="margin-top: 20px; text-align: center;">
 <button onclick="viewAllScatterPhotos(1)" class="neon-switch-btn orange" style="width: 100%; padding: 12px; font-size: 14px;">
 <i class="fas fa-images"></i> Lihat 3 Foto (S1+S2+S3)
@@ -461,7 +474,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <label class="bonus-label" style="font-size: 13px;">3. S2 (Scan OCR):</label>
 <div class="input-with-buttons">
 <input type="text" id="bonusScatter2_2" class="bonus-input" placeholder="Link gambar PNG/JPG..." style="padding: 8px; font-size: 14px;">
-<button type="button" onclick="openCropModal(2)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+<button type="button" onclick="scanScatter2(2)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
 </div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
@@ -476,6 +489,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <label class="bonus-label" style="font-size: 13px;">6. Kode:</label>
 <input type="text" id="bonusKodeTransaksi2" class="bonus-input" placeholder="Kode hasil scan..." style="padding: 8px; font-size: 14px;">
 </div>
+<!-- Tombol Lihat 3 Foto Sekaligus -->
 <div style="margin-top: 20px; text-align: center;">
 <button onclick="viewAllScatterPhotos(2)" class="neon-switch-btn orange" style="width: 100%; padding: 12px; font-size: 14px;">
 <i class="fas fa-images"></i> Lihat 3 Foto (S1+S2+S3)
@@ -506,50 +520,29 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <div id="scatterZoomCaption" style="text-align: center; margin-top: 15px; color: var(--text-muted); font-weight: 600;"></div>
 </div>
 
-<!-- Modal CROP & ZOOM (NEW) -->
-<div id="cropModal" class="modal-overlay">
-    <button class="modal-close" onclick="closeCropModal()" aria-label="Tutup">&times;</button>
-    <h3 style="color: var(--neon-cyan); text-align: center; margin-bottom: 10px; font-size: 18px; font-family: 'Orbitron', sans-serif; font-weight: 700;">Zoom & Potong Area Scan</h3>
-    
-    <div class="modal-content">
-        <div class="crop-container" id="cropContainer">
-            <img id="cropImage" src="" alt="Crop Target">
-            <div class="crop-overlay"></div>
-        </div>
-        
-        <div class="controls-area">
-            <label style="color: var(--neon-blue); font-size: 14px;">Zoom Level:</label>
-            <input type="range" id="zoomSlider" min="1" max="5" step="0.1" value="1" style="width: 100%; accent-color: var(--neon-blue);">
-            
-            <div style="display: flex; gap: 10px; margin-top: 5px;">
-                <button onclick="processCropAndScan()" class="bonus-btn" style="flex: 1;">
-                    <i class="fas fa-check"></i> Potong & Scan
-                </button>
-                <button onclick="openGoogleLensFromCrop()" class="neon-switch-btn" style="flex: 1; border-color: var(--accent-green); color: var(--accent-green);">
-                    <i class="fas fa-search"></i> Lens Area Ini
-                </button>
-            </div>
-            <p style="font-size: 12px; color: var(--text-muted); text-align: center;">
-                Geser gambar & gunakan slider agar kode pas di kotak hijau.
-            </p>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Scan Scatter 2 (HASIL) -->
+<!-- Modal Scan Scatter 2 (ZOOM & PAN ENABLED) -->
 <div id="scanScatter2Modal" class="modal-overlay">
 <button class="modal-close" onclick="closeScanScatter2Modal()" aria-label="Tutup">&times;</button>
-<h3 style="color: var(--neon-cyan); text-align: center; margin-bottom: 20px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">Hasil Scan</h3>
+<h3 style="color: var(--neon-cyan); text-align: center; margin-bottom: 20px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">Scan Scatter 2 (Zoom & Drag)</h3>
 <div class="modal-content" style="display: flex; gap: 20px; max-width: 95vw; width: 100%; height: 80vh;">
-    <div class="image-section" style="flex: 1; display: flex; justify-content: center; align-items: center;">
-        <img id="scanScatter2Image" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);">
+    
+    <!-- Image Container with Zoom/Pan -->
+    <div id="scanImageContainer">
+        <img id="scanScatter2Image" src="" alt="Scan Target">
+        <div class="scan-area-indicator"></div>
     </div>
+
     <div class="result-section" style="flex: 1; overflow-y: auto; padding: 20px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
         <div id="scanScatter2Result" style="color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 500; line-height: 1.6;"></div>
         
         <!-- Fallback Button Area -->
         <div id="manualCodeArea" style="margin-top: 20px; display: none; border-top: 1px solid var(--border-color); padding-top: 15px;">
             <p style="color: var(--accent-orange); font-weight: 700; margin-bottom: 10px;">Gagal Scan Otomatis?</p>
+            
+            <!-- Google Lens Center Crop Button -->
+            <button onclick="openGoogleLensCenterCrop()" class="neon-switch-btn" style="width: 100%; margin-bottom: 10px; padding: 10px; border-color: var(--accent-green); color: var(--accent-green);">
+                <i class="fas fa-crop-alt"></i> Scan Tengah (Google Lens)
+            </button>
              <!-- Open Original Link Button -->
             <button onclick="window.open(currentScanLink, '_blank')" class="neon-switch-btn" style="width: 100%; margin-bottom: 15px; padding: 10px;">
                 <i class="fas fa-external-link-alt"></i> Buka Gambar Asli
@@ -577,6 +570,20 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <div id="bonusCaption" style="text-align: center; margin-top: 20px; color: var(--text-muted); font-weight: 600;">Gunakan tombol navigasi atau panah kiri/kanan pada keyboard.</div>
 </div>
 
+<!-- Modal Zoom Transaksi -->
+<div id="zoomModal" class="modal-overlay">
+<button class="modal-close" onclick="closeZoom()" aria-label="Tutup">&times;</button>
+<div style="display: flex; flex: 1; width: 100%; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
+<div style="flex: 1; display: flex; justify-content: center; align-items: center; min-width: 300px;">
+<img id="zoomedImage" src="" style="max-width: 90%; max-height: 70vh; border-radius: 12px; box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);">
+</div>
+<div id="kodeHasilZoom" style="flex: 1; color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-weight: 500; white-space: pre-wrap; background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); max-height: 70vh; overflow-y: auto; min-width: 300px;"></div>
+</div>
+<div style="margin-top: 20px; width: 80%; max-width: 500px;">
+<input type="text" id="imageUrlZoom" placeholder="Tempel link gambar di sini..." class="bonus-input" style="text-align: center;">
+</div>
+</div>
+
 <!-- Lightbox Modal -->
 <div id="lightboxModal" class="modal-overlay">
 <button class="modal-close" onclick="closeLightbox()" aria-label="Tutup">&times;</button>
@@ -600,14 +607,21 @@ let currentImageIndex = 0;
 let scatterZoomImages = [];
 let scatterZoomIndex = 0;
 let currentScatterDataIndex = 1;
-let currentScanLink = ""; 
+let currentScanLink = ""; // Menyimpan link saat ini untuk Google Lens
 
-// Variables for Cropping
-let cropScale = 1;
-let cropPanX = 0;
-let cropPanY = 0;
-let isDragging = false;
-let startX, startY;
+// Variabel untuk Zoom/Pan
+let scale = 1;
+let panning = false;
+let pointX = 0;
+let pointY = 0;
+let startX = 0;
+let startY = 0;
+const scanImage = document.getElementById('scanScatter2Image');
+const scanContainer = document.getElementById('scanImageContainer');
+
+function setTransform() {
+  scanImage.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+}
 
 function createParticles() {
 const container = document.getElementById('particles');
@@ -645,248 +659,37 @@ if (btn) btn.classList.toggle('active', id === mode);
 });
 }
 
-// ================= CROP MODAL LOGIC =================
-function openCropModal(index) {
-    currentDataIndex = index;
-    const link = document.getElementById('bonusScatter2_' + index).value.trim();
-    if (!link) { showToast("Masukkan link gambar Scatter 2!"); return; }
-    
-    currentScanLink = link;
-    const cropImg = document.getElementById('cropImage');
-    cropImg.src = link;
-    
-    // Reset transforms
-    cropScale = 1;
-    cropPanX = 0;
-    cropPanY = 0;
-    document.getElementById('zoomSlider').value = 1;
-    updateCropTransform();
-    
-    document.getElementById('cropModal').style.display = 'flex';
-}
-
-function closeCropModal() {
-    document.getElementById('cropModal').style.display = 'none';
-}
-
-function updateCropTransform() {
-    const img = document.getElementById('cropImage');
-    img.style.transform = `translate(${cropPanX}px, ${cropPanY}px) scale(${cropScale})`;
-}
-
-// Zoom Slider
-document.getElementById('zoomSlider').addEventListener('input', (e) => {
-    cropScale = parseFloat(e.target.value);
-    updateCropTransform();
-});
-
-// Drag Logic
-const cropContainer = document.getElementById('cropContainer');
-const cropImage = document.getElementById('cropImage');
-
-cropContainer.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    startX = e.clientX - cropPanX;
-    startY = e.clientY - cropPanY;
-    cropContainer.style.cursor = 'grabbing';
-});
-
-window.addEventListener('mouseup', () => {
-    isDragging = false;
-    cropContainer.style.cursor = 'grab';
-});
-
-window.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    cropPanX = e.clientX - startX;
-    cropPanY = e.clientY - startY;
-    updateCropTransform();
-});
-
-// Touch support for mobile
-cropContainer.addEventListener('touchstart', (e) => {
-    isDragging = true;
-    startX = e.touches[0].clientX - cropPanX;
-    startY = e.touches[0].clientY - cropPanY;
-}, {passive: false});
-
-window.addEventListener('touchend', () => {
-    isDragging = false;
-});
-
-window.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    // e.preventDefault(); // Optional: prevent scrolling page while dragging image
-    cropPanX = e.touches[0].clientX - startX;
-    cropPanY = e.touches[0].clientY - startY;
-    updateCropTransform();
-}, {passive: false});
-
-
-// Process Crop and Send to OCR
-async function processCropAndScan() {
-    showToast("Memproses area yang dipilih...");
-    closeCropModal();
-    
-    // Show Result Modal with loading
-    const modal = document.getElementById('scanScatter2Modal');
-    const resultDiv = document.getElementById('scanScatter2Result');
-    const imgDisplay = document.getElementById('scanScatter2Image');
-    const manualArea = document.getElementById('manualCodeArea');
-    
-    if(modal) modal.style.display = 'flex';
-    if(imgDisplay) imgDisplay.src = currentScanLink; // Show original for reference
-    if(resultDiv) resultDiv.innerHTML = '<span style="color: var(--text-muted);">Membaca area yang di-zoom...</span>';
-    if(manualArea) manualArea.style.display = 'none';
-
-    // Create Canvas to simulate crop
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const imgObj = new Image();
-    imgObj.crossOrigin = "Anonymous";
-    imgObj.src = currentScanLink;
-
-    imgObj.onload = function() {
-        // Calculate visible area based on transform
-        // This is an approximation. For perfect precision, we map the overlay rect back to image coords.
-        // Simplified approach: We will try to OCR the whole image but prioritize center, 
-        // OR we use the visual crop. Let's do visual crop via Canvas.
-        
-        // Get Overlay dimensions relative to container
-        const containerRect = document.getElementById('cropContainer').getBoundingClientRect();
-        const overlayWidth = containerRect.width * 0.8; // 80% width as defined in CSS
-        const overlayHeight = 150; // Fixed height in CSS
-        
-        // Calculate scale factor of displayed image vs natural image
-        // Note: This calculation is complex due to CSS object-fit. 
-        // Fallback: Use Tesseract with a rectangle constraint if possible, or just run OCR on full image 
-        // but since user manually aligned it, we assume the code is prominent.
-        
-        // To keep it robust without complex math errors:
-        // We will send the FULL image to Tesseract but we trust the user aligned it.
-        // HOWEVER, to fulfill "Scan Only Center", we crop using Canvas logic:
-        
-        // 1. Determine how much the image is scaled visually
-        const displayedWidth = imgObj.width * cropScale; // Approximate if natural size matches container
-        // This part is tricky across devices. 
-        
-        // SAFER METHOD FOR WEB APP:
-        // Just run OCR on the full image. The "Zoom/Crop" UI helps the USER see what they are doing,
-        // and if they click "Lens Area Ini", we open Lens.
-        // For internal OCR, we'll stick to full image to avoid black boxes from bad math, 
-        // BUT we will try to extract the center if possible.
-        
-        // Let's stick to Full Image OCR for reliability, but offer the Lens button for the specific crop.
-        runOCR(currentScanLink);
-    };
-    
-    imgObj.onerror = function() {
-        if(resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red);">Gagal memuat gambar untuk diproses.</span>';
-        if(manualArea) manualArea.style.display = 'block';
-    }
-}
-
-function openGoogleLensFromCrop() {
-    // Since we can't easily upload a canvas blob to Lens URL directly without backend,
-    // We open the original link.
-    window.open(currentScanLink, '_blank');
-    showToast("Gambar dibuka. Silakan crop manual di Google Lens jika perlu.");
-}
-
-function runOCR(link) {
-    const resultDiv = document.getElementById('scanScatter2Result');
-    const manualArea = document.getElementById('manualCodeArea');
-    
-    if (typeof Tesseract === 'undefined') {
-        if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red);">Library OCR belum dimuat.</span>';
-        return;
-    }
-
-    Tesseract.recognize(link, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
-        const rawLines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-        let hasilGabung = [], hasilLangsung = [];
-
-        for (let i = 0; i < rawLines.length; i++) {
-            const line = rawLines[i];
-            const match = line.match(/\b\d{9,10}\b/);
-            if (match) {
-                if (i + 1 < rawLines.length) {
-                    const nextLine = rawLines[i + 1].trim();
-                    const nextMatch = nextLine.match(/\b\d{8,}\b/);
-                    if (nextMatch) { hasilGabung.push(match[0] + nextMatch[0]); i++; continue; }
-                }
-                hasilGabung.push(match[0]);
-            }
-        }
-        for (const line of rawLines) {
-            const matches = line.match(/\d{8,}/g);
-            if (matches) matches.forEach(m => hasilLangsung.push(m));
-        }
-        hasilGabung = [...new Set(hasilGabung)];
-        hasilLangsung = [...new Set(hasilLangsung)];
-        if (resultDiv) resultDiv.innerHTML = "";
-        let foundAny = false;
-        if (hasilGabung.length > 0) {
-            foundAny = true;
-            const title1 = document.createElement("div");
-            title1.innerHTML = '<b style="color: var(--neon-blue); font-size: 16px;">Hasil Gabungan Baris:</b>';
-            title1.style.margin = "15px 0 8px";
-            if (resultDiv) resultDiv.appendChild(title1);
-            hasilGabung.forEach(kode => {
-                const div = document.createElement("div");
-                div.className = "result-item";
-                div.innerHTML = `<span style="font-weight: 600;">${kode}</span><div style="display:flex; gap:8px;"><button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button><button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button></div>`;
-                if (resultDiv) resultDiv.appendChild(div);
-            });
-        }
-        if (hasilLangsung.length > 0) {
-            foundAny = true;
-            const title2 = document.createElement("div");
-            title2.innerHTML = '<b style="color: var(--accent-green); font-size: 16px;">Hasil Angka Per Baris:</b>';
-            title2.style.margin = "15px 0 8px";
-            if (resultDiv) resultDiv.appendChild(title2);
-            hasilLangsung.forEach(kode => {
-                const div = document.createElement("div");
-                div.className = "result-item green";
-                div.innerHTML = `<span style="font-weight: 600;">${kode}</span><div style="display:flex; gap:8px;"><button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button><button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button></div>`;
-                if (resultDiv) resultDiv.appendChild(div);
-            });
-        }
-        if (!foundAny) {
-            if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">OCR Gagal menemukan kode.</span>';
-            if (manualArea) manualArea.style.display = 'block';
-        } else {
-            if (manualArea) manualArea.style.display = 'none';
-        }
-    }).catch(err => {
-        console.error(err);
-        if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal membaca gambar.</span>';
-        if (manualArea) manualArea.style.display = 'block';
-    });
-}
-
 // ================= VIEW ALL 3 SCATTER PHOTOS =================
 function viewAllScatterPhotos(dataIndex) {
 currentScatterDataIndex = dataIndex;
 const s1 = document.getElementById('bonusScatter1_' + dataIndex).value.trim();
 const s2 = document.getElementById('bonusScatter2_' + dataIndex).value.trim();
 const s3 = document.getElementById('bonusScatter3_' + dataIndex).value.trim();
+
+// Filter valid links only
 scatterZoomImages = [s1, s2, s3].filter(link => link && link.startsWith('http'));
-if (scatterZoomImages.length === 0) { showToast("Tidak ada link gambar yang valid!"); return; }
+
+if (scatterZoomImages.length === 0) {
+showToast("Tidak ada link gambar yang valid!");
+return;
+}
+
 scatterZoomIndex = 0;
 updateScatterZoomDisplay();
+
 const modal = document.getElementById('scatterZoomModal');
 const title = document.getElementById('scatterZoomTitle');
 const caption = document.getElementById('scatterZoomCaption');
+
 if (title) title.textContent = `Lihat 3 Foto - Data ${dataIndex}`;
-if (caption) caption.textContent = `Menampilkan ${scatterZoomImages.length} foto.`;
+if (caption) caption.textContent = `Menampilkan ${scatterZoomImages.length} foto. Gunakan tombol Prev/Next atau panah keyboard.`;
 if (modal) modal.style.display = 'flex';
 }
 
 function updateScatterZoomDisplay() {
 const wrapper = document.getElementById('scatterZoomContent');
 if (!wrapper) return;
+
 wrapper.innerHTML = '';
 scatterZoomImages.forEach((link, idx) => {
 const img = document.createElement('img');
@@ -916,13 +719,232 @@ const lightboxModal = document.getElementById("lightboxModal");
 if (lightboxModal) lightboxModal.style.display = 'flex';
 }
 
-function prevScatterImage() { showToast("Gunakan modal lightbox untuk zoom per gambar"); }
-function nextScatterImage() { showToast("Gunakan modal lightbox untuk zoom per gambar"); }
+function prevScatterImage() {
+showToast("Gunakan modal lightbox untuk zoom per gambar");
+}
+function nextScatterImage() {
+showToast("Gunakan modal lightbox untuk zoom per gambar");
+}
 
-// ================= SCAN SCATTER 2 (Legacy Wrapper) =================
+// ================= ZOOM & PAN LOGIC =================
+scanContainer.onmousedown = function(e) {
+  e.preventDefault();
+  startX = e.clientX - pointX;
+  startY = e.clientY - pointY;
+  panning = true;
+}
+
+scanContainer.onmouseup = function(e) {
+  e.preventDefault();
+  panning = false;
+}
+
+scanContainer.onmousemove = function(e) {
+  e.preventDefault();
+  if (!panning) return;
+  pointX = e.clientX - startX;
+  pointY = e.clientY - startY;
+  setTransform();
+}
+
+scanContainer.onwheel = function(e) {
+  e.preventDefault();
+  const xs = (e.clientX - pointX) / scale;
+  const ys = (e.clientY - pointY) / scale;
+  const delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
+  (delta > 0) ? (scale *= 1.2) : (scale /= 1.2);
+  // Batasi zoom
+  if(scale < 0.5) scale = 0.5;
+  if(scale > 5) scale = 5;
+  
+  pointX = e.clientX - xs * scale;
+  pointY = e.clientY - ys * scale;
+
+  setTransform();
+}
+
+// Reset Zoom saat modal dibuka
+function resetZoom() {
+    scale = 1;
+    pointX = 0;
+    pointY = 0;
+    setTransform();
+}
+
+// ================= SCAN SCATTER 2 (OCR + GOOGLE LENS CENTER CROP) =================
 function scanScatter2(index) {
-    // Redirect to new Crop Modal
-    openCropModal(index);
+currentDataIndex = index;
+const link = document.getElementById('bonusScatter2_' + index).value.trim();
+if (!link) { showToast("Masukkan link gambar Scatter 2!"); return; }
+
+currentScanLink = link; // Simpan link untuk Google Lens
+
+const resultDiv = document.getElementById('scanScatter2Result');
+const manualArea = document.getElementById('manualCodeArea');
+const modal = document.getElementById('scanScatter2Modal');
+
+// Reset UI
+resetZoom(); // Reset zoom setiap kali scan baru
+if (scanImage) scanImage.src = link;
+if (modal) modal.style.display = 'flex';
+if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--text-muted); font-weight: 600;">Memindai gambar... Mohon tunggu.</span>';
+if (manualArea) manualArea.style.display = 'none';
+
+if (typeof Tesseract === 'undefined') {
+if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Library OCR belum dimuat. Cek koneksi internet.</span>';
+return;
+}
+
+// Ambil Area Tengah dari Canvas (sesuai zoom/pan saat ini)
+// Karena Tesseract butuh URL/Image, kita crop canvas tampilan user
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+const img = scanImage;
+
+// Ukuran area scan (kotak indikator)
+const scanWidth = 200; 
+const scanHeight = 100;
+
+// Hitung koordinat relatif terhadap gambar asli
+// Rumus invers dari transformasi CSS
+const rect = scanContainer.getBoundingClientRect();
+const centerX = rect.width / 2;
+const centerY = rect.height / 2;
+
+// Koordinat titik tengah container relatif terhadap gambar yang ditransformasi
+const xOnImage = (centerX - pointX) / scale;
+const yOnImage = (centerY - pointY) / scale;
+
+// Koordinat kiri atas area crop pada gambar asli
+const sourceX = xOnImage - (scanWidth / 2 / scale);
+const sourceY = yOnImage - (scanHeight / 2 / scale);
+const sourceW = scanWidth / scale;
+const sourceH = scanHeight / scale;
+
+canvas.width = scanWidth;
+canvas.height = scanHeight;
+
+// Draw image slice
+try {
+    ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, scanWidth, scanHeight);
+    const croppedDataUrl = canvas.toDataURL('image/png');
+    
+    // Scan hasil crop
+    Tesseract.recognize(croppedDataUrl, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
+        processOcrResult(text, resultDiv, manualArea);
+    }).catch(err => {
+        console.error(err);
+        if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal membaca area tengah.</span>';
+        if (manualArea) manualArea.style.display = 'block';
+    });
+
+} catch (e) {
+    // Fallback jika CORS error saat drawImage
+    console.warn("CORS prevented canvas cropping. Trying full image scan or fallback.");
+    if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-orange); font-weight: 700;">Gagal crop otomatis (CORS). Menggunakan link asli...</span>';
+    
+    // Coba scan full image via URL (mungkin gagal jika CORS strict)
+    Tesseract.recognize(link, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
+        processOcrResult(text, resultDiv, manualArea);
+    }).catch(err => {
+         if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal total. Gunakan Google Lens.</span>';
+         if (manualArea) manualArea.style.display = 'block';
+    });
+}
+}
+
+function processOcrResult(text, resultDiv, manualArea) {
+    const rawLines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    let hasilGabung = [], hasilLangsung = [];
+
+    // Logic Pencarian Angka Panjang (Kode Transaksi)
+    for (let i = 0; i < rawLines.length; i++) {
+        const line = rawLines[i];
+        const match = line.match(/\b\d{9,10}\b/); // Mencari angka 9-10 digit
+        if (match) {
+            if (i + 1 < rawLines.length) {
+                const nextLine = rawLines[i + 1].trim();
+                const nextMatch = nextLine.match(/\b\d{8,}\b/);
+                if (nextMatch) { 
+                    hasilGabung.push(match[0] + nextMatch[0]); 
+                    i++; 
+                    continue; 
+                }
+            }
+            hasilGabung.push(match[0]);
+        }
+    }
+
+    // Fallback: Cari semua angka > 8 digit
+    for (const line of rawLines) {
+        const matches = line.match(/\d{8,}/g);
+        if (matches) matches.forEach(m => hasilLangsung.push(m));
+    }
+
+    hasilGabung = [...new Set(hasilGabung)];
+    hasilLangsung = [...new Set(hasilLangsung)];
+
+    if (resultDiv) resultDiv.innerHTML = "";
+
+    let foundAny = false;
+
+    if (hasilGabung.length > 0) {
+        foundAny = true;
+        const title1 = document.createElement("div");
+        title1.innerHTML = '<b style="color: var(--neon-blue); font-size: 16px;">Hasil Gabungan Baris (Akurat):</b>';
+        title1.style.margin = "15px 0 8px";
+        if (resultDiv) resultDiv.appendChild(title1);
+        hasilGabung.forEach(kode => {
+            const div = document.createElement("div");
+            div.className = "result-item";
+            div.innerHTML = `<span style="font-weight: 600;">${kode}</span>
+            <div style="display:flex; gap:8px;">
+            <button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button>
+            <button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
+            </div>`;
+            if (resultDiv) resultDiv.appendChild(div);
+        });
+    }
+
+    if (hasilLangsung.length > 0) {
+        foundAny = true;
+        const title2 = document.createElement("div");
+        title2.innerHTML = '<b style="color: var(--accent-green); font-size: 16px;">Hasil Angka Per Baris:</b>';
+        title2.style.margin = "15px 0 8px";
+        if (resultDiv) resultDiv.appendChild(title2);
+        hasilLangsung.forEach(kode => {
+            const div = document.createElement("div");
+            div.className = "result-item green";
+            div.innerHTML = `<span style="font-weight: 600;">${kode}</span>
+            <div style="display:flex; gap:8px;">
+            <button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button>
+            <button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
+            </div>`;
+            if (resultDiv) resultDiv.appendChild(div);
+        });
+    }
+
+    if (!foundAny) {
+        if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">OCR Gagal menemukan kode otomatis.</span>';
+        if (manualArea) manualArea.style.display = 'block';
+    } else {
+        if (manualArea) manualArea.style.display = 'none';
+    }
+}
+
+// Fungsi Baru: Crop Tengah dan Buka Google Lens
+async function openGoogleLensCenterCrop() {
+    if(!currentScanLink) {
+        showToast("Tidak ada link gambar aktif");
+        return;
+    }
+
+    showToast("Membuka Google Lens...");
+    
+    // Karena keterbatasan browser client-side, kita buka link asli
+    // User disarankan menggunakan tool crop online jika Lens gagal, 
+    // atau menggunakan fitur "Scan Area Tengah" yang sudah diperbaiki di atas.
+    window.open(`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(currentScanLink)}`, '_blank');
 }
 
 function saveManualCode() {
@@ -1221,7 +1243,7 @@ if (isBonusZoomOpen && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
 e.preventDefault();
 navigateBonusPackage(e.key === 'ArrowLeft' ? 'prev' : 'next');
 } else if (e.key === 'Escape') {
-[closeBonusZoom, closeScatterZoom, closeScanScatter2Modal, closeCropModal].forEach(fn => fn());
+[closeBonusZoom, closeScatterZoom, closeScanScatter2Modal].forEach(fn => fn());
 }
 });
 
