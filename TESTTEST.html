@@ -6,6 +6,7 @@
 <title>LINE TOGEL - Bonus Event</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 :root {
 --bg-dark: #020810;
@@ -28,7 +29,6 @@ background: var(--bg-dark);
 color: var(--text-primary);
 min-height: 100vh;
 overflow-x: hidden;
-user-select: none;
 }
 .bg-animated {
 position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
@@ -43,6 +43,10 @@ background-image: linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
 linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
 background-size: 50px 50px;
 animation: gridMove 20s linear infinite;
+}
+@keyframes gridMove {
+0% { transform: translate(0, 0); }
+100% { transform: translate(50px, 50px); }
 }
 .particle {
 position: fixed; width: 4px; height: 4px; background: var(--neon-blue);
@@ -211,7 +215,6 @@ to { opacity: 1; backdrop-filter: blur(10px); }
 .modal-close {
 position: absolute; top: 15px; right: 25px; font-size: 40px; color: var(--neon-blue);
 background: none; border: none; cursor: pointer; transition: all 0.3s ease; line-height: 1;
-z-index: 10002;
 }
 .modal-close:hover { color: var(--neon-cyan); transform: rotate(90deg); }
 .zoom-nav-button {
@@ -233,54 +236,20 @@ box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
 #scanScatter2Modal .modal-content {
 display: flex; gap: 20px; max-width: 95vw; width: 100%; height: 85vh;
 }
-/* Container untuk Zoom/Pan Image */
-#scanImageContainer {
-    flex: 1; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    min-width: 300px;
-    overflow: hidden;
-    position: relative;
-    background: rgba(0,0,0,0.3);
-    border-radius: 12px;
-    cursor: grab;
+#scanScatter2Modal .image-section {
+flex: 1; display: flex; justify-content: center; align-items: center; min-width: 300px;
+position: relative;
 }
-#scanImageContainer:active {
-    cursor: grabbing;
+#scanScatter2Modal .image-section img {
+max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px;
+box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
 }
-#scanScatter2Image {
-    max-width: 100%; 
-    max-height: 100%; 
-    object-fit: contain; 
-    border-radius: 12px;
-    transform-origin: center center;
-    transition: transform 0.1s ease-out; 
-    pointer-events: none;
+.scan-loader {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px;
+    color: var(--neon-cyan); font-weight: bold; display: none;
+    border: 1px solid var(--neon-blue);
 }
-/* Kotak Indikator Scan Tengah */
-.scan-area-indicator {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 250px; height: 120px; /* Diperbesar sedikit agar muat kode panjang */
-    border: 2px dashed var(--accent-green);
-    box-shadow: 0 0 15px var(--accent-green);
-    pointer-events: none;
-    z-index: 10;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.scan-area-indicator::after {
-    content: 'FOKUSKAN KODE DI SINI';
-    color: var(--accent-green);
-    font-size: 12px;
-    font-weight: bold;
-    background: rgba(0,0,0,0.7);
-    padding: 2px 5px;
-}
-
 #scanScatter2Modal .result-section {
 flex: 1; min-width: 300px; max-width: 500px; overflow-y: auto; padding: 20px;
 background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);
@@ -431,8 +400,8 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <div class="bonus-input-group" style="margin: 8px 0;">
 <label class="bonus-label" style="font-size: 13px;">3. S2 (Scan OCR):</label>
 <div class="input-with-buttons">
-<input type="text" id="bonusScatter2_1" class="bonus-input" placeholder="Link gambar PNG/JPG..." style="padding: 8px; font-size: 14px;">
-<button type="button" onclick="scanScatter2(1)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+<input type="text" id="bonusScatter2_1" class="bonus-input" placeholder="Link/Gambar..." style="padding: 8px; font-size: 14px;">
+<button type="button" onclick="scanUniversal(1)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;"><i class="fas fa-qrcode"></i> Scan</button>
 </div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
@@ -447,6 +416,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <label class="bonus-label" style="font-size: 13px;">6. Kode:</label>
 <input type="text" id="bonusKodeTransaksi1" class="bonus-input" placeholder="Kode hasil scan..." style="padding: 8px; font-size: 14px;">
 </div>
+<!-- Tombol Lihat 3 Foto Sekaligus -->
 <div style="margin-top: 20px; text-align: center;">
 <button onclick="viewAllScatterPhotos(1)" class="neon-switch-btn orange" style="width: 100%; padding: 12px; font-size: 14px;">
 <i class="fas fa-images"></i> Lihat 3 Foto (S1+S2+S3)
@@ -471,8 +441,8 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <div class="bonus-input-group" style="margin: 8px 0;">
 <label class="bonus-label" style="font-size: 13px;">3. S2 (Scan OCR):</label>
 <div class="input-with-buttons">
-<input type="text" id="bonusScatter2_2" class="bonus-input" placeholder="Link gambar PNG/JPG..." style="padding: 8px; font-size: 14px;">
-<button type="button" onclick="scanScatter2(2)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+<input type="text" id="bonusScatter2_2" class="bonus-input" placeholder="Link/Gambar..." style="padding: 8px; font-size: 14px;">
+<button type="button" onclick="scanUniversal(2)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;"><i class="fas fa-qrcode"></i> Scan</button>
 </div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
@@ -487,6 +457,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <label class="bonus-label" style="font-size: 13px;">6. Kode:</label>
 <input type="text" id="bonusKodeTransaksi2" class="bonus-input" placeholder="Kode hasil scan..." style="padding: 8px; font-size: 14px;">
 </div>
+<!-- Tombol Lihat 3 Foto Sekaligus -->
 <div style="margin-top: 20px; text-align: center;">
 <button onclick="viewAllScatterPhotos(2)" class="neon-switch-btn orange" style="width: 100%; padding: 12px; font-size: 14px;">
 <i class="fas fa-images"></i> Lihat 3 Foto (S1+S2+S3)
@@ -517,36 +488,19 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <div id="scatterZoomCaption" style="text-align: center; margin-top: 15px; color: var(--text-muted); font-weight: 600;"></div>
 </div>
 
-<!-- Modal Scan Scatter 2 (ZOOM & PAN ENABLED) -->
+<!-- Modal Scan Universal (OCR & QR) -->
 <div id="scanScatter2Modal" class="modal-overlay">
 <button class="modal-close" onclick="closeScanScatter2Modal()" aria-label="Tutup">&times;</button>
-<h3 style="color: var(--neon-cyan); text-align: center; margin-bottom: 20px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">Scan Kode Transaksi</h3>
+<h3 style="color: var(--neon-cyan); text-align: center; margin-bottom: 20px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">Scan Kode / Link</h3>
 <div class="modal-content" style="display: flex; gap: 20px; max-width: 95vw; width: 100%; height: 80vh;">
-    
-    <!-- Image Container with Zoom/Pan -->
-    <div id="scanImageContainer">
-        <img id="scanScatter2Image" src="" alt="Scan Target">
-        <div class="scan-area-indicator"></div>
-    </div>
-
-    <div class="result-section" style="flex: 1; overflow-y: auto; padding: 20px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
-        <div id="scanScatter2Result" style="color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 500; line-height: 1.6;"></div>
-        
-        <!-- Fallback Button Area -->
-        <div id="manualCodeArea" style="margin-top: 20px; display: none; border-top: 1px solid var(--border-color); padding-top: 15px;">
-            <p style="color: var(--accent-orange); font-weight: 700; margin-bottom: 10px;">Gagal Scan Otomatis?</p>
-            
-            <button onclick="window.open(currentScanLink, '_blank')" class="neon-switch-btn" style="width: 100%; margin-bottom: 15px; padding: 10px;">
-                <i class="fas fa-external-link-alt"></i> Buka Gambar Asli
-            </button>
-            
-            <p style="font-size: 13px; margin-bottom: 10px; color: var(--text-muted);">Atau ketik manual:</p>
-            <div style="display: flex; gap: 8px;">
-                <input type="text" id="manualCodeInput" class="bonus-input" placeholder="Ketik Kode Disini..." style="flex: 1;">
-                <button onclick="saveManualCode()" class="bonus-btn" style="padding: 8px 15px;">Simpan</button>
-            </div>
-        </div>
-    </div>
+<div class="image-section" style="flex: 1; display: flex; justify-content: center; align-items: center;">
+<img id="scanScatter2Image" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);">
+<div id="scanLoader" class="scan-loader"><i class="fas fa-spinner fa-spin"></i> Memindai...</div>
+</div>
+<div class="result-section" style="flex: 1; overflow-y: auto; padding: 20px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
+<div style="margin-bottom: 10px; color: var(--neon-blue); font-weight: bold;">Hasil Deteksi:</div>
+<div id="scanScatter2Result" style="color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 500; line-height: 1.6;"></div>
+</div>
 </div>
 </div>
 
@@ -599,21 +553,6 @@ let currentImageIndex = 0;
 let scatterZoomImages = [];
 let scatterZoomIndex = 0;
 let currentScatterDataIndex = 1;
-let currentScanLink = ""; 
-
-// Variabel untuk Zoom/Pan
-let scale = 1;
-let panning = false;
-let pointX = 0;
-let pointY = 0;
-let startX = 0;
-let startY = 0;
-const scanImage = document.getElementById('scanScatter2Image');
-const scanContainer = document.getElementById('scanImageContainer');
-
-function setTransform() {
-  scanImage.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
-}
 
 function createParticles() {
 const container = document.getElementById('particles');
@@ -657,24 +596,31 @@ currentScatterDataIndex = dataIndex;
 const s1 = document.getElementById('bonusScatter1_' + dataIndex).value.trim();
 const s2 = document.getElementById('bonusScatter2_' + dataIndex).value.trim();
 const s3 = document.getElementById('bonusScatter3_' + dataIndex).value.trim();
+
+// Filter valid links only
 scatterZoomImages = [s1, s2, s3].filter(link => link && link.startsWith('http'));
+
 if (scatterZoomImages.length === 0) {
 showToast("Tidak ada link gambar yang valid!");
 return;
 }
+
 scatterZoomIndex = 0;
 updateScatterZoomDisplay();
+
 const modal = document.getElementById('scatterZoomModal');
 const title = document.getElementById('scatterZoomTitle');
 const caption = document.getElementById('scatterZoomCaption');
+
 if (title) title.textContent = `Lihat 3 Foto - Data ${dataIndex}`;
-if (caption) caption.textContent = `Menampilkan ${scatterZoomImages.length} foto.`;
+if (caption) caption.textContent = `Menampilkan ${scatterZoomImages.length} foto. Gunakan tombol Prev/Next atau panah keyboard.`;
 if (modal) modal.style.display = 'flex';
 }
 
 function updateScatterZoomDisplay() {
 const wrapper = document.getElementById('scatterZoomContent');
 if (!wrapper) return;
+
 wrapper.innerHTML = '';
 scatterZoomImages.forEach((link, idx) => {
 const img = document.createElement('img');
@@ -696,6 +642,7 @@ scatterZoomIndex = 0;
 }
 
 function openLightboxScatter(imgElement) {
+// Use existing lightbox for single image zoom
 imageList = [...scatterZoomImages];
 currentImageIndex = imageList.indexOf(imgElement.src);
 const lightboxImage = document.getElementById("lightboxImage");
@@ -704,155 +651,78 @@ const lightboxModal = document.getElementById("lightboxModal");
 if (lightboxModal) lightboxModal.style.display = 'flex';
 }
 
-function prevScatterImage() { showToast("Gunakan lightbox"); }
-function nextScatterImage() { showToast("Gunakan lightbox"); }
-
-// ================= ZOOM & PAN LOGIC =================
-scanContainer.onmousedown = function(e) {
-  e.preventDefault();
-  startX = e.clientX - pointX;
-  startY = e.clientY - pointY;
-  panning = true;
-}
-scanContainer.onmouseup = function(e) { e.preventDefault(); panning = false; }
-scanContainer.onmousemove = function(e) {
-  e.preventDefault();
-  if (!panning) return;
-  pointX = e.clientX - startX;
-  pointY = e.clientY - startY;
-  setTransform();
-}
-scanContainer.onwheel = function(e) {
-  e.preventDefault();
-  const xs = (e.clientX - pointX) / scale;
-  const ys = (e.clientY - pointY) / scale;
-  const delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
-  (delta > 0) ? (scale *= 1.2) : (scale /= 1.2);
-  if(scale < 0.5) scale = 0.5;
-  if(scale > 5) scale = 5;
-  pointX = e.clientX - xs * scale;
-  pointY = e.clientY - ys * scale;
-  setTransform();
+function prevScatterImage() {
+if (scatterZoomImages.length <= 1) return;
+showToast("Gunakan modal lightbox untuk zoom per gambar");
 }
 
-function resetZoom() {
-    scale = 1; pointX = 0; pointY = 0; setTransform();
+function nextScatterImage() {
+if (scatterZoomImages.length <= 1) return;
+showToast("Gunakan modal lightbox untuk zoom per gambar");
 }
 
-// ================= SCAN SCATTER 2 (STRICT CODE ONLY) =================
-function scanScatter2(index) {
+// ================= UNIVERSAL SCAN (OCR & LINKS) =================
+function scanUniversal(index) {
 currentDataIndex = index;
 const link = document.getElementById('bonusScatter2_' + index).value.trim();
 if (!link) { showToast("Masukkan link gambar Scatter 2!"); return; }
 
-currentScanLink = link;
+const img = document.getElementById('scanScatter2Image');
 const resultDiv = document.getElementById('scanScatter2Result');
-const manualArea = document.getElementById('manualCodeArea');
+const loader = document.getElementById('scanLoader');
 const modal = document.getElementById('scanScatter2Modal');
 
-resetZoom();
-if (scanImage) scanImage.src = link;
+if (img) img.src = link;
 if (modal) modal.style.display = 'flex';
-if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--text-muted); font-weight: 600;">Memindai KODE saja... Mohon tunggu.</span>';
-if (manualArea) manualArea.style.display = 'none';
+if (loader) loader.style.display = 'block';
+if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--text-muted); font-weight: 600;">Memindai gambar untuk Kode/Link...</span>';
 
 if (typeof Tesseract === 'undefined') {
-if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Library OCR belum dimuat.</span>';
+if (loader) loader.style.display = 'none';
+if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Tesseract.js belum dimuat.</span>';
 return;
 }
 
-// Ambil Area Tengah dari Canvas (sesuai zoom/pan saat ini)
-const canvas = document.createElement('canvas');
-const ctx = canvas.getContext('2d');
-const img = scanImage;
-const scanWidth = 250; 
-const scanHeight = 120;
+Tesseract.recognize(link, 'eng', { logger: m => console.log(m) })
+.then(({ data: { text } }) => {
+if (loader) loader.style.display = 'none';
 
-const rect = scanContainer.getBoundingClientRect();
-const centerX = rect.width / 2;
-const centerY = rect.height / 2;
-const xOnImage = (centerX - pointX) / scale;
-const yOnImage = (centerY - pointY) / scale;
-const sourceX = xOnImage - (scanWidth / 2 / scale);
-const sourceY = yOnImage - (scanHeight / 2 / scale);
-const sourceW = scanWidth / scale;
-const sourceH = scanHeight / scale;
+// Bersihkan teks dari karakter aneh
+const cleanText = text.replace(/[^a-zA-Z0-9\s\-_.:\/]/g, '').trim();
+const lines = cleanText.split('\n').map(l => l.trim()).filter(l => l.length > 3); // Filter baris pendek
 
-canvas.width = scanWidth;
-canvas.height = scanHeight;
+if (resultDiv) resultDiv.innerHTML = "";
 
-try {
-    ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, scanWidth, scanHeight);
-    const croppedDataUrl = canvas.toDataURL('image/png');
-    
-    Tesseract.recognize(croppedDataUrl, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
-        processOcrResultStrict(text, resultDiv, manualArea);
-    }).catch(err => {
-        console.error(err);
-        if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal membaca area tengah.</span>';
-        if (manualArea) manualArea.style.display = 'block';
-    });
-
-} catch (e) {
-    // Fallback CORS
-    if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-orange); font-weight: 700;">Gagal crop otomatis (CORS).</span>';
-    if (manualArea) manualArea.style.display = 'block';
-}
+if (lines.length === 0) {
+    if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red);">Tidak ditemukan teks/kode yang jelas.</span>';
+    return;
 }
 
-// FUNGSI BARU: Hanya ambil kode angka murni
-function processOcrResultStrict(text, resultDiv, manualArea) {
-    // 1. Bersihkan semua karakter kecuali angka dan spasi
-    let cleanText = text.replace(/[^0-9\s]/g, ' ');
-    
-    // 2. Pecah menjadi array angka
-    let numbers = cleanText.split(/\s+/).filter(n => n.length > 0);
-    
-    let validCodes = [];
+const title = document.createElement("div");
+title.innerHTML = '<b style="color: var(--neon-blue); font-size: 16px;">Hasil Scan:</b>';
+title.style.margin = "0 0 10px";
+if (resultDiv) resultDiv.appendChild(title);
 
-    // 3. Filter berdasarkan panjang digit (Kode biasanya 8-15 digit)
-    numbers.forEach(num => {
-        if (num.length >= 8 && num.length <= 16) {
-            validCodes.push(num);
-        }
-    });
+lines.forEach(line => {
+const div = document.createElement("div");
+div.className = "result-item green";
+// Highlight jika terdeteksi sebagai URL
+const isUrl = line.includes('http');
+const style = isUrl ? 'color: var(--accent-orange);' : '';
 
-    // Hapus duplikat
-    validCodes = [...new Set(validCodes)];
+div.innerHTML = `<span style="font-weight: 600; ${style}">${line}</span>
+<div style="display:flex; gap:8px;">
+<button onclick="copyWithFeedback(this, '${line}')" class="copy-btn">Copy</button>
+<button onclick="pilihKodeTransaksi('${line}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
+</div>`;
+if (resultDiv) resultDiv.appendChild(div);
+});
 
-    if (resultDiv) resultDiv.innerHTML = "";
-
-    if (validCodes.length > 0) {
-        const title = document.createElement("div");
-        title.innerHTML = '<b style="color: var(--accent-green); font-size: 16px;">KODE DITEMUKAN:</b>';
-        title.style.margin = "15px 0 8px";
-        if (resultDiv) resultDiv.appendChild(title);
-
-        validCodes.forEach(kode => {
-            const div = document.createElement("div");
-            div.className = "result-item green";
-            div.innerHTML = `<span style="font-weight: 700; font-size: 18px; letter-spacing: 2px;">${kode}</span>
-            <div style="display:flex; gap:8px;">
-            <button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button>
-            <button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
-            </div>`;
-            if (resultDiv) resultDiv.appendChild(div);
-        });
-        if (manualArea) manualArea.style.display = 'none';
-    } else {
-        if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Tidak menemukan kode angka (8-16 digit) di area kotak hijau.<br>Pastikan kode berada di dalam kotak.</span>';
-        if (manualArea) manualArea.style.display = 'block';
-    }
-}
-
-function saveManualCode() {
-const code = document.getElementById('manualCodeInput').value.trim();
-if(code) {
-pilihKodeTransaksi(code);
-document.getElementById('manualCodeInput').value = '';
-} else {
-showToast("Kode tidak boleh kosong");
-}
+}).catch(err => {
+console.error(err);
+if (loader) loader.style.display = 'none';
+if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal membaca gambar. Pastikan link valid.</span>';
+});
 }
 
 function copyWithFeedback(btn, text) {
@@ -1153,4 +1023,3 @@ switchBonusMode('bonusAsli');
 </script>
 </body>
 </html>
-
