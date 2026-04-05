@@ -299,6 +299,30 @@ border: 2px solid var(--neon-blue); box-shadow: 0 0 40px rgba(0, 212, 255, 0.5);
     padding: 8px; border-radius: 6px; cursor: pointer; transition: 0.3s;
 }
 .fallback-btn:hover { background: var(--accent-orange); color: #000; }
+
+/* Google Lens Style Panel in Zoom */
+.lens-panel {
+    background: rgba(6, 20, 32, 0.95);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 12px;
+    padding: 15px;
+    width: 100%;
+    max-width: 400px;
+    max-height: 60vh;
+    overflow-y: auto;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+}
+.lens-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px;
+}
+.lens-title { color: var(--neon-cyan); font-weight: 700; font-family: 'Orbitron', sans-serif; }
+.lens-btn {
+    background: var(--neon-blue); color: #000; border: none; padding: 8px 15px;
+    border-radius: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;
+}
+.lens-btn:hover { background: var(--neon-cyan); }
+
 @media (max-width: 768px) {
 .bonus-section { padding: 15px; margin: 5px; }
 .neon-switch-btn { padding: 10px 15px; font-size: 13px; }
@@ -419,7 +443,6 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <label class="bonus-label" style="font-size: 13px;">6. Kode:</label>
 <input type="text" id="bonusKodeTransaksi1" class="bonus-input" placeholder="Kode hasil scan..." style="padding: 8px; font-size: 14px;">
 </div>
-<!-- Tombol Lihat 3 Foto Sekaligus -->
 <div style="margin-top: 20px; text-align: center;">
 <button onclick="viewAllScatterPhotos(1)" class="neon-switch-btn orange" style="width: 100%; padding: 12px; font-size: 14px;">
 <i class="fas fa-images"></i> Lihat 3 Foto (S1+S2+S3)
@@ -460,7 +483,6 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <label class="bonus-label" style="font-size: 13px;">6. Kode:</label>
 <input type="text" id="bonusKodeTransaksi2" class="bonus-input" placeholder="Kode hasil scan..." style="padding: 8px; font-size: 14px;">
 </div>
-<!-- Tombol Lihat 3 Foto Sekaligus -->
 <div style="margin-top: 20px; text-align: center;">
 <button onclick="viewAllScatterPhotos(2)" class="neon-switch-btn orange" style="width: 100%; padding: 12px; font-size: 14px;">
 <i class="fas fa-images"></i> Lihat 3 Foto (S1+S2+S3)
@@ -514,15 +536,46 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 </div>
 </div>
 
-<!-- Modal Zoom Galeri -->
+<!-- Modal Zoom Galeri WITH GOOGLE LENS STYLE PANEL -->
 <div id="bonusZoomModal" class="modal-overlay">
 <button class="modal-close" onclick="closeBonusZoom()" aria-label="Tutup zoom">&times;</button>
 <span id="bonusZoomedUserid" style="display: block; text-align: center; font-size: 22px; margin-bottom: 20px; color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-weight: 700;"></span>
-<div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; width: 100%;">
-<button class="zoom-nav-button" id="bonusPrevZoomBtn" onclick="navigateBonusPackage('prev')">Prev</button>
-<div class="zoomed-content-wrapper" id="bonusZoomedContentWrapper"></div>
-<button class="zoom-nav-button" id="bonusNextZoomBtn" onclick="navigateBonusPackage('next')">Next</button>
+
+<div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; width: 100%; max-height: 80vh;">
+    
+    <!-- Navigation Left -->
+    <button class="zoom-nav-button" id="bonusPrevZoomBtn" onclick="navigateBonusPackage('prev')">Prev</button>
+    
+    <!-- Main Image Area -->
+    <div style="flex: 2; display: flex; flex-direction: column; align-items: center; min-width: 300px;">
+        <div class="zoomed-content-wrapper" id="bonusZoomedContentWrapper" style="width: 100%;"></div>
+    </div>
+
+    <!-- Google Lens Style Panel (Right Side) -->
+    <div class="lens-panel" id="lensPanel" style="display: none;">
+        <div class="lens-header">
+            <span class="lens-title"><i class="fas fa-eye"></i> Smart Analyze</span>
+            <button onclick="toggleLensPanel()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="lensResults" style="font-size: 14px; color: var(--text-primary);">
+            <p style="color: var(--text-muted); text-align: center; padding: 20px;">Klik tombol di bawah untuk membaca teks/gambar.</p>
+        </div>
+        <div style="margin-top: 15px; text-align: center;">
+            <button onclick="runLensAnalysis()" class="lens-btn" style="width: 100%; justify-content: center;">
+                <i class="fas fa-search"></i> Baca Gambar Ini
+            </button>
+        </div>
+    </div>
+
+    <!-- Toggle Lens Button (Visible when panel is hidden) -->
+    <button id="showLensBtn" onclick="toggleLensPanel()" class="neon-switch-btn" style="position: absolute; right: 20px; top: 80px; padding: 8px 15px; font-size: 12px;">
+        <i class="fas fa-eye"></i> Lens
+    </button>
+
+    <!-- Navigation Right -->
+    <button class="zoom-nav-button" id="bonusNextZoomBtn" onclick="navigateBonusPackage('next')">Next</button>
 </div>
+
 <div id="bonusCaption" style="text-align: center; margin-top: 20px; color: var(--text-muted); font-weight: 600;">Gunakan tombol navigasi atau panah kiri/kanan pada keyboard.</div>
 </div>
 
@@ -564,190 +617,153 @@ let scatterZoomImages = [];
 let scatterZoomIndex = 0;
 let currentScatterDataIndex = 1;
 let activeScanUrl = ""; // Store URL for retry logic
+let currentLensImageUrl = ""; // Store current image URL for Lens analysis
 
 function createParticles() {
-const container = document.getElementById('particles');
-if (!container) return;
-container.innerHTML = '';
-for (let i = 0; i < 20; i++) {
-const particle = document.createElement('div');
-particle.className = 'particle';
-particle.style.left = Math.random() * 100 + '%';
-particle.style.animationDelay = Math.random() * 15 + 's';
-particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-container.appendChild(particle);
-}
+    const container = document.getElementById('particles');
+    if (!container) return;
+    container.innerHTML = '';
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 15 + 's';
+        particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+        container.appendChild(particle);
+    }
 }
 
 function showToast(message) {
-const toast = document.getElementById('toast');
-if (!toast) return;
-toast.textContent = message;
-toast.classList.add('show');
-setTimeout(() => toast.classList.remove('show'), 3000);
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 // ================= MODE SWITCHING =================
 function switchBonusMode(mode) {
-document.getElementById('modeBonusAsli').style.display = 'none';
-document.getElementById('modeGaleri').style.display = 'none';
-document.getElementById('modeInputScatter').style.display = 'none';
-if (mode === 'bonusAsli') document.getElementById('modeBonusAsli').style.display = 'block';
-else if (mode === 'galeri') document.getElementById('modeGaleri').style.display = 'block';
-else if (mode === 'inputScatter') document.getElementById('modeInputScatter').style.display = 'block';
-['bonusAsli', 'galeri', 'inputScatter'].forEach(id => {
-const btn = document.getElementById('btn-' + id);
-if (btn) btn.classList.toggle('active', id === mode);
-});
+    document.getElementById('modeBonusAsli').style.display = 'none';
+    document.getElementById('modeGaleri').style.display = 'none';
+    document.getElementById('modeInputScatter').style.display = 'none';
+    if (mode === 'bonusAsli') document.getElementById('modeBonusAsli').style.display = 'block';
+    else if (mode === 'galeri') document.getElementById('modeGaleri').style.display = 'block';
+    else if (mode === 'inputScatter') document.getElementById('modeInputScatter').style.display = 'block';
+    
+    ['bonusAsli', 'galeri', 'inputScatter'].forEach(id => {
+        const btn = document.getElementById('btn-' + id);
+        if (btn) btn.classList.toggle('active', id === mode);
+    });
 }
 
 // ================= VIEW ALL 3 SCATTER PHOTOS =================
 function viewAllScatterPhotos(dataIndex) {
-currentScatterDataIndex = dataIndex;
-const s1 = document.getElementById('bonusScatter1_' + dataIndex).value.trim();
-const s2 = document.getElementById('bonusScatter2_' + dataIndex).value.trim();
-const s3 = document.getElementById('bonusScatter3_' + dataIndex).value.trim();
+    currentScatterDataIndex = dataIndex;
+    const s1 = document.getElementById('bonusScatter1_' + dataIndex).value.trim();
+    const s2 = document.getElementById('bonusScatter2_' + dataIndex).value.trim();
+    const s3 = document.getElementById('bonusScatter3_' + dataIndex).value.trim();
 
-// Filter valid links only
-scatterZoomImages = [s1, s2, s3].filter(link => link && link.startsWith('http'));
+    scatterZoomImages = [s1, s2, s3].filter(link => link && link.startsWith('http'));
 
-if (scatterZoomImages.length === 0) {
-showToast("Tidak ada link gambar yang valid!");
-return;
-}
+    if (scatterZoomImages.length === 0) {
+        showToast("Tidak ada link gambar yang valid!");
+        return;
+    }
 
-scatterZoomIndex = 0;
-updateScatterZoomDisplay();
+    scatterZoomIndex = 0;
+    updateScatterZoomDisplay();
 
-const modal = document.getElementById('scatterZoomModal');
-const title = document.getElementById('scatterZoomTitle');
-const caption = document.getElementById('scatterZoomCaption');
+    const modal = document.getElementById('scatterZoomModal');
+    const title = document.getElementById('scatterZoomTitle');
+    const caption = document.getElementById('scatterZoomCaption');
 
-if (title) title.textContent = `Lihat 3 Foto - Data ${dataIndex}`;
-if (caption) caption.textContent = `Menampilkan ${scatterZoomImages.length} foto. Gunakan tombol Prev/Next atau panah keyboard.`;
-if (modal) modal.style.display = 'flex';
+    if (title) title.textContent = `Lihat 3 Foto - Data ${dataIndex}`;
+    if (caption) caption.textContent = `Menampilkan ${scatterZoomImages.length} foto.`;
+    if (modal) modal.style.display = 'flex';
 }
 
 function updateScatterZoomDisplay() {
-const wrapper = document.getElementById('scatterZoomContent');
-if (!wrapper) return;
-
-wrapper.innerHTML = '';
-scatterZoomImages.forEach((link, idx) => {
-const img = document.createElement('img');
-img.src = link;
-img.alt = `Scatter ${idx + 1}`;
-img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); cursor: pointer;';
-img.onclick = () => openLightboxScatter(img);
-wrapper.appendChild(img);
-});
+    const wrapper = document.getElementById('scatterZoomContent');
+    if (!wrapper) return;
+    wrapper.innerHTML = '';
+    scatterZoomImages.forEach((link, idx) => {
+        const img = document.createElement('img');
+        img.src = link;
+        img.alt = `Scatter ${idx + 1}`;
+        img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); cursor: pointer;';
+        img.onclick = () => openLightboxScatter(img);
+        wrapper.appendChild(img);
+    });
 }
 
 function closeScatterZoom() {
-const modal = document.getElementById('scatterZoomModal');
-const wrapper = document.getElementById('scatterZoomContent');
-if (modal) modal.style.display = 'none';
-if (wrapper) wrapper.innerHTML = '';
-scatterZoomImages = [];
-scatterZoomIndex = 0;
+    const modal = document.getElementById('scatterZoomModal');
+    const wrapper = document.getElementById('scatterZoomContent');
+    if (modal) modal.style.display = 'none';
+    if (wrapper) wrapper.innerHTML = '';
+    scatterZoomImages = [];
 }
 
 function openLightboxScatter(imgElement) {
-// Use existing lightbox for single image zoom
-imageList = [...scatterZoomImages];
-currentImageIndex = imageList.indexOf(imgElement.src);
-const lightboxImage = document.getElementById("lightboxImage");
-if (lightboxImage) lightboxImage.src = imgElement.src;
-const lightboxModal = document.getElementById("lightboxModal");
-if (lightboxModal) lightboxModal.style.display = 'flex';
+    imageList = [...scatterZoomImages];
+    currentImageIndex = imageList.indexOf(imgElement.src);
+    const lightboxImage = document.getElementById("lightboxImage");
+    if (lightboxImage) lightboxImage.src = imgElement.src;
+    const lightboxModal = document.getElementById("lightboxModal");
+    if (lightboxModal) lightboxModal.style.display = 'flex';
 }
 
-function prevScatterImage() {
-if (scatterZoomImages.length <= 1) return;
-showToast("Gunakan modal lightbox untuk zoom per gambar");
-}
+function prevScatterImage() { showToast("Gunakan klik gambar untuk zoom penuh"); }
+function nextScatterImage() { showToast("Gunakan klik gambar untuk zoom penuh"); }
 
-function nextScatterImage() {
-if (scatterZoomImages.length <= 1) return;
-showToast("Gunakan modal lightbox untuk zoom per gambar");
-}
-
-// ================= SMART SCAN SCATTER 2 (OCR + FALLBACK) =================
+// ================= SMART SCAN SCATTER 2 (FIXED FOR TAWK.LINK) =================
 function smartScanScatter2(index) {
-currentDataIndex = index;
-const inputEl = document.getElementById('bonusScatter2_' + index);
-const link = inputEl.value.trim();
+    currentDataIndex = index;
+    const inputEl = document.getElementById('bonusScatter2_' + index);
+    let link = inputEl.value.trim();
 
-if (!link) { showToast("Masukkan link gambar Scatter 2!"); return; }
+    if (!link) { showToast("Masukkan link gambar Scatter 2!"); return; }
 
-// Reset UI
-const img = document.getElementById('scanScatter2Image');
-const resultDiv = document.getElementById('scanScatter2Result');
-const modal = document.getElementById('scanScatter2Modal');
-const loader = document.getElementById('scanLoader');
-const fallbackArea = document.getElementById('fallbackArea');
-
-activeScanUrl = link; // Save for retry
-if (img) img.src = ""; 
-if (fallbackArea) fallbackArea.style.display = 'none';
-if (modal) modal.style.display = 'flex';
-if (loader) loader.style.display = 'block';
-if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--text-muted); font-weight: 600;">Menganalisis Link...</span>';
-
-// Check if it's a known image extension or tawk link
-const isImage = link.match(/\.(jpeg|jpg|gif|png)$/i) || link.includes('files-text.com');
-const isTawk = link.includes('tawk.link') || link.includes('tawk.to');
-
-if (isImage) {
-    // Direct Image Attempt
-    attemptDirectScan(link, img, resultDiv, loader, fallbackArea);
-} else if (isTawk) {
-    // Tawk link handling: Usually these are pages, but user provided direct image links in prompt.
-    // If it fails, we offer proxy.
-    attemptDirectScan(link, img, resultDiv, loader, fallbackArea);
-} else {
-    // Unknown format, try direct first anyway
-    attemptDirectScan(link, img, resultDiv, loader, fallbackArea);
-}
-}
-
-function attemptDirectScan(url, imgEl, resEl, loadEl, fallEl) {
-    imgEl.onload = function() {
-        loadEl.style.display = 'none';
-        performOCR(url, resEl);
-    };
-    imgEl.onerror = function() {
-        loadEl.style.display = 'none';
-        resEl.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal memuat gambar langsung.</span>';
-        if(fallEl) fallEl.style.display = 'block'; // Show fallback options
-    };
-    imgEl.src = url;
-}
-
-// Fallback 1: Proxy
-function retryWithProxy() {
+    // UI Elements
     const img = document.getElementById('scanScatter2Image');
     const resultDiv = document.getElementById('scanScatter2Result');
+    const modal = document.getElementById('scanScatter2Modal');
     const loader = document.getElementById('scanLoader');
-    
-    loader.style.display = 'block';
-    resultDiv.innerHTML = '<span style="color: var(--accent-orange);">Mencoba via Proxy...</span>';
-    
-    // Using a public CORS proxy (Note: In production, use your own)
-    const proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(activeScanUrl);
-    
+    const fallbackArea = document.getElementById('fallbackArea');
+
+    // Reset UI
+    if (img) img.src = ""; 
+    if (fallbackArea) fallbackArea.style.display = 'none';
+    if (modal) modal.style.display = 'flex';
+    if (loader) loader.style.display = 'block';
+    if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--text-muted);">Menganalisis Link...</span>';
+
+    activeScanUrl = link;
+
+    // LOGIKA AUTO-FIX CORS UNTUK TAWK.LINK
+    if (link.includes('tawk.link') || link.includes('tawk.to')) {
+        showToast("Mendeteksi link Tawk... Menggunakan Proxy Anti-Blokir.");
+        link = "https://images.weserv.nl/?url=" + encodeURIComponent(link);
+    }
+
     img.onload = function() {
         loader.style.display = 'none';
-        performOCR(proxyUrl, resultDiv);
+        performOCR(link, resultDiv);
     };
+
     img.onerror = function() {
         loader.style.display = 'none';
-        resultDiv.innerHTML += '<br><span style="color: var(--accent-red);">Proxy juga gagal. Silakan upload manual.</span>';
+        resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal memuat gambar.</span><br><small>Mungkin link rusak atau privat.</small>';
+        if(fallbackArea) fallbackArea.style.display = 'block';
     };
-    img.src = proxyUrl;
+
+    img.src = link;
 }
 
-// Fallback 2: Manual Upload
+function retryWithProxy() {
+    showToast("Sistem sudah otomatis menggunakan proxy terbaik.");
+}
+
 function triggerFileUpload() {
     document.getElementById('manualFileInput').click();
 }
@@ -760,6 +776,8 @@ function handleManualFile(input) {
         const loader = document.getElementById('scanLoader');
         
         loader.style.display = 'block';
+        resultDiv.innerHTML = "Memproses file lokal...";
+        
         reader.onload = function(e) {
             img.src = e.target.result;
             img.onload = function() {
@@ -773,17 +791,16 @@ function handleManualFile(input) {
 
 function performOCR(imageSource, resultDiv) {
     if (typeof Tesseract === 'undefined') {
-        resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Tesseract.js belum dimuat.</span>';
+        resultDiv.innerHTML = '<span style="color: var(--accent-red);">Library OCR belum siap.</span>';
         return;
     }
     
-    resultDiv.innerHTML = '<span style="color: var(--neon-blue);">Memindai teks (OCR)...</span>';
+    resultDiv.innerHTML = '<span style="color: var(--neon-blue);">Sedang membaca angka (OCR)... Mohon tunggu.</span>';
 
-    Tesseract.recognize(imageSource, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
+    Tesseract.recognize(imageSource, 'eng', { logger: m => console.log(m) }).then(({  { text } }) => {
         const rawLines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
         let hasilGabung = [], hasilLangsung = [];
         
-        // Logic to find long numbers (transaction codes)
         for (let i = 0; i < rawLines.length; i++) {
             const line = rawLines[i];
             const match = line.match(/\b\d{9,10}\b/);
@@ -791,11 +808,16 @@ function performOCR(imageSource, resultDiv) {
                 if (i + 1 < rawLines.length) {
                     const nextLine = rawLines[i + 1].trim();
                     const nextMatch = nextLine.match(/\b\d{8,}\b/);
-                    if (nextMatch) { hasilGabung.push(match[0] + nextMatch[0]); i++; continue; }
+                    if (nextMatch) { 
+                        hasilGabung.push(match[0] + nextMatch[0]); 
+                        i++; 
+                        continue; 
+                    }
                 }
                 hasilGabung.push(match[0]);
             }
         }
+        
         for (const line of rawLines) {
             const matches = line.match(/\d{8,}/g);
             if (matches) matches.forEach(m => hasilLangsung.push(m));
@@ -808,343 +830,417 @@ function performOCR(imageSource, resultDiv) {
         
         if (hasilGabung.length > 0) {
             const title1 = document.createElement("div");
-            title1.innerHTML = '<b style="color: var(--neon-blue); font-size: 16px;">Hasil Gabungan Baris:</b>';
+            title1.innerHTML = '<b style="color: var(--neon-blue); font-size: 16px;">✅ Kode Terdeteksi (Akurat):</b>';
             title1.style.margin = "15px 0 8px";
             resultDiv.appendChild(title1);
             hasilGabung.forEach(kode => {
                 const div = document.createElement("div");
                 div.className = "result-item";
-                div.innerHTML = `<span style="font-weight: 600;">${kode}</span>
+                div.innerHTML = `<span style="font-weight: 600; font-size:1.1em;">${kode}</span>
                 <div style="display:flex; gap:8px;">
                 <button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button>
                 <button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
                 </div>`;
                 resultDiv.appendChild(div);
             });
+        } else {
+             resultDiv.innerHTML += '<div style="margin-top:10px; color:#666;">Tidak menemukan pola kode standar, mencoba angka lain...</div>';
         }
         
         if (hasilLangsung.length > 0) {
             const title2 = document.createElement("div");
-            title2.innerHTML = '<b style="color: var(--accent-green); font-size: 16px;">Hasil Angka Per Baris:</b>';
+            title2.innerHTML = '<b style="color: var(--accent-orange); font-size: 14px;">Kemungkinan Angka Lain:</b>';
             title2.style.margin = "15px 0 8px";
             resultDiv.appendChild(title2);
             hasilLangsung.forEach(kode => {
                 const div = document.createElement("div");
                 div.className = "result-item green";
-                div.innerHTML = `<span style="font-weight: 600;">${kode}</span>
-                <div style="display:flex; gap:8px;">
-                <button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button>
-                <button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
-                </div>`;
+                div.innerHTML = `<span>${kode}</span>
+                <button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>`;
                 resultDiv.appendChild(div);
             });
         }
         
         if (hasilGabung.length === 0 && hasilLangsung.length === 0) {
-            resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Tidak ditemukan angka panjang dalam gambar.</span>';
+            resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gambar terlalu buram atau tidak berisi angka transaksi.</span>';
         }
     }).catch(err => {
         console.error(err);
-        resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal membaca gambar.</span>';
+        resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Error saat proses OCR.</span>';
     });
 }
 
 function copyWithFeedback(btn, text) {
-navigator.clipboard.writeText(text).then(() => {
-const original = btn.innerHTML;
-btn.innerHTML = 'OK';
-btn.classList.add('copied');
-setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1000);
-}).catch(() => showToast("Gagal menyalin"));
+    navigator.clipboard.writeText(text).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = 'OK';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1000);
+    }).catch(() => showToast("Gagal menyalin"));
 }
 
 function pilihKodeTransaksi(kode) {
-document.getElementById('bonusKodeTransaksi' + currentDataIndex).value = kode;
-closeScanScatter2Modal();
-showToast("Kode untuk Data " + currentDataIndex + " dipilih: " + kode);
+    document.getElementById('bonusKodeTransaksi' + currentDataIndex).value = kode;
+    closeScanScatter2Modal();
+    showToast("Kode dipilih: " + kode);
 }
 
 function closeScanScatter2Modal() {
-const modal = document.getElementById('scanScatter2Modal');
-if (modal) modal.style.display = 'none';
+    const modal = document.getElementById('scanScatter2Modal');
+    if (modal) modal.style.display = 'none';
+}
+
+// ================= GOOGLE LENS FEATURE IN ZOOM =================
+function toggleLensPanel() {
+    const panel = document.getElementById('lensPanel');
+    const btn = document.getElementById('showLensBtn');
+    if (panel.style.display === 'none' || panel.style.display === '') {
+        panel.style.display = 'block';
+        btn.style.display = 'none';
+    } else {
+        panel.style.display = 'none';
+        btn.style.display = 'block';
+    }
+}
+
+function runLensAnalysis() {
+    const resultsDiv = document.getElementById('lensResults');
+    if (!currentLensImageUrl) {
+        resultsDiv.innerHTML = '<p style="color:var(--accent-red)">Tidak ada gambar aktif.</p>';
+        return;
+    }
+
+    resultsDiv.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-circle-notch fa-spin" style="font-size:24px; color:var(--neon-blue)"></i><br>Memindai...</div>';
+
+    // Use Proxy for Tawk links in Lens too
+    let imageUrl = currentLensImageUrl;
+    if (imageUrl.includes('tawk.link') || imageUrl.includes('tawk.to')) {
+        imageUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(imageUrl);
+    }
+
+    Tesseract.recognize(imageUrl, 'eng', { logger: m => console.log(m) }).then(({  { text } }) => {
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        let codes = [];
+        
+        // Extract numbers
+        lines.forEach(line => {
+            const matches = line.match(/\d{8,}/g);
+            if (matches) matches.forEach(m => codes.push(m));
+        });
+        
+        codes = [...new Set(codes)];
+
+        if (codes.length > 0) {
+            let html = '<b style="color:var(--neon-cyan)">Hasil Scan:</b><br>';
+            codes.forEach(code => {
+                html += `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,212,255,0.1); padding:8px; margin:5px 0; border-radius:6px; border:1px solid var(--border-color);">
+                    <span style="font-family:'Orbitron'; font-weight:bold;">${code}</span>
+                    <button onclick="navigator.clipboard.writeText('${code}'); showToast('Disalin!')" class="copy-btn" style="padding:4px 8px; font-size:12px;">Copy</button>
+                </div>`;
+            });
+            resultsDiv.innerHTML = html;
+        } else {
+            resultsDiv.innerHTML = '<p style="color:var(--text-muted)">Tidak ditemukan angka panjang.</p>';
+        }
+    }).catch(err => {
+        resultsDiv.innerHTML = '<p style="color:var(--accent-red)">Gagal memindai gambar.</p>';
+    });
 }
 
 // ================= COPY FUNCTIONS =================
 function prosesRekening(rek) {
-const parts = rek.split(',').map(p => p.trim());
-return { nomor: parts.slice(1).join(',') || '', nama: parts[0] || '' };
+    const parts = rek.split(',').map(p => p.trim());
+    return { nomor: parts.slice(1).join(',') || '', nama: parts[0] || '' };
 }
 
 function getDataAs7Columns(prefix) {
-const userid = document.getElementById('bonusUserid' + prefix).value.trim();
-const s1 = document.getElementById('bonusScatter1_' + prefix).value.trim();
-const s2 = document.getElementById('bonusScatter2_' + prefix).value.trim();
-const s3 = document.getElementById('bonusScatter3_' + prefix).value.trim();
-const rek = document.getElementById('bonusRekening' + prefix).value.trim();
-const kode = document.getElementById('bonusKodeTransaksi' + prefix).value.trim();
-let parts = [];
-if (userid) parts.push(userid);
-if (s1) parts.push(s1);
-if (s2) parts.push(s2);
-if (s3) parts.push(s3);
-if (rek) {
-const { nomor, nama } = prosesRekening(rek);
-if (nomor) parts.push(nomor);
-if (nama) parts.push(nama);
-}
-if (kode) parts.push(kode);
-return parts.join('\t');
+    const userid = document.getElementById('bonusUserid' + prefix).value.trim();
+    const s1 = document.getElementById('bonusScatter1_' + prefix).value.trim();
+    const s2 = document.getElementById('bonusScatter2_' + prefix).value.trim();
+    const s3 = document.getElementById('bonusScatter3_' + prefix).value.trim();
+    const rek = document.getElementById('bonusRekening' + prefix).value.trim();
+    const kode = document.getElementById('bonusKodeTransaksi' + prefix).value.trim();
+    let parts = [];
+    if (userid) parts.push(userid);
+    if (s1) parts.push(s1);
+    if (s2) parts.push(s2);
+    if (s3) parts.push(s3);
+    if (rek) {
+        const { nomor, nama } = prosesRekening(rek);
+        if (nomor) parts.push(nomor);
+        if (nama) parts.push(nama);
+    }
+    if (kode) parts.push(kode);
+    return parts.join('\t');
 }
 
 function copyData1() {
-const data = getDataAs7Columns('1');
-navigator.clipboard.writeText(data || '');
-showToast(data ? "Data 1 disalin!" : "Data 1 kosong");
+    const data = getDataAs7Columns('1');
+    navigator.clipboard.writeText(data || '');
+    showToast(data ? "Data 1 disalin!" : "Data 1 kosong");
 }
 
 function copyData2() {
-const data = getDataAs7Columns('2');
-navigator.clipboard.writeText(data || '');
-showToast(data ? "Data 2 disalin!" : "Data 2 kosong");
+    const data = getDataAs7Columns('2');
+    navigator.clipboard.writeText(data || '');
+    showToast(data ? "Data 2 disalin!" : "Data 2 kosong");
 }
 
 function copySemuaData() {
-const data1 = getDataAs7Columns('1');
-const data2 = getDataAs7Columns('2');
-let lines = [];
-if (data1 !== '') lines.push(data1);
-if (data2 !== '') lines.push(data2);
-const teks = lines.join('\n');
-navigator.clipboard.writeText(teks);
-showToast(teks ? "Semua data valid disalin!" : "Tidak ada data terisi");
+    const data1 = getDataAs7Columns('1');
+    const data2 = getDataAs7Columns('2');
+    let lines = [];
+    if (data1 !== '') lines.push(data1);
+    if (data2 !== '') lines.push(data2);
+    const teks = lines.join('\n');
+    navigator.clipboard.writeText(teks);
+    showToast(teks ? "Semua data valid disalin!" : "Tidak ada data terisi");
 }
 
 function hapusSemuaData() {
-['1','2'].forEach(p => {
-['bonusUserid','bonusScatter1_','bonusScatter2_','bonusScatter3_','bonusRekening','bonusKodeTransaksi'].forEach(field => {
-const el = document.getElementById(field + p);
-if (el) el.value = '';
-});
-});
-showToast("Semua data dihapus");
+    ['1','2'].forEach(p => {
+        ['bonusUserid','bonusScatter1_','bonusScatter2_','bonusScatter3_','bonusRekening','bonusKodeTransaksi'].forEach(field => {
+            const el = document.getElementById(field + p);
+            if (el) el.value = '';
+        });
+    });
+    showToast("Semua data dihapus");
 }
 
 // ================= HITUNG BONUS EVENT =================
 function hitungBonusEvent() {
-const isi = document.getElementById("bonusTextarea").value.trim();
-const patokan = parseInt((document.getElementById("bonusPatokan").value || '').replace(/[^\d]/g, '')) || 0;
-const surplus = parseInt((document.getElementById("bonusSurplus").value || '').replace(/[^\d]/g, '')) || 0;
-if (!isi) { showToast("Tempelkan data terlebih dahulu"); return; }
-const lines = isi.split("\n");
-let total = 0, i = 0;
-while (i < lines.length) {
-if (lines[i].trim() === 'Credit' && i + 1 < lines.length) {
-const amountMatch = lines[i + 1].trim().match(/IDR\s([\d,]+)/i);
-if (amountMatch) {
-const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-if (!isNaN(amount)) total += amount;
-}
-}
-i++;
-}
-const hasilDiv = document.getElementById("bonusHasil");
-if (hasilDiv) {
-let output = '<strong>Total Hitungan:</strong> <span class="bonus-angka">IDR ' + total.toLocaleString("en-US") + '</span>';
-if (patokan || surplus) {
-const totalPengurang = patokan + surplus;
-const selisih = total - totalPengurang;
-const selisihColor = selisih >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-output += '<br><strong>Patokan:</strong> <span class="bonus-angka">IDR ' + patokan.toLocaleString("en-US") + '</span>';
-output += '<br><strong>Surplus:</strong> <span class="bonus-angka">IDR ' + surplus.toLocaleString("en-US") + '</span>';
-output += '<br><strong>Total Dikurang:</strong> <span class="bonus-angka">IDR ' + totalPengurang.toLocaleString("en-US") + '</span>';
-output += '<br><strong>Selisih:</strong> <span class="bonus-angka" style="color:' + selisihColor + '">IDR ' + Math.abs(selisih).toLocaleString("en-US") + '</span>';
-}
-hasilDiv.innerHTML = output;
-}
+    const isi = document.getElementById("bonusTextarea").value.trim();
+    const patokan = parseInt((document.getElementById("bonusPatokan").value || '').replace(/[^\d]/g, '')) || 0;
+    const surplus = parseInt((document.getElementById("bonusSurplus").value || '').replace(/[^\d]/g, '')) || 0;
+    if (!isi) { showToast("Tempelkan data terlebih dahulu"); return; }
+    const lines = isi.split("\n");
+    let total = 0, i = 0;
+    while (i < lines.length) {
+        if (lines[i].trim() === 'Credit' && i + 1 < lines.length) {
+            const amountMatch = lines[i + 1].trim().match(/IDR\s([\d,]+)/i);
+            if (amountMatch) {
+                const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+                if (!isNaN(amount)) total += amount;
+            }
+        }
+        i++;
+    }
+    const hasilDiv = document.getElementById("bonusHasil");
+    if (hasilDiv) {
+        let output = '<strong>Total Hitungan:</strong> <span class="bonus-angka">IDR ' + total.toLocaleString("en-US") + '</span>';
+        if (patokan || surplus) {
+            const totalPengurang = patokan + surplus;
+            const selisih = total - totalPengurang;
+            const selisihColor = selisih >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+            output += '<br><strong>Patokan:</strong> <span class="bonus-angka">IDR ' + patokan.toLocaleString("en-US") + '</span>';
+            output += '<br><strong>Surplus:</strong> <span class="bonus-angka">IDR ' + surplus.toLocaleString("en-US") + '</span>';
+            output += '<br><strong>Selisih:</strong> <span class="bonus-angka" style="color:' + selisihColor + '">IDR ' + Math.abs(selisih).toLocaleString("en-US") + '</span>';
+        }
+        hasilDiv.innerHTML = output;
+    }
 }
 
 function hapusBonusEvent() {
-["bonusTextarea","bonusPatokan","bonusSurplus","bonusHasil","imageUrl"].forEach(id => {
-const el = document.getElementById(id);
-if (el) { if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.value = ""; else el.innerHTML = ""; }
-});
-showToast("Form berhasil dibersihkan");
+    ["bonusTextarea","bonusPatokan","bonusSurplus","bonusHasil","imageUrl"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.value = ""; else el.innerHTML = ""; }
+    });
+    showToast("Form berhasil dibersihkan");
 }
 
 // ================= GALERI OTOMATIS =================
 let bonusInputTimeout;
 function handleBonusInput() {
-clearTimeout(bonusInputTimeout);
-bonusInputTimeout = setTimeout(loadBonusImages, 50);
+    clearTimeout(bonusInputTimeout);
+    bonusInputTimeout = setTimeout(loadBonusImages, 50);
 }
 
 function loadBonusImages() {
-const inputEl = document.getElementById('bonusLinkInput');
-if (!inputEl) return;
-const input = inputEl.value || '';
-const lines = input.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-bonusAllPackagesData = [];
-lines.forEach(line => {
-const words = line.split(/\s+/).filter(w => w.length > 0);
-const urls = words.filter(w => /^https?:\/\//.test(w));
-const userid = words.length > 0 && !/^https?:\/\//.test(words[0]) ? words[0] : 'N/A';
-if (urls.length >= 1) {
-const links = [...urls.slice(0, bonusPackageSize)];
-while (links.length < bonusPackageSize) links.push('');
-bonusAllPackagesData.push({ userid, links });
-}
-});
-const maxNumEl = document.getElementById('bonusMaxPackageNum');
-if (maxNumEl) maxNumEl.textContent = bonusAllPackagesData.length;
-if (bonusAllPackagesData.length > 0) {
-bonusCurrentPackageIndex = Math.max(0, Math.min(bonusCurrentPackageIndex, bonusAllPackagesData.length - 1));
-updateBonusGallery(bonusCurrentPackageIndex);
-} else {
-updateBonusGallery(-1);
-const currentNumEl = document.getElementById('bonusCurrentPackageNum');
-if (currentNumEl) currentNumEl.textContent = '0';
-}
+    const inputEl = document.getElementById('bonusLinkInput');
+    if (!inputEl) return;
+    const input = inputEl.value || '';
+    const lines = input.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    bonusAllPackagesData = [];
+    lines.forEach(line => {
+        const words = line.split(/\s+/).filter(w => w.length > 0);
+        const urls = words.filter(w => /^https?:\/\//.test(w));
+        const userid = words.length > 0 && !/^https?:\/\//.test(words[0]) ? words[0] : 'N/A';
+        if (urls.length >= 1) {
+            const links = [...urls.slice(0, bonusPackageSize)];
+            while (links.length < bonusPackageSize) links.push('');
+            bonusAllPackagesData.push({ userid, links });
+        }
+    });
+    const maxNumEl = document.getElementById('bonusMaxPackageNum');
+    if (maxNumEl) maxNumEl.textContent = bonusAllPackagesData.length;
+    if (bonusAllPackagesData.length > 0) {
+        bonusCurrentPackageIndex = Math.max(0, Math.min(bonusCurrentPackageIndex, bonusAllPackagesData.length - 1));
+        updateBonusGallery(bonusCurrentPackageIndex);
+    } else {
+        updateBonusGallery(-1);
+        const currentNumEl = document.getElementById('bonusCurrentPackageNum');
+        if (currentNumEl) currentNumEl.textContent = '0';
+    }
 }
 
 function updateBonusGallery(index) {
-const slots = ['bonusImgSlot1', 'bonusImgSlot2', 'bonusImgSlot3'].map(id => document.getElementById(id));
-const combined = document.getElementById('bonusCombinedImageSlot');
-const useridEl = document.getElementById('bonusCombinedSlotUserid');
-const currentNumEl = document.getElementById('bonusCurrentPackageNum');
-if (index >= 0 && index < bonusAllPackagesData.length) {
-const { userid, links } = bonusAllPackagesData[index];
-if (useridEl) useridEl.textContent = 'USER ID: ' + userid;
-if (combined) { combined.style.opacity = '1'; combined.style.pointerEvents = 'auto'; }
-slots.forEach((img, i) => {
-if (!img) return;
-img.src = links[i] || "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=-";
-img.style.display = 'inline-block';
-});
-if (currentNumEl) currentNumEl.textContent = index + 1;
-} else {
-if (useridEl) useridEl.textContent = 'Belum Ada Data';
-if (combined) { combined.style.opacity = '0.4'; combined.style.pointerEvents = 'none'; }
-slots.forEach((img, i) => {
-if (!img) return;
-img.src = "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=-";
-img.style.display = 'inline-block';
-});
-if (currentNumEl) currentNumEl.textContent = '0';
-}
+    const slots = ['bonusImgSlot1', 'bonusImgSlot2', 'bonusImgSlot3'].map(id => document.getElementById(id));
+    const combined = document.getElementById('bonusCombinedImageSlot');
+    const useridEl = document.getElementById('bonusCombinedSlotUserid');
+    const currentNumEl = document.getElementById('bonusCurrentPackageNum');
+    if (index >= 0 && index < bonusAllPackagesData.length) {
+        const { userid, links } = bonusAllPackagesData[index];
+        if (useridEl) useridEl.textContent = 'USER ID: ' + userid;
+        if (combined) { combined.style.opacity = '1'; combined.style.pointerEvents = 'auto'; }
+        slots.forEach((img, i) => {
+            if (!img) return;
+            img.src = links[i] || "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=-";
+            img.style.display = 'inline-block';
+        });
+        if (currentNumEl) currentNumEl.textContent = index + 1;
+    } else {
+        if (useridEl) useridEl.textContent = 'Belum Ada Data';
+        if (combined) { combined.style.opacity = '0.4'; combined.style.pointerEvents = 'none'; }
+        slots.forEach((img, i) => {
+            if (!img) return;
+            img.src = "https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=-";
+            img.style.display = 'inline-block';
+        });
+        if (currentNumEl) currentNumEl.textContent = '0';
+    }
 }
 
 function navigateBonusPackage(dir) {
-if (bonusAllPackagesData.length <= 1) return;
-const total = bonusAllPackagesData.length;
-if (dir === 'next' && bonusCurrentPackageIndex < total - 1) bonusCurrentPackageIndex++;
-else if (dir === 'prev' && bonusCurrentPackageIndex > 0) bonusCurrentPackageIndex--;
-updateBonusGallery(bonusCurrentPackageIndex);
-if (isBonusZoomOpen) {
-const pkg = bonusAllPackagesData[bonusCurrentPackageIndex];
-updateBonusZoomDisplay(pkg.userid, pkg.links);
-}
+    if (bonusAllPackagesData.length <= 1) return;
+    const total = bonusAllPackagesData.length;
+    if (dir === 'next' && bonusCurrentPackageIndex < total - 1) bonusCurrentPackageIndex++;
+    else if (dir === 'prev' && bonusCurrentPackageIndex > 0) bonusCurrentPackageIndex--;
+    updateBonusGallery(bonusCurrentPackageIndex);
+    if (isBonusZoomOpen) {
+        const pkg = bonusAllPackagesData[bonusCurrentPackageIndex];
+        updateBonusZoomDisplay(pkg.userid, pkg.links);
+    }
 }
 
 function updateBonusZoomDisplay(userid, links) {
-const wrapper = document.getElementById('bonusZoomedContentWrapper');
-const useridEl = document.getElementById('bonusZoomedUserid');
-if (!wrapper) return;
-wrapper.innerHTML = '';
-links.filter(Boolean).forEach(link => {
-const img = document.createElement('img');
-img.src = link;
-img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);';
-wrapper.appendChild(img);
-});
-if (useridEl) useridEl.textContent = userid;
-const prevBtn = document.getElementById('bonusPrevZoomBtn');
-const nextBtn = document.getElementById('bonusNextZoomBtn');
-const index = bonusCurrentPackageIndex;
-const total = bonusAllPackagesData.length;
-if (prevBtn) prevBtn.disabled = (index <= 0);
-if (nextBtn) nextBtn.disabled = (index >= total - 1);
+    const wrapper = document.getElementById('bonusZoomedContentWrapper');
+    const useridEl = document.getElementById('bonusZoomedUserid');
+    if (!wrapper) return;
+    wrapper.innerHTML = '';
+    
+    // Update Lens Target Image (Take the first valid link or the one currently viewed if we tracked it, here we take first for simplicity or could add click listener)
+    // For now, let's assume the first image in the package is the main target for Lens, or user can click to set it.
+    // To make it dynamic, let's just pick the first non-empty link as the default for Lens analysis
+    const firstValidLink = links.find(l => l) || "";
+    currentLensImageUrl = firstValidLink;
+
+    links.filter(Boolean).forEach(link => {
+        const img = document.createElement('img');
+        img.src = link;
+        img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); cursor: pointer;';
+        // Add click to set as Lens target
+        img.onclick = function() {
+            currentLensImageUrl = link;
+            showToast("Gambar dipilih untuk analisis Lens");
+            // Optional: Auto run lens
+            // runLensAnalysis(); 
+        };
+        wrapper.appendChild(img);
+    });
+
+    if (useridEl) useridEl.textContent = userid;
+    const prevBtn = document.getElementById('bonusPrevZoomBtn');
+    const nextBtn = document.getElementById('bonusNextZoomBtn');
+    const index = bonusCurrentPackageIndex;
+    const total = bonusAllPackagesData.length;
+    if (prevBtn) prevBtn.disabled = (index <= 0);
+    if (nextBtn) nextBtn.disabled = (index >= total - 1);
 }
 
 function openBonusZoom() {
-if (bonusAllPackagesData.length === 0) return;
-const current = bonusAllPackagesData[bonusCurrentPackageIndex];
-if (!current.links.some(l => l)) return;
-isBonusZoomOpen = true;
-updateBonusZoomDisplay(current.userid, current.links);
-const modal = document.getElementById('bonusZoomModal');
-if (modal) modal.style.display = 'flex';
+    if (bonusAllPackagesData.length === 0) return;
+    const current = bonusAllPackagesData[bonusCurrentPackageIndex];
+    if (!current.links.some(l => l)) return;
+    isBonusZoomOpen = true;
+    updateBonusZoomDisplay(current.userid, current.links);
+    const modal = document.getElementById('bonusZoomModal');
+    if (modal) modal.style.display = 'flex';
+    
+    // Reset Lens Panel
+    document.getElementById('lensPanel').style.display = 'none';
+    document.getElementById('showLensBtn').style.display = 'block';
+    document.getElementById('lensResults').innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Klik tombol di bawah untuk membaca teks/gambar.</p>';
 }
 
 function closeBonusZoom() {
-const modal = document.getElementById('bonusZoomModal');
-if (modal) modal.style.display = 'none';
-isBonusZoomOpen = false;
+    const modal = document.getElementById('bonusZoomModal');
+    if (modal) modal.style.display = 'none';
+    isBonusZoomOpen = false;
 }
 
 function clearBonusAllData() {
-bonusAllPackagesData = [];
-const inputEl = document.getElementById('bonusLinkInput');
-if (inputEl) inputEl.value = '';
-updateBonusGallery(-1);
-const maxNumEl = document.getElementById('bonusMaxPackageNum');
-if (maxNumEl) maxNumEl.textContent = '0';
-showToast("Semua data galeri dihapus");
+    bonusAllPackagesData = [];
+    const inputEl = document.getElementById('bonusLinkInput');
+    if (inputEl) inputEl.value = '';
+    updateBonusGallery(-1);
+    const maxNumEl = document.getElementById('bonusMaxPackageNum');
+    if (maxNumEl) maxNumEl.textContent = '0';
+    showToast("Semua data galeri dihapus");
 }
 
 // ================= ZOOM & LIGHTBOX =================
 function closeZoom() {
-['zoomModal','zoomedImage','imageUrl','kodeHasilZoom'].forEach(id => {
-const el = document.getElementById(id);
-if (el) { if (el.tagName === 'IMG' || el.tagName === 'INPUT') el.src = el.value = ''; else el.innerHTML = ''; }
-});
+    ['zoomModal','zoomedImage','imageUrl','kodeHasilZoom'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { if (el.tagName === 'IMG' || el.tagName === 'INPUT') el.src = el.value = ''; else el.innerHTML = ''; }
+    });
 }
 
 function openLightbox(imgElement) {
-imageList = Array.from(document.querySelectorAll("#bonusCombinedImageSlot img")).filter(img => img.style.display !== "none").map(img => img.src);
-currentImageIndex = imageList.indexOf(imgElement.src);
-const lightboxImage = document.getElementById("lightboxImage");
-if (lightboxImage) lightboxImage.src = imgElement.src;
-const lightboxModal = document.getElementById("lightboxModal");
-if (lightboxModal) lightboxModal.style.display = 'flex';
+    imageList = Array.from(document.querySelectorAll("#bonusCombinedImageSlot img")).filter(img => img.style.display !== "none").map(img => img.src);
+    currentImageIndex = imageList.indexOf(imgElement.src);
+    const lightboxImage = document.getElementById("lightboxImage");
+    if (lightboxImage) lightboxImage.src = imgElement.src;
+    const lightboxModal = document.getElementById("lightboxModal");
+    if (lightboxModal) lightboxModal.style.display = 'flex';
 }
 
 function closeLightbox() {
-const lightboxModal = document.getElementById("lightboxModal");
-const lightboxImage = document.getElementById("lightboxImage");
-if (lightboxModal) lightboxModal.style.display = 'none';
-if (lightboxImage) lightboxImage.src = '';
+    const lightboxModal = document.getElementById("lightboxModal");
+    const lightboxImage = document.getElementById("lightboxImage");
+    if (lightboxModal) lightboxModal.style.display = 'none';
+    if (lightboxImage) lightboxImage.src = '';
 }
 
 function nextImage() {
-if (imageList.length === 0) return;
-currentImageIndex = (currentImageIndex + 1) % imageList.length;
-const lightboxImage = document.getElementById("lightboxImage");
-if (lightboxImage) lightboxImage.src = imageList[currentImageIndex];
+    if (imageList.length === 0) return;
+    currentImageIndex = (currentImageIndex + 1) % imageList.length;
+    const lightboxImage = document.getElementById("lightboxImage");
+    if (lightboxImage) lightboxImage.src = imageList[currentImageIndex];
 }
 
 function prevImage() {
-if (imageList.length === 0) return;
-currentImageIndex = (currentImageIndex - 1 + imageList.length) % imageList.length;
-const lightboxImage = document.getElementById("lightboxImage");
-if (lightboxImage) lightboxImage.src = imageList[currentImageIndex];
+    if (imageList.length === 0) return;
+    currentImageIndex = (currentImageIndex - 1 + imageList.length) % imageList.length;
+    const lightboxImage = document.getElementById("lightboxImage");
+    if (lightboxImage) lightboxImage.src = imageList[currentImageIndex];
 }
 
 // ================= KEYBOARD SUPPORT =================
 document.addEventListener('keydown', (e) => {
-if (isBonusZoomOpen && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-e.preventDefault();
-navigateBonusPackage(e.key === 'ArrowLeft' ? 'prev' : 'next');
-} else if (e.key === 'Escape') {
-[closeBonusZoom, closeScatterZoom, closeScanScatter2Modal].forEach(fn => fn());
-}
+    if (isBonusZoomOpen && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+        e.preventDefault();
+        navigateBonusPackage(e.key === 'ArrowLeft' ? 'prev' : 'next');
+    } else if (e.key === 'Escape') {
+        [closeBonusZoom, closeScatterZoom, closeScanScatter2Modal].forEach(fn => fn());
+    }
 });
 
 // ================= INITIALIZE =================
 document.addEventListener('DOMContentLoaded', function() {
-createParticles();
-switchBonusMode('bonusAsli');
+    createParticles();
+    switchBonusMode('bonusAsli');
 });
 </script>
 </body>
 </html>
-
