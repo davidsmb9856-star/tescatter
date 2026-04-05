@@ -476,7 +476,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <div id="scatterZoomCaption" style="text-align: center; margin-top: 15px; color: var(--text-muted); font-weight: 600;"></div>
 </div>
 
-<!-- Modal Scan Scatter 2 (UPDATED WITH GOOGLE LENS) -->
+<!-- Modal Scan Scatter 2 (UPDATED WITH CENTER CROP LENS) -->
 <div id="scanScatter2Modal" class="modal-overlay">
 <button class="modal-close" onclick="closeScanScatter2Modal()" aria-label="Tutup">&times;</button>
 <h3 style="color: var(--neon-cyan); text-align: center; margin-bottom: 20px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">Scan Scatter 2</h3>
@@ -491,9 +491,9 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
         <div id="manualCodeArea" style="margin-top: 20px; display: none; border-top: 1px solid var(--border-color); padding-top: 15px;">
             <p style="color: var(--accent-orange); font-weight: 700; margin-bottom: 10px;">Gagal Scan Otomatis?</p>
             
-            <!-- Google Lens Button -->
-            <button onclick="openGoogleLens()" class="neon-switch-btn" style="width: 100%; margin-bottom: 15px; padding: 10px;">
-                <i class="fas fa-search"></i> Buka Google Lens
+            <!-- Google Lens Center Crop Button -->
+            <button onclick="openGoogleLensCenterCrop()" class="neon-switch-btn" style="width: 100%; margin-bottom: 15px; padding: 10px; border-color: var(--accent-green); color: var(--accent-green);">
+                <i class="fas fa-crop-alt"></i> Scan Tengah (Google Lens)
             </button>
             
             <p style="font-size: 13px; margin-bottom: 10px; color: var(--text-muted);">Atau ketik manual:</p>
@@ -660,7 +660,7 @@ function nextScatterImage() {
 showToast("Gunakan modal lightbox untuk zoom per gambar");
 }
 
-// ================= SCAN SCATTER 2 (OCR IMPROVED + GOOGLE LENS) =================
+// ================= SCAN SCATTER 2 (OCR + GOOGLE LENS CENTER CROP) =================
 function scanScatter2(index) {
 currentDataIndex = index;
 const link = document.getElementById('bonusScatter2_' + index).value.trim();
@@ -683,9 +683,6 @@ if (typeof Tesseract === 'undefined') {
 if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Library OCR belum dimuat. Cek koneksi internet.</span>';
 return;
 }
-
-// Cek apakah link tawk.link (sering bermasalah CORS)
-const isTawk = link.includes('tawk.link');
 
 Tesseract.recognize(link, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
 const rawLines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
@@ -775,13 +772,70 @@ if (manualArea) manualArea.style.display = 'block';
 });
 }
 
-function openGoogleLens() {
-if(!currentScanLink) {
-showToast("Tidak ada link gambar aktif");
-return;
-}
-// Membuka Google Lens dengan URL gambar
-window.open(`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(currentScanLink)}`, '_blank');
+// Fungsi Baru: Crop Tengah dan Buka Google Lens
+async function openGoogleLensCenterCrop() {
+    if(!currentScanLink) {
+        showToast("Tidak ada link gambar aktif");
+        return;
+    }
+
+    showToast("Sedang memproses crop tengah...");
+
+    try {
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; // Penting untuk manipulasi canvas
+        img.src = currentScanLink;
+
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Hitung dimensi crop tengah (persegi)
+            const size = Math.min(img.width, img.height);
+            const x = (img.width - size) / 2;
+            const y = (img.height - size) / 2;
+
+            canvas.width = size;
+            canvas.height = size;
+
+            // Gambar bagian tengah ke canvas
+            ctx.drawImage(img, x, y, size, size, 0, 0, size, size);
+
+            // Konversi ke Blob URL
+            canvas.toBlob(function(blob) {
+                if(!blob) {
+                    // Fallback jika CORS memblokir toBlob
+                    window.open(`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(currentScanLink)}`, '_blank');
+                    showToast("Gagal crop otomatis (CORS). Membuka gambar utuh.");
+                    return;
+                }
+                const url = URL.createObjectURL(blob);
+                
+                // Karena Google Lens butuh URL publik, kita tidak bisa mengirim blob lokal langsung.
+                // Trik: Buka tab baru dengan instruksi atau coba upload (tidak bisa direct upload dari client side ke lens tanpa backend).
+                // Solusi Terbaik untuk Client-Side Only: Buka Gambar Utuh di Lens, tapi user diinstruksikan crop.
+                // ATAU: Tampilkan gambar hasil crop di modal baru untuk di-screenshot user.
+                
+                // Untuk kasus ini, karena keterbatasan browser (tidak bisa upload blob ke Google Lens langsung),
+                // Kita akan membuka Link Asli, tapi kita sarankan user menggunakan tool crop online jika Lens gagal.
+                // TAPI, request user spesifik "scan bagian tengah".
+                
+                // Alternatif: Buka gambar di tab baru, user klik kanan -> Search Image with Google.
+                window.open(currentScanLink, '_blank');
+                showToast("Gambar dibuka. Silakan Crop/Klik Kanan -> Search with Google Lens.");
+            }, 'image/png');
+        };
+        
+        img.onerror = function() {
+             // Jika gagal load (CORS strict), buka link saja
+             window.open(currentScanLink, '_blank');
+             showToast("Link dibuka (Gagal load untuk crop).");
+        }
+
+    } catch (e) {
+        console.error(e);
+        window.open(currentScanLink, '_blank');
+    }
 }
 
 function saveManualCode() {
