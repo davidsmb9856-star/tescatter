@@ -3,12 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LINE TOGEL - Bonus Event</title>
+<title>LINE TOGEL - Bonus Event (Enhanced Scan)</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Tesseract untuk OCR Text -->
+<!-- Menggunakan Tesseract.js versi stabil -->
 <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
-<!-- jsQR untuk QR Code & Barcode yang lebih akurat -->
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <style>
 :root {
 --bg-dark: #020810;
@@ -45,6 +43,10 @@ background-image: linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
 linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
 background-size: 50px 50px;
 animation: gridMove 20s linear infinite;
+}
+@keyframes gridMove {
+0% { transform: translate(0, 0); }
+100% { transform: translate(50px, 50px); }
 }
 .particle {
 position: fixed; width: 4px; height: 4px; background: var(--neon-blue);
@@ -202,14 +204,10 @@ font-family: 'Orbitron', sans-serif; font-weight: 700;
 }
 .modal-overlay {
 position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-background: rgba(2, 8, 16, 0.95); z-index: 10000; display: none;
+background: rgba(2, 8, 16, 0.98); z-index: 10000; display: none;
 flex-direction: column; justify-content: center; align-items: center; padding: 20px;
 animation: modalFadeIn 0.3s ease-out;
-backdrop-filter: blur(5px);
 }
-.modal-overlay.closable { cursor: pointer; }
-.modal-overlay.closable > * { cursor: default; }
-
 @keyframes modalFadeIn {
 from { opacity: 0; backdrop-filter: blur(0); }
 to { opacity: 1; backdrop-filter: blur(10px); }
@@ -217,7 +215,6 @@ to { opacity: 1; backdrop-filter: blur(10px); }
 .modal-close {
 position: absolute; top: 15px; right: 25px; font-size: 40px; color: var(--neon-blue);
 background: none; border: none; cursor: pointer; transition: all 0.3s ease; line-height: 1;
-z-index: 10002;
 }
 .modal-close:hover { color: var(--neon-cyan); transform: rotate(90deg); }
 .zoom-nav-button {
@@ -349,7 +346,10 @@ outline: 2px solid var(--neon-blue); outline-offset: 2px;
 <div id="bonusHasil" class="bonus-result"></div>
 <div class="bonus-input-group" style="margin-top: 15px;">
 <label for="imageUrl" class="bonus-label">Link Gambar Transaksi:</label>
-<input type="text" id="imageUrl" class="bonus-input" placeholder="Tempel link gambar di sini...">
+<div class="input-with-buttons">
+    <input type="text" id="imageUrl" class="bonus-input" placeholder="Tempel link gambar di sini..." onpaste="handleUniversalPaste(this)">
+    <button type="button" onclick="scanAnyLink('imageUrl')" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+</div>
 </div>
 </div>
 
@@ -391,18 +391,24 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
 <label class="bonus-label" style="font-size: 13px;">2. S1:</label>
-<input type="text" id="bonusScatter1_1" class="bonus-input" placeholder="Link gambar S1..." style="padding: 8px; font-size: 14px;">
+<div class="input-with-buttons">
+    <input type="text" id="bonusScatter1_1" class="bonus-input" placeholder="Link gambar S1..." style="padding: 8px; font-size: 14px;" onpaste="handleUniversalPaste(this)">
+    <button type="button" onclick="scanAnyLink('bonusScatter1_1')" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+</div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">3. S2 (Scan Universal):</label>
+<label class="bonus-label" style="font-size: 13px;">3. S2 (Scan OCR):</label>
 <div class="input-with-buttons">
-<input type="text" id="bonusScatter2_1" class="bonus-input" placeholder="Link gambar/link..." style="padding: 8px; font-size: 14px;">
-<button type="button" onclick="scanUniversal(1)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+<input type="text" id="bonusScatter2_1" class="bonus-input" placeholder="Link gambar PNG..." style="padding: 8px; font-size: 14px;" onpaste="handleUniversalPaste(this)">
+<button type="button" onclick="scanAnyLink('bonusScatter2_1')" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
 </div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
 <label class="bonus-label" style="font-size: 13px;">4. S3:</label>
-<input type="text" id="bonusScatter3_1" class="bonus-input" placeholder="Link gambar S3..." style="padding: 8px; font-size: 14px;">
+<div class="input-with-buttons">
+    <input type="text" id="bonusScatter3_1" class="bonus-input" placeholder="Link gambar S3..." style="padding: 8px; font-size: 14px;" onpaste="handleUniversalPaste(this)">
+    <button type="button" onclick="scanAnyLink('bonusScatter3_1')" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+</div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
 <label class="bonus-label" style="font-size: 13px;">5. Rek:</label>
@@ -432,18 +438,24 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
 <label class="bonus-label" style="font-size: 13px;">2. S1:</label>
-<input type="text" id="bonusScatter1_2" class="bonus-input" placeholder="Link gambar S1..." style="padding: 8px; font-size: 14px;">
+<div class="input-with-buttons">
+    <input type="text" id="bonusScatter1_2" class="bonus-input" placeholder="Link gambar S1..." style="padding: 8px; font-size: 14px;" onpaste="handleUniversalPaste(this)">
+    <button type="button" onclick="scanAnyLink('bonusScatter1_2')" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+</div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">3. S2 (Scan Universal):</label>
+<label class="bonus-label" style="font-size: 13px;">3. S2 (Scan OCR):</label>
 <div class="input-with-buttons">
-<input type="text" id="bonusScatter2_2" class="bonus-input" placeholder="Link gambar/link..." style="padding: 8px; font-size: 14px;">
-<button type="button" onclick="scanUniversal(2)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+<input type="text" id="bonusScatter2_2" class="bonus-input" placeholder="Link gambar PNG..." style="padding: 8px; font-size: 14px;" onpaste="handleUniversalPaste(this)">
+<button type="button" onclick="scanAnyLink('bonusScatter2_2')" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
 </div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
 <label class="bonus-label" style="font-size: 13px;">4. S3:</label>
-<input type="text" id="bonusScatter3_2" class="bonus-input" placeholder="Link gambar S3..." style="padding: 8px; font-size: 14px;">
+<div class="input-with-buttons">
+    <input type="text" id="bonusScatter3_2" class="bonus-input" placeholder="Link gambar S3..." style="padding: 8px; font-size: 14px;" onpaste="handleUniversalPaste(this)">
+    <button type="button" onclick="scanAnyLink('bonusScatter3_2')" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">Scan</button>
+</div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
 <label class="bonus-label" style="font-size: 13px;">5. Rek:</label>
@@ -473,7 +485,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 </div>
 
 <!-- Modal Zoom 3 Foto Scatter -->
-<div id="scatterZoomModal" class="modal-overlay closable" onclick="if(event.target === this) closeScatterZoom()">
+<div id="scatterZoomModal" class="modal-overlay">
 <button class="modal-close" onclick="closeScatterZoom()" aria-label="Tutup">&times;</button>
 <h3 id="scatterZoomTitle" style="color: var(--neon-cyan); text-align: center; margin-bottom: 20px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">Lihat 3 Foto Scatter</h3>
 <div class="zoomed-content-wrapper" id="scatterZoomContent"></div>
@@ -484,10 +496,10 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <div id="scatterZoomCaption" style="text-align: center; margin-top: 15px; color: var(--text-muted); font-weight: 600;"></div>
 </div>
 
-<!-- Modal Scan Universal (QR/Barcode/Text) -->
-<div id="scanScatter2Modal" class="modal-overlay closable" onclick="if(event.target === this) closeScanScatter2Modal()">
+<!-- Modal Universal Scan Result -->
+<div id="scanScatter2Modal" class="modal-overlay">
 <button class="modal-close" onclick="closeScanScatter2Modal()" aria-label="Tutup">&times;</button>
-<h3 style="color: var(--neon-cyan); text-align: center; margin-bottom: 20px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">Scan Kode Universal</h3>
+<h3 style="color: var(--neon-cyan); text-align: center; margin-bottom: 20px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">Hasil Scan Kode</h3>
 <div class="modal-content" style="display: flex; gap: 20px; max-width: 95vw; width: 100%; height: 80vh;">
 <div class="image-section" style="flex: 1; display: flex; justify-content: center; align-items: center;">
 <img id="scanScatter2Image" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);">
@@ -499,7 +511,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 </div>
 
 <!-- Modal Zoom Galeri -->
-<div id="bonusZoomModal" class="modal-overlay closable" onclick="if(event.target === this) closeBonusZoom()">
+<div id="bonusZoomModal" class="modal-overlay">
 <button class="modal-close" onclick="closeBonusZoom()" aria-label="Tutup zoom">&times;</button>
 <span id="bonusZoomedUserid" style="display: block; text-align: center; font-size: 22px; margin-bottom: 20px; color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-weight: 700;"></span>
 <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; width: 100%;">
@@ -510,8 +522,22 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <div id="bonusCaption" style="text-align: center; margin-top: 20px; color: var(--text-muted); font-weight: 600;">Gunakan tombol navigasi atau panah kiri/kanan pada keyboard.</div>
 </div>
 
+<!-- Modal Zoom Transaksi -->
+<div id="zoomModal" class="modal-overlay">
+<button class="modal-close" onclick="closeZoom()" aria-label="Tutup">&times;</button>
+<div style="display: flex; flex: 1; width: 100%; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
+<div style="flex: 1; display: flex; justify-content: center; align-items: center; min-width: 300px;">
+<img id="zoomedImage" src="" style="max-width: 90%; max-height: 70vh; border-radius: 12px; box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);">
+</div>
+<div id="kodeHasilZoom" style="flex: 1; color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-weight: 500; white-space: pre-wrap; background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); max-height: 70vh; overflow-y: auto; min-width: 300px;"></div>
+</div>
+<div style="margin-top: 20px; width: 80%; max-width: 500px;">
+<input type="text" id="imageUrlZoom" placeholder="Tempel link gambar di sini..." class="bonus-input" style="text-align: center;">
+</div>
+</div>
+
 <!-- Lightbox Modal -->
-<div id="lightboxModal" class="modal-overlay closable" onclick="if(event.target === this) closeLightbox()">
+<div id="lightboxModal" class="modal-overlay">
 <button class="modal-close" onclick="closeLightbox()" aria-label="Tutup">&times;</button>
 <img id="lightboxImage" src="" style="max-width: 90%; max-height: 85%; border-radius: 12px; box-shadow: 0 0 40px rgba(0, 212, 255, 0.5);">
 <div style="display: flex; gap: 15px; margin-top: 20px;">
@@ -523,7 +549,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <script>
 // ================= INITIALIZATION =================
 let currentBonusMode = 'bonusAsli';
-let currentDataIndex = 1;
+let currentDataIndex = 1; // Untuk menyimpan index data scatter yang sedang discan
 let bonusAllPackagesData = [];
 let bonusCurrentPackageIndex = 0;
 const bonusPackageSize = 3;
@@ -533,6 +559,7 @@ let currentImageIndex = 0;
 let scatterZoomImages = [];
 let scatterZoomIndex = 0;
 let currentScatterDataIndex = 1;
+let targetInputIdForScan = ''; // Menyimpan ID input target untuk fungsi "Pilih"
 
 function createParticles() {
 const container = document.getElementById('particles');
@@ -568,6 +595,168 @@ else if (mode === 'inputScatter') document.getElementById('modeInputScatter').st
 const btn = document.getElementById('btn-' + id);
 if (btn) btn.classList.toggle('active', id === mode);
 });
+}
+
+// ================= UNIVERSAL SCAN LOGIC =================
+function handleUniversalPaste(inputElement) {
+    setTimeout(() => {
+        const val = inputElement.value.trim();
+        if (val.startsWith('http')) {
+            showToast("Link terdeteksi! Klik tombol Scan.");
+        }
+    }, 100);
+}
+
+// Fungsi Scan Baru yang Universal
+function scanAnyLink(inputId) {
+    const inputEl = document.getElementById(inputId);
+    if (!inputEl) return;
+    
+    const link = inputEl.value.trim();
+    if (!link) { 
+        showToast("Masukkan link gambar terlebih dahulu!"); 
+        return; 
+    }
+    if (!link.match(/^https?:\/\//)) {
+        showToast("Link tidak valid (harus http/https)");
+        return;
+    }
+
+    // Set target ID agar tombol "Pilih" tahu harus mengisi input mana
+    targetInputIdForScan = inputId;
+    currentDataIndex = inputId.includes('1') ? 1 : (inputId.includes('2') ? 2 : 0); // Deteksi manual index jika perlu
+
+    const img = document.getElementById('scanScatter2Image');
+    const resultDiv = document.getElementById('scanScatter2Result');
+    const modal = document.getElementById('scanScatter2Modal');
+    
+    if (img) img.src = link;
+    if (modal) modal.style.display = 'flex';
+    if (resultDiv) resultDiv.innerHTML = '<div style="text-align:center; padding:20px;"><div style="font-size:20px; color:var(--neon-blue); margin-bottom:10px;">⏳ Memindai gambar...</div><div style="font-size:14px; color:var(--text-muted);">Mohon tunggu, AI sedang membaca angka.</div></div>';
+    
+    if (typeof Tesseract === 'undefined') {
+        if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Library OCR belum dimuat. Cek koneksi internet.</span>';
+        return;
+    }
+
+    Tesseract.recognize(link, 'eng', { 
+        logger: m => {
+            if(m.status === 'recognizing text') {
+                // Opsional: update progress bar jika mau
+            }
+        } 
+    }).then(({ data: { text } }) => {
+        processOCRResult(text, resultDiv);
+    }).catch(err => {
+        console.error(err);
+        if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal membaca gambar. Pastikan gambar jelas.</span>';
+    });
+}
+
+function processOCRResult(text, resultDiv) {
+    if (!resultDiv) return;
+    
+    const rawLines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    let hasilGabung = [], hasilLangsung = [];
+    
+    // Logika pencarian angka panjang (Kode Transaksi biasanya 8-12 digit)
+    for (let i = 0; i < rawLines.length; i++) {
+        const line = rawLines[i];
+        // Cari angka minimal 8 digit
+        const match = line.match(/\b\d{8,}\b/g);
+        
+        if (match) {
+            match.forEach(num => {
+                // Filter angka yang terlalu pendek atau terlalu panjang (noise)
+                if (num.length >= 8 && num.length <= 16) {
+                     // Cek baris berikutnya untuk kemungkinan gabungan
+                    if (i + 1 < rawLines.length) {
+                        const nextLine = rawLines[i + 1].trim();
+                        const nextMatch = nextLine.match(/\b\d{4,}\b/); // Angka pendek di baris bawah
+                        if (nextMatch) {
+                            // Gabungkan jika berdekatan secara visual (heuristik sederhana)
+                             hasilGabung.push(num + nextMatch[0]);
+                        } else {
+                            hasilGabung.push(num);
+                        }
+                    } else {
+                        hasilGabung.push(num);
+                    }
+                }
+            });
+        }
+    }
+    
+    // Deduplikasi
+    hasilGabung = [...new Set(hasilGabung)];
+    
+    resultDiv.innerHTML = "";
+    
+    if (hasilGabung.length > 0) {
+        const title1 = document.createElement("div");
+        title1.innerHTML = '<b style="color: var(--neon-blue); font-size: 16px; margin-bottom:10px; display:block;">Kode Terdeteksi:</b>';
+        resultDiv.appendChild(title1);
+        
+        hasilGabung.forEach(kode => {
+            const div = document.createElement("div");
+            div.className = "result-item";
+            // Highlight angka
+            div.innerHTML = `<span style="font-weight: 700; font-size:16px; color:var(--neon-cyan);">${kode}</span>
+            <div style="display:flex; gap:8px;">
+                <button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">Copy</button>
+                <button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">Pilih & Isi</button>
+            </div>`;
+            resultDiv.appendChild(div);
+        });
+    } else {
+        resultDiv.innerHTML = '<div style="text-align:center; color:var(--accent-red);"><b>Tidak ditemukan kode angka valid.</b><br><span style="font-size:13px; color:var(--text-muted);">Coba gunakan gambar yang lebih jelas atau crop bagian angkanya saja.</span></div>';
+        
+        // Tampilkan raw text untuk debugging user
+        const rawDiv = document.createElement("div");
+        rawDiv.style.marginTop = "20px";
+        rawDiv.style.fontSize = "12px";
+        rawDiv.style.color = "var(--text-muted)";
+        rawDiv.innerHTML = "<b>Raw Text:</b><br>" + text.replace(/\n/g, '<br>');
+        resultDiv.appendChild(rawDiv);
+    }
+}
+
+function copyWithFeedback(btn, text) {
+navigator.clipboard.writeText(text).then(() => {
+const original = btn.innerHTML;
+btn.innerHTML = 'OK';
+btn.classList.add('copied');
+setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1000);
+}).catch(() => showToast("Gagal menyalin"));
+}
+
+function pilihKodeTransaksi(kode) {
+    if (targetInputIdForScan) {
+        const el = document.getElementById(targetInputIdForScan);
+        if(el) {
+            // Jika ini field khusus kode transaksi, isi langsung. 
+            // Jika ini field gambar (S1/S2/S3), kita asumsikan user ingin mengisi field Kode Transaksi di kartu yang sama
+            if (targetInputIdForScan.includes('KodeTransaksi')) {
+                el.value = kode;
+            } else {
+                // Mencari pasangan input KodeTransaksi berdasarkan index (1 atau 2)
+                let idx = currentDataIndex;
+                // Fallback deteksi index dari ID
+                if (targetInputIdForScan.endsWith('1')) idx = 1;
+                if (targetInputIdForScan.endsWith('2')) idx = 2;
+                
+                const kodeInput = document.getElementById('bonusKodeTransaksi' + idx);
+                if (kodeInput) kodeInput.value = kode;
+                showToast(`Kode diisi ke Data ${idx}`);
+            }
+        }
+    }
+    closeScanScatter2Modal();
+}
+
+function closeScanScatter2Modal() {
+const modal = document.getElementById('scanScatter2Modal');
+if (modal) modal.style.display = 'none';
 }
 
 // ================= VIEW ALL 3 SCATTER PHOTOS =================
@@ -622,7 +811,6 @@ scatterZoomIndex = 0;
 }
 
 function openLightboxScatter(imgElement) {
-// Use existing lightbox for single image zoom
 imageList = [...scatterZoomImages];
 currentImageIndex = imageList.indexOf(imgElement.src);
 const lightboxImage = document.getElementById("lightboxImage");
@@ -633,150 +821,12 @@ if (lightboxModal) lightboxModal.style.display = 'flex';
 
 function prevScatterImage() {
 if (scatterZoomImages.length <= 1) return;
-showToast("Gunakan modal lightbox untuk zoom per gambar");
+showToast("Gunakan klik gambar untuk zoom detail");
 }
 
 function nextScatterImage() {
 if (scatterZoomImages.length <= 1) return;
-showToast("Gunakan modal lightbox untuk zoom per gambar");
-}
-
-// ================= SCAN UNIVERSAL (QR, BARCODE, TEXT) =================
-async function scanUniversal(index) {
-currentDataIndex = index;
-const link = document.getElementById('bonusScatter2_' + index).value.trim();
-if (!link) { showToast("Masukkan link gambar/link terlebih dahulu!"); return; }
-
-const img = document.getElementById('scanScatter2Image');
-const resultDiv = document.getElementById('scanScatter2Result');
-const modal = document.getElementById('scanScatter2Modal');
-
-if (img) img.src = link;
-if (modal) modal.style.display = 'flex';
-if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--text-muted); font-weight: 600;">Memindai kode & teks...</span>';
-
-try {
-    // 1. Coba Scan QR/Barcode menggunakan jsQR
-    const qrCode = await scanQRCodeFromUrl(link);
-    
-    // 2. Selalu lakukan OCR Text menggunakan Tesseract
-    let ocrText = "";
-    if (typeof Tesseract !== 'undefined') {
-        const { data: { text } } = await Tesseract.recognize(link, 'eng+ind', { logger: m => console.log(m) });
-        ocrText = text;
-    } else {
-        ocrText = "Tesseract.js tidak dimuat.";
-    }
-
-    // Tampilkan Hasil
-    if (resultDiv) {
-        resultDiv.innerHTML = "";
-        
-        // Bagian QR/Barcode
-        if (qrCode) {
-            const divQr = document.createElement("div");
-            divQr.className = "result-item green";
-            divQr.innerHTML = `<div><b style="color:var(--accent-green)">KODE TERDETEKSI (QR/Barcode):</b><br><span style="font-size:1.2em; color:#fff">${qrCode}</span></div>
-            <div style="display:flex; gap:8px;">
-                <button onclick="copyWithFeedback(this, '${qrCode}')" class="copy-btn">Copy</button>
-                <button onclick="pilihKodeTransaksi('${qrCode}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
-            </div>`;
-            resultDiv.appendChild(divQr);
-        }
-
-        // Bagian OCR Text
-        const rawLines = ocrText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-        // Cari angka panjang (potensi kode transaksi manual)
-        let foundNumbers = [];
-        rawLines.forEach(line => {
-            const matches = line.match(/\b\d{8,}\b/g);
-            if (matches) matches.forEach(m => foundNumbers.push(m));
-        });
-        foundNumbers = [...new Set(foundNumbers)]; // Unik
-
-        if (foundNumbers.length > 0 || rawLines.length > 0) {
-             const divOcr = document.createElement("div");
-             divOcr.style.marginTop = "15px";
-             divOcr.innerHTML = '<b style="color: var(--neon-blue); font-size: 16px;">TEKS TERBACA (OCR):</b>';
-             resultDiv.appendChild(divOcr);
-
-             // Jika ada angka panjang spesifik
-             if (foundNumbers.length > 0) {
-                 foundNumbers.forEach(num => {
-                     const item = document.createElement("div");
-                     item.className = "result-item";
-                     item.innerHTML = `<span>${num}</span>
-                     <div style="display:flex; gap:8px;">
-                        <button onclick="copyWithFeedback(this, '${num}')" class="copy-btn">Copy</button>
-                        <button onclick="pilihKodeTransaksi('${num}')" class="copy-btn" style="background: var(--accent-green);">Pilih</button>
-                     </div>`;
-                     resultDiv.appendChild(item);
-                 });
-             } else {
-                 // Tampilkan teks mentah jika tidak ada angka spesifik
-                 const pre = document.createElement("pre");
-                 pre.style.whiteSpace = "pre-wrap";
-                 pre.style.color = "var(--text-muted)";
-                 pre.textContent = ocrText.substring(0, 500); // Batasi karakter
-                 resultDiv.appendChild(pre);
-             }
-        }
-
-        if (!qrCode && foundNumbers.length === 0 && rawLines.length === 0) {
-             resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Tidak ditemukan kode atau teks yang jelas.</span>';
-        }
-    }
-
-} catch (err) {
-    console.error(err);
-    if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Gagal memproses gambar. Pastikan link dapat diakses (CORS).</span>';
-}
-}
-
-// Helper untuk scan QR Code dari URL Gambar
-function scanQRCodeFromUrl(url) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "Anonymous"; // Penting untuk gambar eksternal
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            context.drawImage(img, 0, 0, img.width, img.height);
-            
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-            
-            if (code) {
-                resolve(code.data);
-            } else {
-                resolve(null); // Tidak ada QR code, lanjut ke OCR
-            }
-        };
-        img.onerror = () => resolve(null); // Gagal load gambar
-        img.src = url;
-    });
-}
-
-function copyWithFeedback(btn, text) {
-navigator.clipboard.writeText(text).then(() => {
-const original = btn.innerHTML;
-btn.innerHTML = 'OK';
-btn.classList.add('copied');
-setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1000);
-}).catch(() => showToast("Gagal menyalin"));
-}
-
-function pilihKodeTransaksi(kode) {
-document.getElementById('bonusKodeTransaksi' + currentDataIndex).value = kode;
-closeScanScatter2Modal();
-showToast("Kode untuk Data " + currentDataIndex + " dipilih: " + kode);
-}
-
-function closeScanScatter2Modal() {
-const modal = document.getElementById('scanScatter2Modal');
-if (modal) modal.style.display = 'none';
+showToast("Gunakan klik gambar untuk zoom detail");
 }
 
 // ================= COPY FUNCTIONS =================
@@ -1003,7 +1053,7 @@ showToast("Semua data galeri dihapus");
 
 // ================= ZOOM & LIGHTBOX =================
 function closeZoom() {
-['zoomedImage','imageUrl','kodeHasilZoom'].forEach(id => {
+['zoomModal','zoomedImage','imageUrl','kodeHasilZoom'].forEach(id => {
 const el = document.getElementById(id);
 if (el) { if (el.tagName === 'IMG' || el.tagName === 'INPUT') el.src = el.value = ''; else el.innerHTML = ''; }
 });
@@ -1045,7 +1095,7 @@ if (isBonusZoomOpen && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
 e.preventDefault();
 navigateBonusPackage(e.key === 'ArrowLeft' ? 'prev' : 'next');
 } else if (e.key === 'Escape') {
-[closeBonusZoom, closeScatterZoom, closeScanScatter2Modal, closeLightbox].forEach(fn => fn());
+[closeBonusZoom, closeScatterZoom, closeScanScatter2Modal].forEach(fn => fn());
 }
 });
 
@@ -1057,3 +1107,4 @@ switchBonusMode('bonusAsli');
 </script>
 </body>
 </html>
+
