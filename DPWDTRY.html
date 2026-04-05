@@ -302,7 +302,6 @@ button, input, textarea, .neon-switch-btn, .bonus-btn, .combined-image-slot,
 input[type="file"], .fallback-input {
 pointer-events:auto !important; cursor:pointer !important; -webkit-tap-highlight-color:rgba(0,212,255,0.2);
 }
-/* Prevent text selection on buttons */
 .neon-switch-btn, .bonus-btn, .copy-btn, .zoom-nav-button { -webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none; }
 </style>
 </head>
@@ -313,7 +312,6 @@ pointer-events:auto !important; cursor:pointer !important; -webkit-tap-highlight
 <div class="bonus-section">
 <h3 class="judul-glow">LINE TOGEL</h3><h2 class="bonus-title">BONUS EVENT</h2>
 
-<!-- MODE SWITCH BUTTONS - WITH EXPLICIT HANDLERS -->
 <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:15px 0;">
 <button class="neon-switch-btn active" id="btn-bonusAsli" onclick="switchBonusMode('bonusAsli');return false;">Cek Bonus Asli</button>
 <button class="neon-switch-btn" id="btn-galeri" onclick="switchBonusMode('galeri');return false;">CEK GAMBAR</button>
@@ -434,7 +432,7 @@ Format: <strong style="color:var(--neon-blue)">USERID link1 link2 link3</strong>
 
 <script>
 // ═══════════════════════════════════════════════════════
-// 🔗 UNIVERSAL IMAGE URL HANDLER
+// 🔗 UNIVERSAL IMAGE URL HANDLER - SUPPORT SEMUA LINK
 // ═══════════════════════════════════════════════════════
 function normalizeImageUrl(url){if(!url||!url.trim())return'';let u=url.trim();if(u.startsWith('image')||u.startsWith('blob:'))return u;if(u.includes('tawk.link')||u.includes('tawk.to'))return u;if(u.includes('drive.google.com')){const m=u.match(/\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/);if(m)return`https://drive.google.com/uc?export=view&id=${m[1]||m[2]}`}if(u.includes('dropbox.com'))return u.replace('?dl=0','?dl=1');if(u.includes('imgur.com')){u=u.replace(/\/gallery\//i,'/').replace(/\/a\//i,'/');if(!u.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i)){u=u.replace('imgur.com/','i.imgur.com/');if(!u.match(/\.[a-z]+$/i))u+='.jpg'}return u}if(u.includes('postimg.cc')||u.includes('postimages.org'))return u.replace(/\/[a-z]+\/?$/,'');if(u.startsWith('//'))return'https:'+u;if(!u.startsWith('http')&&u.includes('.')&&!u.startsWith('data')&&!u.startsWith('blob')){if(u.match(/^[a-z0-9.-]+\.[a-z]{2,}/i))return'https://'+u}if(!u.startsWith('http'))u='https://'+u;return u}
 function isValidImageUrl(u){if(!u)return false;const n=normalizeImageUrl(u);return n.startsWith('image')||n.startsWith('blob:')||/^https?:\/\//.test(n)||n.includes('tawk.link')||n.includes('tawk.to')||n.includes('drive.google.com')||n.includes('dropbox.com')||n.includes('imgur.com')||n.includes('postimg.cc')||n.includes('postimages.org')||n.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg|ico)(\?.*)?$/i)}
@@ -452,27 +450,16 @@ function createParticles(){const c=document.getElementById('particles');if(!c)re
 function showToast(msg,type='info'){const t=document.getElementById('toast');if(!t){alert(msg);return}t.textContent=msg;t.style.borderColor=type==='error'?'var(--accent-red)':type==='success'?'var(--accent-green)':'var(--neon-blue)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 
 // ═══════════════════════════════════════════════════════
-// 🔄 MODE SWITCHING - FIXED & DEBUGGED
+// 🔄 MODE SWITCHING - FIXED & ROBUST
 // ═══════════════════════════════════════════════════════
 function switchBonusMode(mode){
-console.log('🔄 Switching to mode:',mode);
-// Hide ALL modes first
-['modeBonusAsli','modeGaleri','modeInputScatter'].forEach(id=>{
-const e=document.getElementById(id);
-if(e){e.style.display='none';e.classList.remove('active');console.log('  Hidden:',id);}
-});
-// Show target mode
+['modeBonusAsli','modeGaleri','modeInputScatter'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.display='none';e.classList.remove('active')}});
 const map={'bonusAsli':'modeBonusAsli','galeri':'modeGaleri','inputScatter':'modeInputScatter'};
 const target=document.getElementById(map[mode]);
-if(target){target.style.display='block';target.classList.add('active');console.log('  Shown:',map[mode]);}
-// Update button states
-['bonusAsli','galeri','inputScatter'].forEach(id=>{
-const btn=document.getElementById('btn-'+id);
-if(btn){btn.classList.toggle('active',id===mode);console.log('  Button',id,'active:',id===mode);}
-});
+if(target){target.style.display='block';target.classList.add('active');}
+['bonusAsli','galeri','inputScatter'].forEach(id=>{const btn=document.getElementById('btn-'+id);if(btn)btn.classList.toggle('active',id===mode)});
 currentBonusMode=mode;
 showToast('Mode: '+(mode==='bonusAsli'?'Cek Bonus Asli':mode==='galeri'?'CEK GAMBAR':'Input Scatter'),'success');
-console.log('✅ Mode switched to:',mode);
 }
 
 function setupImageInputNormalization(){['imageUrl','bonusScatter1_1','bonusScatter2_1','bonusScatter3_1','bonusScatter1_2','bonusScatter2_2','bonusScatter3_2','imageUrlZoom'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('blur',function(){if(this.value&&this.id!=='bonusLinkInput')this.value=normalizeImageUrl(this.value)})})}
@@ -480,9 +467,9 @@ function setupImageInputNormalization(){['imageUrl','bonusScatter1_1','bonusScat
 // ═══════════════════════════════════════════════════════
 // 🖼️ VIEW ALL 3 SCATTER PHOTOS
 // ═══════════════════════════════════════════════════════
-function viewAllScatterPhotos(idx){const s1=normalizeImageUrl(document.getElementById('bonusScatter1_'+idx).value.trim()),s2=normalizeImageUrl(document.getElementById('bonusScatter2_'+idx).value.trim()),s3=normalizeImageUrl(document.getElementById('bonusScatter3_'+idx).value.trim());scatterZoomImages=[s1,s2,s3].filter(l=>isValidImageUrl(l)||isLikelyImageUrl(l));if(scatterZoomImages.length===0){showToast('Tidak ada link gambar valid!','error');return}scatterZoomIndex=0;updateScatterZoomDisplay();const modal=document.getElementById('scatterZoomModal'),title=document.getElementById('scatterZoomTitle'),cap=document.getElementById('scatterZoomCaption');if(title)title.textContent=`Lihat 3 Foto - Data ${idx}`;if(cap)cap.textContent=`Menampilkan ${scatterZoomImages.length} foto`;if(modal){modal.classList.add('show');console.log('🖼️ Scatter zoom opened')}}
+function viewAllScatterPhotos(idx){const s1=normalizeImageUrl(document.getElementById('bonusScatter1_'+idx).value.trim()),s2=normalizeImageUrl(document.getElementById('bonusScatter2_'+idx).value.trim()),s3=normalizeImageUrl(document.getElementById('bonusScatter3_'+idx).value.trim());scatterZoomImages=[s1,s2,s3].filter(l=>isValidImageUrl(l)||isLikelyImageUrl(l));if(scatterZoomImages.length===0){showToast('Tidak ada link gambar valid!','error');return}scatterZoomIndex=0;updateScatterZoomDisplay();const modal=document.getElementById('scatterZoomModal'),title=document.getElementById('scatterZoomTitle'),cap=document.getElementById('scatterZoomCaption');if(title)title.textContent=`Lihat 3 Foto - Data ${idx}`;if(cap)cap.textContent=`Menampilkan ${scatterZoomImages.length} foto`;if(modal)modal.classList.add('show')}
 function updateScatterZoomDisplay(){const w=document.getElementById('scatterZoomContent');if(!w)return;w.innerHTML='';scatterZoomImages.forEach((link,i)=>{const img=document.createElement('img');img.src=normalizeImageUrl(link);img.alt=`Scatter ${i+1}`;img.style.cssText='max-width:30%;min-width:200px;max-height:70vh;object-fit:contain;border-radius:12px;border:2px solid var(--neon-blue);box-shadow:0 0 30px rgba(0,212,255,0.3);cursor:pointer';img.onclick=()=>openLightboxScatter(img);img.onerror=function(){this.src='https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=Error';this.style.borderColor='var(--accent-red)'};w.appendChild(img)})}
-function closeScatterZoom(){const m=document.getElementById('scatterZoomModal'),w=document.getElementById('scatterZoomContent');if(m)m.classList.remove('show');if(w)w.innerHTML='';scatterZoomImages=[];console.log('🔒 Scatter zoom closed')}
+function closeScatterZoom(){const m=document.getElementById('scatterZoomModal'),w=document.getElementById('scatterZoomContent');if(m)m.classList.remove('show');if(w)w.innerHTML='';scatterZoomImages=[]}
 function openLightboxScatter(el){imageList=[...scatterZoomImages];currentImageIndex=imageList.indexOf(el.src);if(currentImageIndex===-1)currentImageIndex=0;const lb=document.getElementById('lightboxImage');if(lb)lb.src=imageList[currentImageIndex]||el.src;const lm=document.getElementById('lightboxModal');if(lm)lm.classList.add('show')}
 function prevScatterImage(){showToast('Gunakan lightbox untuk navigasi')}function nextScatterImage(){showToast('Gunakan lightbox untuk navigasi')}
 
@@ -580,20 +567,13 @@ function prevImage(){if(imageList.length===0)return;currentImageIndex=(currentIm
 document.addEventListener('keydown',e=>{if(isBonusZoomOpen&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();navigateBonusPackage(e.key==='ArrowLeft'?'prev':'next')}else if(e.key==='Escape'){[closeBonusZoom,closeScatterZoom,closeScanScatter2Modal,closeLightbox].forEach(fn=>{try{fn()}catch(err){}})}});
 
 // ═══════════════════════════════════════════════════════
-// 🚀 INITIALIZE - WITH DEBUG
+// 🚀 INITIALIZE
 // ═══════════════════════════════════════════════════════
 function initApp(){
-console.log('🚀 Initializing LINE TOGEL Bonus Event...');
 try{
 createParticles();
-// Force initial mode
 switchBonusMode('bonusAsli');
 setupImageInputNormalization();
-// Verify buttons are clickable
-const btnGaleri=document.getElementById('btn-galeri');
-const btnScatter=document.getElementById('btn-inputScatter');
-if(btnGaleri)console.log('✅ CEK GAMBAR button:',btnGaleri.onclick?'has onclick':'NO onclick');
-if(btnScatter)console.log('✅ Input Scatter button:',btnScatter.onclick?'has onclick':'NO onclick');
 console.log('✅ LINE TOGEL Bonus Event - Ready!');
 showToast('Aplikasi siap digunakan!','success');
 }catch(err){
@@ -601,13 +581,9 @@ console.error('❌ Init error:',err);
 showToast('Error: '+err.message,'error');
 }
 }
-// Initialize with fallback
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initApp);}
 else {initApp();}
-// Extra safety: re-init after 500ms if needed
-setTimeout(()=>{
-if(!document.getElementById('modeGaleri')?.style.display){initApp();}
-},500);
+setTimeout(()=>{if(!document.getElementById('modeGaleri')?.style.display){initApp();}},500);
 </script>
 </body>
 </html>
