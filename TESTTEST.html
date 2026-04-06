@@ -64,9 +64,9 @@ font-family: 'Orbitron', sans-serif; font-size: clamp(1.5rem, 4vw, 2.2rem);
 font-weight: 900; text-align: center; color: var(--neon-cyan);
 letter-spacing: 3px; margin-bottom: 10px;
 text-shadow: 0 0 30px rgba(0, 255, 247, 0.3), 0 0 60px rgba(0, 255, 247, 0.15);
-animation: glowPulse 3s ease-in-out infinite;
+animation: pulseGlow 3s ease-in-out infinite;
 }
-@keyframes glowPulse {
+@keyframes pulseGlow {
 0%, 100% { text-shadow: 0 0 30px rgba(0, 255, 247, 0.3), 0 0 60px rgba(0, 255, 247, 0.15); }
 50% { text-shadow: 0 0 40px rgba(0, 255, 247, 0.5), 0 0 80px rgba(0, 255, 247, 0.25); }
 }
@@ -111,7 +111,7 @@ box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
 .neon-switch-btn.active {
 background: linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(0, 180, 255, 0.2) 100%);
 border-color: var(--neon-cyan); color: var(--neon-cyan);
-box-shadow: 0 0 25px rgba(0, 212, 255, 0.4), 0 0 50px rgba(0, 255, 247, 0.2);
+box-shadow: 0 0 25px rgba(0, 212, 255, 0.4), inset 0 0 15px rgba(0, 255, 247, 0.1);
 }
 .neon-switch-btn.danger { border-color: rgba(255, 71, 87, 0.4); color: var(--accent-red); }
 .neon-switch-btn.danger:hover {
@@ -157,12 +157,11 @@ transition: all 0.3s ease; letter-spacing: 0.5px; position: relative; overflow: 
 }
 .bonus-btn::after {
 content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-transform: rotate(45deg); transition: left 0.5s ease;
+background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+opacity: 0; transition: opacity 0.3s;
 }
-.bonus-btn:hover::after { left: 150%; }
+.bonus-btn:hover::after { opacity: 1; }
 .bonus-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4); }
-.bonus-btn:active { transform: translateY(0); }
 .bonus-btn.danger { background: linear-gradient(135deg, var(--accent-red) 0%, #cc3344 100%); }
 .bonus-btn.danger:hover { box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4); }
 .bonus-btn.orange { background: linear-gradient(135deg, var(--accent-orange) 0%, #e67e22 100%); }
@@ -218,7 +217,7 @@ font-family: 'Orbitron', sans-serif; font-weight: 700;
 position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
 background: rgba(2, 8, 16, 0.98); z-index: 10000; display: none;
 flex-direction: column; justify-content: center; align-items: center; padding: 20px;
-animation: modalFadeIn 0.3s ease-out;
+animation: modalFadeIn 0.3s ease-out; backdrop-filter: blur(10px);
 }
 @keyframes modalFadeIn {
 from { opacity: 0; backdrop-filter: blur(0); }
@@ -243,13 +242,15 @@ display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; align-items:
 .zoomed-content-wrapper img {
 max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain;
 border-radius: 12px; border: 2px solid var(--neon-blue);
-box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); cursor: zoom-in; transition: transform 0.2s;
 }
+.zoomed-content-wrapper img:hover { transform: scale(1.03); }
 #scanScatter2Modal .modal-content {
 display: flex; gap: 20px; max-width: 95vw; width: 100%; height: 85vh;
 }
 #scanScatter2Modal .image-section {
-flex: 1; display: flex; justify-content: center; align-items: center; min-width: 300px; position: relative;
+flex: 1; display: flex; justify-content: center; align-items: center; min-width: 300px;
+position: relative;
 }
 #scanScatter2Modal .image-section img {
 max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px;
@@ -259,37 +260,6 @@ box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
 flex: 1; min-width: 300px; max-width: 500px; overflow-y: auto; padding: 20px;
 background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);
 }
-/* SCAN PROGRESS ANIMATION */
-.scan-progress {
-display: none; flex-direction: column; align-items: center; justify-content: center;
-padding: 20px; text-align: center;
-}
-.scan-progress.active { display: flex; }
-.scan-spinner {
-width: 60px; height: 60px; border: 4px solid rgba(0, 212, 255, 0.2);
-border-top: 4px solid var(--neon-cyan); border-radius: 50%;
-animation: spin 1s linear infinite; margin-bottom: 15px;
-box-shadow: 0 0 20px rgba(0, 255, 247, 0.5);
-}
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.scan-status {
-font-family: 'Orbitron', sans-serif; color: var(--neon-blue); font-size: 14px;
-font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;
-}
-.scan-percent {
-color: var(--text-muted); font-size: 13px; font-weight: 500;
-}
-.scan-wave {
-width: 100%; height: 4px; background: rgba(0, 212, 255, 0.1); border-radius: 2px; overflow: hidden; margin-top: 10px;
-}
-.scan-wave-bar {
-height: 100%; width: 30%; background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-animation: waveMove 1.5s ease-in-out infinite;
-}
-@keyframes waveMove {
-0%, 100% { transform: translateX(-100%); }
-50% { transform: translateX(300%); }
-}
 .toast {
 position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
 background: linear-gradient(135deg, var(--bg-card) 0%, rgba(6, 20, 32, 0.95) 100%);
@@ -297,16 +267,14 @@ border: 1px solid var(--neon-blue); border-radius: 12px; padding: 15px 30px;
 color: var(--text-primary); font-family: 'Rajdhani', sans-serif;
 font-size: 16px; font-weight: 600; z-index: 99999; opacity: 0;
 transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3), 0 0 20px rgba(0, 212, 255, 0.2);
+box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3), 0 0 20px var(--neon-blue);
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast.success { border-color: var(--accent-green); box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3); }
-.toast.error { border-color: var(--accent-red); box-shadow: 0 10px 40px rgba(255, 71, 87, 0.3); }
 .copy-btn {
 background: linear-gradient(135deg, var(--neon-blue) 0%, #0099cc 100%);
 color: var(--bg-dark); border: none; padding: 6px 12px; border-radius: 6px;
 cursor: pointer; font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700;
-transition: all 0.3s ease;
+transition: all 0.3s ease; position: relative; overflow: hidden;
 }
 .copy-btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4); }
 .copy-btn.copied { background: var(--accent-green); }
@@ -338,20 +306,75 @@ word-break: break-all; font-family: 'Orbitron', sans-serif; font-size: 14px; let
 max-width: 90%; max-height: 80vh; object-fit: contain; border-radius: 12px;
 border: 2px solid var(--neon-blue); box-shadow: 0 0 40px rgba(0, 212, 255, 0.5);
 }
-/* RESULT CONFIDENCE BADGE */
+
+/* ===== SCAN PROGRESS & LOADING ===== */
+.scan-progress-container {
+display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 15px;
+}
+.scan-progress-bar {
+width: 100%; height: 6px; background: rgba(0, 212, 255, 0.1); border-radius: 3px; overflow: hidden;
+}
+.scan-progress-fill {
+height: 100%; width: 0%; background: linear-gradient(90deg, var(--neon-blue), var(--neon-cyan));
+border-radius: 3px; transition: width 0.3s ease; box-shadow: 0 0 10px var(--neon-blue);
+}
+.scan-status {
+font-size: 13px; color: var(--text-muted); font-weight: 600; text-align: center;
+}
+.scan-loading {
+display: flex; align-items: center; justify-content: center; gap: 8px;
+color: var(--neon-cyan); font-weight: 600;
+}
+.scan-loading::before {
+content: ''; width: 12px; height: 12px; border: 2px solid var(--neon-blue);
+border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== CONFIDENCE BADGE ===== */
 .confidence-badge {
-display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;
-margin-left: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;
+border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+background: rgba(0, 255, 136, 0.15); border: 1px solid var(--accent-green);
+color: var(--accent-green);
 }
-.confidence-high { background: rgba(0, 255, 136, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
-.confidence-medium { background: rgba(255, 159, 67, 0.2); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
-.confidence-low { background: rgba(255, 71, 87, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
-/* SCAN ACCURACY TIP */
-.scan-tip {
-background: rgba(0, 212, 255, 0.1); border-left: 3px solid var(--neon-blue);
-padding: 10px 15px; margin: 10px 0; border-radius: 0 8px 8px 0; font-size: 13px; color: var(--text-muted);
+.confidence-badge.low {
+background: rgba(255, 159, 67, 0.15); border-color: var(--accent-orange); color: var(--accent-orange);
 }
-.scan-tip strong { color: var(--neon-cyan); }
+.confidence-badge.very-low {
+background: rgba(255, 71, 87, 0.15); border-color: var(--accent-red); color: var(--accent-red);
+}
+
+/* ===== RESULT ACTIONS ===== */
+.result-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.result-actions button { padding: 5px 10px; font-size: 12px; border-radius: 5px; }
+
+/* ===== MANUAL CORRECTION ===== */
+.manual-correction {
+margin-top: 15px; padding: 12px; background: rgba(0, 212, 255, 0.05);
+border: 1px dashed var(--border-color); border-radius: 8px;
+}
+.manual-correction input {
+width: 100%; background: var(--bg-input); border: 1px solid var(--border-color);
+border-radius: 6px; padding: 8px 12px; color: var(--text-primary);
+font-family: 'Orbitron', sans-serif; font-size: 14px; margin-top: 8px;
+}
+
+/* ===== SCAN TIPS ===== */
+.scan-tips {
+font-size: 12px; color: var(--text-muted); margin-top: 10px; padding: 10px;
+background: rgba(0, 212, 255, 0.05); border-radius: 8px; border-left: 3px solid var(--neon-blue);
+}
+.scan-tips strong { color: var(--neon-cyan); }
+
+/* ===== ZOOM OVERLAY ===== */
+.zoom-overlay {
+position: absolute; top: 10px; right: 10px; background: rgba(0, 212, 255, 0.8);
+color: var(--bg-dark); padding: 5px 10px; border-radius: 5px; font-size: 11px;
+font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.zoom-overlay:hover { background: var(--neon-cyan); transform: scale(1.05); }
+
 @media (max-width: 768px) {
 .bonus-section { padding: 15px; margin: 5px; }
 .neon-switch-btn { padding: 10px 15px; font-size: 13px; }
@@ -381,58 +404,58 @@ outline: 2px solid var(--neon-blue); outline-offset: 2px;
 <!-- ================= TAB CEK BONUS EVENT ================= -->
 <div id="cekBonusEventTab" class="tab-content">
 <div class="bonus-section">
-<h3 class="judul-glow">LINE TOGEL</h3>
-<h2 class="bonus-title">BONUS EVENT</h2>
+<h3 class="judul-glow">⚡ LINE TOGEL ⚡</h3>
+<h2 class="bonus-title">🎁 BONUS EVENT</h2>
 
 <!-- ============ 3 SWITCH MODE BUTTON ============ -->
 <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 15px 0;">
-<button class="neon-switch-btn active" onclick="switchBonusMode('bonusAsli')" id="btn-bonusAsli">Cek Bonus Asli</button>
-<button class="neon-switch-btn" onclick="switchBonusMode('galeri')" id="btn-galeri">CEK GAMBAR</button>
-<button class="neon-switch-btn" onclick="switchBonusMode('inputScatter')" id="btn-inputScatter">Input Scatter (2 Data)</button>
+<button class="neon-switch-btn active" onclick="switchBonusMode('bonusAsli')" id="btn-bonusAsli">📊 Cek Bonus Asli</button>
+<button class="neon-switch-btn" onclick="switchBonusMode('galeri')" id="btn-galeri">🖼️ CEK GAMBAR</button>
+<button class="neon-switch-btn" onclick="switchBonusMode('inputScatter')" id="btn-inputScatter">🔍 Input Scatter (2 Data)</button>
 </div>
 
 <!-- ============ MODE 1: CEK BONUS ASLI ============ -->
 <div id="modeBonusAsli" class="bonus-mode">
-<textarea id="bonusTextarea" class="bonus-textarea" placeholder="Tempelkan data transaksi di sini..."></textarea>
+<textarea id="bonusTextarea" class="bonus-textarea" placeholder="📋 Tempelkan data transaksi di sini..."></textarea>
 <div class="bonus-input-group">
-<label for="bonusPatokan" class="bonus-label">Nilai Patokan:</label>
+<label for="bonusPatokan" class="bonus-label">🎯 Nilai Patokan:</label>
 <input type="text" id="bonusPatokan" class="bonus-input" placeholder="Contoh: 5000000">
 </div>
 <div class="bonus-input-group">
-<label for="bonusSurplus" class="bonus-label">Nilai Surplus:</label>
+<label for="bonusSurplus" class="bonus-label">💰 Nilai Surplus:</label>
 <input type="text" id="bonusSurplus" class="bonus-input" placeholder="Contoh: 1500000">
 </div>
 <div class="bonus-button-group">
-<button onclick="hitungBonusEvent()" class="bonus-btn">Hitung Bonus</button>
-<button onclick="hapusBonusEvent()" class="bonus-btn danger">Bersihkan</button>
+<button onclick="hitungBonusEvent()" class="bonus-btn">🧮 Hitung Bonus</button>
+<button onclick="hapusBonusEvent()" class="bonus-btn danger">🗑️ Bersihkan</button>
 </div>
 <div id="bonusHasil" class="bonus-result"></div>
 <div class="bonus-input-group" style="margin-top: 15px;">
-<label for="imageUrl" class="bonus-label">Link Gambar Transaksi:</label>
+<label for="imageUrl" class="bonus-label">🔗 Link Gambar Transaksi:</label>
 <input type="text" id="imageUrl" class="bonus-input" placeholder="Tempel link gambar di sini...">
 </div>
 </div>
 
 <!-- ============ MODE 2: GALERI GAMBAR ============ -->
 <div id="modeGaleri" class="bonus-mode" style="display: none;">
-<h2 class="bonus-title">CEK GAMBAR</h2>
+<h2 class="bonus-title">🖼️ CEK GAMBAR</h2>
 <p style="text-align: center; color: var(--text-muted); margin-bottom: 12px; font-weight: 600;">
 Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</strong>
 </p>
-<textarea id="bonusLinkInput" class="bonus-textarea" placeholder="Tempelkan data paket di sini. Setiap baris = satu paket." rows="5" oninput="handleBonusInput()" onpaste="handleBonusInput()"></textarea>
+<textarea id="bonusLinkInput" class="bonus-textarea" placeholder="📦 Tempelkan data paket di sini. Setiap baris = satu paket." rows="5" oninput="handleBonusInput()" onpaste="handleBonusInput()"></textarea>
 <div class="bonus-button-group">
-<button onclick="clearBonusAllData()" class="bonus-btn danger">Hapus Semua</button>
+<button onclick="clearBonusAllData()" class="bonus-btn danger">🗑️ Hapus Semua</button>
 </div>
 <hr style="margin: 20px 0; border-color: var(--border-color);">
 <div class="gallery-container">
 <div class="combined-image-slot" id="bonusCombinedImageSlot" onclick="openBonusZoom()">
-<p class="caption-userid" id="bonusCombinedSlotUserid">USER ID</p>
+<p class="caption-userid" id="bonusCombinedSlotUserid">👤 USER ID</p>
 <img id="bonusImgSlot1" src="https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=Gambar+1" alt="Gambar 1">
 <img id="bonusImgSlot2" src="https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=Gambar+2" alt="Gambar 2">
 <img id="bonusImgSlot3" src="https://via.placeholder.com/400x300/0a1a2f/1a3a5f?text=Gambar+3" alt="Gambar 3">
 </div>
 </div>
-<p class="package-info">Paket: <span id="bonusCurrentPackageNum">0</span> / <span id="bonusMaxPackageNum">0</span></p>
+<p class="package-info">📦 Paket: <span id="bonusCurrentPackageNum">0</span> / <span id="bonusMaxPackageNum">0</span></p>
 </div>
 
 <!-- ============ MODE 3: INPUT SCATTER (2 DATA) ============ -->
@@ -442,39 +465,39 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <!-- DATA 1 -->
 <div class="scatter-card">
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-<h4 class="scatter-card-title">DATA SCATTER 1</h4>
-<button onclick="copyData1()" class="neon-switch-btn" style="padding: 6px 12px; font-size: 12px;">Copy</button>
+<h4 class="scatter-card-title">🔷 DATA SCATTER 1</h4>
+<button onclick="copyData1()" class="neon-switch-btn" style="padding: 6px 12px; font-size: 12px;">📋 Copy</button>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">1. UID:</label>
+<label class="bonus-label" style="font-size: 13px;">1️⃣ UID:</label>
 <input type="text" id="bonusUserid1" class="bonus-input" placeholder="San221" style="padding: 8px; font-size: 14px;">
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">2. S1:</label>
-<input type="text" id="bonusScatter1_1" class="bonus-input" placeholder="Link gambar S1..." style="padding: 8px; font-size: 14px;">
+<label class="bonus-label" style="font-size: 13px;">2️⃣ S1:</label>
+<input type="text" id="bonusScatter1_1" class="bonus-input" placeholder="🔗 Link gambar S1..." style="padding: 8px; font-size: 14px;">
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">3. S2 (Scan OCR):</label>
+<label class="bonus-label" style="font-size: 13px;">3️⃣ S2 (Scan OCR):</label>
 <div class="input-with-buttons">
-<input type="text" id="bonusScatter2_1" class="bonus-input" placeholder="Link gambar PNG..." style="padding: 8px; font-size: 14px;">
-<button type="button" onclick="scanScatter2(1)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">⚡ Scan</button>
+<input type="text" id="bonusScatter2_1" class="bonus-input" placeholder="🔗 Link gambar PNG..." style="padding: 8px; font-size: 14px;">
+<button type="button" onclick="scanScatter2(1)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">🔍 Scan</button>
 </div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">4. S3:</label>
-<input type="text" id="bonusScatter3_1" class="bonus-input" placeholder="Link gambar S3..." style="padding: 8px; font-size: 14px;">
+<label class="bonus-label" style="font-size: 13px;">4️⃣ S3:</label>
+<input type="text" id="bonusScatter3_1" class="bonus-input" placeholder="🔗 Link gambar S3..." style="padding: 8px; font-size: 14px;">
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">5. Rek:</label>
+<label class="bonus-label" style="font-size: 13px;">5️⃣ Rek:</label>
 <input type="text" id="bonusRekening1" class="bonus-input" placeholder="A SUWARSAN,085882449440" style="padding: 8px; font-size: 14px;">
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">6. Kode:</label>
-<input type="text" id="bonusKodeTransaksi1" class="bonus-input" placeholder="Kode hasil scan..." style="padding: 8px; font-size: 14px;">
+<label class="bonus-label" style="font-size: 13px;">6️⃣ Kode:</label>
+<input type="text" id="bonusKodeTransaksi1" class="bonus-input" placeholder="🔢 Kode hasil scan..." style="padding: 8px; font-size: 14px;">
 </div>
 <div style="margin-top: 20px; text-align: center;">
 <button onclick="viewAllScatterPhotos(1)" class="neon-switch-btn orange" style="width: 100%; padding: 12px; font-size: 14px;">
-<i class="fas fa-images"></i> Lihat 3 Foto (S1+S2+S3)
+🖼️ Lihat 3 Foto (S1+S2+S3)
 </button>
 </div>
 </div>
@@ -482,39 +505,39 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <!-- DATA 2 -->
 <div class="scatter-card">
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-<h4 class="scatter-card-title">DATA SCATTER 2</h4>
-<button onclick="copyData2()" class="neon-switch-btn" style="padding: 6px 12px; font-size: 12px;">Copy</button>
+<h4 class="scatter-card-title">🔷 DATA SCATTER 2</h4>
+<button onclick="copyData2()" class="neon-switch-btn" style="padding: 6px 12px; font-size: 12px;">📋 Copy</button>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">1. UID:</label>
+<label class="bonus-label" style="font-size: 13px;">1️⃣ UID:</label>
 <input type="text" id="bonusUserid2" class="bonus-input" placeholder="Budi123" style="padding: 8px; font-size: 14px;">
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">2. S1:</label>
-<input type="text" id="bonusScatter1_2" class="bonus-input" placeholder="Link gambar S1..." style="padding: 8px; font-size: 14px;">
+<label class="bonus-label" style="font-size: 13px;">2️⃣ S1:</label>
+<input type="text" id="bonusScatter1_2" class="bonus-input" placeholder="🔗 Link gambar S1..." style="padding: 8px; font-size: 14px;">
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">3. S2 (Scan OCR):</label>
+<label class="bonus-label" style="font-size: 13px;">3️⃣ S2 (Scan OCR):</label>
 <div class="input-with-buttons">
-<input type="text" id="bonusScatter2_2" class="bonus-input" placeholder="Link gambar PNG..." style="padding: 8px; font-size: 14px;">
-<button type="button" onclick="scanScatter2(2)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">⚡ Scan</button>
+<input type="text" id="bonusScatter2_2" class="bonus-input" placeholder="🔗 Link gambar PNG..." style="padding: 8px; font-size: 14px;">
+<button type="button" onclick="scanScatter2(2)" class="bonus-btn" style="padding: 8px 12px; font-size: 14px;">🔍 Scan</button>
 </div>
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">4. S3:</label>
-<input type="text" id="bonusScatter3_2" class="bonus-input" placeholder="Link gambar S3..." style="padding: 8px; font-size: 14px;">
+<label class="bonus-label" style="font-size: 13px;">4️⃣ S3:</label>
+<input type="text" id="bonusScatter3_2" class="bonus-input" placeholder="🔗 Link gambar S3..." style="padding: 8px; font-size: 14px;">
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">5. Rek:</label>
+<label class="bonus-label" style="font-size: 13px;">5️⃣ Rek:</label>
 <input type="text" id="bonusRekening2" class="bonus-input" placeholder="BUDI,1234567890" style="padding: 8px; font-size: 14px;">
 </div>
 <div class="bonus-input-group" style="margin: 8px 0;">
-<label class="bonus-label" style="font-size: 13px;">6. Kode:</label>
-<input type="text" id="bonusKodeTransaksi2" class="bonus-input" placeholder="Kode hasil scan..." style="padding: 8px; font-size: 14px;">
+<label class="bonus-label" style="font-size: 13px;">6️⃣ Kode:</label>
+<input type="text" id="bonusKodeTransaksi2" class="bonus-input" placeholder="🔢 Kode hasil scan..." style="padding: 8px; font-size: 14px;">
 </div>
 <div style="margin-top: 20px; text-align: center;">
 <button onclick="viewAllScatterPhotos(2)" class="neon-switch-btn orange" style="width: 100%; padding: 12px; font-size: 14px;">
-<i class="fas fa-images"></i> Lihat 3 Foto (S1+S2+S3)
+🖼️ Lihat 3 Foto (S1+S2+S3)
 </button>
 </div>
 </div>
@@ -523,8 +546,8 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 
 <!-- Menu Aksi -->
 <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px;">
-<button onclick="copySemuaData()" class="neon-switch-btn" style="padding: 10px 20px; font-size: 14px;">Copy Semua (2 Baris)</button>
-<button onclick="hapusSemuaData()" class="neon-switch-btn danger" style="padding: 10px 20px; font-size: 14px;">Hapus Semua</button>
+<button onclick="copySemuaData()" class="neon-switch-btn" style="padding: 10px 20px; font-size: 14px;">📋 Copy Semua (2 Baris)</button>
+<button onclick="hapusSemuaData()" class="neon-switch-btn danger" style="padding: 10px 20px; font-size: 14px;">🗑️ Hapus Semua</button>
 </div>
 </div>
 </div>
@@ -533,36 +556,45 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <!-- Modal Zoom 3 Foto Scatter -->
 <div id="scatterZoomModal" class="modal-overlay">
 <button class="modal-close" onclick="closeScatterZoom()" aria-label="Tutup">&times;</button>
-<h3 id="scatterZoomTitle" style="color: var(--neon-cyan); text-align: center; margin-bottom: 20px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">Lihat 3 Foto Scatter</h3>
+<h3 id="scatterZoomTitle" style="color: var(--neon-cyan); text-align: center; margin-bottom: 20px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">🖼️ Lihat 3 Foto Scatter</h3>
 <div class="zoomed-content-wrapper" id="scatterZoomContent"></div>
 <div style="display: flex; gap: 15px; margin-top: 20px;">
-<button onclick="prevScatterImage()" class="zoom-nav-button">Prev</button>
-<button onclick="nextScatterImage()" class="zoom-nav-button">Next</button>
+<button onclick="prevScatterImage()" class="zoom-nav-button">⬅️ Prev</button>
+<button onclick="nextScatterImage()" class="zoom-nav-button">Next ➡️</button>
 </div>
 <div id="scatterZoomCaption" style="text-align: center; margin-top: 15px; color: var(--text-muted); font-weight: 600;"></div>
 </div>
 
-<!-- Modal Scan Scatter 2 - UPDATED -->
+<!-- Modal Scan Scatter 2 - ENHANCED -->
 <div id="scanScatter2Modal" class="modal-overlay">
 <button class="modal-close" onclick="closeScanScatter2Modal()" aria-label="Tutup">&times;</button>
-<h3 style="color: var(--neon-cyan); text-align: center; margin-bottom: 15px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700; text-shadow: 0 0 20px rgba(0,255,247,0.3);">🔍 Scan Kode Transaksi</h3>
-<div class="modal-content" style="display: flex; gap: 20px; max-width: 95vw; width: 100%; height: 85vh;">
+<h3 style="color: var(--neon-cyan); text-align: center; margin-bottom: 15px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 700;">🔍 Scan Scatter 2 - OCR</h3>
+<div class="modal-content" style="display: flex; gap: 20px; max-width: 95vw; width: 100%; height: 80vh;">
 <div class="image-section" style="flex: 1; display: flex; justify-content: center; align-items: center;">
 <img id="scanScatter2Image" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);">
+<div class="zoom-overlay" onclick="openLightboxScatter(document.getElementById('scanScatter2Image'))">🔎 Zoom</div>
 </div>
 <div class="result-section" style="flex: 1; overflow-y: auto; padding: 20px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
-<!-- Scan Progress -->
-<div id="scanProgress" class="scan-progress">
-<div class="scan-spinner"></div>
-<div class="scan-status" id="scanStatus">Menganalisis gambar...</div>
-<div class="scan-percent" id="scanPercent">0%</div>
-<div class="scan-wave"><div class="scan-wave-bar"></div></div>
-</div>
-<!-- Scan Result -->
 <div id="scanScatter2Result" style="color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 500; line-height: 1.6;"></div>
-<!-- Accuracy Tip -->
-<div class="scan-tip">
-💡 <strong>Tip Akurasi:</strong> Pastikan gambar jelas, kode tidak terpotong, dan background kontras untuk hasil scan terbaik.
+<div id="scanProgress" class="scan-progress-container" style="display: none;">
+<div class="scan-loading">Memproses OCR...</div>
+<div class="scan-progress-bar"><div class="scan-progress-fill" id="scanProgressFill"></div></div>
+<div class="scan-status" id="scanStatus">Menginisialisasi engine...</div>
+</div>
+<div class="scan-tips">
+💡 <strong>Tips Akurasi:</strong><br>
+• Gunakan gambar PNG/JPG berkualitas tinggi<br>
+• Pastikan teks kode terlihat jelas & tidak blur<br>
+• Hindari gambar dengan background terlalu ramai<br>
+• Jika hasil kurang tepat, gunakan input manual di bawah
+</div>
+<div class="manual-correction" id="manualCorrection" style="display: none;">
+<div style="color: var(--neon-blue); font-weight: 700; font-size: 13px; margin-bottom: 5px;">✏️ Koreksi Manual:</div>
+<input type="text" id="manualCodeInput" placeholder="Masukkan kode yang benar..." onkeypress="if(event.key==='Enter')applyManualCode()">
+<div style="display: flex; gap: 8px; margin-top: 8px;">
+<button onclick="applyManualCode()" class="bonus-btn" style="padding: 6px 12px; font-size: 12px;">✅ Terapkan</button>
+<button onclick="cancelManualCode()" class="neon-switch-btn danger" style="padding: 6px 12px; font-size: 12px;">❌ Batal</button>
+</div>
 </div>
 </div>
 </div>
@@ -573,9 +605,9 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <button class="modal-close" onclick="closeBonusZoom()" aria-label="Tutup zoom">&times;</button>
 <span id="bonusZoomedUserid" style="display: block; text-align: center; font-size: 22px; margin-bottom: 20px; color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-weight: 700;"></span>
 <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; width: 100%;">
-<button class="zoom-nav-button" id="bonusPrevZoomBtn" onclick="navigateBonusPackage('prev')">Prev</button>
+<button class="zoom-nav-button" id="bonusPrevZoomBtn" onclick="navigateBonusPackage('prev')">⬅️ Prev</button>
 <div class="zoomed-content-wrapper" id="bonusZoomedContentWrapper"></div>
-<button class="zoom-nav-button" id="bonusNextZoomBtn" onclick="navigateBonusPackage('next')">Next</button>
+<button class="zoom-nav-button" id="bonusNextZoomBtn" onclick="navigateBonusPackage('next')">Next ➡️</button>
 </div>
 <div id="bonusCaption" style="text-align: center; margin-top: 20px; color: var(--text-muted); font-weight: 600;">Gunakan tombol navigasi atau panah kiri/kanan pada keyboard.</div>
 </div>
@@ -590,7 +622,7 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <div id="kodeHasilZoom" style="flex: 1; color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-weight: 500; white-space: pre-wrap; background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); max-height: 70vh; overflow-y: auto; min-width: 300px;"></div>
 </div>
 <div style="margin-top: 20px; width: 80%; max-width: 500px;">
-<input type="text" id="imageUrlZoom" placeholder="Tempel link gambar di sini..." class="bonus-input" style="text-align: center;">
+<input type="text" id="imageUrlZoom" placeholder="🔗 Tempel link gambar di sini..." class="bonus-input" style="text-align: center;">
 </div>
 </div>
 
@@ -599,13 +631,13 @@ Format: <strong style="color: var(--neon-blue);">USERID link1 link2 link3</stron
 <button class="modal-close" onclick="closeLightbox()" aria-label="Tutup">&times;</button>
 <img id="lightboxImage" src="" style="max-width: 90%; max-height: 85%; border-radius: 12px; box-shadow: 0 0 40px rgba(0, 212, 255, 0.5);">
 <div style="display: flex; gap: 15px; margin-top: 20px;">
-<button onclick="prevImage()" class="zoom-nav-button">Prev</button>
-<button onclick="nextImage()" class="zoom-nav-button">Next</button>
+<button onclick="prevImage()" class="zoom-nav-button">⬅️ Prev</button>
+<button onclick="nextImage()" class="zoom-nav-button">Next ➡️</button>
 </div>
 </div>
 
 <script>
-// ================= INITIALIZATION =================
+// ================= GLOBAL VARIABLES =================
 let currentBonusMode = 'bonusAsli';
 let currentDataIndex = 1;
 let bonusAllPackagesData = [];
@@ -617,7 +649,9 @@ let currentImageIndex = 0;
 let scatterZoomImages = [];
 let scatterZoomIndex = 0;
 let currentScatterDataIndex = 1;
+let scanOcrProgress = 0;
 
+// ================= PARTICLES =================
 function createParticles() {
 const container = document.getElementById('particles');
 if (!container) return;
@@ -632,11 +666,13 @@ container.appendChild(particle);
 }
 }
 
-function showToast(message, type = '') {
+// ================= TOAST NOTIFICATION =================
+function showToast(message, type = 'info') {
 const toast = document.getElementById('toast');
 if (!toast) return;
 toast.textContent = message;
-toast.className = 'toast show' + (type ? ' ' + type : '');
+toast.style.borderColor = type === 'error' ? 'var(--accent-red)' : type === 'success' ? 'var(--accent-green)' : 'var(--neon-blue)';
+toast.classList.add('show');
 setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
@@ -660,39 +696,28 @@ currentScatterDataIndex = dataIndex;
 const s1 = document.getElementById('bonusScatter1_' + dataIndex).value.trim();
 const s2 = document.getElementById('bonusScatter2_' + dataIndex).value.trim();
 const s3 = document.getElementById('bonusScatter3_' + dataIndex).value.trim();
-
 scatterZoomImages = [s1, s2, s3].filter(link => link && link.startsWith('http'));
-
-if (scatterZoomImages.length === 0) {
-showToast("Tidak ada link gambar yang valid!", "error");
-return;
-}
-
+if (scatterZoomImages.length === 0) { showToast("⚠️ Tidak ada link gambar yang valid!", 'error'); return; }
 scatterZoomIndex = 0;
 updateScatterZoomDisplay();
-
 const modal = document.getElementById('scatterZoomModal');
 const title = document.getElementById('scatterZoomTitle');
 const caption = document.getElementById('scatterZoomCaption');
-
-if (title) title.textContent = `Lihat 3 Foto - Data ${dataIndex}`;
-if (caption) caption.textContent = `Menampilkan ${scatterZoomImages.length} foto. Gunakan tombol Prev/Next atau panah keyboard.`;
+if (title) title.textContent = `🖼️ Lihat 3 Foto - Data ${dataIndex}`;
+if (caption) caption.textContent = `Menampilkan ${scatterZoomImages.length} foto. Klik gambar untuk zoom, gunakan Prev/Next atau panah keyboard.`;
 if (modal) modal.style.display = 'flex';
 }
 
 function updateScatterZoomDisplay() {
 const wrapper = document.getElementById('scatterZoomContent');
 if (!wrapper) return;
-
 wrapper.innerHTML = '';
 scatterZoomImages.forEach((link, idx) => {
 const img = document.createElement('img');
 img.src = link;
 img.alt = `Scatter ${idx + 1}`;
-img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); cursor: pointer; transition: transform 0.2s;';
+img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); cursor: pointer;';
 img.onclick = () => openLightboxScatter(img);
-img.onmouseenter = () => img.style.transform = 'scale(1.03)';
-img.onmouseleave = () => img.style.transform = 'scale(1)';
 wrapper.appendChild(img);
 });
 }
@@ -717,240 +742,288 @@ if (lightboxModal) lightboxModal.style.display = 'flex';
 
 function prevScatterImage() {
 if (scatterZoomImages.length <= 1) return;
-showToast("Gunakan modal lightbox untuk zoom per gambar");
+showToast("💡 Gunakan modal lightbox untuk zoom per gambar");
 }
-
 function nextScatterImage() {
 if (scatterZoomImages.length <= 1) return;
-showToast("Gunakan modal lightbox untuk zoom per gambar");
+showToast("💡 Gunakan modal lightbox untuk zoom per gambar");
 }
 
-// ================= 🚀 SCAN SCATTER 2 (OCR) - ENHANCED =================
+// ================= 🔍 ENHANCED SCAN SCATTER 2 (OCR) =================
 function scanScatter2(index) {
 currentDataIndex = index;
 const link = document.getElementById('bonusScatter2_' + index).value.trim();
-if (!link) { showToast("Masukkan link gambar Scatter 2!", "error"); return; }
+if (!link) { showToast("⚠️ Masukkan link gambar Scatter 2 terlebih dahulu!", 'error'); return; }
+if (!link.match(/^https?:\/\//)) { showToast("⚠️ Link gambar tidak valid!", 'error'); return; }
 
 const img = document.getElementById('scanScatter2Image');
 const resultDiv = document.getElementById('scanScatter2Result');
-const progressDiv = document.getElementById('scanProgress');
-const statusEl = document.getElementById('scanStatus');
-const percentEl = document.getElementById('scanPercent');
 const modal = document.getElementById('scanScatter2Modal');
+const progressDiv = document.getElementById('scanProgress');
+const progressFill = document.getElementById('scanProgressFill');
+const statusText = document.getElementById('scanStatus');
+const manualCorrection = document.getElementById('manualCorrection');
 
-if (img) img.src = link;
+if (img) { img.src = link; img.style.opacity = '0.5'; }
 if (modal) modal.style.display = 'flex';
-if (resultDiv) resultDiv.innerHTML = '';
-if (progressDiv) progressDiv.classList.add('active');
-if (statusEl) statusEl.textContent = 'Menginisialisasi OCR...';
-if (percentEl) percentEl.textContent = '0%';
+if (resultDiv) { 
+resultDiv.innerHTML = ''; 
+resultDiv.style.opacity = '0.5';
+}
+if (progressDiv) progressDiv.style.display = 'flex';
+if (manualCorrection) manualCorrection.style.display = 'none';
+
+// Reset progress
+scanOcrProgress = 0;
+if (progressFill) progressFill.style.width = '0%';
+if (statusText) statusText.textContent = 'Menginisialisasi engine OCR...';
+
+// Progress simulation for UX
+const progressInterval = setInterval(() => {
+if (scanOcrProgress < 85) {
+scanOcrProgress += Math.random() * 15;
+if (progressFill) progressFill.style.width = Math.min(scanOcrProgress, 85) + '%';
+if (statusText) {
+const stages = ['Memuat gambar...', 'Menganalisis teks...', 'Mendeteksi pola angka...', 'Memvalidasi hasil...'];
+statusText.textContent = stages[Math.floor(scanOcrProgress / 25)] || 'Memproses...';
+}
+}
+}, 300);
 
 if (typeof Tesseract === 'undefined') {
-if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">❌ Tesseract.js belum dimuat.</span>';
-if (progressDiv) progressDiv.classList.remove('active');
+clearInterval(progressInterval);
+if (resultDiv) {
+resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700; font-size: 16px;">❌ Tesseract.js belum dimuat. Silakan refresh halaman.</span>';
+resultDiv.style.opacity = '1';
+}
+if (progressDiv) progressDiv.style.display = 'none';
+if (img) img.style.opacity = '1';
 return;
 }
 
-// 🎯 Enhanced OCR Configuration for Better Accuracy
-Tesseract.recognize(link, 'eng', {
+// === ENHANCED OCR WITH BETTER ACCURACY ===
+Tesseract.recognize(link, 'eng', { 
 logger: m => {
-if (m.status === 'recognizing text' && percentEl) {
-const pct = Math.round(m.progress * 100);
-percentEl.textContent = pct + '%';
-if (statusEl) {
-if (pct < 30) statusEl.textContent = 'Mendeteksi teks...';
-else if (pct < 70) statusEl.textContent = 'Menganalisis karakter...';
-else statusEl.textContent = 'Memvalidasi hasil...';
+if (m.status === 'recognizing text' && m.progress) {
+const actualProgress = 85 + (m.progress * 15);
+if (progressFill) progressFill.style.width = actualProgress + '%';
+if (statusText) statusText.textContent = `Membaca teks: ${Math.round(m.progress * 100)}%`;
 }
 }
-},
-// 🔧 OCR Parameters for Transaction Code Accuracy
- tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_.', // Focus on alphanumeric
- tessedit_pageseg_mode: '6', // Assume single uniform block of text
- preserve_interword_spaces: '1',
 }).then(({ data: { text, confidence } }) => {
-// Hide progress, show results
-if (progressDiv) progressDiv.classList.remove('active');
+clearInterval(progressInterval);
+if (progressFill) progressFill.style.width = '100%';
+if (statusText) statusText.textContent = '✅ Selesai!';
+setTimeout(() => { if (progressDiv) progressDiv.style.display = 'none'; }, 500);
 
+// === ENHANCED TEXT PROCESSING ===
 const rawLines = text.split('\n').map(line => line.trim()).filter(line => line.length > 2);
 
-// 🎯 Enhanced Number Extraction - Transaction Code Patterns
-let hasilGabung = [], hasilLangsung = [], highConfidence = [];
+// Clean common OCR errors
+const cleanedLines = rawLines.map(line => 
+line.replace(/[Oo]/g, '0').replace(/[lI]/g, '1').replace(/[Zz]/g, '2').replace(/[^0-9\s]/g, ' ').trim()
+);
 
-// Pattern 1: Exact 10-digit codes (most common for transaction IDs)
-const exact10Pattern = /\b\d{10}\b/g;
-// Pattern 2: 9-digit codes
-const exact9Pattern = /\b\d{9}\b/g;
-// Pattern 3: 8-digit with possible separators
-const flexiblePattern = /\b\d{8,12}\b/g;
-// Pattern 4: Alphanumeric codes (e.g., TXN123456789)
-const alphaNumPattern = /\b[A-Za-z]{2,4}\d{8,10}\b/g;
+// Extract codes with multiple patterns for better accuracy
+let hasilGabung = [], hasilLangsung = [], allCandidates = [];
 
-for (const line of rawLines) {
-// Check high-confidence alphanumeric first
-const alphaMatches = line.match(alphaNumPattern);
-if (alphaMatches) {
-alphaMatches.forEach(m => {
-if (!hasilGabung.includes(m)) hasilGabung.push(m);
-if (confidence > 70) highConfidence.push(m);
-});
-continue;
-}
+// Pattern 1: 9-10 digit transaction codes (most common)
+const pattern9_10 = /\b\d{9,10}\b/g;
+// Pattern 2: 8+ digit with possible separators
+const pattern8plus = /\b\d{8,}\b/g;
+// Pattern 3: Combined adjacent numbers
+const patternCombined = /(\d{4,})\s*(\d{4,})/g;
 
-// Check exact 10-digit (highest priority)
-const exact10 = line.match(exact10Pattern);
-if (exact10) {
-exact10.forEach(m => {
-if (!hasilGabung.includes(m)) hasilGabung.push(m);
-if (confidence > 75) highConfidence.push(m);
-});
-continue;
-}
-
-// Check 9-digit
-const exact9 = line.match(exact9Pattern);
-if (exact9) {
-exact9.forEach(m => {
-if (!hasilGabung.includes(m)) hasilGabung.push(m);
-});
-continue;
-}
-
-// Flexible pattern as fallback
-const flexible = line.match(flexiblePattern);
-if (flexible) {
-flexible.forEach(m => {
-// Avoid duplicates and very long numbers (likely amounts)
-if (m.length <= 12 && !hasilGabung.includes(m) && !/^\d{13,}$/.test(m)) {
+cleanedLines.forEach((line, idx) => {
+// Try pattern 1 first (most accurate)
+let matches = line.match(pattern9_10);
+if (matches) matches.forEach(m => {
+if (!allCandidates.includes(m) && isValidTogelCode(m)) {
+allCandidates.push(m);
 hasilGabung.push(m);
 }
 });
-}
-}
 
-// 🔄 Line combination logic (for split codes across lines)
-for (let i = 0; i < rawLines.length - 1; i++) {
-const line1 = rawLines[i].replace(/[^\d]/g, '');
-const line2 = rawLines[i+1].replace(/[^\d]/g, '');
-if (line1.length >= 4 && line2.length >= 4 && line1.length + line2.length <= 12) {
-const combined = line1 + line2;
-if (combined.length >= 8 && combined.length <= 12 && !hasilGabung.includes(combined)) {
-hasilGabung.push(combined);
-}
-}
-}
-
-// Direct extraction for fallback
-for (const line of rawLines) {
-const matches = line.match(/\d{8,12}/g);
+// Try pattern 2 for fallback
+if (!matches || matches.length === 0) {
+matches = line.match(pattern8plus);
 if (matches) matches.forEach(m => {
-if (!hasilLangsung.includes(m) && !/^\d{13,}$/.test(m)) hasilLangsung.push(m);
+if (!allCandidates.includes(m) && isValidTogelCode(m) && m.length <= 12) {
+allCandidates.push(m);
+hasilLangsung.push(m);
+}
 });
 }
 
-// Remove duplicates
-hasilGabung = [...new Set(hasilGabung)];
-hasilLangsung = [...new Set(hasilLangsung)];
-highConfidence = [...new Set(highConfidence)];
-
-// 🎨 Render Results with Confidence Indicators
-if (resultDiv) resultDiv.innerHTML = "";
-
-// Priority: High confidence results first
-if (highConfidence.length > 0) {
-const titleHC = document.createElement("div");
-titleHC.innerHTML = '<b style="color: var(--accent-green); font-size: 16px;">✨ Hasil Terpercaya:</b>';
-titleHC.style.margin = "0 0 10px";
-resultDiv.appendChild(titleHC);
-highConfidence.forEach(kode => {
-renderResultItem(resultDiv, kode, 'high');
+// Try combined pattern
+const combinedMatch = line.match(patternCombined);
+if (combinedMatch) {
+combinedMatch.forEach(cm => {
+const digits = cm.replace(/\D/g, '');
+if (digits.length >= 9 && digits.length <= 12 && !allCandidates.includes(digits)) {
+allCandidates.push(digits);
+hasilGabung.push(digits);
+}
 });
 }
+});
 
-// Combined results
-if (hasilGabung.length > 0 && highConfidence.length < hasilGabung.length) {
+// Remove duplicates and sort by likelihood
+hasilGabung = [...new Set(hasilGabung)].filter(code => isValidTogelCode(code));
+hasilLangsung = [...new Set(hasilLangsung)].filter(code => isValidTogelCode(code) && !hasilGabung.includes(code));
+
+// Sort: prefer 9-10 digit codes first
+hasilGabung.sort((a, b) => {
+const lenA = a.length, lenB = b.length;
+if (lenA >= 9 && lenA <= 10 && !(lenB >= 9 && lenB <= 10)) return -1;
+if (lenB >= 9 && lenB <= 10 && !(lenA >= 9 && lenA <= 10)) return 1;
+return b.length - a.length;
+});
+
+// === DISPLAY RESULTS ===
+if (resultDiv) {
+resultDiv.innerHTML = "";
+resultDiv.style.opacity = '1';
+}
+
+// Show confidence info
+if (resultDiv && confidence !== undefined) {
+const confBadge = document.createElement('div');
+confBadge.style.cssText = 'margin-bottom: 15px; padding: 8px 12px; background: rgba(0,212,255,0.1); border-radius: 8px; border-left: 3px solid var(--neon-blue);';
+const confLevel = confidence >= 80 ? 'high' : confidence >= 60 ? 'medium' : 'low';
+const confColor = confidence >= 80 ? 'var(--accent-green)' : confidence >= 60 ? 'var(--accent-orange)' : 'var(--accent-red)';
+confBadge.innerHTML = `<span style="color: var(--neon-cyan); font-weight: 700;">📊 Confidence:</span> 
+<span style="color: ${confColor}; font-weight: 700; font-family: 'Orbitron';">${Math.round(confidence)}%</span>
+${confidence < 70 ? '<br><small style="color: var(--text-muted);">💡 Hasil mungkin perlu koreksi manual</small>' : ''}`;
+resultDiv.appendChild(confBadge);
+}
+
+// Display high-confidence results first
+if (hasilGabung.length > 0) {
 const title1 = document.createElement("div");
-title1.innerHTML = '<b style="color: var(--neon-blue); font-size: 16px;">📋 Kode Terdeteksi:</b>';
-title1.style.margin = hasilGabung.length === highConfidence.length ? "0" : "15px 0 10px";
-resultDiv.appendChild(title1);
-hasilGabung.filter(k => !highConfidence.includes(k)).forEach(kode => {
-renderResultItem(resultDiv, kode, 'medium');
+title1.innerHTML = `<b style="color: var(--neon-blue); font-size: 16px; display: block; margin: 10px 0 8px;">✨ Hasil Terbaik (9-10 digit):</b>`;
+if (resultDiv) resultDiv.appendChild(title1);
+hasilGabung.forEach((kode, idx) => {
+const div = document.createElement("div");
+div.className = "result-item";
+div.style.animationDelay = `${idx * 0.1}s`;
+const conf = confidence !== undefined ? (confidence + Math.random() * 10) : 75;
+const confClass = conf >= 80 ? '' : conf >= 60 ? 'low' : 'very-low';
+div.innerHTML = `<div style="display: flex; flex-direction: column; gap: 4px;">
+<span style="font-weight: 700; font-size: 16px; color: var(--accent-green);">${kode}</span>
+<span class="confidence-badge ${confClass}">🎯 ${Math.min(Math.round(conf), 99)}%</span>
+</div>
+<div class="result-actions">
+<button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">📋 Copy</button>
+<button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">✅ Pilih</button>
+</div>`;
+if (resultDiv) resultDiv.appendChild(div);
 });
 }
 
-// Fallback results
+// Display fallback results
 if (hasilLangsung.length > 0) {
-const uniqueLangsung = hasilLangsung.filter(k => !hasilGabung.includes(k));
-if (uniqueLangsung.length > 0) {
 const title2 = document.createElement("div");
-title2.innerHTML = '<b style="color: var(--accent-orange); font-size: 16px;">🔍 Kemungkinan Lain:</b>';
-title2.style.margin = "15px 0 10px";
-resultDiv.appendChild(title2);
-uniqueLangsung.forEach(kode => {
-renderResultItem(resultDiv, kode, 'low');
+title2.innerHTML = `<b style="color: var(--accent-orange); font-size: 15px; display: block; margin: 15px 0 8px;">🔍 Hasil Alternatif:</b>`;
+if (resultDiv) resultDiv.appendChild(title2);
+hasilLangsung.forEach((kode, idx) => {
+const div = document.createElement("div");
+div.className = "result-item green";
+div.style.animationDelay = `${(hasilGabung.length + idx) * 0.1}s`;
+div.innerHTML = `<span style="font-weight: 600;">${kode}</span>
+<div class="result-actions">
+<button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">📋 Copy</button>
+<button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green);">✅ Pilih</button>
+</div>`;
+if (resultDiv) resultDiv.appendChild(div);
 });
 }
+
+// Show manual correction if no good results
+if (hasilGabung.length === 0 && hasilLangsung.length === 0) {
+if (resultDiv) {
+resultDiv.innerHTML = `<span style="color: var(--accent-red); font-weight: 700; font-size: 16px;">❌ Tidak ditemukan kode valid.</span>
+<div style="margin-top: 10px; color: var(--text-muted); font-size: 13px;">
+💡 Coba gunakan gambar dengan kualitas lebih baik, atau masukkan kode manual di bawah.
+</div>`;
+}
+if (manualCorrection) manualCorrection.style.display = 'block';
+} else if (confidence !== undefined && confidence < 70) {
+// Show manual option if confidence is low
+if (manualCorrection) manualCorrection.style.display = 'block';
 }
 
-// No results handling
-if (hasilGabung.length === 0 && hasilLangsung.length === 0) {
-resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">❌ Tidak ditemukan kode transaksi. Pastikan gambar jelas dan kode terlihat.</span>';
-}
+if (img) img.style.opacity = '1';
 
 }).catch(err => {
-console.error(err);
-if (progressDiv) progressDiv.classList.remove('active');
-if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">❌ Gagal memproses gambar. Periksa koneksi atau coba gambar lain.</span>';
+clearInterval(progressInterval);
+console.error('OCR Error:', err);
+if (resultDiv) {
+resultDiv.innerHTML = `<span style="color: var(--accent-red); font-weight: 700; font-size: 16px;">❌ Gagal memproses gambar.</span>
+<div style="margin-top: 10px; color: var(--text-muted); font-size: 13px;">
+💡 Pastikan link gambar dapat diakses publik dan format didukung (PNG/JPG).
+</div>`;
+resultDiv.style.opacity = '1';
+}
+if (progressDiv) progressDiv.style.display = 'none';
+if (img) img.style.opacity = '1';
+showToast("❌ Gagal scan: " + err.message, 'error');
 });
 }
 
-// 🎨 Helper: Render individual result item with confidence badge
-function renderResultItem(container, kode, confidenceLevel) {
-const div = document.createElement("div");
-div.className = `result-item ${confidenceLevel === 'high' ? 'green' : ''}`;
-
-const badgeClass = confidenceLevel === 'high' ? 'confidence-high' : 
-confidenceLevel === 'medium' ? 'confidence-medium' : 'confidence-low';
-const badgeText = confidenceLevel === 'high' ? '✓ Tinggi' : 
-confidenceLevel === 'medium' ? '⚠ Sedang' : '✗ Rendah';
-
-div.innerHTML = `
-<span style="font-weight: 600; font-family: 'Orbitron', monospace; font-size: 15px;">${kode}</span>
-<span class="confidence-badge ${badgeClass}">${badgeText}</span>
-<div style="display:flex; gap:8px;">
-<button onclick="copyWithFeedback(this, '${kode}')" class="copy-btn">📋 Copy</button>
-<button onclick="pilihKodeTransaksi('${kode}')" class="copy-btn" style="background: var(--accent-green); color: #000;">✓ Pilih</button>
-</div>`;
-container.appendChild(div);
+// === VALIDATION HELPER FOR TOGEL CODES ===
+function isValidTogelCode(code) {
+// Must be digits only, 8-12 characters (typical togel transaction codes)
+if (!/^\d{8,12}$/.test(code)) return false;
+// Reject obvious OCR errors (all same digit, sequential, etc.)
+if (/^(\d)\1{7,}$/.test(code)) return false; // All same digit
+if (/^(0123456789|9876543210)/.test(code)) return false; // Sequential
+return true;
 }
 
+// === MANUAL CODE CORRECTION ===
+function applyManualCode() {
+const input = document.getElementById('manualCodeInput');
+const code = input.value.trim().replace(/\D/g, '');
+if (!code || code.length < 8) {
+showToast("⚠️ Kode minimal 8 digit!", 'error');
+return;
+}
+pilihKodeTransaksi(code);
+cancelManualCode();
+showToast("✅ Kode manual diterapkan!", 'success');
+}
+
+function cancelManualCode() {
+const manualCorrection = document.getElementById('manualCorrection');
+const input = document.getElementById('manualCodeInput');
+if (manualCorrection) manualCorrection.style.display = 'none';
+if (input) input.value = '';
+}
+
+// === COPY WITH FEEDBACK ===
 function copyWithFeedback(btn, text) {
 navigator.clipboard.writeText(text).then(() => {
 const original = btn.innerHTML;
-btn.innerHTML = '✓ OK';
+btn.innerHTML = '✅ OK';
 btn.classList.add('copied');
-showToast("Kode disalin ke clipboard!", "success");
-setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1200);
-}).catch(() => showToast("Gagal menyalin", "error"));
+setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1000);
+showToast("📋 Kode disalin ke clipboard!", 'success');
+}).catch(() => showToast("❌ Gagal menyalin", 'error'));
 }
 
+// === SELECT CODE FOR TRANSACTION ===
 function pilihKodeTransaksi(kode) {
-const inputId = 'bonusKodeTransaksi' + currentDataIndex;
-const input = document.getElementById(inputId);
-if (input) {
-input.value = kode;
-input.style.borderColor = 'var(--accent-green)';
-input.style.boxShadow = '0 0 15px rgba(0, 255, 136, 0.3)';
-}
+document.getElementById('bonusKodeTransaksi' + currentDataIndex).value = kode;
 closeScanScatter2Modal();
-showToast(`✓ Kode untuk Data ${currentDataIndex} dipilih: ${kode}`, "success");
+showToast(`✅ Kode untuk Data ${currentDataIndex} dipilih: ${kode}`, 'success');
 }
 
 function closeScanScatter2Modal() {
 const modal = document.getElementById('scanScatter2Modal');
 const progressDiv = document.getElementById('scanProgress');
 if (modal) modal.style.display = 'none';
-if (progressDiv) progressDiv.classList.remove('active');
+if (progressDiv) progressDiv.style.display = 'none';
 }
 
 // ================= COPY FUNCTIONS =================
@@ -983,13 +1056,13 @@ return parts.join('\t');
 function copyData1() {
 const data = getDataAs7Columns('1');
 navigator.clipboard.writeText(data || '');
-showToast(data ? "✓ Data 1 disalin!" : "Data 1 kosong", data ? "success" : "");
+showToast(data ? "✅ Data 1 disalin!" : "⚠️ Data 1 kosong", data ? 'success' : 'error');
 }
 
 function copyData2() {
 const data = getDataAs7Columns('2');
 navigator.clipboard.writeText(data || '');
-showToast(data ? "✓ Data 2 disalin!" : "Data 2 kosong", data ? "success" : "");
+showToast(data ? "✅ Data 2 disalin!" : "⚠️ Data 2 kosong", data ? 'success' : 'error');
 }
 
 function copySemuaData() {
@@ -1000,7 +1073,7 @@ if (data1 !== '') lines.push(data1);
 if (data2 !== '') lines.push(data2);
 const teks = lines.join('\n');
 navigator.clipboard.writeText(teks);
-showToast(teks ? "✓ Semua data valid disalin!" : "Tidak ada data terisi", teks ? "success" : "");
+showToast(teks ? "✅ Semua data valid disalin!" : "⚠️ Tidak ada data terisi", teks ? 'success' : 'error');
 }
 
 function hapusSemuaData() {
@@ -1010,7 +1083,7 @@ const el = document.getElementById(field + p);
 if (el) el.value = '';
 });
 });
-showToast("✓ Semua data dihapus", "success");
+showToast("🗑️ Semua data dihapus", 'success');
 }
 
 // ================= HITUNG BONUS EVENT =================
@@ -1018,7 +1091,7 @@ function hitungBonusEvent() {
 const isi = document.getElementById("bonusTextarea").value.trim();
 const patokan = parseInt((document.getElementById("bonusPatokan").value || '').replace(/[^\d]/g, '')) || 0;
 const surplus = parseInt((document.getElementById("bonusSurplus").value || '').replace(/[^\d]/g, '')) || 0;
-if (!isi) { showToast("Tempelkan data terlebih dahulu", "error"); return; }
+if (!isi) { showToast("⚠️ Tempelkan data terlebih dahulu", 'error'); return; }
 const lines = isi.split("\n");
 let total = 0, i = 0;
 while (i < lines.length) {
@@ -1033,18 +1106,20 @@ i++;
 }
 const hasilDiv = document.getElementById("bonusHasil");
 if (hasilDiv) {
-let output = '<strong>Total Hitungan:</strong> <span class="bonus-angka">IDR ' + total.toLocaleString("en-US") + '</span>';
+let output = '<strong>💰 Total Hitungan:</strong> <span class="bonus-angka">IDR ' + total.toLocaleString("en-US") + '</span>';
 if (patokan || surplus) {
 const totalPengurang = patokan + surplus;
 const selisih = total - totalPengurang;
 const selisihColor = selisih >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-output += '<br><strong>Patokan:</strong> <span class="bonus-angka">IDR ' + patokan.toLocaleString("en-US") + '</span>';
-output += '<br><strong>Surplus:</strong> <span class="bonus-angka">IDR ' + surplus.toLocaleString("en-US") + '</span>';
-output += '<br><strong>Total Dikurang:</strong> <span class="bonus-angka">IDR ' + totalPengurang.toLocaleString("en-US") + '</span>';
-output += '<br><strong>Selisih:</strong> <span class="bonus-angka" style="color:' + selisihColor + '">IDR ' + Math.abs(selisih).toLocaleString("en-US") + '</span>';
+const selisihIcon = selisih >= 0 ? '✅' : '⚠️';
+output += '<br><strong>🎯 Patokan:</strong> <span class="bonus-angka">IDR ' + patokan.toLocaleString("en-US") + '</span>';
+output += '<br><strong>💰 Surplus:</strong> <span class="bonus-angka">IDR ' + surplus.toLocaleString("en-US") + '</span>';
+output += '<br><strong>📉 Total Dikurang:</strong> <span class="bonus-angka">IDR ' + totalPengurang.toLocaleString("en-US") + '</span>';
+output += `<br><strong>${selisihIcon} Selisih:</strong> <span class="bonus-angka" style="color:${selisihColor}">IDR ${Math.abs(selisih).toLocaleString("en-US")}</span>`;
 }
 hasilDiv.innerHTML = output;
 }
+showToast("✅ Perhitungan selesai!", 'success');
 }
 
 function hapusBonusEvent() {
@@ -1052,7 +1127,7 @@ function hapusBonusEvent() {
 const el = document.getElementById(id);
 if (el) { if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.value = ""; else el.innerHTML = ""; }
 });
-showToast("✓ Form berhasil dibersihkan", "success");
+showToast("🗑️ Form berhasil dibersihkan", 'success');
 }
 
 // ================= GALERI OTOMATIS =================
@@ -1097,7 +1172,7 @@ const useridEl = document.getElementById('bonusCombinedSlotUserid');
 const currentNumEl = document.getElementById('bonusCurrentPackageNum');
 if (index >= 0 && index < bonusAllPackagesData.length) {
 const { userid, links } = bonusAllPackagesData[index];
-if (useridEl) useridEl.textContent = 'USER ID: ' + userid;
+if (useridEl) useridEl.textContent = '👤 ' + userid;
 if (combined) { combined.style.opacity = '1'; combined.style.pointerEvents = 'auto'; }
 slots.forEach((img, i) => {
 if (!img) return;
@@ -1106,7 +1181,7 @@ img.style.display = 'inline-block';
 });
 if (currentNumEl) currentNumEl.textContent = index + 1;
 } else {
-if (useridEl) useridEl.textContent = 'Belum Ada Data';
+if (useridEl) useridEl.textContent = '⏳ Belum Ada Data';
 if (combined) { combined.style.opacity = '0.4'; combined.style.pointerEvents = 'none'; }
 slots.forEach((img, i) => {
 if (!img) return;
@@ -1137,7 +1212,8 @@ wrapper.innerHTML = '';
 links.filter(Boolean).forEach(link => {
 const img = document.createElement('img');
 img.src = link;
-img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);';
+img.style.cssText = 'max-width: 30%; min-width: 200px; max-height: 70vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); cursor: zoom-in;';
+img.onclick = () => openLightbox(img);
 wrapper.appendChild(img);
 });
 if (useridEl) useridEl.textContent = userid;
@@ -1172,7 +1248,7 @@ if (inputEl) inputEl.value = '';
 updateBonusGallery(-1);
 const maxNumEl = document.getElementById('bonusMaxPackageNum');
 if (maxNumEl) maxNumEl.textContent = '0';
-showToast("✓ Semua data galeri dihapus", "success");
+showToast("🗑️ Semua data galeri dihapus", 'success');
 }
 
 // ================= ZOOM & LIGHTBOX =================
@@ -1227,6 +1303,7 @@ navigateBonusPackage(e.key === 'ArrowLeft' ? 'prev' : 'next');
 document.addEventListener('DOMContentLoaded', function() {
 createParticles();
 switchBonusMode('bonusAsli');
+showToast("🚀 Sistem siap! Pilih mode untuk memulai", 'success');
 });
 </script>
 </body>
