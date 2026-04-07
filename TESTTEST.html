@@ -4,738 +4,420 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#00f3ff">
-<title>🔷 KENDALA ALL - CYBERPUNK V2</title>
+<title>🔷 KENDALA ALL - NEON SYSTEM 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-/* ===== CORE VARIABLES ===== */
+/* ================= VARIABLES & RESET ================= */
 :root {
-  --neon-cyan: #00f3ff;
-  --neon-blue: #0066ff;
-  --neon-purple: #bc13fe;
-  --bg-deep: #05050a;
-  --glass-bg: rgba(10, 15, 30, 0.65);
-  --glass-border: rgba(0, 243, 255, 0.15);
+  --primary: #00f3ff;
+  --primary-dim: #00a8cc;
+  --secondary: #bc13fe; /* Aksen ungu cyberpunk untuk kontras */
+  --bg-dark: #050a10;
+  --bg-panel: rgba(10, 25, 45, 0.75);
+  --glass-border: 1px solid rgba(0, 243, 255, 0.2);
   --text-main: #e0faff;
-  --text-dim: #8baec4;
-  
-  --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --text-muted: #8aaec4;
+  --glow: 0 0 15px rgba(0, 243, 255, 0.4);
+  --font-head: 'Orbitron', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-
 body {
-  font-family: 'Rajdhani', sans-serif;
-  background-color: var(--bg-deep);
+  font-family: var(--font-body);
+  background: var(--bg-dark);
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
-  position: relative;
+  line-height: 1.5;
 }
 
-/* ===== BACKGROUND CANVAS ===== */
-#bgCanvas {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: -1;
-  opacity: 0.6;
-}
-
-.scanlines {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-  background-size: 100% 4px;
+/* ================= BACKGROUND FX ================= */
+.cyber-grid {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background-image: 
+    linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  transform: perspective(500px) rotateX(60deg) translateY(-100px) scale(2);
+  animation: gridMove 20s linear infinite;
+  z-index: -2;
   pointer-events: none;
-  z-index: 9999;
-  opacity: 0.3;
+}
+@keyframes gridMove { 0% { background-position: 0 0; } 100% { background-position: 0 40px; } }
+
+.ambient-light {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 80vw; height: 80vh;
+  background: radial-gradient(circle, rgba(0, 243, 255, 0.08) 0%, transparent 70%);
+  z-index: -1; pointer-events: none;
 }
 
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
-  position: relative;
-  z-index: 2;
+.scanline {
+  position: fixed; top: 0; left: 0; width: 100%; height: 5px;
+  background: rgba(0, 243, 255, 0.3);
+  opacity: 0.4;
+  animation: scan 6s linear infinite;
+  z-index: 9999; pointer-events: none;
+  box-shadow: 0 0 10px var(--primary);
 }
+@keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
 
-/* ===== HEADER GLITCH ===== */
-.header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding-top: 20px;
-  position: relative;
-}
+/* ================= LAYOUT ================= */
+.container { max-width: 1000px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
 
-.title-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
+/* HEADER */
+header { text-align: center; margin-bottom: 40px; position: relative; padding-top: 20px; }
+.logo-area { display: inline-block; position: relative; }
 .main-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: clamp(28px, 5vw, 42px);
+  font-family: var(--font-head);
+  font-size: clamp(28px, 5vw, 48px);
   font-weight: 900;
-  color: #fff;
-  text-transform: uppercase;
   letter-spacing: 2px;
-  position: relative;
-  text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-blue);
-  animation: textFlicker 3s infinite alternate;
+  background: linear-gradient(to right, #fff, var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+  margin-bottom: 5px;
 }
-
-.subtitle {
-  font-size: 14px;
-  color: var(--neon-cyan);
-  letter-spacing: 4px;
-  margin-top: 5px;
-  opacity: 0.8;
-  text-transform: uppercase;
-}
-
+.subtitle { color: var(--primary-dim); font-size: 14px; letter-spacing: 4px; text-transform: uppercase; }
 .status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0, 243, 255, 0.1);
-  border: 1px solid var(--neon-cyan);
-  padding: 6px 16px;
-  border-radius: 50px;
-  font-size: 12px;
-  font-weight: 700;
-  margin-top: 15px;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(0, 243, 255, 0.1); border: 1px solid var(--primary);
+  padding: 5px 15px; border-radius: 20px; margin-top: 15px;
+  font-size: 12px; font-weight: 700; color: var(--primary);
   box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
-  backdrop-filter: blur(4px);
 }
+.dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
 
-.dot {
-  width: 8px; height: 8px;
-  background: var(--neon-cyan);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--neon-cyan);
-  animation: pulseDot 1.5s infinite;
-}
-
-/* ===== SEARCH HUD ===== */
-.search-hud {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.search-hud::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-  opacity: 0.5;
-}
-
-.input-group {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.search-input {
-  width: 100%;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(0, 243, 255, 0.3);
-  padding: 15px 20px 15px 50px;
-  border-radius: 12px;
-  color: #fff;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.search-input:focus {
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.search-icon {
-  position: absolute;
-  left: 18px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--neon-cyan);
-  font-size: 18px;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 15px;
-}
-
-.stat-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  padding: 10px;
-  text-align: center;
-  transition: transform 0.2s;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--neon-cyan);
-}
-
-.stat-num {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 20px;
-  color: var(--neon-cyan);
-  display: block;
-  text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
-}
-
-.stat-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  letter-spacing: 1px;
-}
-
-/* ===== DATA CARDS ===== */
-.card-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.cyber-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  overflow: hidden;
-  transition: all 0.3s var(--ease-smooth);
-  position: relative;
-}
-
-.cyber-card:hover {
-  border-color: rgba(0, 243, 255, 0.4);
-  box-shadow: 0 10px 40px rgba(0, 243, 255, 0.05);
-  transform: translateY(-2px);
-}
-
-.card-header {
-  padding: 20px 25px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(90deg, rgba(0, 243, 255, 0.05), transparent);
-  border-left: 4px solid var(--neon-cyan);
-}
-
-.card-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: #fff;
-  margin: 0;
-  flex: 1;
-  padding-right: 15px;
-}
-
-.toggle-icon {
-  color: var(--neon-cyan);
-  transition: transform 0.3s ease;
-  font-size: 14px;
-}
-
-.cyber-card.active .toggle-icon {
-  transform: rotate(180deg);
-}
-
-/* Expandable Content Animation */
-.card-body {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.4s var(--ease-smooth);
-}
-
-.cyber-card.active .card-body {
-  grid-template-rows: 1fr;
-}
-
-.card-content-inner {
-  overflow: hidden;
-}
-
-.card-padding {
-  padding: 20px 25px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Answer Blocks */
-.answer-block {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  position: relative;
-}
-
-.answer-label {
-  font-size: 11px;
-  color: var(--neon-cyan);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.answer-text {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--text-main);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.answer-text a {
-  color: var(--neon-cyan);
-  text-decoration: none;
-  border-bottom: 1px dotted var(--neon-cyan);
-  transition: 0.2s;
-}
-
-.answer-text a:hover {
-  color: #fff;
-  text-shadow: 0 0 8px var(--neon-cyan);
-}
-
-/* Action Buttons inside Card */
-.action-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-
-.btn-neon {
-  background: rgba(0, 243, 255, 0.1);
-  border: 1px solid rgba(0, 243, 255, 0.3);
-  color: var(--neon-cyan);
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  text-decoration: none;
-}
-
-.btn-neon:hover {
-  background: var(--neon-cyan);
-  color: #000;
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
-}
-
-.img-preview-container {
-  margin: 15px 0;
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--neon-cyan);
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
-}
-
-.img-preview {
-  width: 100%;
-  max-height: 300px;
-  object-fit: contain;
-  background: #000;
-  cursor: zoom-in;
-  display: block;
-}
-
-/* ===== STICKY NOTES PANEL ===== */
-.sticky-trigger {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: #000;
-  cursor: pointer;
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
-  z-index: 1000;
-  transition: all 0.3s var(--ease-elastic);
-}
-
-.sticky-trigger:hover {
-  transform: scale(1.1) rotate(10deg);
-  box-shadow: 0 0 30px rgba(0, 243, 255, 0.6);
-}
-
-.sticky-panel {
-  position: fixed;
-  bottom: 100px;
-  right: 30px;
-  width: 350px;
-  height: 60vh;
-  background: rgba(10, 15, 30, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--neon-cyan);
-  border-radius: 20px;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  transform-origin: bottom right;
-  transform: scale(0);
-  opacity: 0;
-  transition: all 0.3s var(--ease-elastic);
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-}
-
-.sticky-panel.open {
-  transform: scale(1);
-  opacity: 1;
-}
-
-.panel-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid rgba(0, 243, 255, 0.2);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(0, 243, 255, 0.05);
-  border-radius: 20px 20px 0 0;
-}
-
-.panel-title {
-  font-family: 'Orbitron';
-  color: var(--neon-cyan);
-  font-size: 16px;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 20px;
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-.close-btn:hover { opacity: 1; color: var(--neon-cyan); }
-
-.note-input-area {
-  padding: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.note-textarea {
-  width: 100%;
+.back-btn {
+  position: absolute; left: 0; top: 20px;
+  color: var(--primary); text-decoration: none;
+  border: 1px solid var(--primary-dim); padding: 8px 15px;
+  border-radius: 8px; font-weight: 600; font-size: 13px;
+  transition: 0.3s; backdrop-filter: blur(5px);
   background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  color: #fff;
-  padding: 10px;
-  font-family: 'Rajdhani';
-  resize: none;
-  margin-bottom: 10px;
 }
+.back-btn:hover { background: var(--primary); color: #000; box-shadow: var(--glow); }
 
-.note-actions {
-  display: flex;
-  gap: 10px;
+/* SEARCH & STATS */
+.search-wrapper {
+  background: var(--bg-panel); backdrop-filter: blur(15px);
+  border: var(--glass-border); border-radius: 16px;
+  padding: 20px; margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
-
-.notes-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 15px;
+.search-box { position: relative; margin-bottom: 20px; }
+.search-input {
+  width: 100%; padding: 15px 20px 15px 50px;
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 243, 255, 0.3);
+  border-radius: 12px; color: #fff; font-family: var(--font-body); font-size: 16px;
+  transition: 0.3s;
 }
+.search-input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
+.search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--primary); }
 
-.note-item {
-  background: rgba(255, 255, 255, 0.05);
-  border-left: 3px solid var(--neon-cyan);
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 4px;
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat-card {
+  background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.1);
+  padding: 10px; border-radius: 10px; text-align: center;
+}
+.stat-num { display: block; font-family: var(--font-head); font-size: 20px; color: var(--primary); font-weight: 700; }
+.stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+/* CARDS */
+.card-list { display: flex; flex-direction: column; gap: 20px; }
+.kendala-card {
+  background: var(--bg-panel); backdrop-filter: blur(10px);
+  border: var(--glass-border); border-radius: 16px;
+  overflow: hidden; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
+}
+.kendala-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: var(--primary); opacity: 0.7;
+}
+.kendala-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.4); border-color: var(--primary); }
+
+.card-header { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.card-title { font-size: 18px; font-weight: 700; color: #fff; margin-right: 15px; line-height: 1.4; }
+.toggle-icon { color: var(--primary); transition: 0.3s; }
+.kendala-card.active .toggle-icon { transform: rotate(180deg); }
+
+.card-body {
+  max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out;
+  background: rgba(0,0,0,0.2);
+}
+.kendala-card.active .card-body { max-height: 2000px; transition: max-height 0.6s ease-in; }
+.card-content { padding: 0 20px 20px 20px; }
+
+/* IMAGES */
+.img-container { margin: 15px 0; text-align: center; position: relative; border-radius: 10px; overflow: hidden; border: 1px dashed var(--primary-dim); }
+.card-img { max-width: 100%; max-height: 300px; display: block; margin: 0 auto; cursor: zoom-in; transition: 0.3s; }
+.card-img:hover { transform: scale(1.02); filter: brightness(1.1); }
+.img-badge {
+  position: absolute; top: 10px; left: 10px;
+  background: rgba(0,0,0,0.7); color: var(--primary);
+  padding: 4px 10px; border-radius: 4px; font-size: 10px;
+  border: 1px solid var(--primary);
+}
+
+/* ANSWERS */
+.answer-block {
+  background: rgba(255,255,255,0.03); border-left: 3px solid var(--text-muted);
+  padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;
+  transition: 0.3s;
+}
+.answer-block:hover { background: rgba(255,255,255,0.06); border-left-color: var(--primary); }
+.answer-label { font-size: 12px; color: var(--primary); font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.answer-text { font-size: 15px; color: #ddd; white-space: pre-wrap; word-break: break-word; }
+.answer-text a { color: var(--primary); text-decoration: none; border-bottom: 1px dotted var(--primary); }
+.answer-text a:hover { color: #fff; border-bottom-style: solid; }
+
+/* ACTION BUTTONS */
+.action-row { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.btn-action {
+  background: rgba(0, 243, 255, 0.1); border: 1px solid rgba(0, 243, 255, 0.3);
+  color: var(--primary); padding: 6px 12px; border-radius: 6px;
+  font-size: 12px; cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-action:hover { background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary); }
+.btn-link { color: #bc13fe; border-color: rgba(188, 19, 254, 0.4); background: rgba(188, 19, 254, 0.1); }
+.btn-link:hover { background: #bc13fe; color: #fff; box-shadow: 0 0 10px #bc13fe; }
+
+/* STICKY NOTES FAB & PANEL */
+.fab-sticky {
+  position: fixed; bottom: 30px; right: 30px;
+  width: 60px; height: 60px; background: var(--primary);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: #000; font-size: 24px; cursor: pointer;
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
+  transition: 0.3s; z-index: 100;
+}
+.fab-sticky:hover { transform: scale(1.1) rotate(10deg); }
+.fab-sticky span { position: absolute; top: -5px; right: -5px; background: red; color: #fff; font-size: 10px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+.sticky-overlay {
+  position: fixed; top: 0; right: -400px; width: 350px; height: 100vh;
+  background: rgba(5, 10, 16, 0.95); backdrop-filter: blur(20px);
+  border-left: 1px solid var(--primary); z-index: 101;
+  transition: 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+  display: flex; flex-direction: column; padding: 20px;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+}
+.sticky-overlay.open { right: 0; }
+.sticky-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+.sticky-input {
+  width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: #fff; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 10px;
+  font-family: var(--font-body);
+}
+.note-list { flex: 1; overflow-y: auto; }
+.note-item {
+  background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.2);
+  padding: 10px; border-radius: 8px; margin-bottom: 10px; position: relative;
   animation: slideIn 0.3s ease;
 }
+@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+.note-del { position: absolute; top: 5px; right: 5px; color: #ff4444; cursor: pointer; padding: 5px; }
 
-.note-delete {
-  position: absolute;
-  top: 5px; right: 5px;
-  color: rgba(255, 100, 100, 0.7);
-  cursor: pointer;
-  font-size: 12px;
-}
-
-/* ===== LIGHTBOX ===== */
+/* LIGHTBOX */
 .lightbox {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.95);
-  z-index: 2000;
-  display: none;
-  justify-content: center;
-  align-items: center;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.9); z-index: 2000;
+  display: none; align-items: center; justify-content: center;
   flex-direction: column;
-  backdrop-filter: blur(5px);
 }
-
 .lightbox.active { display: flex; animation: fadeIn 0.3s; }
+.lb-img { max-width: 90%; max-height: 80vh; border: 2px solid var(--primary); box-shadow: 0 0 30px var(--primary); border-radius: 8px; }
+.lb-controls { margin-top: 20px; display: flex; gap: 20px; }
+.lb-btn { background: transparent; border: 1px solid #fff; color: #fff; padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; }
+.lb-btn:hover { background: #fff; color: #000; }
 
-.lb-img {
-  max-width: 90%;
-  max-height: 80vh;
-  border: 2px solid var(--neon-cyan);
-  box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
-  border-radius: 8px;
-}
-
-.lb-controls {
-  margin-top: 20px;
-  display: flex;
-  gap: 20px;
-}
-
-/* ===== TOAST ===== */
+/* TOAST */
 .toast {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%) translateY(100px);
-  background: rgba(0, 243, 255, 0.9);
-  color: #000;
-  padding: 10px 25px;
-  border-radius: 30px;
-  font-weight: 700;
-  z-index: 3000;
-  transition: transform 0.3s var(--ease-elastic);
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+  background: rgba(0, 243, 255, 0.9); color: #000; padding: 10px 20px;
+  border-radius: 30px; font-weight: 700; z-index: 3000;
+  transition: 0.4s; opacity: 0;
 }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-.toast.show { transform: translateX(-50%) translateY(0); }
-
-/* ===== ANIMATIONS ===== */
-@keyframes textFlicker {
-  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-blue); opacity: 1; }
-  20%, 24%, 55% { text-shadow: none; opacity: 0.5; }
-}
-
-@keyframes pulseDot {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.5); opacity: 0.5; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
+/* LOADING */
+.loader { text-align: center; padding: 50px; color: var(--primary); }
+.spinner { width: 40px; height: 40px; border: 4px solid rgba(0,243,255,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #05050a; }
-::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 3px; }
-
 @media (max-width: 600px) {
-  .sticky-panel { width: 90%; right: 5%; bottom: 90px; }
-  .main-title { font-size: 28px; }
+  .main-title { font-size: 32px; }
+  .sticky-overlay { width: 100%; right: -100%; }
+  .stats-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 
-<!-- Dynamic Background -->
-<canvas id="bgCanvas"></canvas>
-<div class="scanlines"></div>
+<!-- BACKGROUNDS -->
+<div class="cyber-grid"></div>
+<div class="ambient-light"></div>
+<div class="scanline"></div>
 
 <div class="container">
-  <!-- Header -->
-  <header class="header">
-    <div class="title-wrapper">
+  <!-- HEADER -->
+  <header>
+    <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
+    <div class="logo-area">
       <h1 class="main-title">KENDALA ALL</h1>
-      <div class="subtitle">System Database v2.0</div>
-    </div>
-    <div class="status-pill">
-      <div class="dot"></div> ONLINE
+      <p class="subtitle">Database Solusi Terpadu v2026</p>
+      <div class="status-pill">
+        <div class="dot"></div> SYSTEM ONLINE
+      </div>
     </div>
   </header>
 
-  <!-- Search HUD -->
-  <div class="search-hud">
-    <div class="input-group">
+  <!-- SEARCH SECTION -->
+  <div class="search-wrapper">
+    <div class="search-box">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="searchInput" class="search-input" placeholder="Cari ID Kendala atau Masalah..." onkeyup="filterData()">
+      <input type="text" id="searchInput" class="search-input" placeholder="Cari ID, Nama, atau Masalah..." onkeyup="filterData()">
     </div>
     <div class="stats-grid">
       <div class="stat-card">
         <span class="stat-num" id="countTotal">0</span>
-        <span class="stat-label">Total Data</span>
+        <span class="stat-lbl">Total Data</span>
       </div>
       <div class="stat-card">
-        <span class="stat-num" id="countImg">0</span>
-        <span class="stat-label">With Image</span>
+        <span class="stat-num" id="countPhoto">0</span>
+        <span class="stat-lbl">Ada Foto</span>
       </div>
       <div class="stat-card">
         <span class="stat-num" id="countLink">0</span>
-        <span class="stat-label">With Link</span>
+        <span class="stat-lbl">Ada Link</span>
       </div>
     </div>
   </div>
 
-  <!-- Main List -->
-  <div id="dataContainer" class="card-list">
-    <div style="text-align:center; padding: 40px; color: var(--neon-cyan);">
-      <i class="fas fa-circle-notch fa-spin fa-2x"></i>
-      <p style="margin-top:10px;">Initializing Connection...</p>
+  <!-- CONTENT AREA -->
+  <div id="contentArea" class="card-list">
+    <div class="loader">
+      <div class="spinner"></div>
+      <p>Menghubungkan ke Server...</p>
     </div>
   </div>
 </div>
 
-<!-- Sticky Notes Trigger -->
-<div class="sticky-trigger" onclick="toggleSticky()">
+<!-- FLOATING ACTION BUTTON -->
+<div class="fab-sticky" onclick="toggleSticky()">
   <i class="fas fa-sticky-note"></i>
+  <span id="stickyCount">0</span>
 </div>
 
-<!-- Sticky Panel -->
-<div class="sticky-panel" id="stickyPanel">
-  <div class="panel-header">
-    <span class="panel-title"><i class="fas fa-terminal"></i> QUICK NOTES</span>
-    <button class="close-btn" onclick="toggleSticky()">&times;</button>
+<!-- STICKY PANEL -->
+<div class="sticky-overlay" id="stickyPanel">
+  <div class="sticky-header">
+    <h3 style="color:var(--primary); font-family:var(--font-head)">MY NOTES</h3>
+    <i class="fas fa-times" onclick="toggleSticky()" style="cursor:pointer; color:#fff;"></i>
   </div>
-  <div class="note-input-area">
-    <textarea id="noteInput" class="note-textarea" rows="3" placeholder="Type command or note here..."></textarea>
-    <div class="note-actions">
-      <button class="btn-neon" onclick="addNote()"><i class="fas fa-plus"></i> Add</button>
-      <button class="btn-neon" onclick="clearNotes()" style="border-color: #ff3366; color: #ff3366;"><i class="fas fa-trash"></i> Clear</button>
-    </div>
-  </div>
-  <div class="notes-list" id="notesList"></div>
+  <textarea id="noteInput" class="sticky-input" rows="3" placeholder="Tulis catatan cepat..."></textarea>
+  <button class="btn-action" onclick="addNote()" style="width:100%; justify-content:center; margin-bottom:20px;">
+    <i class="fas fa-plus"></i> Simpan Catatan
+  </button>
+  <div class="note-list" id="noteList"></div>
 </div>
 
-<!-- Lightbox -->
+<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
   <img src="" class="lb-img" id="lbImg">
   <div class="lb-controls">
-    <button class="btn-neon" onclick="copyCurrentImage()"><i class="fas fa-copy"></i> Copy Image</button>
-    <button class="btn-neon" onclick="document.getElementById('lightbox').classList.remove('active')"><i class="fas fa-times"></i> Close</button>
+    <button class="lb-btn" onclick="copyImage()"><i class="fas fa-copy"></i> Copy Image</button>
+    <button class="lb-btn" onclick="document.getElementById('lightbox').classList.remove('active')"><i class="fas fa-times"></i> Close</button>
   </div>
 </div>
 
-<!-- Toast Notification -->
-<div id="toast" class="toast">Action Successful</div>
+<!-- TOAST NOTIFICATION -->
+<div id="toast" class="toast">Copied to Clipboard!</div>
 
 <script>
-// --- CONFIGURATION ---
-const SHEET_ID = '1z5FYVvB0E9BeE3cRbl4id1YXi6lRB_2qzMhIvgz4Xx0'; // Pastikan ID Sheet Benar
+// CONFIGURATION
+const SHEET_ID = '1z5FYVvB0E9BeE3cRbl4id1YWi6lRB_2qzMhIvgz4Xx0';
 const GID = '1251944242';
-const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&range=C2:F300`;
+const URL_DATA = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&range=C2:F300`;
 
 let rawData = [];
 let filteredData = [];
+let stickyNotes = JSON.parse(localStorage.getItem('notes_2026')) || [];
 
-// --- INITIALIZATION ---
+// INITIALIZATION
 document.addEventListener('DOMContentLoaded', () => {
-  initCanvas();
   fetchData();
-  loadNotes();
+  renderSticky();
 });
 
-// --- DATA FETCHING ---
+// FETCH DATA
 async function fetchData() {
   try {
-    const res = await fetch(API_URL);
-    const text = await res.text();
-    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/)[1]);
+    const res = await fetch(URL_DATA);
+    const txt = await res.text();
+    const json = JSON.parse(txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);/)[1]);
     
     rawData = json.table.rows.map(row => {
-      const c = row.c || [];
+      const c = row.c;
       return {
         title: c[0]?.v || '',
         ans1: c[1]?.v || '',
         ans2: c[2]?.v || '',
         ans3: c[3]?.v || ''
       };
-    }).filter(x => x.title);
+    }).filter(x => x.title !== '');
 
     filteredData = [...rawData];
     renderCards(filteredData);
     updateStats();
   } catch (err) {
-    document.getElementById('dataContainer').innerHTML = `
-      <div style="text-align:center; color:#ff3366; padding:20px; border:1px solid #ff3366; border-radius:10px;">
-        <i class="fas fa-exclamation-triangle"></i> CONNECTION FAILED<br>
-        <small>${err.message}</small>
-      </div>`;
+    document.getElementById('contentArea').innerHTML = `<div style="text-align:center; color:#ff4444; padding:20px;">Gagal memuat data. Cek koneksi internet.<br><small>${err.message}</small></div>`;
   }
 }
 
-// --- RENDERING ---
+// RENDER CARDS
 function renderCards(data) {
-  const container = document.getElementById('dataContainer');
+  const container = document.getElementById('contentArea');
   if(data.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">No data found in sector.</div>';
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada data ditemukan.</div>';
     return;
   }
 
   container.innerHTML = data.map((item, idx) => {
-    // Extract Images
-    const imgRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp))/gi;
-    const titleImg = item.title.match(imgRegex);
-    const cleanTitle = titleImg ? item.title.replace(titleImg[0], '') : item.title;
+    // Logic for images in title or answers
+    const imgRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif))/gi;
+    let mainImg = item.title.match(imgRegex) || item.ans1?.match(imgRegex);
+    mainImg = mainImg ? mainImg[0] : null;
     
-    // Check for images in answers
-    let hasImg = false;
-    [item.ans1, item.ans2, item.ans3].forEach(a => { if(imgRegex.test(a)) hasImg = true; });
+    // Clean title from URL if exists
+    let cleanTitle = item.title.replace(imgRegex, '').trim();
 
     return `
-    <div class="cyber-card">
-      <div class="card-header" onclick="toggleCard(this)">
-        <h3 class="card-title">${highlightSearch(cleanTitle)}</h3>
+    <div class="kendala-card" onclick="toggleCard(this)">
+      <div class="card-header">
+        <div class="card-title">${idx + 1}. ${escapeHtml(cleanTitle)}</div>
         <i class="fas fa-chevron-down toggle-icon"></i>
       </div>
-      
-      ${titleImg ? `
-      <div class="card-padding" style="padding-top:0;">
-        <div class="img-preview-container">
-          <img src="${titleImg[0]}" class="img-preview" onclick="openLightbox('${titleImg[0]}')">
-        </div>
-      </div>` : ''}
-
       <div class="card-body">
-        <div class="card-content-inner card-padding">
-          ${renderAnswerBlock('Solution Alpha', item.ans1)}
-          ${renderAnswerBlock('Solution Beta', item.ans2)}
-          ${renderAnswerBlock('Solution Gamma', item.ans3)}
+        <div class="card-content">
+          ${mainImg ? `
+            <div class="img-container">
+              <span class="img-badge"><i class="fas fa-image"></i> PREVIEW</span>
+              <img src="${mainImg}" class="card-img" onclick="openLightbox('${mainImg}', event)" onerror="this.style.display='none'">
+            </div>` : ''}
+          
+          ${renderAnswerBlock('SOLUSI UTAMA', item.ans1)}
+          ${renderAnswerBlock('SOLUSI ALTERNATIF', item.ans2)}
+          ${renderAnswerBlock('CATATAN TAMBAHAN', item.ans3)}
         </div>
       </div>
     </div>`;
@@ -745,36 +427,41 @@ function renderCards(data) {
 function renderAnswerBlock(label, text) {
   if (!text) return '';
   
-  // Process Links
+  // Extract links
   const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const processedText = text.replace(urlRegex, url => `<a href="${url}" target="_blank">${url.substring(0,30)}...</a>`);
+  const links = text.match(urlRegex) || [];
   
-  // Check for inline images
-  const imgRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp))/gi;
-  const matchImg = text.match(imgRegex);
-  let imgHtml = '';
-  if(matchImg) {
-    imgHtml = `<div class="img-preview-container" style="margin-top:10px;">
-      <img src="${matchImg[0]}" class="img-preview" onclick="openLightbox('${matchImg[0]}')">
-    </div>`;
-  }
+  // Format text with clickable links
+  let formattedText = escapeHtml(text).replace(urlRegex, url => 
+    `<a href="${url}" target="_blank" onclick="event.stopPropagation()">${url.substring(0,30)}...</a>`
+  );
+
+  // Remove image URLs from text display if present
+  const imgRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif))/gi;
+  formattedText = formattedText.replace(imgRegex, '[FOTO TERLAMPIR]');
 
   return `
     <div class="answer-block">
-      <div class="answer-label"><i class="fas fa-microchip"></i> ${label}</div>
-      <div class="answer-text">${processedText}</div>
-      ${imgHtml}
+      <div class="answer-label"><i class="fas fa-terminal"></i> ${label}</div>
+      <div class="answer-text">${formattedText}</div>
       <div class="action-row">
-        <button class="btn-neon" onclick="copyText('${escapeQuotes(text)}')"><i class="fas fa-copy"></i> Copy Text</button>
-        <button class="btn-neon" onclick="saveToSticky('${escapeQuotes(text.substring(0,50))}...')"><i class="fas fa-save"></i> Save Note</button>
+        <button class="btn-action" onclick="copyText('${escapeJs(text)}', event)">
+          <i class="fas fa-copy"></i> Copy Text
+        </button>
+        <button class="btn-action" onclick="addToSticky('${escapeJs(text)}', event)">
+          <i class="fas fa-thumbtack"></i> Save Note
+        </button>
+        ${links.length > 0 ? `
+          <a href="${links[0]}" target="_blank" class="btn-action btn-link" onclick="event.stopPropagation()">
+            <i class="fas fa-external-link-alt"></i> Open Link
+          </a>` : ''}
       </div>
     </div>
   `;
 }
 
-// --- INTERACTION ---
-function toggleCard(header) {
-  const card = header.parentElement;
+// UTILITIES
+function toggleCard(card) {
   card.classList.toggle('active');
 }
 
@@ -788,171 +475,87 @@ function filterData() {
 }
 
 function updateStats() {
-  document.getElementById('countTotal').innerText = filteredData.length;
-  // Simple logic for stats demo
-  document.getElementById('countImg').innerText = Math.floor(filteredData.length * 0.4); 
-  document.getElementById('countLink').innerText = Math.floor(filteredData.length * 0.6);
+  document.getElementById('countTotal').innerText = rawData.length;
+  // Simple logic for stats
+  const withPhoto = rawData.filter(i => /http.*\.(jpg|png)/i.test(i.title+i.ans1)).length;
+  document.getElementById('countPhoto').innerText = withPhoto;
+  document.getElementById('countLink').innerText = rawData.filter(i => /http/i.test(i.ans1+i.ans2)).length;
 }
 
-// --- UTILS ---
-function highlightSearch(text) {
-  const q = document.getElementById('searchInput').value;
-  if(!q) return text;
-  const regex = new RegExp(`(${q})`, 'gi');
-  return text.replace(regex, '<span style="color:var(--neon-cyan); background:rgba(0,243,255,0.2);">$1</span>');
+function escapeHtml(text) {
+  if(!text) return '';
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function escapeJs(text) {
+  if(!text) return '';
+  return text.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
 }
 
-function escapeQuotes(str) {
-  return str ? str.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n') : '';
-}
-
-async function copyText(text) {
-  // Unescape for copying
-  const cleanText = text.replace(/\\n/g, '\n').replace(/&quot;/g, '"');
-  await navigator.clipboard.writeText(cleanText);
-  showToast("Text Copied to Clipboard");
+// CLIPBOARD & ACTIONS
+function copyText(text, e) {
+  e.stopPropagation();
+  navigator.clipboard.writeText(text).then(() => showToast('✅ Teks berhasil disalin!'));
 }
 
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.innerText = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// --- LIGHTBOX ---
-function openLightbox(src) {
+// LIGHTBOX
+function openLightbox(src, e) {
+  if(e) e.stopPropagation();
   document.getElementById('lbImg').src = src;
   document.getElementById('lightbox').classList.add('active');
 }
-
 function closeLightbox(e) {
-  if(e.target.id === 'lightbox' || e.target.tagName === 'BUTTON' || e.target.parentElement.tagName === 'BUTTON') {
+  if(e.target.id === 'lightbox' || e.target.closest('.lb-btn')) 
     document.getElementById('lightbox').classList.remove('active');
-  }
+}
+function copyImage() {
+  const img = document.getElementById('lbImg').src;
+  navigator.clipboard.writeText(img).then(() => showToast('📋 URL Gambar disalin!'));
 }
 
-function copyCurrentImage() {
-  const src = document.getElementById('lbImg').src;
-  copyText(src); // Fallback to copy URL
-  showToast("Image URL Copied");
-}
-
-// --- STICKY NOTES ---
+// STICKY NOTES LOGIC
 function toggleSticky() {
   document.getElementById('stickyPanel').classList.toggle('open');
 }
 
-function addNote() {
+function addNote(content = null) {
   const input = document.getElementById('noteInput');
-  const val = input.value.trim();
-  if(!val) return;
+  const text = content || input.value.trim();
+  if(!text) return;
   
-  let notes = JSON.parse(localStorage.getItem('cyberNotes') || '[]');
-  notes.unshift({ text: val, date: new Date().toLocaleTimeString() });
-  localStorage.setItem('cyberNotes', JSON.stringify(notes));
-  
+  stickyNotes.unshift({ text: text, date: new Date().toLocaleDateString() });
+  localStorage.setItem('notes_2026', JSON.stringify(stickyNotes));
   input.value = '';
-  loadNotes();
-  showToast("Note Saved");
+  renderSticky();
+  if(!content) showToast('📝 Catatan disimpan');
 }
 
-function saveToSticky(text) {
-  let notes = JSON.parse(localStorage.getItem('cyberNotes') || '[]');
-  notes.unshift({ text: text, date: 'Auto-Saved' });
-  localStorage.setItem('cyberNotes', JSON.stringify(notes));
-  loadNotes();
-  toggleSticky();
+function deleteNote(idx) {
+  stickyNotes.splice(idx, 1);
+  localStorage.setItem('notes_2026', JSON.stringify(stickyNotes));
+  renderSticky();
 }
 
-function loadNotes() {
-  const list = document.getElementById('notesList');
-  const notes = JSON.parse(localStorage.getItem('cyberNotes') || '[]');
-  list.innerHTML = notes.map((n, i) => `
+function renderSticky() {
+  const list = document.getElementById('noteList');
+  document.getElementById('stickyCount').innerText = stickyNotes.length;
+  
+  list.innerHTML = stickyNotes.map((note, i) => `
     <div class="note-item">
-      <div style="font-size:10px; color:var(--neon-cyan); margin-bottom:4px;">${n.date}</div>
-      <div style="font-size:13px; color:#fff;">${n.text}</div>
-      <i class="fas fa-times note-delete" onclick="deleteNote(${i})"></i>
+      <i class="fas fa-trash note-del" onclick="deleteNote(${i})"></i>
+      <div style="font-size:10px; color:var(--primary-dim); margin-bottom:5px;">${note.date}</div>
+      <div style="white-space:pre-wrap; font-size:14px;">${escapeHtml(note.text)}</div>
+      <button class="btn-action" style="margin-top:8px; width:100%" onclick="copyText(\`${escapeJs(note.text)}\`, event)">
+        <i class="fas fa-copy"></i> Copy
+      </button>
     </div>
   `).join('');
-}
-
-function deleteNote(i) {
-  let notes = JSON.parse(localStorage.getItem('cyberNotes') || '[]');
-  notes.splice(i, 1);
-  localStorage.setItem('cyberNotes', JSON.stringify(notes));
-  loadNotes();
-}
-
-function clearNotes() {
-  localStorage.removeItem('cyberNotes');
-  loadNotes();
-}
-
-// --- PARTICLE BACKGROUND SYSTEM ---
-function initCanvas() {
-  const canvas = document.getElementById('bgCanvas');
-  const ctx = canvas.getContext('2d');
-  let w, h, particles = [];
-
-  function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-  }
-  
-  class Particle {
-    constructor() {
-      this.x = Math.random() * w;
-      this.y = Math.random() * h;
-      this.vx = (Math.random() - 0.5) * 0.5;
-      this.vy = (Math.random() - 0.5) * 0.5;
-      this.size = Math.random() * 2;
-    }
-    update() {
-      this.x += this.vx;
-      this.y += this.vy;
-      if(this.x < 0 || this.x > w) this.vx *= -1;
-      if(this.y < 0 || this.y > h) this.vy *= -1;
-    }
-    draw() {
-      ctx.fillStyle = 'rgba(0, 243, 255, 0.5)';
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  function init() {
-    resize();
-    for(let i=0; i<60; i++) particles.push(new Particle());
-  }
-
-  function animate() {
-    ctx.clearRect(0, 0, w, h);
-    particles.forEach((p, index) => {
-      p.update();
-      p.draw();
-      // Draw connections
-      for(let j=index; j<particles.length; j++) {
-        const dx = p.x - particles[j].x;
-        const dy = p.y - particles[j].y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if(dist < 100) {
-          ctx.strokeStyle = `rgba(0, 243, 255, ${0.1 - dist/1000})`;
-          ctx.lineWidth = 0.5;
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.stroke();
-        }
-      }
-    });
-    requestAnimationFrame(animate);
-  }
-
-  window.addEventListener('resize', resize);
-  init();
-  animate();
 }
 </script>
 </body>
