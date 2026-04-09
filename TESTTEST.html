@@ -560,7 +560,7 @@ body {
   font-family: 'Orbitron', sans-serif;
 }
 
-/* ========== SELECTOR PANEL ========== */
+/* ========== SELECTOR PANEL - UPDATED ========== */
 .selector-panel {
   background: linear-gradient(135deg, var(--bg-card) 0%, rgba(6, 20, 32, 0.8) 100%);
   border: 1px solid var(--border-color);
@@ -657,10 +657,10 @@ body {
   box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
 }
 
-/* ========== RESULT BOX ========== */
+/* ========== RESULT BOX - UPDATED ========== */
 .result-area {
   margin-top: 20px;
-  min-height: 70px;
+  min-height: 80px;
   padding: 20px 24px;
   background: rgba(0, 212, 255, 0.05);
   border: 1px solid var(--border-color);
@@ -712,6 +712,7 @@ body {
   font-size: 14px;
   color: var(--text-muted);
   font-family: 'Rajdhani', sans-serif;
+  text-align: center;
 }
 
 .result-text {
@@ -946,7 +947,7 @@ textarea:focus-visible {
       </div>
     </div>
 
-    <!-- TAB HITUNG -->
+    <!-- TAB HITUNG - UPDATED: NO BOTTOM SECTION, AUTO-SHOW RESULT -->
     <div id="tab-hitung" style="display:none;">
       <div class="control-bar">
         <div class="control-group">
@@ -964,7 +965,7 @@ textarea:focus-visible {
           <div class="selector-head-icon"><i class="fas fa-bullseye"></i></div>
           <div class="selector-head-text">
             <h3>Pilih Hitungan</h3>
-            <p>Pilih tipe dan label untuk melihat hasil</p>
+            <p>Pilih tipe dan label, hasil muncul otomatis</p>
           </div>
         </div>
         <div class="selector-group">
@@ -979,21 +980,12 @@ textarea:focus-visible {
             <div class="chip" data-value="">Semua</div>
           </div>
         </div>
-        <div style="margin-top: 22px; text-align: center;">
-          <button class="bonus-btn orange" onclick="tampilkanValueHitungan()" style="width: 100%; justify-content: center; padding: 14px;">
-            <i class="fas fa-sparkles"></i> Tampilkan Hasil
-          </button>
-        </div>
+        <!-- ✅ RESULT BOX - HASIL MUNCUL OTOMATIS -->
         <div class="result-area" id="resultBox">
-          <span class="result-placeholder">⬆️ Pilih tipe & label untuk melihat hasil</span>
+          <span class="result-placeholder">👆 Pilih Tipe & Label untuk melihat hasil</span>
         </div>
       </div>
-
-      <div class="content-grid" id="container-hitung" style="margin-top: 8px;">
-        <div style="grid-column: 1 / -1;">
-          <div class="loader-wrap"><div class="loader"></div></div>
-        </div>
-      </div>
+      <!-- ❌ Container bawah dihapus -->
     </div>
   </div>
 </div>
@@ -1158,11 +1150,11 @@ async function fetchHitung() {
     if (data[0]) { const nom = safeGet(data[0], 23); if (nom) { dom.inNom.value = nom; dom.statNom.textContent = 'Rp ' + formatNum(nom); } }
     const secDef = [{ tRow: 0, tCol: 24, start: 2, end: 42 }, { tRow: 43, tCol: 24, start: 45, end: 80 }, { tRow: 81, tCol: 24, start: 83, end: 119 }, { tRow: 120, tCol: 24, start: 122, end: 153 }, { tRow: 154, tCol: 24, start: 156, end: 179 }, { tRow: 180, tCol: 24, start: 182, end: 213 }, { tRow: 215, tCol: 24, start: 217, end: 248 }, { tRow: 249, tCol: 24, start: 251, end: 282 }, { tRow: 283, tCol: 24, start: 285, end: 316 }];
     state.hitung = secDef.map(s => { let title = safeGet(data[s.tRow], s.tCol) || 'PASARAN'; let items = []; for (let i = s.start; i <= s.end && i < data.length; i++) { if (data[i]) { const t = safeGet(data[i], 23), r = safeGet(data[i], 24); if (t || r) items.push({ type: t, res: r }); } } return { title, items }; }).filter(s => s.items.length > 0);
-    renderHitung();
-  } catch(e) { dom.contH.innerHTML = '<div style="grid-column:1/-1;"><div class="empty-state"><div class="empty-state-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="empty-state-text">Gagal memuat data</div></div></div>'; }
+    // ✅ Tidak perlu renderHitung() karena section bawah dihapus
+  } catch(e) { console.error('Fetch hitung error:', e); }
 }
 
-// ================= RENDER FUNCTIONS =================
+// ================= RENDER FUNCTIONS (PREDIKSI TAB ONLY) =================
 function renderList(container, items, search) {
   const f = items.filter(i => i.content.toLowerCase().includes(search.toLowerCase()));
   if (!f.length) { container.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i class="fas fa-inbox"></i></div><div class="empty-state-text">Tidak ada data ditemukan</div></div>'; return; }
@@ -1187,36 +1179,23 @@ function renderPrediksi() {
   dom.cntL.textContent = state.link.length + ' item';
 }
 
-function renderHitung() {
-  if (!state.hitung.length) { dom.contH.innerHTML = '<div style="grid-column:1/-1;"><div class="empty-state"><div class="empty-state-icon"><i class="fas fa-inbox"></i></div><div class="empty-state-text">Tidak ada data</div></div></div>'; return; }
-  dom.contH.innerHTML = state.hitung.map((s, si) => `
-    <div class="pasaran-card" style="animation-delay:${si * 0.06}s">
-      <div class="pasaran-title">🎯 ${s.title}</div>
-      <div class="pasaran-body">
-        ${s.items.map(it => `
-          <div class="bet-row" onclick="copyText('${encodeURIComponent(it.res)}', this)">
-            <span class="bet-label">${it.type}</span>
-            <span class="bet-value">${it.res}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `).join('');
-}
-
+// ✅ UPDATED: Render chips dengan auto-show result
 function renderChips(container, items, type) {
   container.innerHTML = '<div class="chip" data-value="">Semua</div>' + items.map(it => `<div class="chip" data-value="${it.label || it}">${(it.label || it).substring(0, 28)}${(it.label || it).length > 28 ? '...' : ''}</div>`).join('');
   container.querySelectorAll('.chip').forEach(chip => {
     chip.onclick = () => {
       container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
+      
       if (type === 'tipe') { 
         selectedTipe = chip.dataset.value; 
         updateLabelChips();
+        // ✅ Auto-show result jika kedua sudah dipilih
         if (selectedLabel) setTimeout(() => tampilkanValueHitungan(), 100);
       }
       else { 
         selectedLabel = chip.dataset.value;
+        // ✅ Auto-show result jika kedua sudah dipilih
         if (selectedTipe) setTimeout(() => tampilkanValueHitungan(), 100);
       }
     };
@@ -1233,12 +1212,22 @@ async function loadHitungData() {
     const data = parseCSV(await (await fetch(CONFIG.sheetHitung + '&t=' + Date.now())).text());
     if (data[0]) { const nom = safeGet(data[0], 23); if (nom) { dom.inNom.value = nom; dom.statNom.textContent = 'Rp ' + formatNum(nom); } }
     const secDef = [{ tRow: 0, tCol: 24, start: 2, end: 42, title: 'SEMUA PASARAN' }, { tRow: 43, tCol: 24, start: 45, end: 80, title: 'TOTO MACAU 4D' }, { tRow: 81, tCol: 24, start: 83, end: 119, title: 'TOTO MACAU 5D' }, { tRow: 120, tCol: 24, start: 122, end: 153, title: 'KINGKONG 4D' }, { tRow: 154, tCol: 24, start: 156, end: 179, title: 'BONUS' }, { tRow: 180, tCol: 24, start: 182, end: 213, title: 'JAKARTA' }, { tRow: 215, tCol: 24, start: 217, end: 248, title: 'TOTOMALI' }, { tRow: 249, tCol: 24, start: 251, end: 282, title: 'HOKIDRAW' }, { tRow: 283, tCol: 24, start: 285, end: 316, title: 'SYDNEY & HK' }];
-    state.kelompok = {}; secDef.forEach(sec => { const items = []; for (let i = sec.start; i <= sec.end && i < data.length; i++) { if (data[i]) { const l = safeGet(data[i], 23), v = safeGet(data[i], 24); if (l || v) items.push({ label: l || '-', value: v || '-' }); } } if (items.length > 0) state.kelompok[sec.title] = items; });
+    state.kelompok = {}; 
+    secDef.forEach(sec => { 
+      const items = []; 
+      for (let i = sec.start; i <= sec.end && i < data.length; i++) { 
+        if (data[i]) { 
+          const l = safeGet(data[i], 23), v = safeGet(data[i], 24); 
+          if (l || v) items.push({ label: l || '-', value: v || '-' }); 
+        } 
+      } 
+      if (items.length > 0) state.kelompok[sec.title] = items; 
+    });
     renderChips(dom.chipTipe, Object.keys(state.kelompok).map(t => ({ label: t })), 'tipe');
   } catch(e) { console.error(e); }
 }
 
-// ================= AUTO-REFRESH =================
+// ================= AUTO-REFRESH RESULT WHEN NOMINAL CHANGES =================
 function handleNominalInput() {
   const currentNominal = dom.inNom.value.trim();
   clearTimeout(autoRefreshTimer);
@@ -1285,25 +1274,34 @@ async function autoRefreshResult(nominal) {
   }
 }
 
+// ✅ UPDATED: Auto-show result function (tanpa tombol)
 function tampilkanValueHitungan() {
   const r = dom.resultBox;
+  
+  // Reset jika tidak ada selection
   if (!selectedTipe || !selectedLabel || !state.kelompok[selectedTipe]) { 
-    r.innerHTML = '<span class="result-placeholder">Pilih tipe & label terlebih dahulu</span>'; 
+    r.innerHTML = '<span class="result-placeholder">👆 Pilih Tipe & Label untuk melihat hasil</span>'; 
     r.classList.remove('active'); 
     hasResultDisplayed = false;
     return; 
   }
+  
   const item = state.kelompok[selectedTipe].find(i => i.label === selectedLabel);
+  
   if (item) {
     r.innerHTML = `<span class="result-text">${formatResultText(item.value)}</span><span class="result-hint">📋 Klik untuk menyalin</span>`;
     r.classList.add('active');
     r.onclick = () => copyText(item.value, r);
+    
+    // Animasi feedback
     r.classList.remove('copied');
     void r.offsetWidth;
     r.classList.add('copied');
     setTimeout(() => r.classList.remove('copied'), 350);
+    
     hasResultDisplayed = true;
     lastNominal = dom.inNom.value;
+    
     showToast('✅ Hasil ditampilkan!', 'success');
   }
 }
@@ -1362,7 +1360,9 @@ dom.srcL.addEventListener('input', () => renderList(dom.listL, state.link, dom.s
 // ================= INITIALIZATION =================
 document.addEventListener('DOMContentLoaded', () => {
   createParticles();
-  fetchPrediksi(); fetchHitung(); loadHitungData();
+  fetchPrediksi(); 
+  fetchHitung(); 
+  loadHitungData();
   setTimeout(() => showToast('Sistem siap digunakan', 'success'), 1000);
 });
 
