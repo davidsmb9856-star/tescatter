@@ -10,7 +10,7 @@
 :root {
     --bg-dark: #020810;
     /* Card dibuat lebih terang dengan efek glassmorphism putih/biru muda */
-    --bg-card: rgba(20, 35, 55, 0.85); 
+    --bg-card: rgba(30, 50, 80, 0.85); 
     --bg-input: rgba(10, 25, 45, 0.7);
     --neon-blue: #00d4ff;
     --neon-cyan: #00fff7;
@@ -263,9 +263,24 @@ body {
 
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(2, 8, 16, 0.95); z-index: 10000; display: none;
+    /* Menggunakan background image yang sama untuk modal zoom */
+    background-image: url('https://i.pinimg.com/736x/8e/f1/30/8ef13033451fcb3507e02948f56a9eb7.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 10000; display: none;
     flex-direction: column; justify-content: center; align-items: center; padding: 20px;
     animation: modalFadeIn 0.3s ease-out;
+}
+
+/* Overlay khusus untuk modal agar gambar background tidak terlalu mengganggu konten modal */
+.modal-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(2, 8, 16, 0.9); /* Overlay gelap di atas gambar background modal */
+    backdrop-filter: blur(5px);
+    z-index: -1;
 }
 
 @keyframes modalFadeIn {
@@ -276,6 +291,7 @@ body {
 .modal-close {
     position: absolute; top: 15px; right: 25px; font-size: 40px; color: var(--neon-blue);
     background: none; border: none; cursor: pointer; transition: all 0.3s ease; line-height: 1;
+    z-index: 10001;
 }
 
 .modal-close:hover { color: var(--neon-cyan); transform: rotate(90deg); }
@@ -759,7 +775,7 @@ if (typeof Tesseract === 'undefined') {
 if (resultDiv) resultDiv.innerHTML = '<span style="color: var(--accent-red); font-weight: 700;">Tesseract.js belum dimuat.</span>';
 return;
 }
-Tesseract.recognize(link, 'ind', { logger: m => console.log(m) }).then(({ data: { text } }) => {
+Tesseract.recognize(link, 'ind', { logger: m => console.log(m) }).then(({  { text } }) => {
 const rawLines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 let hasilGabung = [], hasilLangsung = [];
 for (let i = 0; i < rawLines.length; i++) {
