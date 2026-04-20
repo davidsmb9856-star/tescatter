@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator Betting Pro - Parlay, Handicap, Over/Under</title>
+    <title>Kalkulator Betting Pro - Parlay, Handicap, Over/Under, Tunggal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -49,7 +49,7 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; height: 6px;
-            background: linear-gradient(90deg, var(--primary), var(--success), var(--info));
+            background: linear-gradient(90deg, var(--primary), var(--success), var(--info), var(--warning));
         }
 
         h1 { font-family: 'Poppins', sans-serif; font-size: 32px; color: var(--primary-dark); margin-bottom: 8px; }
@@ -62,12 +62,12 @@
             margin-bottom: 25px;
             box-shadow: var(--shadow);
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
         }
 
         .mode-btn {
-            padding: 18px;
+            padding: 18px 12px;
             border: none;
             background: #f3f4f6;
             border-radius: 12px;
@@ -79,10 +79,10 @@
             align-items: center;
             gap: 8px;
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: 13px;
         }
 
-        .mode-btn i { font-size: 22px; }
+        .mode-btn i { font-size: 20px; }
 
         .mode-btn.active {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
@@ -242,6 +242,7 @@
         .radio-option input:checked + label.win-half { background: #fef3c7; border-color: var(--warning); color: #92400e; }
         .radio-option input:checked + label.lose-half { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
         .radio-option input:checked + label.void { background: #f3f4f6; border-color: #9ca3af; color: #374151; }
+        .radio-option input:checked + label.lose { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
 
         .effective-odd-display {
             margin-top: 10px;
@@ -358,7 +359,7 @@
         .btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3); }
 
         @media (max-width: 768px) {
-            .mode-switcher { grid-template-columns: 1fr; }
+            .mode-switcher { grid-template-columns: 1fr 1fr; }
             .control-panel, .result-dashboard { grid-template-columns: 1fr; }
             .match-grid { grid-template-columns: 1fr; }
             .status-selector { grid-template-columns: 1fr 1fr; }
@@ -372,7 +373,7 @@
 <div class="container">
     <div class="header-card">
         <h1><i class="fas fa-calculator"></i> Kalkulator Betting Pro</h1>
-        <p class="subtitle">Perhitungan Akurat Mix Parlay, Handicap & Over/Under</p>
+        <p class="subtitle">Perhitungan Akurat Mix Parlay, Handicap, Over/Under & Taruhan Tunggal</p>
     </div>
 
     <div class="mode-switcher">
@@ -384,6 +385,9 @@
         </button>
         <button class="mode-btn" onclick="switchMode('overunder')">
             <i class="fas fa-chart-line"></i><span>Over/Under</span>
+        </button>
+        <button class="mode-btn" onclick="switchMode('tunggal')">
+            <i class="fas fa-star"></i><span>Taruhan Tunggal</span>
         </button>
     </div>
 
@@ -627,6 +631,78 @@
         </div>
     </div>
 
+    <!-- TARUHAN TUNGGAL CALCULATOR -->
+    <div id="tunggal-section" class="calculator-section">
+        <div class="control-panel">
+            <div class="input-wrapper">
+                <label class="input-label">Modal Taruhan (Rp)</label>
+                <div class="currency-input">
+                    <span>Rp</span>
+                    <input type="number" id="tunggal-stake" value="100000" oninput="calculateTunggal()">
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <label class="input-label">Odd</label>
+                <div class="currency-input">
+                    <span>x</span>
+                    <input type="number" id="tunggal-odd" step="0.01" value="1.90" oninput="calculateTunggal()">
+                </div>
+            </div>
+        </div>
+
+        <div class="result-dashboard">
+            <div class="result-card primary">
+                <i class="fas fa-percentage"></i><div class="result-label">Odd</div>
+                <div class="result-value" id="tunggal-odd-display">1.90</div>
+            </div>
+            <div class="result-card success">
+                <i class="fas fa-money-bill-wave"></i><div class="result-label">Total Hasil</div>
+                <div class="result-value" id="tunggal-total-return">Rp 0</div>
+            </div>
+            <div class="result-card info">
+                <i class="fas fa-wallet"></i><div class="result-label">Kemenangan</div>
+                <div class="result-value" id="tunggal-kemenangan">Rp 0</div>
+            </div>
+        </div>
+
+        <div class="match-card">
+            <div class="match-header">
+                <div class="match-title"><i class="fas fa-futbol"></i> Detail Taruhan Tunggal</div>
+            </div>
+            <div class="match-grid">
+                <div class="form-group">
+                    <label>Nama Tim / Pertandingan</label>
+                    <input type="text" id="tunggal-team" value="Tim Pilihan" oninput="calculateTunggal()">
+                </div>
+                <div class="form-group">
+                    <label>Hasil Taruhan</label>
+                    <select id="tunggal-result" onchange="calculateTunggal()">
+                        <option value="win">Menang</option>
+                        <option value="lose">Kalah</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="calculation-box">
+            <div class="calculation-header">
+                <div class="calculation-title"><i class="fas fa-file-alt"></i> Rincian Perhitungan</div>
+                <button class="btn-copy" onclick="copyCalculation('tunggal')">
+                    <i class="fas fa-copy"></i> <span id="copy-text-tunggal">Salin</span>
+                </button>
+            </div>
+            <div class="calculation-content" id="tunggal-calculation-text">Memuat...</div>
+        </div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Rumus Taruhan Tunggal</h3>
+            <div class="info-grid">
+                <div class="info-item"><strong>✅ Menang</strong> Total Hasil = Modal × Odd<br>Kemenangan = Total Hasil - Modal</div>
+                <div class="info-item"><strong>❌ Kalah</strong> Total Hasil = Rp 0<br>Kemenangan = -Modal (rugi)</div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -638,6 +714,7 @@
         if (mode === 'parlay') calculateParlay();
         else if (mode === 'handicap') calculateHandicap();
         else if (mode === 'overunder') calculateOverUnder();
+        else if (mode === 'tunggal') calculateTunggal();
     }
 
     function copyCalculation(type) {
@@ -768,9 +845,7 @@
             matchNumber++;
         });
         
-        // Hitung Total Hasil = Total Odds × Modal
         const totalReturn = totalOdds * stake;
-        // Hitung Kemenangan = Total Hasil - Modal
         const kemenangan = totalReturn - stake;
         
         calculationText += `PERHITUNGAN AKHIR:\n`;
@@ -816,7 +891,6 @@
         calculationText += `Skor Akhir: ${scoreYou} - ${scoreOpp}\n`;
         calculationText += `Selisih Gol: ${scoreYou - scoreOpp}\n\n`;
         
-        // Perhitungan berdasarkan hasil pertandingan
         if (result === 'win') {
             effectiveOdd = odd;
             resultText = 'Menang Penuh';
@@ -834,9 +908,7 @@
             resultText = 'Kalah Penuh';
         }
         
-        // Total Hasil = Effective Odd × Modal
         const totalReturn = effectiveOdd * stake;
-        // Kemenangan = Total Hasil - Modal
         const kemenangan = totalReturn - stake;
         
         calculationText += `PERHITUNGAN:\n`;
@@ -938,63 +1010,43 @@
         calculationText += `Modal Taruhan: ${formatRupiah(stake)}\n`;
         calculationText += `Total Gol: ${totalGoals} Gol\n\n`;
         
-        // =============================================
-        // LOGIKA OVER/UNDER YANG AKURAT
-        // =============================================
         if (choice === 'over') {
             if (totalGoals > line) {
-                // Total gol LEBIH dari line = Menang Penuh
                 effectiveOdd = odd;
                 resultText = 'Menang Penuh';
             } else if (totalGoals === line && Number.isInteger(line)) {
-                // Total gol SAMA DENGAN line (integer) = Push
                 effectiveOdd = 1.0;
                 resultText = 'Push (Uang Kembali)';
             } else if (line % 1 === 0.25 && totalGoals === Math.floor(line)) {
-                // Over 2.25 dengan 2 gol = Kalah 1/2
-                // Over 3.25 dengan 3 gol = Kalah 1/2
                 effectiveOdd = 0.5;
                 resultText = 'Kalah 1/2';
             } else if (line % 1 === 0.75 && totalGoals === Math.ceil(line)) {
-                // Over 2.75 dengan 3 gol = Menang 1/2
-                // Over 3.75 dengan 4 gol = Menang 1/2
                 effectiveOdd = ((odd - 1) / 2) + 1;
                 resultText = 'Menang 1/2';
             } else {
-                // Total gol KURANG dari line = Kalah Penuh
                 effectiveOdd = 0;
                 resultText = 'Kalah Penuh';
             }
         } else {
-            // UNDER
             if (totalGoals < line) {
-                // Total gol KURANG dari line = Menang Penuh
                 effectiveOdd = odd;
                 resultText = 'Menang Penuh';
             } else if (totalGoals === line && Number.isInteger(line)) {
-                // Total gol SAMA DENGAN line (integer) = Push
                 effectiveOdd = 1.0;
                 resultText = 'Push (Uang Kembali)';
             } else if (line % 1 === 0.25 && totalGoals === Math.ceil(line)) {
-                // Under 2.25 dengan 2 gol = Menang 1/2
-                // Under 3.25 dengan 3 gol = Menang 1/2
                 effectiveOdd = ((odd - 1) / 2) + 1;
                 resultText = 'Menang 1/2';
             } else if (line % 1 === 0.75 && totalGoals === Math.floor(line)) {
-                // Under 2.75 dengan 3 gol = Kalah 1/2
-                // Under 3.75 dengan 4 gol = Kalah 1/2
                 effectiveOdd = 0.5;
                 resultText = 'Kalah 1/2';
             } else {
-                // Total gol LEBIH dari line = Kalah Penuh
                 effectiveOdd = 0;
                 resultText = 'Kalah Penuh';
             }
         }
         
-        // Total Hasil = Effective Odd × Modal
         const totalReturn = effectiveOdd * stake;
-        // Kemenangan = Total Hasil - Modal
         const kemenangan = totalReturn - stake;
         
         calculationText += `PERHITUNGAN:\n`;
@@ -1099,6 +1151,76 @@
         if (exp) document.getElementById('ou-explanation').textContent = exp[choice];
     }
 
+    // ============================================
+    // TARUHAN TUNGGAL - Perhitungan Lengkap & Akurat
+    // ============================================
+    function calculateTunggal() {
+        const stake = parseFloat(document.getElementById('tunggal-stake').value) || 0;
+        const odd = parseFloat(document.getElementById('tunggal-odd').value) || 0;
+        const result = document.getElementById('tunggal-result').value;
+        const team = document.getElementById('tunggal-team').value || 'Tim Pilihan';
+        
+        document.getElementById('tunggal-odd-display').textContent = odd.toFixed(2);
+        
+        let calculationText = `RINCIAN PERHITUNGAN TARUHAN TUNGGAL\n\n`;
+        calculationText += `DETAIL TARUHAN:\n`;
+        calculationText += `Tim: ${team}\n`;
+        calculationText += `Odd: ${odd.toFixed(2)}\n`;
+        calculationText += `Modal Taruhan: ${formatRupiah(stake)}\n\n`;
+        
+        let totalReturn = 0;
+        let kemenangan = 0;
+        let resultText = '';
+        
+        if (result === 'win') {
+            // Menang: Total Hasil = Modal × Odd
+            totalReturn = stake * odd;
+            kemenangan = totalReturn - stake;
+            resultText = 'Menang';
+            
+            calculationText += `PERHITUNGAN:\n`;
+            calculationText += `Hasil: ${resultText}\n\n`;
+            calculationText += `Rumus: Modal × Odd\n`;
+            calculationText += `     = ${formatRupiah(stake)} × ${odd.toFixed(2)}\n`;
+            calculationText += `     = ${formatRupiah(totalReturn)}\n\n`;
+            calculationText += `Penjelasan:\n`;
+            calculationText += `Taruhan ${team} dengan odd ${odd.toFixed(2)} menang.\n`;
+            calculationText += `Anda mendapatkan total hasil ${formatRupiah(totalReturn)}.`;
+        } else {
+            // Kalah: Total Hasil = 0, Kemenangan = -Modal
+            totalReturn = 0;
+            kemenangan = -stake;
+            resultText = 'Kalah';
+            
+            calculationText += `PERHITUNGAN:\n`;
+            calculationText += `Hasil: ${resultText}\n\n`;
+            calculationText += `Rumus: Modal × 0 (Kalah)\n`;
+            calculationText += `     = ${formatRupiah(stake)} × 0\n`;
+            calculationText += `     = Rp 0\n\n`;
+            calculationText += `Penjelasan:\n`;
+            calculationText += `Taruhan ${team} dengan odd ${odd.toFixed(2)} kalah.\n`;
+            calculationText += `Seluruh modal taruhan hilang.`;
+        }
+        
+        calculationText += `\n\nHASIL AKHIR:\n`;
+        calculationText += `Total Hasil = Effective Odd × Modal\n`;
+        calculationText += `            = ${result === 'win' ? odd.toFixed(2) : '0'} × ${formatRupiah(stake)}\n`;
+        calculationText += `            = ${formatRupiah(totalReturn)}\n\n`;
+        calculationText += `Kemenangan = Total Hasil - Modal\n`;
+        calculationText += `           = ${formatRupiah(totalReturn)} - ${formatRupiah(stake)}\n`;
+        calculationText += `           = ${formatRupiah(kemenangan)}`;
+        
+        document.getElementById('tunggal-total-return').textContent = formatRupiah(totalReturn);
+        document.getElementById('tunggal-kemenangan').textContent = formatRupiah(kemenangan);
+        document.getElementById('tunggal-calculation-text').textContent = calculationText;
+        
+        // Update card color based on result
+        const profitCard = document.getElementById('tunggal-kemenangan').closest('.result-card');
+        if (kemenangan > 0) profitCard.className = 'result-card success';
+        else if (kemenangan < 0) { profitCard.className = 'result-card'; profitCard.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)'; }
+        else profitCard.className = 'result-card info';
+    }
+
     window.onload = function() {
         addParlayMatch(1.80);
         addParlayMatch(1.70);
@@ -1106,6 +1228,7 @@
         calculateParlay();
         calculateHandicap();
         calculateOverUnder();
+        calculateTunggal();
     };
 </script>
 
