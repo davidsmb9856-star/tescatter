@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator Parlay Pro - Mix Parlay Calculator</title>
-    <!-- Google Fonts -->
+    <title>Kalkulator Betting Pro - Parlay, Handicap, Over/Under</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome untuk Ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -16,6 +14,7 @@
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
+            --info: #3b82f6;
             --bg-color: #f3f4f6;
             --card-bg: #ffffff;
             --text-main: #1f2937;
@@ -38,7 +37,7 @@
             margin: 0 auto;
         }
 
-        /* Header Section */
+        /* Header */
         .header-card {
             background: var(--card-bg);
             border-radius: var(--border-radius);
@@ -54,7 +53,7 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; height: 6px;
-            background: linear-gradient(90deg, var(--primary), var(--success));
+            background: linear-gradient(90deg, var(--primary), var(--success), var(--info));
         }
 
         h1 {
@@ -66,7 +65,64 @@
 
         p.subtitle { color: var(--text-muted); font-size: 14px; }
 
-        /* Input Section (Sticky Top on Desktop) */
+        /* Mode Switcher */
+        .mode-switcher {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 8px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .mode-btn {
+            padding: 16px;
+            border: none;
+            background: #f3f4f6;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .mode-btn i { font-size: 20px; }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: #e5e7eb;
+            transform: translateY(-2px);
+        }
+
+        /* Calculator Sections */
+        .calculator-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .calculator-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Control Panel */
         .control-panel {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -79,12 +135,15 @@
             padding: 20px;
             border-radius: var(--border-radius);
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
 
-        .input-label { font-weight: 600; color: var(--text-main); display: block; margin-bottom: 5px; }
+        .input-label { 
+            font-weight: 600; 
+            color: var(--text-main); 
+            display: block; 
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
         
         .currency-input {
             position: relative;
@@ -100,51 +159,39 @@
             font-weight: 600;
         }
 
-        .currency-input input {
+        .currency-input input, .select-input {
             width: 100%;
             padding: 12px 12px 12px 45px;
             border: 2px solid #e5e7eb;
             border-radius: 10px;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--primary);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
             transition: all 0.3s;
+            background: white;
         }
 
-        .currency-input input:focus {
+        .select-input {
+            padding-left: 12px;
+            cursor: pointer;
+        }
+
+        .currency-input input:focus, .select-input:focus {
             border-color: var(--primary);
             outline: none;
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
-        .btn-add {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            height: 100%;
-        }
-
-        .btn-add:hover { background: var(--primary-dark); transform: translateY(-2px); }
-
         /* Result Dashboard */
         .result-dashboard {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
         .result-card {
-            padding: 25px;
+            padding: 20px;
             border-radius: var(--border-radius);
             color: white;
             position: relative;
@@ -152,22 +199,22 @@
             box-shadow: var(--shadow);
         }
 
-        .result-card.odds { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-        .result-card.profit { background: linear-gradient(135deg, #10b981, #059669); }
-        .result-card.loss { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .result-card.primary { background: linear-gradient(135deg, #4f46e5, #4338ca); }
+        .result-card.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .result-card.info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 
         .result-card i {
             position: absolute;
             right: -10px;
             bottom: -10px;
-            font-size: 80px;
+            font-size: 60px;
             opacity: 0.1;
         }
 
-        .result-label { font-size: 14px; opacity: 0.9; margin-bottom: 5px; font-weight: 500; }
-        .result-value { font-size: 32px; font-weight: 700; font-family: 'Poppins', sans-serif; }
+        .result-label { font-size: 12px; opacity: 0.9; margin-bottom: 5px; font-weight: 500; }
+        .result-value { font-size: 24px; font-weight: 700; font-family: 'Poppins', sans-serif; }
 
-        /* Match List */
+        /* Match Cards */
         .match-list { display: flex; flex-direction: column; gap: 15px; }
 
         .match-card {
@@ -175,55 +222,88 @@
             border-radius: var(--border-radius);
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: grid;
-            grid-template-columns: 80px 1fr auto;
-            gap: 20px;
-            align-items: start;
             border-left: 5px solid var(--primary);
             transition: all 0.3s ease;
-            animation: slideIn 0.3s ease-out forwards;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .match-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
         }
 
-        .match-number {
-            background: #f3f4f6;
-            color: var(--text-muted);
-            font-weight: 700;
+        .match-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            height: 100%;
-            min-height: 60px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f3f4f6;
         }
 
-        .match-details { display: flex; flex-direction: column; gap: 15px; }
-
-        .odd-input-group {
+        .match-title {
+            font-weight: 700;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .odd-input-group label { font-size: 13px; font-weight: 600; color: var(--text-muted); width: 40px; }
-        
-        .odd-input-group input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #d1d5db;
+        .match-title i { color: var(--primary); }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: var(--danger);
+            border: none;
+            padding: 8px 12px;
             border-radius: 8px;
-            font-weight: 600;
-            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
         }
 
+        .btn-delete:hover { 
+            background: var(--danger); 
+            color: white;
+        }
+
+        .match-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        /* Radio Options */
         .status-selector {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
+            margin-top: 10px;
         }
 
         .radio-option {
@@ -240,9 +320,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 8px;
+            padding: 10px;
             background: #f9fafb;
-            border: 1px solid #e5e7eb;
+            border: 2px solid #e5e7eb;
             border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
@@ -251,58 +331,107 @@
             color: var(--text-muted);
         }
 
-        /* Radio States Styling */
         .radio-option input:checked + label.win-full {
-            background: #d1fae5; border-color: #10b981; color: #065f46;
+            background: #d1fae5; 
+            border-color: var(--success); 
+            color: #065f46;
         }
+        
         .radio-option input:checked + label.win-half {
-            background: #fef3c7; border-color: #f59e0b; color: #92400e;
+            background: #fef3c7; 
+            border-color: var(--warning); 
+            color: #92400e;
         }
+        
         .radio-option input:checked + label.lose-half {
-            background: #fee2e2; border-color: #ef4444; color: #991b1b;
+            background: #fee2e2; 
+            border-color: var(--danger); 
+            color: #991b1b;
         }
+        
         .radio-option input:checked + label.void {
-            background: #f3f4f6; border-color: #9ca3af; color: #374151;
+            background: #f3f4f6; 
+            border-color: #9ca3af; 
+            color: #374151;
         }
 
         .effective-odd-display {
-            margin-top: 5px;
+            margin-top: 10px;
+            padding: 8px;
+            background: #f9fafb;
+            border-radius: 6px;
             font-size: 12px;
-            color: var(--primary);
             font-weight: 600;
+            text-align: center;
         }
-
-        .btn-delete {
-            background: transparent;
-            color: #ef4444;
-            border: 1px solid #fee2e2;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-delete:hover { background: #fee2e2; }
 
         /* Info Box */
         .info-box {
             margin-top: 30px;
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: var(--border-radius);
-            border: 1px dashed #cbd5e1;
+            border: 2px dashed #cbd5e1;
         }
         
-        .info-box h3 { font-size: 16px; margin-bottom: 10px; color: var(--text-main); }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .info-item { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
-        .info-item strong { color: var(--text-main); }
+        .info-box h3 { 
+            font-size: 16px; 
+            margin-bottom: 15px; 
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 15px; 
+        }
+
+        .info-item { 
+            font-size: 13px; 
+            color: var(--text-muted); 
+            line-height: 1.6;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .info-item strong { 
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .btn-add:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
 
         /* Responsive */
         @media (max-width: 768px) {
+            .mode-switcher { grid-template-columns: 1fr; }
             .control-panel, .result-dashboard { grid-template-columns: 1fr; }
-            .match-card { grid-template-columns: 1fr; gap: 15px; border-left: none; border-top: 5px solid var(--primary); }
-            .match-number { width: 100%; height: 40px; min-height: auto; }
+            .match-grid { grid-template-columns: 1fr; }
             .status-selector { grid-template-columns: 1fr 1fr; }
         }
     </style>
@@ -312,221 +441,595 @@
 <div class="container">
     <!-- Header -->
     <div class="header-card">
-        <h1><i class="fas fa-calculator"></i> Kalkulator Parlay Pro</h1>
-        <p class="subtitle">Hitung kemenangan Mix Parlay dengan presisi tinggi</p>
+        <h1><i class="fas fa-calculator"></i> Kalkulator Betting Pro</h1>
+        <p class="subtitle">Parlay, Handicap & Over/Under Calculator</p>
     </div>
 
-    <!-- Controls -->
-    <div class="control-panel">
-        <div class="input-wrapper">
-            <div style="flex: 1;">
-                <label class="input-label">Modal Taruhan</label>
-                <div class="currency-input">
-                    <span>Rp</span>
-                    <input type="number" id="stakeInput" value="100000" oninput="calculateParlay()">
-                </div>
-            </div>
-        </div>
-        <button class="btn-add" onclick="addMatch()">
-            <i class="fas fa-plus-circle"></i> Tambah Tim
+    <!-- Mode Switcher -->
+    <div class="mode-switcher">
+        <button class="mode-btn active" onclick="switchMode('parlay')">
+            <i class="fas fa-layer-group"></i>
+            <span>Mix Parlay</span>
+        </button>
+        <button class="mode-btn" onclick="switchMode('handicap')">
+            <i class="fas fa-balance-scale"></i>
+            <span>Handicap</span>
+        </button>
+        <button class="mode-btn" onclick="switchMode('overunder')">
+            <i class="fas fa-chart-line"></i>
+            <span>Over/Under</span>
         </button>
     </div>
 
-    <!-- Results -->
-    <div class="result-dashboard">
-        <div class="result-card odds" id="oddsCard">
-            <i class="fas fa-chart-line"></i>
-            <div class="result-label">Total Odds (Akumulasi)</div>
-            <div class="result-value" id="totalOddsDisplay">0.00</div>
+    <!-- PARLAY CALCULATOR -->
+    <div id="parlay-section" class="calculator-section active">
+        <div class="control-panel">
+            <div class="input-wrapper">
+                <label class="input-label">Modal Taruhan</label>
+                <div class="currency-input">
+                    <span>Rp</span>
+                    <input type="number" id="parlay-stake" value="100000" oninput="calculateParlay()">
+                </div>
+            </div>
+            <div class="input-wrapper" style="display: flex; align-items: end;">
+                <button class="btn-add" onclick="addParlayMatch()" style="margin: 0;">
+                    <i class="fas fa-plus-circle"></i> Tambah Tim
+                </button>
+            </div>
         </div>
-        <div class="result-card profit" id="profitCard">
-            <i class="fas fa-trophy"></i>
-            <div class="result-label">Estimasi Kemenangan (Netto)</div>
-            <div class="result-value" id="totalProfitDisplay">Rp 0</div>
+
+        <div class="result-dashboard">
+            <div class="result-card primary">
+                <i class="fas fa-chart-line"></i>
+                <div class="result-label">Total Odds</div>
+                <div class="result-value" id="parlay-total-odds">0.00</div>
+            </div>
+            <div class="result-card success">
+                <i class="fas fa-trophy"></i>
+                <div class="result-label">Total Kemenangan</div>
+                <div class="result-value" id="parlay-total-win">Rp 0</div>
+            </div>
+            <div class="result-card info">
+                <i class="fas fa-coins"></i>
+                <div class="result-label">Net Profit</div>
+                <div class="result-value" id="parlay-net-profit">Rp 0</div>
+            </div>
+        </div>
+
+        <div class="match-list" id="parlay-match-list"></div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Rumus Mix Parlay</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>✅ Menang Full</strong>
+                    Odds tetap (1.90)
+                </div>
+                <div class="info-item">
+                    <strong>⚡ Menang 1/2</strong>
+                    ((Odds - 1) ÷ 2) + 1
+                </div>
+                <div class="info-item">
+                    <strong>⚠️ Kalah 1/2</strong>
+                    Odds × 0.50
+                </div>
+                <div class="info-item">
+                    <strong>🤝 Seri</strong>
+                    Odds = 1.00
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Match List Container -->
-    <div class="match-list" id="matchList">
-        <!-- Matches will be injected here via JS -->
-    </div>
+    <!-- HANDICAP CALCULATOR -->
+    <div id="handicap-section" class="calculator-section">
+        <div class="control-panel">
+            <div class="input-wrapper">
+                <label class="input-label">Modal Taruhan</label>
+                <div class="currency-input">
+                    <span>Rp</span>
+                    <input type="number" id="handicap-stake" value="100000" oninput="calculateHandicap()">
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <label class="input-label">Jenis Handicap</label>
+                <select class="select-input" id="handicap-type" onchange="calculateHandicap()">
+                    <option value="level">Level Ball (0)</option>
+                    <option value="0.25">0.25 (1/4)</option>
+                    <option value="0.5">0.5 (1/2)</option>
+                    <option value="0.75">0.75 (3/4)</option>
+                    <option value="1">1.0 (1)</option>
+                    <option value="1.25">1.25 (1 1/4)</option>
+                    <option value="1.5">1.5 (1 1/2)</option>
+                    <option value="1.75">1.75 (1 3/4)</option>
+                    <option value="2">2.0 (2)</option>
+                </select>
+            </div>
+        </div>
 
-    <!-- Info / Legend -->
-    <div class="info-box">
-        <h3><i class="fas fa-info-circle"></i> Rumus Perhitungan</h3>
-        <div class="info-grid">
-            <div class="info-item">
-                <strong>✅ Menang Full:</strong><br>
-                Odds tetap (Contoh: 1.90)
+        <div class="result-dashboard">
+            <div class="result-card primary">
+                <i class="fas fa-percentage"></i>
+                <div class="result-label">Odd</div>
+                <div class="result-value" id="handicap-odd-display">1.90</div>
             </div>
-            <div class="info-item">
-                <strong>⚡ Menang 1/2:</strong><br>
-                ((Odds - 1) ÷ 2) + 1<br>
-                <em>Contoh: ((1.90-1)/2)+1 = 1.45</em>
+            <div class="result-card success">
+                <i class="fas fa-money-bill-wave"></i>
+                <div class="result-label">Total Return</div>
+                <div class="result-value" id="handicap-total-return">Rp 0</div>
             </div>
-            <div class="info-item">
-                <strong>⚠️ Kalah 1/2:</strong><br>
-                Odds menjadi 0.50<br>
-                <em>Modal dikurangi setengah untuk tim ini.</em>
+            <div class="result-card info">
+                <i class="fas fa-wallet"></i>
+                <div class="result-label">Profit/Loss</div>
+                <div class="result-value" id="handicap-profit">Rp 0</div>
             </div>
-            <div class="info-item">
-                <strong>🤝 Seri (Void):</strong><br>
-                Odds menjadi 1.00<br>
-                <em>Tidak mempengaruhi total odds.</em>
+        </div>
+
+        <div class="match-card">
+            <div class="match-header">
+                <div class="match-title">
+                    <i class="fas fa-futbol"></i>
+                    Detail Pertandingan
+                </div>
+            </div>
+            <div class="match-grid">
+                <div class="form-group">
+                    <label>Odd Tim Pilihan</label>
+                    <input type="number" id="handicap-odd" step="0.01" value="1.90" oninput="calculateHandicap()">
+                </div>
+                <div class="form-group">
+                    <label>Hasil Pertandingan</label>
+                    <select id="handicap-result" onchange="calculateHandicap()">
+                        <option value="win">Menang Penuh</option>
+                        <option value="win-half">Menang 1/2</option>
+                        <option value="push">Push (Seri)</option>
+                        <option value="lose-half">Kalah 1/2</option>
+                        <option value="lose">Kalah Penuh</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Skor Akhir (Tim Anda - Lawan)</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="number" id="handicap-score-you" value="2" oninput="calculateHandicap()" style="flex: 1;">
+                        <span>-</span>
+                        <input type="number" id="handicap-score-opp" value="1" oninput="calculateHandicap()" style="flex: 1;">
+                    </div>
+                </div>
+            </div>
+            <div class="effective-odd-display" id="handicap-explanation">
+                Handicap 0.5: Menang jika tim Anda menang
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Panduan Handicap</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Level Ball (0)</strong>
+                    Jika seri = uang kembali (Push)
+                </div>
+                <div class="info-item">
+                    <strong>0.25 (1/4)</strong>
+                    Menang 1/2 jika seri, Menang full jika tim Anda menang
+                </div>
+                <div class="info-item">
+                    <strong>0.5 (1/2)</strong>
+                    Harus menang, jika seri = kalah
+                </div>
+                <div class="info-item">
+                    <strong>0.75 (3/4)</strong>
+                    Menang 1 goal = menang 1/2, Menang 2+ = menang full
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- OVER/UNDER CALCULATOR -->
+    <div id="overunder-section" class="calculator-section">
+        <div class="control-panel">
+            <div class="input-wrapper">
+                <label class="input-label">Modal Taruhan</label>
+                <div class="currency-input">
+                    <span>Rp</span>
+                    <input type="number" id="ou-stake" value="100000" oninput="calculateOverUnder()">
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <label class="input-label>Pasaran Over/Under</label>
+                <select class="select-input" id="ou-line" onchange="calculateOverUnder()">
+                    <option value="1.5">1.5 Goals</option>
+                    <option value="2">2.0 Goals</option>
+                    <option value="2.25">2.25 (2 1/4)</option>
+                    <option value="2.5" selected>2.5 Goals</option>
+                    <option value="2.75">2.75 (2 3/4)</option>
+                    <option value="3">3.0 Goals</option>
+                    <option value="3.25">3.25 (3 1/4)</option>
+                    <option value="3.5">3.5 Goals</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="result-dashboard">
+            <div class="result-card primary">
+                <i class="fas fa-percentage"></i>
+                <div class="result-label">Odd</div>
+                <div class="result-value" id="ou-odd-display">1.95</div>
+            </div>
+            <div class="result-card success">
+                <i class="fas fa-money-bill-wave"></i>
+                <div class="result-label">Total Return</div>
+                <div class="result-value" id="ou-total-return">Rp 0</div>
+            </div>
+            <div class="result-card info">
+                <i class="fas fa-wallet"></i>
+                <div class="result-label">Profit/Loss</div>
+                <div class="result-value" id="ou-profit">Rp 0</div>
+            </div>
+        </div>
+
+        <div class="match-card">
+            <div class="match-header">
+                <div class="match-title">
+                    <i class="fas fa-futbol"></i>
+                    Detail Taruhan
+                </div>
+            </div>
+            <div class="match-grid">
+                <div class="form-group">
+                    <label>Pilihan</label>
+                    <select id="ou-choice" onchange="calculateOverUnder()">
+                        <option value="over">Over</option>
+                        <option value="under">Under</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Odd</label>
+                    <input type="number" id="ou-odd" step="0.01" value="1.95" oninput="calculateOverUnder()">
+                </div>
+                <div class="form-group">
+                    <label>Total Gol Pertandingan</label>
+                    <input type="number" id="ou-total-goals" value="3" oninput="calculateOverUnder()">
+                </div>
+            </div>
+            <div class="effective-odd-display" id="ou-explanation">
+                Over 2.5: Menang jika total gol 3 atau lebih
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Panduan Over/Under</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Over 2.5</strong>
+                    Menang jika total gol ≥ 3<br>
+                    Kalah jika total gol ≤ 2
+                </div>
+                <div class="info-item">
+                    <strong>Under 2.5</strong>
+                    Menang jika total gol ≤ 2<br>
+                    Kalah jika total gol ≥ 3
+                </div>
+                <div class="info-item">
+                    <strong>2.25 (2 1/4)</strong>
+                    2 gol = Kalah 1/2<br>
+                    3+ gol = Menang full
+                </div>
+                <div class="info-item">
+                    <strong>2.75 (2 3/4)</strong>
+                    3 gol = Menang 1/2<br>
+                    2 gol = Kalah 1/2
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    let matchCount = 0;
+    // Mode Switching
+    function switchMode(mode) {
+        // Update buttons
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.closest('.mode-btn').classList.add('active');
+        
+        // Update sections
+        document.querySelectorAll('.calculator-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        document.getElementById(mode + '-section').classList.add('active');
+        
+        // Calculate based on mode
+        if (mode === 'parlay') calculateParlay();
+        else if (mode === 'handicap') calculateHandicap();
+        else if (mode === 'overunder') calculateOverUnder();
+    }
 
-    // Initialize with 3 matches
-    window.onload = function() {
-        addMatch(1.80);
-        addMatch(1.70);
-        addMatch(1.85);
-        calculateParlay();
-    };
+    // PARLAY FUNCTIONS
+    let parlayCount = 0;
 
-    function addMatch(defaultOdd = 1.90) {
-        matchCount++;
-        const container = document.getElementById('matchList');
+    function addParlayMatch(defaultOdd = 1.90) {
+        parlayCount++;
+        const container = document.getElementById('parlay-match-list');
         
         const matchDiv = document.createElement('div');
         matchDiv.className = 'match-card';
-        matchDiv.id = `match-${matchCount}`;
+        matchDiv.id = `parlay-match-${parlayCount}`;
         
         matchDiv.innerHTML = `
-            <div class="match-number">#${matchCount}</div>
-            <div class="match-details">
-                <div class="odd-input-group">
-                    <label>ODD</label>
-                    <input type="number" step="0.01" class="odd-val" value="${defaultOdd}" oninput="calculateParlay()" placeholder="1.90">
+            <div class="match-header">
+                <div class="match-title">
+                    <i class="fas fa-futbol"></i>
+                    Tim #${parlayCount}
                 </div>
-                <div class="status-selector">
-                    <div class="radio-option">
-                        <input type="radio" name="status-${matchCount}" id="win-full-${matchCount}" value="full" checked onchange="calculateParlay()">
-                        <label for="win-full-${matchCount}" class="win-full"><i class="fas fa-check"></i> Menang</label>
-                    </div>
-                    <div class="radio-option">
-                        <input type="radio" name="status-${matchCount}" id="win-half-${matchCount}" value="half" onchange="calculateParlay()">
-                        <label for="win-half-${matchCount}" class="win-half"><i class="fas fa-adjust"></i> Menang 1/2</label>
-                    </div>
-                    <div class="radio-option">
-                        <input type="radio" name="status-${matchCount}" id="lose-half-${matchCount}" value="lose-half" onchange="calculateParlay()">
-                        <label for="lose-half-${matchCount}" class="lose-half"><i class="fas fa-minus-circle"></i> Kalah 1/2</label>
-                    </div>
-                    <div class="radio-option">
-                        <input type="radio" name="status-${matchCount}" id="void-${matchCount}" value="void" onchange="calculateParlay()">
-                        <label for="void-${matchCount}" class="void"><i class="fas fa-ban"></i> Seri</label>
-                    </div>
-                </div>
-                <div class="effective-odd-display" id="eff-odd-${matchCount}">Effective Odd: ${defaultOdd.toFixed(2)}</div>
+                <button class="btn-delete" onclick="removeParlayMatch(${parlayCount})">
+                    <i class="fas fa-trash"></i> Hapus
+                </button>
             </div>
-            <button class="btn-delete" onclick="removeMatch(${matchCount})" title="Hapus Tim">
-                <i class="fas fa-trash-alt"></i>
-            </button>
+            <div class="match-grid">
+                <div class="form-group">
+                    <label>Odd</label>
+                    <input type="number" class="parlay-odd" step="0.01" value="${defaultOdd}" oninput="calculateParlay()">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Hasil</label>
+                    <div class="status-selector">
+                        <div class="radio-option">
+                            <input type="radio" name="parlay-status-${parlayCount}" id="p-win-full-${parlayCount}" value="full" checked onchange="calculateParlay()">
+                            <label for="p-win-full-${parlayCount}" class="win-full">Menang</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="parlay-status-${parlayCount}" id="p-win-half-${parlayCount}" value="half" onchange="calculateParlay()">
+                            <label for="p-win-half-${parlayCount}" class="win-half">Menang 1/2</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="parlay-status-${parlayCount}" id="p-lose-half-${parlayCount}" value="lose-half" onchange="calculateParlay()">
+                            <label for="p-lose-half-${parlayCount}" class="lose-half">Kalah 1/2</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="parlay-status-${parlayCount}" id="p-void-${parlayCount}" value="void" onchange="calculateParlay()">
+                            <label for="p-void-${parlayCount}" class="void">Seri</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="effective-odd-display" id="parlay-eff-${parlayCount}">
+                Effective Odd: ${defaultOdd.toFixed(2)}
+            </div>
         `;
         
         container.appendChild(matchDiv);
         calculateParlay();
     }
 
-    function removeMatch(id) {
-        const element = document.getElementById(`match-${id}`);
+    function removeParlayMatch(id) {
+        const element = document.getElementById(`parlay-match-${id}`);
         if (element) {
             element.remove();
             calculateParlay();
         }
     }
 
-    function getEffectiveOdd(inputOdd, status) {
-        const odd = parseFloat(inputOdd) || 0;
-        
+    function getParlayEffectiveOdd(odd, status) {
         if (status === 'full') return odd;
-        if (status === 'void') return 1.00;
-        if (status === 'lose-half') return 0.50;
-        if (status === 'half') {
-            // Rumus Menang Setengah: ((Odd - 1) / 2) + 1
-            return ((odd - 1) / 2) + 1;
-        }
+        if (status === 'void') return 1.0;
+        if (status === 'lose-half') return 0.5;
+        if (status === 'half') return ((odd - 1) / 2) + 1;
         return 0;
     }
 
     function calculateParlay() {
-        const stake = parseFloat(document.getElementById('stakeInput').value) || 0;
-        const matches = document.querySelectorAll('.match-card');
+        const stake = parseFloat(document.getElementById('parlay-stake').value) || 0;
+        const matches = document.querySelectorAll('#parlay-match-list .match-card');
         
         let totalOdds = 1;
-        let isDead = false; // Flag jika ada yang kalah full (opsional, tapi di parlay biasa kalah 1 = mati)
         
-        // Kita asumsikan jika user tidak memilih "Kalah Full", maka perhitungan berjalan.
-        // Di UI ini, kita hanya menyediakan opsi Menang/Kalah Setengah/Seri.
-        // Jika user ingin simulasi "Kalah Full", mereka biasanya menghapus tim atau kita bisa tambahkan logika:
-        // Jika Effective Odd = 0, maka Total Odds = 0.
-
-        matches.forEach((match, index) => {
-            const oddInput = match.querySelector('.odd-val').value;
-            const statusInput = match.querySelector('input[type="radio"]:checked').value;
-            const effOddDisplay = match.querySelector(`#eff-odd-${match.id.split('-')[1]}`);
+        matches.forEach((match) => {
+            const oddInput = match.querySelector('.parlay-odd');
+            const statusInput = match.querySelector('input[type="radio"]:checked');
+            const effDisplay = match.querySelector('[id^="parlay-eff-"]');
             
-            const effOdd = getEffectiveOdd(oddInput, statusInput);
+            const odd = parseFloat(oddInput.value) || 0;
+            const status = statusInput.value;
+            const effOdd = getParlayEffectiveOdd(odd, status);
             
-            // Update tampilan effective odd per tim
-            if(effOddDisplay) {
+            if (effDisplay) {
                 let text = `Effective: ${effOdd.toFixed(2)}`;
-                if(statusInput === 'lose-half') text += ` (Modal x 0.5)`;
-                if(statusInput === 'half') text += ` (Win Half)`;
-                effOddDisplay.textContent = text;
-                
-                // Color coding text
-                if(statusInput === 'lose-half') effOddDisplay.style.color = '#ef4444';
-                else if(statusInput === 'half') effOddDisplay.style.color = '#f59e0b';
-                else effOddDisplay.style.color = '#4f46e5';
+                if (status === 'lose-half') text += ' (Kalah 1/2)';
+                if (status === 'half') text += ' (Menang 1/2)';
+                effDisplay.textContent = text;
+                effDisplay.style.color = status === 'lose-half' ? '#ef4444' : status === 'half' ? '#f59e0b' : '#4f46e5';
             }
-
+            
             totalOdds *= effOdd;
         });
 
-        // Hitung Hasil
-        // Rumus Parlay: (Total Odds * Stake) - Stake
-        // Jika Total Odds < 1 (karena banyak kalah setengah), hasil minus (rugi)
-        
         const totalReturn = totalOdds * stake;
         const netProfit = totalReturn - stake;
 
-        // Update UI Results
-        const oddsDisplay = document.getElementById('totalOddsDisplay');
-        const profitDisplay = document.getElementById('totalProfitDisplay');
-        const profitCard = document.getElementById('profitCard');
+        document.getElementById('parlay-total-odds').textContent = totalOdds.toFixed(4);
+        document.getElementById('parlay-total-win').textContent = formatRupiah(totalReturn);
+        document.getElementById('parlay-net-profit').textContent = formatRupiah(netProfit);
+    }
 
-        oddsDisplay.textContent = totalOdds.toFixed(4);
+    // HANDICAP FUNCTIONS
+    function calculateHandicap() {
+        const stake = parseFloat(document.getElementById('handicap-stake').value) || 0;
+        const odd = parseFloat(document.getElementById('handicap-odd').value) || 0;
+        const handicapType = document.getElementById('handicap-type').value;
+        const result = document.getElementById('handicap-result').value;
+        const scoreYou = parseInt(document.getElementById('handicap-score-you').value) || 0;
+        const scoreOpp = parseInt(document.getElementById('handicap-score-opp').value) || 0;
+        
+        document.getElementById('handicap-odd-display').textContent = odd.toFixed(2);
+        
+        // Update explanation
+        updateHandicapExplanation(handicapType);
+        
+        let effectiveOdd = 0;
+        let resultText = '';
+        
+        // Calculate based on handicap type and result
+        if (result === 'win') {
+            effectiveOdd = odd;
+            resultText = 'Menang Penuh';
+        } else if (result === 'win-half') {
+            effectiveOdd = ((odd - 1) / 2) + 1;
+            resultText = 'Menang 1/2';
+        } else if (result === 'push') {
+            effectiveOdd = 1.0;
+            resultText = 'Push (Uang Kembali)';
+        } else if (result === 'lose-half') {
+            effectiveOdd = 0.5;
+            resultText = 'Kalah 1/2';
+        } else if (result === 'lose') {
+            effectiveOdd = 0;
+            resultText = 'Kalah Penuh';
+        }
+        
+        const totalReturn = effectiveOdd * stake;
+        const profit = totalReturn - stake;
+        
+        document.getElementById('handicap-total-return').textContent = formatRupiah(totalReturn);
+        document.getElementById('handicap-profit').textContent = formatRupiah(profit);
+        
+        // Update profit card color
+        const profitCard = document.getElementById('handicap-profit').closest('.result-card');
+        if (profit > 0) {
+            profitCard.className = 'result-card success';
+        } else if (profit < 0) {
+            profitCard.className = 'result-card';
+            profitCard.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        } else {
+            profitCard.className = 'result-card info';
+        }
+    }
 
-        // Format Rupiah
-        const formatter = new Intl.NumberFormat('id-ID', {
+    function updateHandicapExplanation(handicap) {
+        const explanations = {
+            'level': 'Level Ball: Seri = uang kembali',
+            '0.25': 'Handicap 0.25: Menang 1/2 jika seri, Menang full jika tim Anda menang',
+            '0.5': 'Handicap 0.5: Harus menang, jika seri = kalah',
+            '0.75': 'Handicap 0.75: Menang 1 goal = menang 1/2, Menang 2+ = menang full',
+            '1': 'Handicap 1.0: Menang 1 goal = push, Menang 2+ = menang full',
+            '1.25': 'Handicap 1.25: Menang 1 goal = kalah 1/2, Menang 2+ = menang full',
+            '1.5': 'Handicap 1.5: Harus menang minimal 2 gol',
+            '1.75': 'Handicap 1.75: Menang 2 goal = menang 1/2, Menang 3+ = menang full',
+            '2': 'Handicap 2.0: Menang 2 goal = push, Menang 3+ = menang full'
+        };
+        
+        document.getElementById('handicap-explanation').textContent = explanations[handicap] || '';
+    }
+
+    // OVER/UNDER FUNCTIONS
+    function calculateOverUnder() {
+        const stake = parseFloat(document.getElementById('ou-stake').value) || 0;
+        const odd = parseFloat(document.getElementById('ou-odd').value) || 0;
+        const line = parseFloat(document.getElementById('ou-line').value);
+        const choice = document.getElementById('ou-choice').value;
+        const totalGoals = parseInt(document.getElementById('ou-total-goals').value) || 0;
+        
+        document.getElementById('ou-odd-display').textContent = odd.toFixed(2);
+        
+        // Update explanation
+        updateOUExplanation(line, choice);
+        
+        let effectiveOdd = 0;
+        let resultText = '';
+        
+        // Calculate result based on line and total goals
+        if (choice === 'over') {
+            if (totalGoals > line) {
+                effectiveOdd = odd;
+                resultText = 'Menang Penuh';
+            } else if (totalGoals === line && Number.isInteger(line)) {
+                effectiveOdd = 1.0;
+                resultText = 'Push (Uang Kembali)';
+            } else if (totalGoals === Math.floor(line) && line % 1 === 0.25) {
+                effectiveOdd = 0.5;
+                resultText = 'Kalah 1/2';
+            } else if (totalGoals === Math.ceil(line) && line % 1 === 0.75) {
+                effectiveOdd = ((odd - 1) / 2) + 1;
+                resultText = 'Menang 1/2';
+            } else {
+                effectiveOdd = 0;
+                resultText = 'Kalah Penuh';
+            }
+        } else {
+            // Under
+            if (totalGoals < line) {
+                effectiveOdd = odd;
+                resultText = 'Menang Penuh';
+            } else if (totalGoals === line && Number.isInteger(line)) {
+                effectiveOdd = 1.0;
+                resultText = 'Push (Uang Kembali)';
+            } else if (totalGoals === Math.ceil(line) && line % 1 === 0.25) {
+                effectiveOdd = ((odd - 1) / 2) + 1;
+                resultText = 'Menang 1/2';
+            } else if (totalGoals === Math.floor(line) && line % 1 === 0.75) {
+                effectiveOdd = 0.5;
+                resultText = 'Kalah 1/2';
+            } else {
+                effectiveOdd = 0;
+                resultText = 'Kalah Penuh';
+            }
+        }
+        
+        const totalReturn = effectiveOdd * stake;
+        const profit = totalReturn - stake;
+        
+        document.getElementById('ou-total-return').textContent = formatRupiah(totalReturn);
+        document.getElementById('ou-profit').textContent = formatRupiah(profit);
+        
+        // Update profit card color
+        const profitCard = document.getElementById('ou-profit').closest('.result-card');
+        if (profit > 0) {
+            profitCard.className = 'result-card success';
+        } else if (profit < 0) {
+            profitCard.className = 'result-card';
+            profitCard.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        } else {
+            profitCard.className = 'result-card info';
+        }
+    }
+
+    function updateOUExplanation(line, choice) {
+        const explanations = {
+            '1.5': { over: 'Over 1.5: Menang jika total gol ≥ 2', under: 'Under 1.5: Menang jika total gol ≤ 1' },
+            '2': { over: 'Over 2.0: Menang jika total gol ≥ 3, Push jika = 2', under: 'Under 2.0: Menang jika total gol ≤ 1, Push jika = 2' },
+            '2.25': { over: 'Over 2.25: Menang 1/2 jika 2 gol, Menang full jika ≥ 3', under: 'Under 2.25: Kalah 1/2 jika 2 gol, Menang jika ≤ 1' },
+            '2.5': { over: 'Over 2.5: Menang jika total gol ≥ 3', under: 'Under 2.5: Menang jika total gol ≤ 2' },
+            '2.75': { over: 'Over 2.75: Menang 1/2 jika 3 gol, Menang full jika ≥ 4', under: 'Under 2.75: Kalah 1/2 jika 3 gol, Menang jika ≤ 2' },
+            '3': { over: 'Over 3.0: Menang jika total gol ≥ 4, Push jika = 3', under: 'Under 3.0: Menang jika total gol ≤ 2, Push jika = 3' },
+            '3.25': { over: 'Over 3.25: Menang 1/2 jika 3 gol, Menang full jika ≥ 4', under: 'Under 3.25: Kalah 1/2 jika 3 gol, Menang jika ≤ 2' },
+            '3.5': { over: 'Over 3.5: Menang jika total gol ≥ 4', under: 'Under 3.5: Menang jika total gol ≤ 3' }
+        };
+        
+        const exp = explanations[line];
+        if (exp) {
+            document.getElementById('ou-explanation').textContent = exp[choice];
+        }
+    }
+
+    // Utility Functions
+    function formatRupiah(amount) {
+        return new Intl.NumberFormat('id-ID', {
             style: 'currency',
             currency: 'IDR',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
-        });
-
-        profitDisplay.textContent = formatter.format(netProfit);
-
-        // Dynamic Styling for Profit/Loss
-        if (netProfit > 0) {
-            profitCard.className = 'result-card profit';
-            profitCard.querySelector('.result-label').textContent = 'Estimasi Kemenangan (Netto)';
-            profitCard.querySelector('i').className = 'fas fa-trophy';
-        } else if (netProfit < 0) {
-            profitCard.className = 'result-card loss';
-            profitCard.querySelector('.result-label').textContent = 'Estimasi Kerugian';
-            profitCard.querySelector('i').className = 'fas fa-arrow-down';
-        } else {
-            profitCard.className = 'result-card odds'; // Neutral color
-            profitCard.querySelector('.result-label').textContent = 'Impas (BEP)';
-        }
+        }).format(amount);
     }
+
+    // Initialize
+    window.onload = function() {
+        addParlayMatch(1.80);
+        addParlayMatch(1.70);
+        addParlayMatch(1.85);
+        calculateParlay();
+        calculateHandicap();
+        calculateOverUnder();
+    };
 </script>
 
 </body>
