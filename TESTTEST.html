@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kalkulator Betting Pro - Parlay, Handicap, Over/Under, Tunggal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -22,11 +22,12 @@
             --info-dark: #2563eb;
             --bg-gradient-start: #0f172a;
             --bg-gradient-end: #1e293b;
-            --card-bg: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.98);
             --text-main: #0f172a;
             --text-muted: #64748b;
             --border-radius: 20px;
-            --shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.25);
+            --shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.2), 0 10px 20px -5px rgba(0, 0, 0, 0.15);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -36,6 +37,7 @@
             min-height: 100vh;
             padding: 20px;
             color: var(--text-main);
+            font-weight: 700;
         }
 
         .container { max-width: 1200px; margin: 0 auto; }
@@ -44,7 +46,7 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             border-radius: var(--border-radius);
             padding: 40px;
-            box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.4);
+            box-shadow: var(--shadow-glow);
             margin-bottom: 30px;
             text-align: center;
             position: relative;
@@ -60,12 +62,12 @@
             width: 200%;
             height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: pulse 4s ease-in-out infinite;
+            animation: shimmer 3s infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.8; }
+        @keyframes shimmer {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, 30px); }
         }
 
         h1 { 
@@ -97,12 +99,12 @@
             border-radius: 12px;
             text-decoration: none;
             font-weight: 800;
-            font-size: 15px;
             margin-top: 20px;
             transition: all 0.3s;
             box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
             position: relative;
             z-index: 1;
+            font-size: 15px;
             border: 2px solid rgba(255,255,255,0.2);
         }
 
@@ -112,7 +114,7 @@
         }
 
         .mode-switcher {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: var(--border-radius);
             padding: 10px;
             margin-bottom: 30px;
@@ -120,7 +122,7 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
-            border: 2px solid rgba(99, 102, 241, 0.1);
+            backdrop-filter: blur(10px);
         }
 
         .mode-btn {
@@ -151,18 +153,19 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             opacity: 0;
             transition: opacity 0.3s;
-            z-index: 0;
         }
 
         .mode-btn i { 
             font-size: 24px;
             position: relative;
             z-index: 1;
+            transition: transform 0.3s;
         }
 
         .mode-btn span {
             position: relative;
             z-index: 1;
+            font-weight: 800;
         }
 
         .mode-btn.active {
@@ -176,9 +179,14 @@
             opacity: 1;
         }
 
+        .mode-btn.active i {
+            transform: scale(1.1);
+        }
+
         .mode-btn:hover:not(.active) { 
             background: #e2e8f0; 
             transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
         }
 
         .calculator-section { display: none; animation: fadeIn 0.5s ease; }
@@ -192,18 +200,18 @@
         .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px; }
 
         .input-wrapper {
-            background: white;
+            background: var(--card-bg);
             padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            border: 2px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 2px solid rgba(99, 102, 241, 0.1);
             transition: all 0.3s;
         }
 
         .input-wrapper:hover {
-            border-color: var(--primary-light);
+            border-color: var(--primary);
             transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.15);
         }
 
         .input-label { 
@@ -223,15 +231,15 @@
             left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted);
+            color: var(--primary);
             font-weight: 800;
             font-size: 18px;
         }
 
         .currency-input input, .select-input {
             width: 100%;
-            padding: 14px 16px 14px 50px;
-            border: 2px solid #e2e8f0;
+            padding: 16px 16px 16px 50px;
+            border: 3px solid #e2e8f0;
             border-radius: 12px;
             font-size: 18px;
             font-weight: 800;
@@ -246,31 +254,38 @@
             border-color: var(--primary);
             outline: none;
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+            transform: scale(1.02);
         }
 
         .result-dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
 
         .result-card {
-            padding: 25px;
-            border-radius: 16px;
+            padding: 30px;
+            border-radius: var(--border-radius);
             color: white;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
 
         .result-card.primary { 
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
         }
         .result-card.success { 
             background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
-            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
         }
         .result-card.info { 
             background: linear-gradient(135deg, var(--info) 0%, var(--info-dark) 100%);
-            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
         }
 
         .result-card i { 
@@ -279,6 +294,12 @@
             bottom: -15px; 
             font-size: 80px; 
             opacity: 0.15;
+            transition: all 0.3s;
+        }
+
+        .result-card:hover i {
+            transform: scale(1.1) rotate(5deg);
+            opacity: 0.2;
         }
 
         .result-label { 
@@ -287,7 +308,7 @@
             margin-bottom: 8px; 
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
         .result-value { 
             font-size: 28px; 
@@ -296,22 +317,22 @@
             text-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
-        .match-list { display: flex; flex-direction: column; gap: 20px; margin-bottom: 25px; }
+        .match-list { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
 
         .match-card {
-            background: white;
-            border-radius: 16px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
             padding: 25px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow);
             border-left: 6px solid var(--primary);
             transition: all 0.3s ease;
-            border: 2px solid #e2e8f0;
+            border: 2px solid rgba(99, 102, 241, 0.1);
         }
 
         .match-card:hover { 
-            transform: translateX(6px); 
-            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-            border-left-color: var(--primary-dark);
+            transform: translateX(8px); 
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.2);
+            border-left-width: 8px;
         }
 
         .match-header {
@@ -319,7 +340,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            padding-bottom: 16px;
+            padding-bottom: 15px;
             border-bottom: 3px solid #f1f5f9;
         }
 
@@ -347,7 +368,7 @@
         }
 
         .btn-delete:hover { 
-            transform: translateY(-2px);
+            transform: scale(1.05);
             box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
         }
 
@@ -364,8 +385,8 @@
         }
 
         .form-group input, .form-group select {
-            padding: 12px;
-            border: 2px solid #e2e8f0;
+            padding: 14px;
+            border: 3px solid #e2e8f0;
             border-radius: 10px;
             font-size: 15px;
             font-weight: 800;
@@ -375,7 +396,7 @@
         .form-group input:focus, .form-group select:focus { 
             border-color: var(--primary); 
             outline: none;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
         }
 
         .status-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
@@ -387,9 +408,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 12px;
+            padding: 14px;
             background: #f8fafc;
-            border: 2px solid #e2e8f0;
+            border: 3px solid #e2e8f0;
             border-radius: 10px;
             font-size: 13px;
             font-weight: 800;
@@ -403,32 +424,36 @@
             border-color: var(--success); 
             color: #065f46;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            transform: scale(1.02);
         }
         .radio-option input:checked + label.win-half { 
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); 
             border-color: var(--warning); 
             color: #92400e;
             box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+            transform: scale(1.02);
         }
         .radio-option input:checked + label.lose-half { 
             background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); 
             border-color: var(--danger); 
             color: #991b1b;
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+            transform: scale(1.02);
         }
         .radio-option input:checked + label.void { 
             background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); 
             border-color: #94a3b8; 
             color: #1e293b;
             box-shadow: 0 4px 12px rgba(148, 163, 184, 0.2);
+            transform: scale(1.02);
         }
 
         .effective-odd-display {
-            margin-top: 12px;
+            margin-top: 15px;
             padding: 12px;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
             border-radius: 10px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 800;
             text-align: center;
             border: 2px solid #bae6fd;
@@ -436,12 +461,12 @@
 
         .calculation-box {
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 3px solid #7dd3fc;
+            border: 3px solid #bae6fd;
             border-radius: var(--border-radius);
             padding: 30px;
             margin-top: 25px;
             position: relative;
-            box-shadow: 0 8px 20px rgba(125, 211, 252, 0.3);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
         }
 
         .calculation-header {
@@ -449,8 +474,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 3px solid #7dd3fc;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #bae6fd;
         }
 
         .calculation-title {
@@ -470,7 +495,7 @@
             color: white;
             border: none;
             padding: 14px 28px;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.3s;
@@ -478,40 +503,40 @@
             align-items: center;
             gap: 10px;
             font-size: 14px;
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
         .btn-copy:hover { 
-            transform: translateY(-3px);
-            box-shadow: 0 10px 24px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
         }
         .btn-copy.copied { 
             background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .calculation-content {
             background: white;
             border-radius: 12px;
-            padding: 24px;
+            padding: 25px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
             line-height: 2;
             color: var(--text-main);
             white-space: pre-wrap;
             word-wrap: break-word;
-            border: 2px dashed #94a3b8;
+            border: 3px dashed #94a3b8;
             font-weight: 800;
             box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .info-box {
             margin-top: 35px;
-            background: white;
+            background: var(--card-bg);
             padding: 30px;
             border-radius: var(--border-radius);
             border: 3px dashed #cbd5e1;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow);
         }
         
         .info-box h3 { 
@@ -524,18 +549,24 @@
             font-weight: 800;
         }
 
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
 
         .info-item { 
             font-size: 14px; 
             color: var(--text-muted); 
-            line-height: 1.7;
-            padding: 16px;
+            line-height: 1.8;
+            padding: 18px;
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
             border-radius: 12px;
             border-left: 5px solid var(--primary);
             font-weight: 800;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .info-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
         }
 
         .info-item strong { 
@@ -550,39 +581,39 @@
             background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
             color: white;
             border: none;
-            padding: 16px 28px;
+            padding: 18px 32px;
             border-radius: 12px;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.3s;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
             justify-content: center;
-            margin-top: 12px;
-            font-size: 15px;
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+            margin-top: 15px;
+            font-size: 16px;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
         }
 
         .btn-add:hover { 
-            transform: translateY(-3px);
-            box-shadow: 0 12px 28px rgba(16, 185, 129, 0.4);
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
         }
 
         /* Image Section Styles */
         .image-section {
             margin-top: 35px;
-            background: white;
+            background: var(--card-bg);
             border-radius: var(--border-radius);
             padding: 30px;
             box-shadow: var(--shadow);
-            border: 2px solid #e2e8f0;
+            border: 2px solid rgba(99, 102, 241, 0.1);
         }
 
         .image-section h3 {
             font-size: 20px;
-            margin-bottom: 24px;
+            margin-bottom: 25px;
             color: var(--text-main);
             display: flex;
             align-items: center;
@@ -597,17 +628,17 @@
 
         .image-container {
             position: relative;
-            border-radius: 14px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
             cursor: pointer;
-            transition: transform 0.3s ease;
-            border: 3px solid #e2e8f0;
+            transition: all 0.3s ease;
+            border: 3px solid rgba(99, 102, 241, 0.2);
         }
 
         .image-container:hover {
-            transform: scale(1.03);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+            transform: scale(1.02);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.2);
         }
 
         .image-container img {
@@ -622,7 +653,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(79, 70, 229, 0.8) 100%);
+            background: rgba(99, 102, 241, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -642,15 +673,15 @@
 
         .image-actions {
             display: flex;
-            gap: 12px;
-            margin-top: 18px;
+            gap: 15px;
+            margin-top: 20px;
         }
 
         .btn-action {
             flex: 1;
-            padding: 14px;
+            padding: 16px;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.3s;
@@ -658,49 +689,49 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            font-size: 14px;
+            font-size: 15px;
         }
 
         .btn-zoom {
             background: linear-gradient(135deg, var(--info) 0%, var(--info-dark) 100%);
             color: white;
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
         .btn-zoom:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 24px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
         }
 
         .btn-copy-image {
             background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
             color: white;
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .btn-copy-image:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 24px rgba(16, 185, 129, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
         }
 
         /* Example Section Styles */
         .example-section {
             margin-top: 35px;
-            background: white;
+            background: var(--card-bg);
             border-radius: var(--border-radius);
             padding: 30px;
             box-shadow: var(--shadow);
-            border: 2px solid #e2e8f0;
+            border: 2px solid rgba(99, 102, 241, 0.1);
         }
 
         .example-section h3 {
             font-size: 20px;
-            margin-bottom: 24px;
+            margin-bottom: 25px;
             color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 12px;
-            padding-bottom: 18px;
+            padding-bottom: 20px;
             border-bottom: 3px solid #e2e8f0;
             font-weight: 800;
         }
@@ -713,21 +744,21 @@
         .example-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
+            gap: 25px;
         }
 
         .example-card {
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-radius: 14px;
-            padding: 24px;
+            border-radius: 16px;
+            padding: 25px;
             border-left: 6px solid var(--primary);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             transition: all 0.3s;
         }
 
         .example-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         }
 
         .example-card.win {
@@ -742,7 +773,7 @@
 
         .example-card h4 {
             font-size: 17px;
-            margin-bottom: 16px;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -764,6 +795,10 @@
             color: var(--text-main);
             white-space: pre-wrap;
             font-weight: 800;
+            background: rgba(255,255,255,0.6);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(0,0,0,0.05);
         }
 
         /* Modal Styles */
@@ -774,12 +809,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(0,0,0,0.95);
             z-index: 1000;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(10px);
         }
 
         .modal.active {
@@ -788,8 +823,8 @@
 
         .modal-content {
             position: relative;
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 95%;
+            max-height: 95%;
             animation: zoomIn 0.3s ease;
         }
 
@@ -803,7 +838,7 @@
             height: auto;
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            border: 4px solid white;
+            border: 4px solid rgba(255,255,255,0.1);
         }
 
         .modal-close {
@@ -821,8 +856,8 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
             font-weight: 900;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         .modal-close:hover {
@@ -848,7 +883,7 @@
 
 <div class="container">
     <div class="header-card">
-        <h1><i class="fas fa-calculator"></i> Kalkulator Betting Pro</h1>
+        <h1><i class="fas fa-calculator"></i> KALKULATOR BETTING PRO</h1>
         <p class="subtitle">Perhitungan Akurat Mix Parlay, Handicap, Over/Under & Taruhan Tunggal</p>
         <a href="https://sportgg.xyz/how-to-play" target="_blank" class="how-to-play-btn">
             <i class="fas fa-book-open"></i> HOW TO PLAY
@@ -857,16 +892,20 @@
 
     <div class="mode-switcher">
         <button class="mode-btn active" onclick="switchMode('parlay')">
-            <i class="fas fa-layer-group"></i><span>Mix Parlay</span>
+            <i class="fas fa-layer-group"></i>
+            <span>MIX PARLAY</span>
         </button>
         <button class="mode-btn" onclick="switchMode('handicap')">
-            <i class="fas fa-balance-scale"></i><span>Handicap</span>
+            <i class="fas fa-balance-scale"></i>
+            <span>HANDICAP</span>
         </button>
         <button class="mode-btn" onclick="switchMode('overunder')">
-            <i class="fas fa-chart-line"></i><span>Over/Under</span>
+            <i class="fas fa-chart-line"></i>
+            <span>OVER/UNDER</span>
         </button>
         <button class="mode-btn" onclick="switchMode('tunggal')">
-            <i class="fas fa-star"></i><span>Taruhan Tunggal</span>
+            <i class="fas fa-star"></i>
+            <span>TARUHAN TUNGGAL</span>
         </button>
     </div>
 
@@ -882,7 +921,7 @@
             </div>
             <div class="input-wrapper" style="display: flex; align-items: end;">
                 <button class="btn-add" onclick="addParlayMatch()" style="margin: 0;">
-                    <i class="fas fa-plus-circle"></i> Tambah Tim
+                    <i class="fas fa-plus-circle"></i> TAMBAH TIM
                 </button>
             </div>
         </div>
@@ -890,17 +929,17 @@
         <div class="result-dashboard">
             <div class="result-card primary">
                 <i class="fas fa-chart-line"></i>
-                <div class="result-label">Total Odds</div>
+                <div class="result-label">TOTAL ODDS</div>
                 <div class="result-value" id="parlay-total-odds">0.00</div>
             </div>
             <div class="result-card success">
                 <i class="fas fa-trophy"></i>
-                <div class="result-label">Total Hasil</div>
+                <div class="result-label">TOTAL HASIL</div>
                 <div class="result-value" id="parlay-total-win">Rp 0</div>
             </div>
             <div class="result-card info">
                 <i class="fas fa-coins"></i>
-                <div class="result-label">Kemenangan</div>
+                <div class="result-label">KEMENANGAN</div>
                 <div class="result-value" id="parlay-kemenangan">Rp 0</div>
             </div>
         </div>
@@ -909,27 +948,27 @@
 
         <div class="calculation-box">
             <div class="calculation-header">
-                <div class="calculation-title"><i class="fas fa-file-alt"></i> Rincian Perhitungan</div>
+                <div class="calculation-title"><i class="fas fa-file-alt"></i> RINCIAN PERHITUNGAN</div>
                 <button class="btn-copy" onclick="copyCalculation('parlay')">
-                    <i class="fas fa-copy"></i> <span id="copy-text-parlay">Salin</span>
+                    <i class="fas fa-copy"></i> <span id="copy-text-parlay">SALIN</span>
                 </button>
             </div>
             <div class="calculation-content" id="parlay-calculation-text">Memuat...</div>
         </div>
 
         <div class="info-box">
-            <h3><i class="fas fa-info-circle"></i> Rumus Mix Parlay</h3>
+            <h3><i class="fas fa-info-circle"></i> RUMUS MIX PARLAY</h3>
             <div class="info-grid">
-                <div class="info-item"><strong>✅ Menang Full</strong> Odds tetap</div>
-                <div class="info-item"><strong>⚡ Menang 1/2</strong> ((Odds-1)÷2)+1</div>
-                <div class="info-item"><strong>⚠️ Kalah 1/2</strong> Odds × 0.50</div>
-                <div class="info-item"><strong>🤝 Seri</strong> Odds = 1.00</div>
+                <div class="info-item"><strong>✅ MENANG FULL</strong> Odds tetap</div>
+                <div class="info-item"><strong>⚡ MENANG 1/2</strong> ((Odds-1)÷2)+1</div>
+                <div class="info-item"><strong>⚠️ KALAH 1/2</strong> Odds × 0.50</div>
+                <div class="info-item"><strong>🤝 SERI</strong> Odds = 1.00</div>
             </div>
         </div>
 
         <!-- Image Section for Parlay -->
         <div class="image-section">
-            <h3><i class="fas fa-image"></i> Contoh Perhitungan Taruhan Parlay</h3>
+            <h3><i class="fas fa-image"></i> CONTOH PERHITUNGAN TARUHAN PARLAY</h3>
             <div class="image-container" onclick="openModal('parlay')">
                 <img src="https://i.imgur.com/IeIe7Z0.png" alt="Taruhan Parlay" id="img-parlay">
                 <div class="image-overlay">
@@ -938,20 +977,20 @@
             </div>
             <div class="image-actions">
                 <button class="btn-action btn-zoom" onclick="openModal('parlay')">
-                    <i class="fas fa-expand"></i> Zoom Gambar
+                    <i class="fas fa-expand"></i> ZOOM GAMBAR
                 </button>
                 <button class="btn-action btn-copy-image" onclick="copyImage('parlay')">
-                    <i class="fas fa-copy"></i> Salin Gambar
+                    <i class="fas fa-copy"></i> SALIN GAMBAR
                 </button>
             </div>
         </div>
 
         <!-- Examples Section for Parlay -->
         <div class="example-section">
-            <h3><i class="fas fa-lightbulb"></i> Contoh Perhitungan Lengkap</h3>
+            <h3><i class="fas fa-lightbulb"></i> CONTOH PERHITUNGAN LENGKAP</h3>
             <div class="example-grid">
                 <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> Contoh Menang Full</h4>
+                    <h4><i class="fas fa-check-circle"></i> CONTOH MENANG FULL</h4>
                     <div class="example-content">modal: rp 100.000
 
 tim 1: odd 1.80 (menang full)
@@ -970,7 +1009,7 @@ kemenangan = rp 566.100 - rp 100.000
 profit: 466.10% dari modal</div>
                 </div>
                 <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> Contoh Menang 1/2</h4>
+                    <h4><i class="fas fa-check-circle"></i> CONTOH MENANG 1/2</h4>
                     <div class="example-content">modal: rp 100.000
 
 tim 1: odd 1.80 (menang 1/2)
@@ -994,7 +1033,7 @@ kemenangan = rp 440.300 - rp 100.000
 profit: 340.30% dari modal</div>
                 </div>
                 <div class="example-card lose">
-                    <h4><i class="fas fa-times-circle"></i> Contoh Kalah 1/2</h4>
+                    <h4><i class="fas fa-times-circle"></i> CONTOH KALAH 1/2</h4>
                     <div class="example-content">modal: rp 100.000
 
 tim 1: odd 1.80 (menang full)
@@ -1018,7 +1057,7 @@ kemenangan = rp 283.050 - rp 100.000
 profit: 183.05% dari modal</div>
                 </div>
                 <div class="example-card win">
-                    <h4><i class="fas fa-equals"></i> Contoh Seri</h4>
+                    <h4><i class="fas fa-equals"></i> CONTOH SERI</h4>
                     <div class="example-content">modal: rp 100.000
 
 tim 1: odd 1.80 (seri)
@@ -1073,22 +1112,22 @@ profit: 214.50% dari modal</div>
 
         <div class="result-dashboard">
             <div class="result-card primary">
-                <i class="fas fa-percentage"></i><div class="result-label">Odd</div>
+                <i class="fas fa-percentage"></i><div class="result-label">ODD</div>
                 <div class="result-value" id="handicap-odd-display">1.90</div>
             </div>
             <div class="result-card success">
-                <i class="fas fa-money-bill-wave"></i><div class="result-label">Total Hasil</div>
+                <i class="fas fa-money-bill-wave"></i><div class="result-label">TOTAL HASIL</div>
                 <div class="result-value" id="handicap-total-return">Rp 0</div>
             </div>
             <div class="result-card info">
-                <i class="fas fa-wallet"></i><div class="result-label">Kemenangan</div>
+                <i class="fas fa-wallet"></i><div class="result-label">KEMENANGAN</div>
                 <div class="result-value" id="handicap-kemenangan">Rp 0</div>
             </div>
         </div>
 
         <div class="match-card">
             <div class="match-header">
-                <div class="match-title"><i class="fas fa-futbol"></i> Detail Pertandingan</div>
+                <div class="match-title"><i class="fas fa-futbol"></i> DETAIL PERTANDINGAN</div>
             </div>
             <div class="match-grid">
                 <div class="form-group">
@@ -1119,18 +1158,18 @@ profit: 214.50% dari modal</div>
 
         <div class="calculation-box">
             <div class="calculation-header">
-                <div class="calculation-title"><i class="fas fa-file-alt"></i> Rincian Perhitungan</div>
+                <div class="calculation-title"><i class="fas fa-file-alt"></i> RINCIAN PERHITUNGAN</div>
                 <button class="btn-copy" onclick="copyCalculation('handicap')">
-                    <i class="fas fa-copy"></i> <span id="copy-text-handicap">Salin</span>
+                    <i class="fas fa-copy"></i> <span id="copy-text-handicap">SALIN</span>
                 </button>
             </div>
             <div class="calculation-content" id="handicap-calculation-text">Memuat...</div>
         </div>
 
         <div class="info-box">
-            <h3><i class="fas fa-info-circle"></i> Panduan Handicap</h3>
+            <h3><i class="fas fa-info-circle"></i> PANDUAN HANDICAP</h3>
             <div class="info-grid">
-                <div class="info-item"><strong>Level Ball (0)</strong> Seri = uang kembali</div>
+                <div class="info-item"><strong>LEVEL BALL (0)</strong> Seri = uang kembali</div>
                 <div class="info-item"><strong>0.25 (1/4)</strong> Menang 1/2 jika seri</div>
                 <div class="info-item"><strong>0.5 (1/2)</strong> Harus menang, seri = kalah</div>
                 <div class="info-item"><strong>0.75 (3/4)</strong> Menang 1 goal = menang 1/2</div>
@@ -1139,7 +1178,7 @@ profit: 214.50% dari modal</div>
 
         <!-- Image Section for Handicap -->
         <div class="image-section">
-            <h3><i class="fas fa-image"></i> Contoh Perhitungan Taruhan Handicap</h3>
+            <h3><i class="fas fa-image"></i> CONTOH PERHITUNGAN TARUHAN HANDICAP</h3>
             <div class="image-container" onclick="openModal('handicap')">
                 <img src="https://i.imgur.com/26jC6g3.png" alt="Taruhan Handicap" id="img-handicap">
                 <div class="image-overlay">
@@ -1148,20 +1187,20 @@ profit: 214.50% dari modal</div>
             </div>
             <div class="image-actions">
                 <button class="btn-action btn-zoom" onclick="openModal('handicap')">
-                    <i class="fas fa-expand"></i> Zoom Gambar
+                    <i class="fas fa-expand"></i> ZOOM GAMBAR
                 </button>
                 <button class="btn-action btn-copy-image" onclick="copyImage('handicap')">
-                    <i class="fas fa-copy"></i> Salin Gambar
+                    <i class="fas fa-copy"></i> SALIN GAMBAR
                 </button>
             </div>
         </div>
 
         <!-- Examples Section for Handicap -->
         <div class="example-section">
-            <h3><i class="fas fa-lightbulb"></i> Contoh Perhitungan Lengkap</h3>
+            <h3><i class="fas fa-lightbulb"></i> CONTOH PERHITUNGAN LENGKAP</h3>
             <div class="example-grid">
                 <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> Contoh Menang Full</h4>
+                    <h4><i class="fas fa-check-circle"></i> CONTOH MENANG FULL</h4>
                     <div class="example-content">modal: rp 100.000
 handicap: 0.5
 odd: 1.90
@@ -1178,7 +1217,7 @@ kemenangan = rp 190.000 - rp 100.000
 profit: 90% dari modal</div>
                 </div>
                 <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> Contoh Menang 1/2</h4>
+                    <h4><i class="fas fa-check-circle"></i> CONTOH MENANG 1/2</h4>
                     <div class="example-content">modal: rp 100.000
 handicap: 0.25
 odd: 1.90
@@ -1201,7 +1240,7 @@ kemenangan = rp 145.000 - rp 100.000
 profit: 45% dari modal</div>
                 </div>
                 <div class="example-card lose">
-                    <h4><i class="fas fa-times-circle"></i> Contoh Kalah 1/2</h4>
+                    <h4><i class="fas fa-times-circle"></i> CONTOH KALAH 1/2</h4>
                     <div class="example-content">modal: rp 100.000
 handicap: 0.75
 odd: 1.90
@@ -1219,7 +1258,7 @@ kemenangan = rp 50.000 - rp 100.000
 kerugian: 50% dari modal</div>
                 </div>
                 <div class="example-card win">
-                    <h4><i class="fas fa-equals"></i> Contoh Seri/Push</h4>
+                    <h4><i class="fas fa-equals"></i> CONTOH SERI/PUSH</h4>
                     <div class="example-content">modal: rp 100.000
 handicap: 1.0
 odd: 1.90
@@ -1271,22 +1310,22 @@ modal kembali penuh</div>
 
         <div class="result-dashboard">
             <div class="result-card primary">
-                <i class="fas fa-percentage"></i><div class="result-label">Odd</div>
+                <i class="fas fa-percentage"></i><div class="result-label">ODD</div>
                 <div class="result-value" id="ou-odd-display">1.95</div>
             </div>
             <div class="result-card success">
-                <i class="fas fa-money-bill-wave"></i><div class="result-label">Total Hasil</div>
+                <i class="fas fa-money-bill-wave"></i><div class="result-label">TOTAL HASIL</div>
                 <div class="result-value" id="ou-total-return">Rp 0</div>
             </div>
             <div class="result-card info">
-                <i class="fas fa-wallet"></i><div class="result-label">Kemenangan</div>
+                <i class="fas fa-wallet"></i><div class="result-label">KEMENANGAN</div>
                 <div class="result-value" id="ou-kemenangan">Rp 0</div>
             </div>
         </div>
 
         <div class="match-card">
             <div class="match-header">
-                <div class="match-title"><i class="fas fa-futbol"></i> Detail Taruhan</div>
+                <div class="match-title"><i class="fas fa-futbol"></i> DETAIL TARUHAN</div>
             </div>
             <div class="match-grid">
                 <div class="form-group">
@@ -1310,19 +1349,19 @@ modal kembali penuh</div>
 
         <div class="calculation-box">
             <div class="calculation-header">
-                <div class="calculation-title"><i class="fas fa-file-alt"></i> Rincian Perhitungan</div>
+                <div class="calculation-title"><i class="fas fa-file-alt"></i> RINCIAN PERHITUNGAN</div>
                 <button class="btn-copy" onclick="copyCalculation('overunder')">
-                    <i class="fas fa-copy"></i> <span id="copy-text-overunder">Salin</span>
+                    <i class="fas fa-copy"></i> <span id="copy-text-overunder">SALIN</span>
                 </button>
             </div>
             <div class="calculation-content" id="overunder-calculation-text">Memuat...</div>
         </div>
 
         <div class="info-box">
-            <h3><i class="fas fa-info-circle"></i> Panduan Over/Under</h3>
+            <h3><i class="fas fa-info-circle"></i> PANDUAN OVER/UNDER</h3>
             <div class="info-grid">
-                <div class="info-item"><strong>Over 2.5</strong> Menang jika total gol ≥ 3</div>
-                <div class="info-item"><strong>Under 2.5</strong> Menang jika total gol ≤ 2</div>
+                <div class="info-item"><strong>OVER 2.5</strong> Menang jika total gol ≥ 3</div>
+                <div class="info-item"><strong>UNDER 2.5</strong> Menang jika total gol ≤ 2</div>
                 <div class="info-item"><strong>2.25 (2 1/4)</strong> 2 gol = Kalah 1/2</div>
                 <div class="info-item"><strong>2.75 (2 3/4)</strong> 3 gol = Menang 1/2</div>
             </div>
@@ -1330,7 +1369,7 @@ modal kembali penuh</div>
 
         <!-- Image Section for Over/Under -->
         <div class="image-section">
-            <h3><i class="fas fa-image"></i> Contoh Perhitungan Taruhan Over/Under</h3>
+            <h3><i class="fas fa-image"></i> CONTOH PERHITUNGAN TARUHAN OVER/UNDER</h3>
             <div class="image-container" onclick="openModal('overunder')">
                 <img src="https://i.imgur.com/dSobBS5.png" alt="Taruhan Over/Under" id="img-overunder">
                 <div class="image-overlay">
@@ -1339,20 +1378,20 @@ modal kembali penuh</div>
             </div>
             <div class="image-actions">
                 <button class="btn-action btn-zoom" onclick="openModal('overunder')">
-                    <i class="fas fa-expand"></i> Zoom Gambar
+                    <i class="fas fa-expand"></i> ZOOM GAMBAR
                 </button>
                 <button class="btn-action btn-copy-image" onclick="copyImage('overunder')">
-                    <i class="fas fa-copy"></i> Salin Gambar
+                    <i class="fas fa-copy"></i> SALIN GAMBAR
                 </button>
             </div>
         </div>
 
         <!-- Examples Section for Over/Under -->
         <div class="example-section">
-            <h3><i class="fas fa-lightbulb"></i> Contoh Perhitungan Lengkap</h3>
+            <h3><i class="fas fa-lightbulb"></i> CONTOH PERHITUNGAN LENGKAP</h3>
             <div class="example-grid">
                 <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> Contoh Over Menang Full</h4>
+                    <h4><i class="fas fa-check-circle"></i> CONTOH OVER MENANG FULL</h4>
                     <div class="example-content">modal: rp 100.000
 pasaran: over 2.5
 odd: 1.95
@@ -1370,7 +1409,7 @@ kemenangan = rp 195.000 - rp 100.000
 profit: 95% dari modal</div>
                 </div>
                 <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> Contoh Over Menang 1/2</h4>
+                    <h4><i class="fas fa-check-circle"></i> CONTOH OVER MENANG 1/2</h4>
                     <div class="example-content">modal: rp 100.000
 pasaran: over 2.75
 odd: 1.95
@@ -1393,7 +1432,7 @@ kemenangan = rp 147.500 - rp 100.000
 profit: 47.50% dari modal</div>
                 </div>
                 <div class="example-card lose">
-                    <h4><i class="fas fa-times-circle"></i> Contoh Over Kalah 1/2</h4>
+                    <h4><i class="fas fa-times-circle"></i> CONTOH OVER KALAH 1/2</h4>
                     <div class="example-content">modal: rp 100.000
 pasaran: over 2.25
 odd: 1.95
@@ -1411,7 +1450,7 @@ kemenangan = rp 50.000 - rp 100.000
 kerugian: 50% dari modal</div>
                 </div>
                 <div class="example-card win">
-                    <h4><i class="fas fa-equals"></i> Contoh Over Push</h4>
+                    <h4><i class="fas fa-equals"></i> CONTOH OVER PUSH</h4>
                     <div class="example-content">modal: rp 100.000
 pasaran: over 2.0
 odd: 1.95
@@ -1453,22 +1492,22 @@ modal kembali penuh</div>
 
         <div class="result-dashboard">
             <div class="result-card primary">
-                <i class="fas fa-percentage"></i><div class="result-label">Odd</div>
+                <i class="fas fa-percentage"></i><div class="result-label">ODD</div>
                 <div class="result-value" id="tunggal-odd-display">1.90</div>
             </div>
             <div class="result-card success">
-                <i class="fas fa-money-bill-wave"></i><div class="result-label">Total Hasil</div>
+                <i class="fas fa-money-bill-wave"></i><div class="result-label">TOTAL HASIL</div>
                 <div class="result-value" id="tunggal-total-return">Rp 0</div>
             </div>
             <div class="result-card info">
-                <i class="fas fa-wallet"></i><div class="result-label">Kemenangan</div>
+                <i class="fas fa-wallet"></i><div class="result-label">KEMENANGAN</div>
                 <div class="result-value" id="tunggal-kemenangan">Rp 0</div>
             </div>
         </div>
 
         <div class="match-card">
             <div class="match-header">
-                <div class="match-title"><i class="fas fa-futbol"></i> Detail Taruhan Tunggal</div>
+                <div class="match-title"><i class="fas fa-futbol"></i> DETAIL TARUHAN TUNGGAL</div>
             </div>
             <div class="match-grid">
                 <div class="form-group">
@@ -1487,25 +1526,25 @@ modal kembali penuh</div>
 
         <div class="calculation-box">
             <div class="calculation-header">
-                <div class="calculation-title"><i class="fas fa-file-alt"></i> Rincian Perhitungan</div>
+                <div class="calculation-title"><i class="fas fa-file-alt"></i> RINCIAN PERHITUNGAN</div>
                 <button class="btn-copy" onclick="copyCalculation('tunggal')">
-                    <i class="fas fa-copy"></i> <span id="copy-text-tunggal">Salin</span>
+                    <i class="fas fa-copy"></i> <span id="copy-text-tunggal">SALIN</span>
                 </button>
             </div>
             <div class="calculation-content" id="tunggal-calculation-text">Memuat...</div>
         </div>
 
         <div class="info-box">
-            <h3><i class="fas fa-info-circle"></i> Rumus Taruhan Tunggal</h3>
+            <h3><i class="fas fa-info-circle"></i> RUMUS TARUHAN TUNGGAL</h3>
             <div class="info-grid">
-                <div class="info-item"><strong>✅ Menang</strong> Total Hasil = Modal × Odd<br>Kemenangan = Total Hasil - Modal</div>
-                <div class="info-item"><strong>❌ Kalah</strong> Total Hasil = Rp 0<br>Kemenangan = -Modal (rugi)</div>
+                <div class="info-item"><strong>✅ MENANG</strong> Total Hasil = Modal × Odd<br>Kemenangan = Total Hasil - Modal</div>
+                <div class="info-item"><strong>❌ KALAH</strong> Total Hasil = Rp 0<br>Kemenangan = -Modal (rugi)</div>
             </div>
         </div>
 
         <!-- Image Section for Tunggal -->
         <div class="image-section">
-            <h3><i class="fas fa-image"></i> Contoh Perhitungan Taruhan Tunggal</h3>
+            <h3><i class="fas fa-image"></i> CONTOH PERHITUNGAN TARUHAN TUNGGAL</h3>
             <div class="image-container" onclick="openModal('tunggal')">
                 <img src="https://i.imgur.com/eFEmBhV.png" alt="Taruhan Tunggal" id="img-tunggal">
                 <div class="image-overlay">
@@ -1514,20 +1553,20 @@ modal kembali penuh</div>
             </div>
             <div class="image-actions">
                 <button class="btn-action btn-zoom" onclick="openModal('tunggal')">
-                    <i class="fas fa-expand"></i> Zoom Gambar
+                    <i class="fas fa-expand"></i> ZOOM GAMBAR
                 </button>
                 <button class="btn-action btn-copy-image" onclick="copyImage('tunggal')">
-                    <i class="fas fa-copy"></i> Salin Gambar
+                    <i class="fas fa-copy"></i> SALIN GAMBAR
                 </button>
             </div>
         </div>
 
         <!-- Examples Section for Tunggal -->
         <div class="example-section">
-            <h3><i class="fas fa-lightbulb"></i> Contoh Perhitungan Lengkap</h3>
+            <h3><i class="fas fa-lightbulb"></i> CONTOH PERHITUNGAN LENGKAP</h3>
             <div class="example-grid">
                 <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> Contoh Menang Full</h4>
+                    <h4><i class="fas fa-check-circle"></i> CONTOH MENANG FULL</h4>
                     <div class="example-content">modal: rp 100.000
 odd: 1.90
 tim: manchester united
@@ -1543,7 +1582,7 @@ kemenangan = rp 190.000 - rp 100.000
 profit: 90% dari modal</div>
                 </div>
                 <div class="example-card lose">
-                    <h4><i class="fas fa-times-circle"></i> Contoh Kalah Penuh</h4>
+                    <h4><i class="fas fa-times-circle"></i> CONTOH KALAH PENUH</h4>
                     <div class="example-content">modal: rp 100.000
 odd: 1.90
 tim: manchester united
@@ -1589,7 +1628,7 @@ kerugian: 100% dari modal</div>
         navigator.clipboard.writeText(text).then(() => {
             const btn = document.querySelector(`#copy-text-${type}`).parentElement;
             const originalText = document.getElementById(`copy-text-${type}`).innerText;
-            document.getElementById(`copy-text-${type}`).innerText = '✓ Tersalin!';
+            document.getElementById(`copy-text-${type}`).innerText = '✓ TERSALIN!';
             btn.classList.add('copied');
             setTimeout(() => {
                 document.getElementById(`copy-text-${type}`).innerText = originalText;
@@ -1630,7 +1669,7 @@ kerugian: 100% dari modal</div>
                     [blob.type]: blob
                 })
             ]);
-            alert('gambar berhasil disalin ke clipboard!');
+            alert('GAMBAR BERHASIL DISALIN KE CLIPBOARD!');
         } catch (err) {
             // Fallback: Open image in new tab
             window.open(img.src, '_blank');
@@ -1650,25 +1689,25 @@ kerugian: 100% dari modal</div>
         matchDiv.id = `parlay-match-${parlayCount}`;
         matchDiv.innerHTML = `
             <div class="match-header">
-                <div class="match-title"><i class="fas fa-futbol"></i> Tim #${parlayCount}</div>
-                <button class="btn-delete" onclick="removeParlayMatch(${parlayCount})"><i class="fas fa-trash"></i> Hapus</button>
+                <div class="match-title"><i class="fas fa-futbol"></i> TIM #${parlayCount}</div>
+                <button class="btn-delete" onclick="removeParlayMatch(${parlayCount})"><i class="fas fa-trash"></i> HAPUS</button>
             </div>
             <div class="match-grid">
                 <div class="form-group">
-                    <label>Odd</label>
+                    <label>ODD</label>
                     <input type="number" class="parlay-odd" step="0.01" value="${defaultOdd}" oninput="calculateParlay()">
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
-                    <label>Hasil</label>
+                    <label>HASIL</label>
                     <div class="status-selector">
-                        <div class="radio-option"><input type="radio" name="parlay-status-${parlayCount}" id="p-win-full-${parlayCount}" value="full" checked onchange="calculateParlay()"><label for="p-win-full-${parlayCount}" class="win-full">Menang</label></div>
-                        <div class="radio-option"><input type="radio" name="parlay-status-${parlayCount}" id="p-win-half-${parlayCount}" value="half" onchange="calculateParlay()"><label for="p-win-half-${parlayCount}" class="win-half">Menang 1/2</label></div>
-                        <div class="radio-option"><input type="radio" name="parlay-status-${parlayCount}" id="p-lose-half-${parlayCount}" value="lose-half" onchange="calculateParlay()"><label for="p-lose-half-${parlayCount}" class="lose-half">Kalah 1/2</label></div>
-                        <div class="radio-option"><input type="radio" name="parlay-status-${parlayCount}" id="p-void-${parlayCount}" value="void" onchange="calculateParlay()"><label for="p-void-${parlayCount}" class="void">Seri</label></div>
+                        <div class="radio-option"><input type="radio" name="parlay-status-${parlayCount}" id="p-win-full-${parlayCount}" value="full" checked onchange="calculateParlay()"><label for="p-win-full-${parlayCount}" class="win-full">MENANG</label></div>
+                        <div class="radio-option"><input type="radio" name="parlay-status-${parlayCount}" id="p-win-half-${parlayCount}" value="half" onchange="calculateParlay()"><label for="p-win-half-${parlayCount}" class="win-half">MENANG 1/2</label></div>
+                        <div class="radio-option"><input type="radio" name="parlay-status-${parlayCount}" id="p-lose-half-${parlayCount}" value="lose-half" onchange="calculateParlay()"><label for="p-lose-half-${parlayCount}" class="lose-half">KALAH 1/2</label></div>
+                        <div class="radio-option"><input type="radio" name="parlay-status-${parlayCount}" id="p-void-${parlayCount}" value="void" onchange="calculateParlay()"><label for="p-void-${parlayCount}" class="void">SERI</label></div>
                     </div>
                 </div>
             </div>
-            <div class="effective-odd-display" id="parlay-eff-${parlayCount}">Effective Odd: ${defaultOdd.toFixed(2)}</div>
+            <div class="effective-odd-display" id="parlay-eff-${parlayCount}">EFFECTIVE ODD: ${defaultOdd.toFixed(2)}</div>
         `;
         container.appendChild(matchDiv);
         calculateParlay();
@@ -1688,7 +1727,7 @@ kerugian: 100% dari modal</div>
     }
 
     function getStatusText(status) {
-        const texts = { 'full': 'Menang Full', 'half': 'Menang 1/2', 'lose-half': 'Kalah 1/2', 'void': 'Seri' };
+        const texts = { 'full': 'MENANG FULL', 'half': 'MENANG 1/2', 'lose-half': 'KALAH 1/2', 'void': 'SERI' };
         return texts[status] || status;
     }
 
@@ -1696,8 +1735,8 @@ kerugian: 100% dari modal</div>
         const stake = parseFloat(document.getElementById('parlay-stake').value) || 0;
         const matches = document.querySelectorAll('#parlay-match-list .match-card');
         let totalOdds = 1;
-        let calculationText = `modal taruhan: ${formatRupiah(stake)}\n`;
-        calculationText += `jumlah tim: ${matches.length} tim\n\n`;
+        let calculationText = `MODAL TARUHAN: ${formatRupiah(stake)}\n`;
+        calculationText += `JUMLAH TIM: ${matches.length} TIM\n\n`;
         
         let matchNumber = 1;
         let oddsArray = [];
@@ -1711,9 +1750,9 @@ kerugian: 100% dari modal</div>
             const effOdd = getParlayEffectiveOdd(odd, status);
             
             if (effDisplay) {
-                let text = `Effective: ${effOdd.toFixed(2)}`;
-                if (status === 'lose-half') text += ' (Kalah 1/2)';
-                if (status === 'half') text += ' (Menang 1/2)';
+                let text = `EFFECTIVE: ${effOdd.toFixed(2)}`;
+                if (status === 'lose-half') text += ' (KALAH 1/2)';
+                if (status === 'half') text += ' (MENANG 1/2)';
                 effDisplay.textContent = text;
                 effDisplay.style.color = status === 'lose-half' ? '#ef4444' : status === 'half' ? '#f59e0b' : '#4f46e5';
             }
@@ -1721,26 +1760,26 @@ kerugian: 100% dari modal</div>
             oddsArray.push(effOdd);
             totalOdds *= effOdd;
             
-            calculationText += `tim #${matchNumber}:\n`;
-            calculationText += `  odd awal: ${odd.toFixed(2)}\n`;
-            calculationText += `  hasil: ${getStatusText(status)}\n`;
+            calculationText += `TIM #${matchNumber}:\n`;
+            calculationText += `  ODD AWAL: ${odd.toFixed(2)}\n`;
+            calculationText += `  HASIL: ${getStatusText(status)}\n`;
             
             if (status === 'full') {
-                calculationText += `  rumus: odds tetap (menang full)\n`;
-                calculationText += `  effective: ${effOdd.toFixed(2)}\n`;
+                calculationText += `  RUMUS: ODDS TETAP (MENANG FULL)\n`;
+                calculationText += `  EFFECTIVE: ${effOdd.toFixed(2)}\n`;
             } else if (status === 'half') {
-                calculationText += `  rumus: ((odd - 1) ÷ 2) + 1\n`;
+                calculationText += `  RUMUS: ((ODD - 1) ÷ 2) + 1\n`;
                 calculationText += `       = ((${odd.toFixed(2)} - 1) ÷ 2) + 1\n`;
                 calculationText += `       = (${(odd - 1).toFixed(2)} ÷ 2) + 1\n`;
                 calculationText += `       = ${((odd - 1) / 2).toFixed(2)} + 1\n`;
-                calculationText += `  effective: ${effOdd.toFixed(2)}\n`;
+                calculationText += `  EFFECTIVE: ${effOdd.toFixed(2)}\n`;
             } else if (status === 'lose-half') {
-                calculationText += `  rumus: odd × 0.50 (kalah setengah)\n`;
+                calculationText += `  RUMUS: ODD × 0.50 (KALAH SETENGAH)\n`;
                 calculationText += `       = ${odd.toFixed(2)} × 0.50\n`;
-                calculationText += `  effective: ${effOdd.toFixed(2)}\n`;
+                calculationText += `  EFFECTIVE: ${effOdd.toFixed(2)}\n`;
             } else if (status === 'void') {
-                calculationText += `  rumus: odds = 1.00 (seri/void)\n`;
-                calculationText += `  effective: ${effOdd.toFixed(2)}\n`;
+                calculationText += `  RUMUS: ODDS = 1.00 (SERI/VOID)\n`;
+                calculationText += `  EFFECTIVE: ${effOdd.toFixed(2)}\n`;
             }
             calculationText += `\n`;
             matchNumber++;
@@ -1749,19 +1788,19 @@ kerugian: 100% dari modal</div>
         const totalReturn = totalOdds * stake;
         const kemenangan = totalReturn - stake;
         
-        calculationText += `perhitungan akhir:\n`;
-        calculationText += `total odds: ${totalOdds.toFixed(4)}\n`;
-        calculationText += `(perkalian semua effective odds)\n\n`;
-        calculationText += `total hasil = total odds × modal\n`;
+        calculationText += `PERHITUNGAN AKHIR:\n`;
+        calculationText += `TOTAL ODDS: ${totalOdds.toFixed(4)}\n`;
+        calculationText += `(PERKALIAN SEMUA EFFECTIVE ODDS)\n\n`;
+        calculationText += `TOTAL HASIL = TOTAL ODDS × MODAL\n`;
         calculationText += `            = ${totalOdds.toFixed(4)} × ${formatRupiah(stake)}\n`;
         calculationText += `            = ${formatRupiah(totalReturn)}\n\n`;
-        calculationText += `kemenangan = total hasil - modal\n`;
+        calculationText += `KEMENANGAN = TOTAL HASIL - MODAL\n`;
         calculationText += `           = ${formatRupiah(totalReturn)} - ${formatRupiah(stake)}\n`;
         calculationText += `           = ${formatRupiah(kemenangan)}\n\n`;
-        calculationText += `hasil akhir:\n`;
-        calculationText += `total hasil: ${formatRupiah(totalReturn)}\n`;
-        calculationText += `modal kembali: ${formatRupiah(stake)}\n`;
-        calculationText += `kemenangan: ${formatRupiah(kemenangan)}`;
+        calculationText += `HASIL AKHIR:\n`;
+        calculationText += `TOTAL HASIL: ${formatRupiah(totalReturn)}\n`;
+        calculationText += `MODAL KEMBALI: ${formatRupiah(stake)}\n`;
+        calculationText += `KEMENANGAN: ${formatRupiah(kemenangan)}`;
         
         document.getElementById('parlay-total-odds').textContent = totalOdds.toFixed(4);
         document.getElementById('parlay-total-win').textContent = formatRupiah(totalReturn);
@@ -1784,82 +1823,82 @@ kerugian: 100% dari modal</div>
         updateHandicapExplanation(handicapType);
         
         let effectiveOdd = 0, resultText = '';
-        let calculationText = `detail pertandingan:\n`;
-        calculationText += `jenis handicap: ${handicapType}\n`;
-        calculationText += `odd: ${odd.toFixed(2)}\n`;
-        calculationText += `modal taruhan: ${formatRupiah(stake)}\n`;
-        calculationText += `skor akhir: ${scoreYou} - ${scoreOpp}\n`;
-        calculationText += `selisih gol: ${scoreYou - scoreOpp}\n\n`;
+        let calculationText = `DETAIL PERTANDINGAN:\n`;
+        calculationText += `JENIS HANDICAP: ${handicapType}\n`;
+        calculationText += `ODD: ${odd.toFixed(2)}\n`;
+        calculationText += `MODAL TARUHAN: ${formatRupiah(stake)}\n`;
+        calculationText += `SKOR AKHIR: ${scoreYou} - ${scoreOpp}\n`;
+        calculationText += `SELISIH GOL: ${scoreYou - scoreOpp}\n\n`;
         
         if (result === 'win') {
             effectiveOdd = odd;
-            resultText = 'menang penuh';
+            resultText = 'MENANG PENUH';
         } else if (result === 'win-half') {
             effectiveOdd = ((odd - 1) / 2) + 1;
-            resultText = 'menang 1/2';
+            resultText = 'MENANG 1/2';
         } else if (result === 'push') {
             effectiveOdd = 1.0;
-            resultText = 'push (uang kembali)';
+            resultText = 'PUSH (UANG KEMBALI)';
         } else if (result === 'lose-half') {
             effectiveOdd = 0.5;
-            resultText = 'kalah 1/2';
+            resultText = 'KALAH 1/2';
         } else if (result === 'lose') {
             effectiveOdd = 0;
-            resultText = 'kalah penuh';
+            resultText = 'KALAH PENUH';
         }
         
         const totalReturn = effectiveOdd * stake;
         const kemenangan = totalReturn - stake;
         
-        calculationText += `perhitungan:\n`;
-        calculationText += `hasil: ${resultText}\n`;
-        calculationText += `effective odd: ${effectiveOdd.toFixed(2)}\n\n`;
+        calculationText += `PERHITUNGAN:\n`;
+        calculationText += `HASIL: ${resultText}\n`;
+        calculationText += `EFFECTIVE ODD: ${effectiveOdd.toFixed(2)}\n\n`;
         
         if (result === 'win') {
-            calculationText += `rumus: modal × odd\n`;
+            calculationText += `RUMUS: MODAL × ODD\n`;
             calculationText += `     = ${formatRupiah(stake)} × ${odd.toFixed(2)}\n`;
             calculationText += `     = ${formatRupiah(totalReturn)}\n\n`;
-            calculationText += `penjelasan:\n`;
-            calculationText += `tim anda menang penuh dengan handicap ${handicapType}.\n`;
-            calculationText += `kemenangan penuh dengan odd ${odd.toFixed(2)}.`;
+            calculationText += `PENJELASAN:\n`;
+            calculationText += `TIM ANDA MENANG PENUH DENGAN HANDICAP ${handicapType}.\n`;
+            calculationText += `KEMENANGAN PENUH DENGAN ODD ${odd.toFixed(2)}.`;
         } else if (result === 'win-half') {
-            calculationText += `rumus: modal × ((odd - 1) ÷ 2 + 1)\n`;
+            calculationText += `RUMUS: MODAL × ((ODD - 1) ÷ 2 + 1)\n`;
             calculationText += `     = ${formatRupiah(stake)} × ((${odd.toFixed(2)} - 1) ÷ 2 + 1)\n`;
             calculationText += `     = ${formatRupiah(stake)} × (${(odd - 1).toFixed(2)} ÷ 2 + 1)\n`;
             calculationText += `     = ${formatRupiah(stake)} × ${((odd - 1) / 2).toFixed(2)} + 1\n`;
             calculationText += `     = ${formatRupiah(stake)} × ${effectiveOdd.toFixed(2)}\n`;
             calculationText += `     = ${formatRupiah(totalReturn)}\n\n`;
-            calculationText += `penjelasan:\n`;
-            calculationText += `menang setengah menggunakan rumus ((odd-1)÷2)+1.\n`;
-            calculationText += `effective odd = ${effectiveOdd.toFixed(2)}.`;
+            calculationText += `PENJELASAN:\n`;
+            calculationText += `MENANG SETENGAH MENGGUNAKAN RUMUS ((ODD-1)÷2)+1.\n`;
+            calculationText += `EFFECTIVE ODD = ${effectiveOdd.toFixed(2)}.`;
         } else if (result === 'push') {
-            calculationText += `rumus: modal × 1.00 (uang kembali)\n`;
+            calculationText += `RUMUS: MODAL × 1.00 (UANG KEMBALI)\n`;
             calculationText += `     = ${formatRupiah(stake)} × 1.00\n`;
             calculationText += `     = ${formatRupiah(totalReturn)}\n\n`;
-            calculationText += `penjelasan:\n`;
-            calculationText += `pertandingan seri dengan handicap ${handicapType}.\n`;
-            calculationText += `taruhan push, modal kembali penuh.`;
+            calculationText += `PENJELASAN:\n`;
+            calculationText += `PERTANDINGAN SERI DENGAN HANDICAP ${handicapType}.\n`;
+            calculationText += `TARUHAN PUSH, MODAL KEMBALI PENUH.`;
         } else if (result === 'lose-half') {
-            calculationText += `rumus: modal × 0.50 (kalah setengah)\n`;
+            calculationText += `RUMUS: MODAL × 0.50 (KALAH SETENGAH)\n`;
             calculationText += `     = ${formatRupiah(stake)} × 0.50\n`;
             calculationText += `     = ${formatRupiah(totalReturn)}\n\n`;
-            calculationText += `penjelasan:\n`;
-            calculationText += `kalah setengah, modal yang kembali 50%.\n`;
-            calculationText += `kerugian = ${formatRupiah(stake * 0.5)}.`;
+            calculationText += `PENJELASAN:\n`;
+            calculationText += `KALAH SETENGAH, MODAL YANG KEMBALI 50%.\n`;
+            calculationText += `KERUGIAN = ${formatRupiah(stake * 0.5)}.`;
         } else {
-            calculationText += `rumus: modal × 0 (kalah penuh)\n`;
+            calculationText += `RUMUS: MODAL × 0 (KALAH PENUH)\n`;
             calculationText += `     = ${formatRupiah(stake)} × 0\n`;
-            calculationText += `     = rp 0\n\n`;
-            calculationText += `penjelasan:\n`;
-            calculationText += `tim anda kalah penuh dengan handicap ${handicapType}.\n`;
-            calculationText += `seluruh modal taruhan hilang.`;
+            calculationText += `     = RP 0\n\n`;
+            calculationText += `PENJELASAN:\n`;
+            calculationText += `TIM ANDA KALAH PENUH DENGAN HANDICAP ${handicapType}.\n`;
+            calculationText += `SELURUH MODAL TARUHAN HILANG.`;
         }
         
-        calculationText += `\n\nhasil akhir:\n`;
-        calculationText += `total hasil = effective odd × modal\n`;
+        calculationText += `\n\nHASIL AKHIR:\n`;
+        calculationText += `TOTAL HASIL = EFFECTIVE ODD × MODAL\n`;
         calculationText += `            = ${effectiveOdd.toFixed(2)} × ${formatRupiah(stake)}\n`;
         calculationText += `            = ${formatRupiah(totalReturn)}\n\n`;
-        calculationText += `kemenangan = total hasil - modal\n`;
+        calculationText += `KEMENANGAN = TOTAL HASIL - MODAL\n`;
         calculationText += `           = ${formatRupiah(totalReturn)} - ${formatRupiah(stake)}\n`;
         calculationText += `           = ${formatRupiah(kemenangan)}`;
         
@@ -1875,15 +1914,15 @@ kerugian: 100% dari modal</div>
 
     function updateHandicapExplanation(handicap) {
         const explanations = {
-            'level': 'Level Ball: Seri = uang kembali',
-            '0.25': 'Handicap 0.25: Menang 1/2 jika seri, Menang full jika tim Anda menang',
-            '0.5': 'Handicap 0.5: Harus menang, jika seri = kalah',
-            '0.75': 'Handicap 0.75: Menang 1 goal = menang 1/2, Menang 2+ = menang full',
-            '1': 'Handicap 1.0: Menang 1 goal = push, Menang 2+ = menang full',
-            '1.25': 'Handicap 1.25: Menang 1 goal = kalah 1/2, Menang 2+ = menang full',
-            '1.5': 'Handicap 1.5: Harus menang minimal 2 gol',
-            '1.75': 'Handicap 1.75: Menang 2 goal = menang 1/2, Menang 3+ = menang full',
-            '2': 'Handicap 2.0: Menang 2 goal = push, Menang 3+ = menang full'
+            'level': 'LEVEL BALL: SERI = UANG KEMBALI',
+            '0.25': 'HANDICAP 0.25: MENANG 1/2 JIKA SERI, MENANG FULL JIKA TIM ANDA MENANG',
+            '0.5': 'HANDICAP 0.5: HARUS MENANG, JIKA SERI = KALAH',
+            '0.75': 'HANDICAP 0.75: MENANG 1 GOAL = MENANG 1/2, MENANG 2+ = MENANG FULL',
+            '1': 'HANDICAP 1.0: MENANG 1 GOAL = PUSH, MENANG 2+ = MENANG FULL',
+            '1.25': 'HANDICAP 1.25: MENANG 1 GOAL = KALAH 1/2, MENANG 2+ = MENANG FULL',
+            '1.5': 'HANDICAP 1.5: HARUS MENANG MINIMAL 2 GOL',
+            '1.75': 'HANDICAP 1.75: MENANG 2 GOAL = MENANG 1/2, MENANG 3+ = MENANG FULL',
+            '2': 'HANDICAP 2.0: MENANG 2 GOAL = PUSH, MENANG 3+ = MENANG FULL'
         };
         document.getElementById('handicap-explanation').textContent = explanations[handicap] || '';
     }
@@ -1902,122 +1941,122 @@ kerugian: 100% dari modal</div>
         updateOUExplanation(line, choice);
         
         let effectiveOdd = 0, resultText = '';
-        let calculationText = `detail taruhan:\n`;
-        calculationText += `pasaran: ${line} goals\n`;
-        calculationText += `pilihan: ${choice.toUpperCase()}\n`;
-        calculationText += `odd: ${odd.toFixed(2)}\n`;
-        calculationText += `modal taruhan: ${formatRupiah(stake)}\n`;
-        calculationText += `total gol: ${totalGoals} gol\n\n`;
+        let calculationText = `DETAIL TARUHAN:\n`;
+        calculationText += `PASARAN: ${line} GOALS\n`;
+        calculationText += `PILIHAN: ${choice.toUpperCase()}\n`;
+        calculationText += `ODD: ${odd.toFixed(2)}\n`;
+        calculationText += `MODAL TARUHAN: ${formatRupiah(stake)}\n`;
+        calculationText += `TOTAL GOL: ${totalGoals} GOL\n\n`;
         
         if (choice === 'over') {
             if (totalGoals > line) {
                 effectiveOdd = odd;
-                resultText = 'menang penuh';
+                resultText = 'MENANG PENUH';
             } else if (totalGoals === line && Number.isInteger(line)) {
                 effectiveOdd = 1.0;
-                resultText = 'push (uang kembali)';
+                resultText = 'PUSH (UANG KEMBALI)';
             } else if (line % 1 === 0.25 && totalGoals === Math.floor(line)) {
                 effectiveOdd = 0.5;
-                resultText = 'kalah 1/2';
+                resultText = 'KALAH 1/2';
             } else if (line % 1 === 0.75 && totalGoals === Math.ceil(line)) {
                 effectiveOdd = ((odd - 1) / 2) + 1;
-                resultText = 'menang 1/2';
+                resultText = 'MENANG 1/2';
             } else {
                 effectiveOdd = 0;
-                resultText = 'kalah penuh';
+                resultText = 'KALAH PENUH';
             }
         } else {
             if (totalGoals < line) {
                 effectiveOdd = odd;
-                resultText = 'menang penuh';
+                resultText = 'MENANG PENUH';
             } else if (totalGoals === line && Number.isInteger(line)) {
                 effectiveOdd = 1.0;
-                resultText = 'push (uang kembali)';
+                resultText = 'PUSH (UANG KEMBALI)';
             } else if (line % 1 === 0.25 && totalGoals === Math.ceil(line)) {
                 effectiveOdd = ((odd - 1) / 2) + 1;
-                resultText = 'menang 1/2';
+                resultText = 'MENANG 1/2';
             } else if (line % 1 === 0.75 && totalGoals === Math.floor(line)) {
                 effectiveOdd = 0.5;
-                resultText = 'kalah 1/2';
+                resultText = 'KALAH 1/2';
             } else {
                 effectiveOdd = 0;
-                resultText = 'kalah penuh';
+                resultText = 'KALAH PENUH';
             }
         }
         
         const totalReturn = effectiveOdd * stake;
         const kemenangan = totalReturn - stake;
         
-        calculationText += `perhitungan:\n`;
-        calculationText += `hasil: ${resultText}\n`;
-        calculationText += `effective odd: ${effectiveOdd.toFixed(2)}\n\n`;
+        calculationText += `PERHITUNGAN:\n`;
+        calculationText += `HASIL: ${resultText}\n`;
+        calculationText += `EFFECTIVE ODD: ${effectiveOdd.toFixed(2)}\n\n`;
         
-        if (resultText === 'menang penuh') {
-            calculationText += `rumus: modal × odd\n`;
+        if (resultText === 'MENANG PENUH') {
+            calculationText += `RUMUS: MODAL × ODD\n`;
             calculationText += `     = ${formatRupiah(stake)} × ${odd.toFixed(2)}\n`;
             calculationText += `     = ${formatRupiah(totalReturn)}\n\n`;
-            calculationText += `penjelasan:\n`;
+            calculationText += `PENJELASAN:\n`;
             if (choice === 'over') {
-                calculationText += `total gol ${totalGoals} lebih dari ${line}.\n`;
-                calculationText += `taruhan over ${line} menang penuh.`;
+                calculationText += `TOTAL GOL ${totalGoals} LEBIH DARI ${line}.\n`;
+                calculationText += `TARUHAN OVER ${line} MENANG PENUH.`;
             } else {
-                calculationText += `total gol ${totalGoals} kurang dari ${line}.\n`;
-                calculationText += `taruhan under ${line} menang penuh.`;
+                calculationText += `TOTAL GOL ${totalGoals} KURANG DARI ${line}.\n`;
+                calculationText += `TARUHAN UNDER ${line} MENANG PENUH.`;
             }
-        } else if (resultText === 'menang 1/2') {
-            calculationText += `rumus: modal × ((odd - 1) ÷ 2 + 1)\n`;
+        } else if (resultText === 'MENANG 1/2') {
+            calculationText += `RUMUS: MODAL × ((ODD - 1) ÷ 2 + 1)\n`;
             calculationText += `     = ${formatRupiah(stake)} × ((${odd.toFixed(2)} - 1) ÷ 2 + 1)\n`;
             calculationText += `     = ${formatRupiah(stake)} × ${((odd - 1) / 2).toFixed(2)} + 1\n`;
             calculationText += `     = ${formatRupiah(stake)} × ${effectiveOdd.toFixed(2)}\n`;
             calculationText += `     = ${formatRupiah(totalReturn)}\n\n`;
-            calculationText += `penjelasan:\n`;
+            calculationText += `PENJELASAN:\n`;
             if (choice === 'over') {
-                calculationText += `total gol ${totalGoals} tepat di garis ${line}.\n`;
-                calculationText += `taruhan over ${line} menang setengah.`;
+                calculationText += `TOTAL GOL ${totalGoals} TEPAT DI GARIS ${line}.\n`;
+                calculationText += `TARUHAN OVER ${line} MENANG SETENGAH.`;
             } else {
-                calculationText += `total gol ${totalGoals} tepat di garis ${line}.\n`;
-                calculationText += `taruhan under ${line} menang setengah.`;
+                calculationText += `TOTAL GOL ${totalGoals} TEPAT DI GARIS ${line}.\n`;
+                calculationText += `TARUHAN UNDER ${line} MENANG SETENGAH.`;
             }
-        } else if (resultText === 'push (uang kembali)') {
-            calculationText += `rumus: modal × 1.00\n`;
+        } else if (resultText === 'PUSH (UANG KEMBALI)') {
+            calculationText += `RUMUS: MODAL × 1.00\n`;
             calculationText += `     = ${formatRupiah(stake)}\n\n`;
-            calculationText += `penjelasan:\n`;
-            calculationText += `total gol ${totalGoals} sama dengan ${line}.\n`;
-            calculationText += `taruhan push, modal kembali penuh.`;
-        } else if (resultText === 'kalah 1/2') {
-            calculationText += `rumus: modal × 0.50\n`;
+            calculationText += `PENJELASAN:\n`;
+            calculationText += `TOTAL GOL ${totalGoals} SAMA DENGAN ${line}.\n`;
+            calculationText += `TARUHAN PUSH, MODAL KEMBALI PENUH.`;
+        } else if (resultText === 'KALAH 1/2') {
+            calculationText += `RUMUS: MODAL × 0.50\n`;
             calculationText += `     = ${formatRupiah(stake)} × 0.50\n`;
             calculationText += `     = ${formatRupiah(totalReturn)}\n\n`;
-            calculationText += `penjelasan:\n`;
+            calculationText += `PENJELASAN:\n`;
             if (choice === 'over') {
-                calculationText += `total gol ${totalGoals} di bawah ${line}.\n`;
-                calculationText += `taruhan over ${line} kalah setengah.\n`;
-                calculationText += `kerugian = ${formatRupiah(stake * 0.5)}.`;
+                calculationText += `TOTAL GOL ${totalGoals} DI BAWAH ${line}.\n`;
+                calculationText += `TARUHAN OVER ${line} KALAH SETENGAH.\n`;
+                calculationText += `KERUGIAN = ${formatRupiah(stake * 0.5)}.`;
             } else {
-                calculationText += `total gol ${totalGoals} di atas ${line}.\n`;
-                calculationText += `taruhan under ${line} kalah setengah.\n`;
-                calculationText += `kerugian = ${formatRupiah(stake * 0.5)}.`;
+                calculationText += `TOTAL GOL ${totalGoals} DI ATAS ${line}.\n`;
+                calculationText += `TARUHAN UNDER ${line} KALAH SETENGAH.\n`;
+                calculationText += `KERUGIAN = ${formatRupiah(stake * 0.5)}.`;
             }
         } else {
-            calculationText += `rumus: modal × 0\n`;
-            calculationText += `     = rp 0\n\n`;
-            calculationText += `penjelasan:\n`;
+            calculationText += `RUMUS: MODAL × 0\n`;
+            calculationText += `     = RP 0\n\n`;
+            calculationText += `PENJELASAN:\n`;
             if (choice === 'over') {
-                calculationText += `total gol ${totalGoals} kurang dari ${line}.\n`;
-                calculationText += `taruhan over ${line} kalah penuh.\n`;
-                calculationText += `kerugian = ${formatRupiah(stake)}.`;
+                calculationText += `TOTAL GOL ${totalGoals} KURANG DARI ${line}.\n`;
+                calculationText += `TARUHAN OVER ${line} KALAH PENUH.\n`;
+                calculationText += `KERUGIAN = ${formatRupiah(stake)}.`;
             } else {
-                calculationText += `total gol ${totalGoals} lebih dari ${line}.\n`;
-                calculationText += `taruhan under ${line} kalah penuh.\n`;
-                calculationText += `kerugian = ${formatRupiah(stake)}.`;
+                calculationText += `TOTAL GOL ${totalGoals} LEBIH DARI ${line}.\n`;
+                calculationText += `TARUHAN UNDER ${line} KALAH PENUH.\n`;
+                calculationText += `KERUGIAN = ${formatRupiah(stake)}.`;
             }
         }
         
-        calculationText += `\n\nhasil akhir:\n`;
-        calculationText += `total hasil = effective odd × modal\n`;
+        calculationText += `\n\nHASIL AKHIR:\n`;
+        calculationText += `TOTAL HASIL = EFFECTIVE ODD × MODAL\n`;
         calculationText += `            = ${effectiveOdd.toFixed(2)} × ${formatRupiah(stake)}\n`;
         calculationText += `            = ${formatRupiah(totalReturn)}\n\n`;
-        calculationText += `kemenangan = total hasil - modal\n`;
+        calculationText += `KEMENANGAN = TOTAL HASIL - MODAL\n`;
         calculationText += `           = ${formatRupiah(totalReturn)} - ${formatRupiah(stake)}\n`;
         calculationText += `           = ${formatRupiah(kemenangan)}`;
         
@@ -2033,18 +2072,18 @@ kerugian: 100% dari modal</div>
 
     function updateOUExplanation(line, choice) {
         const explanations = {
-            '0.5': { over: 'Over 0.5: Menang jika total gol ≥ 1', under: 'Under 0.5: Menang jika total gol = 0' },
-            '1': { over: 'Over 1.0: Menang jika total gol ≥ 2, Push jika = 1', under: 'Under 1.0: Menang jika total gol = 0, Push jika = 1' },
-            '1.5': { over: 'Over 1.5: Menang jika total gol ≥ 2', under: 'Under 1.5: Menang jika total gol ≤ 1' },
-            '2': { over: 'Over 2.0: Menang jika total gol ≥ 3, Push jika = 2', under: 'Under 2.0: Menang jika total gol ≤ 1, Push jika = 2' },
-            '2.25': { over: 'Over 2.25: Kalah 1/2 jika 2 gol, Menang full jika ≥ 3', under: 'Under 2.25: Menang 1/2 jika 2 gol, Menang jika ≤ 1' },
-            '2.5': { over: 'Over 2.5: Menang jika total gol ≥ 3', under: 'Under 2.5: Menang jika total gol ≤ 2' },
-            '2.75': { over: 'Over 2.75: Menang 1/2 jika 3 gol, Menang full jika ≥ 4', under: 'Under 2.75: Kalah 1/2 jika 3 gol, Menang jika ≤ 2' },
-            '3': { over: 'Over 3.0: Menang jika total gol ≥ 4, Push jika = 3', under: 'Under 3.0: Menang jika total gol ≤ 2, Push jika = 3' },
-            '3.25': { over: 'Over 3.25: Kalah 1/2 jika 3 gol, Menang full jika ≥ 4', under: 'Under 3.25: Menang 1/2 jika 3 gol, Menang jika ≤ 2' },
-            '3.5': { over: 'Over 3.5: Menang jika total gol ≥ 4', under: 'Under 3.5: Menang jika total gol ≤ 3' },
-            '4': { over: 'Over 4.0: Menang jika total gol ≥ 5, Push jika = 4', under: 'Under 4.0: Menang jika total gol ≤ 3, Push jika = 4' },
-            '4.5': { over: 'Over 4.5: Menang jika total gol ≥ 5', under: 'Under 4.5: Menang jika total gol ≤ 4' }
+            '0.5': { over: 'OVER 0.5: MENANG JIKA TOTAL GOL ≥ 1', under: 'UNDER 0.5: MENANG JIKA TOTAL GOL = 0' },
+            '1': { over: 'OVER 1.0: MENANG JIKA TOTAL GOL ≥ 2, PUSH JIKA = 1', under: 'UNDER 1.0: MENANG JIKA TOTAL GOL = 0, PUSH JIKA = 1' },
+            '1.5': { over: 'OVER 1.5: MENANG JIKA TOTAL GOL ≥ 2', under: 'UNDER 1.5: MENANG JIKA TOTAL GOL ≤ 1' },
+            '2': { over: 'OVER 2.0: MENANG JIKA TOTAL GOL ≥ 3, PUSH JIKA = 2', under: 'UNDER 2.0: MENANG JIKA TOTAL GOL ≤ 1, PUSH JIKA = 2' },
+            '2.25': { over: 'OVER 2.25: KALAH 1/2 JIKA 2 GOL, MENANG FULL JIKA ≥ 3', under: 'UNDER 2.25: MENANG 1/2 JIKA 2 GOL, MENANG JIKA ≤ 1' },
+            '2.5': { over: 'OVER 2.5: MENANG JIKA TOTAL GOL ≥ 3', under: 'UNDER 2.5: MENANG JIKA TOTAL GOL ≤ 2' },
+            '2.75': { over: 'OVER 2.75: MENANG 1/2 JIKA 3 GOL, MENANG FULL JIKA ≥ 4', under: 'UNDER 2.75: KALAH 1/2 JIKA 3 GOL, MENANG JIKA ≤ 2' },
+            '3': { over: 'OVER 3.0: MENANG JIKA TOTAL GOL ≥ 4, PUSH JIKA = 3', under: 'UNDER 3.0: MENANG JIKA TOTAL GOL ≤ 2, PUSH JIKA = 3' },
+            '3.25': { over: 'OVER 3.25: KALAH 1/2 JIKA 3 GOL, MENANG FULL JIKA ≥ 4', under: 'UNDER 3.25: MENANG 1/2 JIKA 3 GOL, MENANG JIKA ≤ 2' },
+            '3.5': { over: 'OVER 3.5: MENANG JIKA TOTAL GOL ≥ 4', under: 'UNDER 3.5: MENANG JIKA TOTAL GOL ≤ 3' },
+            '4': { over: 'OVER 4.0: MENANG JIKA TOTAL GOL ≥ 5, PUSH JIKA = 4', under: 'UNDER 4.0: MENANG JIKA TOTAL GOL ≤ 3, PUSH JIKA = 4' },
+            '4.5': { over: 'OVER 4.5: MENANG JIKA TOTAL GOL ≥ 5', under: 'UNDER 4.5: MENANG JIKA TOTAL GOL ≤ 4' }
         };
         const exp = explanations[line];
         if (exp) document.getElementById('ou-explanation').textContent = exp[choice];
@@ -2057,14 +2096,14 @@ kerugian: 100% dari modal</div>
         const stake = parseFloat(document.getElementById('tunggal-stake').value) || 0;
         const odd = parseFloat(document.getElementById('tunggal-odd').value) || 0;
         const result = document.getElementById('tunggal-result').value;
-        const team = document.getElementById('tunggal-team').value || 'Tim Pilihan';
+        const team = document.getElementById('tunggal-team').value || 'TIM PILIHAN';
         
         document.getElementById('tunggal-odd-display').textContent = odd.toFixed(2);
         
-        let calculationText = `detail taruhan:\n`;
-        calculationText += `tim: ${team}\n`;
-        calculationText += `odd: ${odd.toFixed(2)}\n`;
-        calculationText += `modal taruhan: ${formatRupiah(stake)}\n\n`;
+        let calculationText = `DETAIL TARUHAN:\n`;
+        calculationText += `TIM: ${team}\n`;
+        calculationText += `ODD: ${odd.toFixed(2)}\n`;
+        calculationText += `MODAL TARUHAN: ${formatRupiah(stake)}\n\n`;
         
         let totalReturn = 0;
         let kemenangan = 0;
@@ -2073,36 +2112,36 @@ kerugian: 100% dari modal</div>
         if (result === 'win') {
             totalReturn = stake * odd;
             kemenangan = totalReturn - stake;
-            resultText = 'menang';
+            resultText = 'MENANG';
             
-            calculationText += `perhitungan:\n`;
-            calculationText += `hasil: ${resultText}\n\n`;
-            calculationText += `rumus: modal × odd\n`;
+            calculationText += `PERHITUNGAN:\n`;
+            calculationText += `HASIL: ${resultText}\n\n`;
+            calculationText += `RUMUS: MODAL × ODD\n`;
             calculationText += `     = ${formatRupiah(stake)} × ${odd.toFixed(2)}\n`;
             calculationText += `     = ${formatRupiah(totalReturn)}\n\n`;
-            calculationText += `penjelasan:\n`;
-            calculationText += `taruhan ${team} dengan odd ${odd.toFixed(2)} menang.\n`;
-            calculationText += `anda mendapatkan total hasil ${formatRupiah(totalReturn)}.`;
+            calculationText += `PENJELASAN:\n`;
+            calculationText += `TARUHAN ${team} DENGAN ODD ${odd.toFixed(2)} MENANG.\n`;
+            calculationText += `ANDA MENDAPATKAN TOTAL HASIL ${formatRupiah(totalReturn)}.`;
         } else {
             totalReturn = 0;
             kemenangan = -stake;
-            resultText = 'kalah';
+            resultText = 'KALAH';
             
-            calculationText += `perhitungan:\n`;
-            calculationText += `hasil: ${resultText}\n\n`;
-            calculationText += `rumus: modal × 0 (kalah)\n`;
+            calculationText += `PERHITUNGAN:\n`;
+            calculationText += `HASIL: ${resultText}\n\n`;
+            calculationText += `RUMUS: MODAL × 0 (KALAH)\n`;
             calculationText += `     = ${formatRupiah(stake)} × 0\n`;
-            calculationText += `     = rp 0\n\n`;
-            calculationText += `penjelasan:\n`;
-            calculationText += `taruhan ${team} dengan odd ${odd.toFixed(2)} kalah.\n`;
-            calculationText += `seluruh modal taruhan hilang.`;
+            calculationText += `     = RP 0\n\n`;
+            calculationText += `PENJELASAN:\n`;
+            calculationText += `TARUHAN ${team} DENGAN ODD ${odd.toFixed(2)} KALAH.\n`;
+            calculationText += `SELURUH MODAL TARUHAN HILANG.`;
         }
         
-        calculationText += `\n\nhasil akhir:\n`;
-        calculationText += `total hasil = effective odd × modal\n`;
+        calculationText += `\n\nHASIL AKHIR:\n`;
+        calculationText += `TOTAL HASIL = EFFECTIVE ODD × MODAL\n`;
         calculationText += `            = ${result === 'win' ? odd.toFixed(2) : '0'} × ${formatRupiah(stake)}\n`;
         calculationText += `            = ${formatRupiah(totalReturn)}\n\n`;
-        calculationText += `kemenangan = total hasil - modal\n`;
+        calculationText += `KEMENANGAN = TOTAL HASIL - MODAL\n`;
         calculationText += `           = ${formatRupiah(totalReturn)} - ${formatRupiah(stake)}\n`;
         calculationText += `           = ${formatRupiah(kemenangan)}`;
         
