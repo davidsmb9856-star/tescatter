@@ -1632,107 +1632,127 @@
         return texts[status] || status;
     }
 
-    function calculateParlay() {
-        const rawStake = validateInput(document.getElementById('parlay-stake').value, 1000);
-        // Parlay stake is usually actual risk. We keep it as is.
-        const stake = rawStake;
-        const matches = document.querySelectorAll('#parlay-match-list .match-card');
-        
-        if (matches.length === 0) {
-            document.getElementById('parlay-calculation-text').textContent = 'TAMBAHKAN MINIMAL 1 TIM UNTUK PERHITUNGAN!';
-            return;
-        }
-        
-        let totalOdds = 1;
-        let calculationText = `modal taruhan: ${formatRupiahAccurate(stake)}\n`;
-        calculationText += `jumlah tim: ${matches.length} tim\n\n`;
-        
-        let matchNumber = 1;
-        
-        matches.forEach((match) => {
-            const oddInput = match.querySelector('.parlay-odd');
-            const statusInput = match.querySelector('input[type="radio"]:checked');
-            const effDisplay = match.querySelector('[id^="parlay-eff-"]');
-            
-            // ✅ CONVERT ODDS AUTOMATICALLY
-            const processed = processOddsInput(oddInput.value, 1); // multiplier 1 for decimal conversion only
-            let odd = processed.decimalOdd;
-            const status = statusInput.value;
-            
-            let effOdd = 0;
-            let formula = '';
-            
-            switch(status) {
-                case 'full':
-                    effOdd = roundTo(odd, 4);
-                    formula = `odds tetap = ${effOdd.toFixed(4)}`;
-                    break;
-                case 'half':
-                    const step1 = roundTo(odd - 1, 6);
-                    const step2 = roundTo(step1 / 2, 6);
-                    effOdd = roundTo(step2 + 1, 4);
-                    formula = `((${odd.toFixed(2)} - 1) ÷ 2) + 1 = ${effOdd.toFixed(4)}`;
-                    break;
-                case 'lose-half':
-                    effOdd = roundTo(odd * 0.50, 4);
-                    formula = `${odd.toFixed(2)} × 0.50 = ${effOdd.toFixed(4)}`;
-                    break;
-                case 'void':
-                    effOdd = 1.00;
-                    formula = `odds = 1.00 (seri)`;
-                    break;
-            }
-            
-            totalOdds = roundTo(totalOdds * effOdd, 6);
-            
-            if (effDisplay) {
-                let text = `effective: ${effOdd.toFixed(4)}`;
-                if (status === 'lose-half') text += ' (kalah 1/2)';
-                if (status === 'half') text += ' (menang 1/2)';
-                effDisplay.textContent = text;
-                effDisplay.style.color = status === 'lose-half' ? '#ff1744' : status === 'half' ? '#ffd700' : '#00e5ff';
-            }
-            
-            calculationText += `tim #${matchNumber}:\n`;
-            calculationText += `  odd awal: ${odd.toFixed(2)}\n`;
-            calculationText += `  hasil: ${getStatusText(status)}\n`;
-            calculationText += `  formula: ${formula}\n`;
-            calculationText += `  effective: ${effOdd.toFixed(4)}\n\n`;
-            
-            matchNumber++;
-        });
-        
-        totalOdds = roundTo(totalOdds, 4);
-        const totalReturn = roundTo(totalOdds * stake, 2);
-        const profit = roundTo(totalReturn - stake, 2);
-        
-        calculationText += `perhitungan akhir:\n`;
-        calculationText += `total odds: ${totalOdds.toFixed(4)}\n`;
-        calculationText += `(perkalian semua effective odds)\n\n`;
-        calculationText += `total hasil = total odds × modal\n`;
-        calculationText += `            = ${totalOdds.toFixed(4)} × ${formatRupiahAccurate(stake)}\n`;
-        calculationText += `            = ${formatRupiahAccurate(totalReturn)}\n\n`;
-        calculationText += `kemenangan = total hasil - modal\n`;
-        calculationText += `           = ${formatRupiahAccurate(totalReturn)} - ${formatRupiahAccurate(stake)}\n`;
-        calculationText += `           = ${formatRupiahAccurate(profit)}\n\n`;
-        calculationText += `hasil akhir:\n`;
-        calculationText += `total hasil: ${formatRupiahAccurate(totalReturn)}\n`;
-        calculationText += `modal kembali: ${formatRupiahAccurate(stake)}\n`;
-        calculationText += `kemenangan bersih: ${formatRupiahAccurate(profit)}\n`;
-        
-        if (profit > 0) {
-            calculationText += `\nanda memenangkan ${formatRupiahAccurate(profit)}`;
-        } else if (profit < 0) {
-            calculationText += `\nmaaf, anda mengalami kerugian sebesar ${formatRupiahAccurate(Math.abs(profit))}`;
-        } else {
-            calculationText += `\nimpass (modal kembali)`;
-        }
-        
-        document.getElementById('parlay-total-odds').textContent = totalOdds.toFixed(4);
-        document.getElementById('parlay-total-win').textContent = formatRupiahAccurate(totalReturn);
-        document.getElementById('parlay-kemenangan').textContent = formatRupiahAccurate(profit);
-        document.getElementById('parlay-calculation-text').textContent = calculationText;
+function calculateParlay() {
+    const rawStake = validateInput(document.getElementById('parlay-stake').value, 1000);
+    const stake = rawStake;
+    const matches = document.querySelectorAll('#parlay-match-list .match-card');
+    
+    if (matches.length === 0) {
+        document.getElementById('parlay-calculation-text').textContent = 'TAMBAHKAN MINIMAL 1 TIM UNTUK PERHITUNGAN!';
+        return;
     }
+    
+    let totalOdds = 1;
+    let hasNegative = false;
+    
+    // ✅ FORMAT OUTPUT RAPI
+    let calculationText = `modal taruhan: ${formatRupiahAccurate(stake)}\n`;
+    calculationText += `jumlah tim: ${matches.length} tim\n\n`;
+    
+    let matchNumber = 1;
+    
+    matches.forEach((match) => {
+        const oddInput = match.querySelector('.parlay-odd');
+        const statusInput = match.querySelector('input[type="radio"]:checked');
+        const effDisplay = match.querySelector('[id^="parlay-eff-"]');
+        
+        const rawOdd = parseFloat(oddInput.value) || 1.01;
+        // ✅ Konversi otomatis ke decimal (tanpa ubah stake)
+        const processed = processOddsInput(rawOdd, 1); 
+        const odd = processed.decimalOdd;
+        const isNeg = processed.isNegative;
+        if(isNeg) hasNegative = true;
+        
+        const status = statusInput.value;
+        let effOdd = 0;
+        let formula = '';
+        
+        switch(status) {
+            case 'full':
+                effOdd = roundTo(odd, 4);
+                formula = `odds tetap = ${effOdd.toFixed(4)}`;
+                break;
+            case 'half':
+                const step1 = roundTo(odd - 1, 6);
+                const step2 = roundTo(step1 / 2, 6);
+                effOdd = roundTo(step2 + 1, 4);
+                formula = `((${odd.toFixed(2)} - 1) ÷ 2) + 1 = ${effOdd.toFixed(4)}`;
+                break;
+            case 'lose-half':
+                effOdd = roundTo(odd * 0.50, 4);
+                formula = `${odd.toFixed(2)} × 0.50 = ${effOdd.toFixed(4)}`;
+                break;
+            case 'void':
+                effOdd = 1.00;
+                formula = `odds = 1.00 (seri)`;
+                break;
+        }
+        
+        totalOdds = roundTo(totalOdds * effOdd, 6);
+        
+        if (effDisplay) {
+            let text = `effective: ${effOdd.toFixed(4)}`;
+            if (status === 'lose-half') text += ' (kalah 1/2)';
+            if (status === 'half') text += ' (menang 1/2)';
+            effDisplay.textContent = text;
+            effDisplay.style.color = status === 'lose-half' ? '#ff1744' : status === 'half' ? '#ffd700' : '#00e5ff';
+        }
+        
+        // ✅ DETAIL PER TIM (TERMASUK KONVERSI ODDS NEGATIF)
+        calculationText += `tim #${matchNumber}:\n`;
+        calculationText += `  odd awal: ${rawOdd}\n`;
+        calculationText += `  odd konversi: ${odd.toFixed(4)}\n`;
+        if(isNeg) {
+            calculationText += `  ⚠️ odds negatif → dikonversi ke decimal untuk perhitungan akurat\n`;
+        }
+        calculationText += `  hasil: ${getStatusText(status)}\n`;
+        calculationText += `  formula: ${formula}\n`;
+        calculationText += `  effective: ${effOdd.toFixed(4)}\n\n`;
+        
+        matchNumber++;
+    });
+    
+    totalOdds = roundTo(totalOdds, 4);
+    const totalReturn = roundTo(totalOdds * stake, 2);
+    const profit = roundTo(totalReturn - stake, 2);
+    
+    // ✅ PERHITUNGAN AKHIR
+    calculationText += `perhitungan akhir:\n`;
+    calculationText += `total odds: ${totalOdds.toFixed(4)}\n`;
+    calculationText += `(perkalian semua effective odds)\n\n`;
+    calculationText += `total hasil = total odds × modal\n`;
+    calculationText += `            = ${totalOdds.toFixed(4)} × ${formatRupiahAccurate(stake)}\n`;
+    calculationText += `            = ${formatRupiahAccurate(totalReturn)}\n\n`;
+    calculationText += `kemenangan = total hasil - modal\n`;
+    calculationText += `           = ${formatRupiahAccurate(totalReturn)} - ${formatRupiahAccurate(stake)}\n`;
+    calculationText += `           = ${formatRupiahAccurate(profit)}\n\n`;
+    calculationText += `hasil akhir:\n`;
+    calculationText += `total hasil: ${formatRupiahAccurate(totalReturn)}\n`;
+    calculationText += `modal kembali: ${formatRupiahAccurate(stake)}\n`;
+    calculationText += `kemenangan bersih: ${formatRupiahAccurate(profit)}\n\n`;
+    
+    // ✅ CATATAN JIKA ADA ODDS NEGATIF
+    if(hasNegative) {
+        calculationText += `⚠️ Catatan Pembayaran:\n`;
+        calculationText += `   Beberapa odds menggunakan format negatif (Malay/Indo).\n`;
+        calculationText += `   Sistem otomatis mengonversi ke decimal sebelum dikalikan.\n`;
+        calculationText += `   Modal yang Anda masukkan tetap sebagai modal taruhan parlay.\n\n`;
+    }
+    
+    if (profit > 0) {
+        calculationText += `anda memenangkan ${formatRupiahAccurate(profit)}`;
+    } else if (profit < 0) {
+        calculationText += `maaf, anda mengalami kerugian sebesar ${formatRupiahAccurate(Math.abs(profit))}`;
+    } else {
+        calculationText += `impas (modal kembali)`;
+    }
+    
+    // ✅ UPDATE DOM
+    document.getElementById('parlay-total-odds').textContent = totalOdds.toFixed(4);
+    document.getElementById('parlay-total-win').textContent = formatRupiahAccurate(totalReturn);
+    document.getElementById('parlay-kemenangan').textContent = formatRupiahAccurate(profit);
+    document.getElementById('parlay-calculation-text').textContent = calculationText;
+}
 
     function calculateHandicap() {
         const rawStake = validateInput(document.getElementById('handicap-stake').value, 100);
