@@ -333,7 +333,7 @@
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-image: url("image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 12px center;
             background-size: 20px;
@@ -824,7 +824,7 @@
             <div class="result-card primary">
                 <i class="fas fa-chart-line"></i>
                 <div class="result-label">TOTAL PELUANG</div>
-                <div class="result-value" id="parlay-total-odds">0.00</div>
+                <div class="result-value" id="parlay-total-odds">0.000</div>
             </div>
             <div class="result-card info">
                 <i class="fas fa-trophy"></i>
@@ -1274,7 +1274,7 @@
     function removeParlayMatch(id) { const el = document.getElementById(`parlay-match-${id}`); if(el) { el.remove(); calculateParlay(); } }
     function getStatusText(status) { const t = { 'full': 'MENANG FULL', 'half': 'MENANG 1/2', 'lose-half': 'KALAH 1/2', 'void': 'SERI' }; return t[status] || status; }
 
-    // FUNGSI PARLAY BARU (Gaya HPD)
+    // FUNGSI PARLAY FINAL (Presisi 3 Desimal)
     function calculateParlay() {
         const stake = validateInput(document.getElementById('parlay-stake').value, 1000);
         const matches = document.querySelectorAll('#parlay-match-list .match-card');
@@ -1293,9 +1293,9 @@
             
             let effOdd = 0;
             switch(status) {
-                case 'full': effOdd = roundTo(decimalOdd, 2); break;
-                case 'half': effOdd = roundTo(((decimalOdd - 1) / 2) + 1, 2); break;
-                case 'lose-half': effOdd = roundTo(decimalOdd * 0.50, 2); break;
+                case 'full': effOdd = roundTo(decimalOdd, 4); break;
+                case 'half': effOdd = roundTo(((decimalOdd - 1) / 2) + 1, 4); break;
+                case 'lose-half': effOdd = roundTo(decimalOdd * 0.50, 4); break;
                 case 'void': effOdd = 1.00; break;
             }
             
@@ -1308,9 +1308,11 @@
             });
         });
         
-        const displayOdds = roundTo(totalOdds, 2);
-        const totalReturn = roundTo(displayOdds * stake, 0);
-        const profit = roundTo(totalReturn - stake, 0);
+        // ✅ UPDATE: Presisi Total Peluang menjadi 3 desimal
+        const displayOdds = roundTo(totalOdds, 3);
+        // Hitung hasil dengan presisi tinggi
+        const totalReturn = Math.round(totalOdds * stake);
+        const profit = totalReturn - stake;
         
         let text = "Berikut contoh ya bosku\n\n";
         text += `Modal Taruhan: ${formatRupiahAccurate(stake)}\n`;
@@ -1320,20 +1322,20 @@
             text += `Tim #${m.num}: ${m.odd} (${m.status}) → ${m.effective.toFixed(2)}\n`;
         });
         
-        text += `\nTotal Peluang: ${displayOdds.toFixed(2)}\n`;
+        text += `\nTotal Peluang: ${displayOdds.toFixed(3)}\n`;
         text += `Total Hasil: ${formatRupiahAccurate(totalReturn)}\n`;
         text += `Kemenangan Bersih: ${formatRupiahAccurate(profit)}\n\n`;
         text += profit > 0 ? `✅ Anda memenangkan ${formatRupiahAccurate(profit)}` : 
                 profit < 0 ? `❌ Rugi ${formatRupiahAccurate(Math.abs(profit))}` : 
                 `⚖️ Impas (modal kembali)`;
         
-        document.getElementById('parlay-total-odds').textContent = displayOdds.toFixed(2);
+        document.getElementById('parlay-total-odds').textContent = displayOdds.toFixed(3);
         document.getElementById('parlay-total-win').textContent = formatRupiahAccurate(totalReturn);
         document.getElementById('parlay-kemenangan').textContent = formatRupiahAccurate(profit);
         document.getElementById('parlay-calculation-text').textContent = text;
     }
 
-    // FUNGSI HANDICAP BARU
+    // FUNGSI HANDICAP FINAL
     function calculateHandicap() {
         const rawStake = validateInput(document.getElementById('handicap-stake').value, 100);
         const rawOdd = parseFloat(document.getElementById('handicap-odd').value) || 1.90;
@@ -1374,8 +1376,8 @@
         else if(result === 'lose-half') { effOdd = 0.50; resText = 'KALAH 1/2'; }
         else { effOdd = 0; resText = 'KALAH PENUH'; }
         
-        const totalReturn = roundTo(effOdd * stake, 0);
-        const profit = roundTo(totalReturn - stake, 0);
+        const totalReturn = Math.round(effOdd * stake);
+        const profit = totalReturn - stake;
         
         let text = "Berikut contoh ya bosku\n\n";
         text += `Handicap: ${hcType} | Odd: ${rawOdd}\n`;
@@ -1401,7 +1403,7 @@
         updateCardColor('handicap-kemenangan', profit);
     }
 
-    // FUNGSI OVER/UNDER BARU
+    // FUNGSI OVER/UNDER FINAL
     function calculateOverUnder() {
         const rawStake = validateInput(document.getElementById('ou-stake').value, 100);
         const rawOdd = parseFloat(document.getElementById('ou-odd').value) || 1.95;
@@ -1442,8 +1444,8 @@
             else { effOdd = 0; resText = 'KALAH PENUH'; }
         }
         
-        const totalReturn = roundTo(effOdd * stake, 0);
-        const profit = roundTo(totalReturn - stake, 0);
+        const totalReturn = Math.round(effOdd * stake);
+        const profit = totalReturn - stake;
         
         let text = "Berikut contoh ya bosku\n\n";
         text += `Pasaran: ${choice.toUpperCase()} ${line} | Odd: ${rawOdd}\n`;
@@ -1469,7 +1471,7 @@
         updateCardColor('ou-kemenangan', profit);
     }
 
-    // FUNGSI TUNGGAL BARU
+    // FUNGSI TUNGGAL FINAL
     function calculateTunggal() {
         const rawStake = validateInput(document.getElementById('tunggal-stake').value, 100);
         const rawOdd = parseFloat(document.getElementById('tunggal-odd').value) || 1.90;
@@ -1491,8 +1493,8 @@
         
         document.getElementById('tunggal-odd-display').textContent = odd.toFixed(2);
         
-        const totalReturn = result === 'win' ? roundTo(stake * odd, 0) : 0;
-        const profit = result === 'win' ? roundTo(totalReturn - stake, 0) : -stake;
+        const totalReturn = result === 'win' ? Math.round(stake * odd) : 0;
+        const profit = result === 'win' ? totalReturn - stake : -stake;
         
         let text = "Berikut contoh ya bosku\n\n";
         text += `Tim: ${team} | Odd: ${rawOdd} | Hasil: ${result === 'win' ? 'MENANG' : 'KALAH'}\n`;
@@ -1517,7 +1519,7 @@
     }
 
     window.onload = function() {
-        addParlayMatch(1.73); addParlayMatch(1.95); addParlayMatch(1.90);
+        addParlayMatch(1.80); addParlayMatch(1.70); addParlayMatch(1.85);
         calculateParlay(); calculateHandicap(); calculateOverUnder(); calculateTunggal();
     };
 </script>
