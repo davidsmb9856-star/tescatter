@@ -333,7 +333,8 @@
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            background-image: url("image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            /* ✅ FIXED: added data: prefix */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 12px center;
             background-size: 20px;
@@ -523,7 +524,8 @@
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            background-image: url("image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            /* ✅ FIXED: added data: prefix */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 12px center;
             background-size: 20px;
@@ -537,11 +539,6 @@
             padding: 12px;
             font-weight: 700;
             border-bottom: 1px solid rgba(0,229,255,0.1);
-        }
-
-        .form-group select option:hover {
-            background: rgba(0,229,255,0.15);
-            color: var(--neon-blue);
         }
 
         .form-group input:focus, .form-group select:focus { 
@@ -1039,6 +1036,20 @@
             box-shadow: 0 0 20px rgba(255,23,68,0.5);
         }
 
+        /* ✅ NEW: Styling for odds warning notice */
+        .odds-notice {
+            background: rgba(255,215,0,0.1);
+            border: 1px solid var(--gold-neon);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--gold-neon);
+            display: none;
+            font-weight: 800;
+        }
+        .odds-notice.active { display: block; }
+
         @media (max-width: 768px) {
             .mode-switcher { grid-template-columns: 1fr 1fr; }
             .control-panel, .result-dashboard { grid-template-columns: 1fr; }
@@ -1064,19 +1075,20 @@
     </div>
 
     <div class="mode-switcher">
-        <button class="mode-btn active" onclick="switchMode('parlay')">
+        <!-- ✅ FIXED: added 'event' parameter -->
+        <button class="mode-btn active" onclick="switchMode('parlay', event)">
             <i class="fas fa-layer-group"></i>
             <span>MIX PARLAY</span>
         </button>
-        <button class="mode-btn" onclick="switchMode('handicap')">
+        <button class="mode-btn" onclick="switchMode('handicap', event)">
             <i class="fas fa-balance-scale"></i>
             <span>HANDICAP</span>
         </button>
-        <button class="mode-btn" onclick="switchMode('overunder')">
+        <button class="mode-btn" onclick="switchMode('overunder', event)">
             <i class="fas fa-chart-line"></i>
             <span>OVER/UNDER</span>
         </button>
-        <button class="mode-btn" onclick="switchMode('tunggal')">
+        <button class="mode-btn" onclick="switchMode('tunggal', event)">
             <i class="fas fa-star"></i>
             <span>TUNGGAL</span>
         </button>
@@ -1138,132 +1150,18 @@
                 <div class="info-item"><strong>🤝 SERI</strong> Odds = 1.00</div>
             </div>
         </div>
-
-        <div class="image-section">
-            <h3><i class="fas fa-futbol"></i> CONTOH PERHITUNGAN TARUHAN PARLAY</h3>
-            <div class="image-container" onclick="openModal('parlay')">
-                <img src="https://i.imgur.com/IeIe7Z0.png" alt="Taruhan Parlay" id="img-parlay">
-                <div class="image-overlay">
-                    <i class="fas fa-search-plus"></i>
-                </div>
-            </div>
-            <div class="image-actions">
-                <button class="btn-action btn-zoom" onclick="openModal('parlay')">
-                    <i class="fas fa-expand"></i> ZOOM GAMBAR
-                </button>
-                <button class="btn-action btn-copy-image" onclick="copyImage('parlay')">
-                    <i class="fas fa-copy"></i> SALIN GAMBAR
-                </button>
-            </div>
-        </div>
-
-        <div class="example-section">
-            <h3><i class="fas fa-lightbulb"></i> CONTOH PERHITUNGAN LENGKAP</h3>
-            <div class="example-grid">
-                <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> CONTOH MENANG FULL</h4>
-                    <div class="example-content">modal: rp 100.000
-
-tim 1: odd 1.80 (menang full)
-tim 2: odd 1.70 (menang full)
-tim 3: odd 1.85 (menang full)
-
-total odds: 1.80 × 1.70 × 1.85
-          = 5.6610
-
-total hasil = 5.6610 × rp 100.000
-            = rp 566.100
-
-kemenangan = rp 566.100 - rp 100.000
-           = rp 466.100
-
-profit: 466.10% dari modal</div>
-                </div>
-                <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> CONTOH MENANG 1/2</h4>
-                    <div class="example-content">modal: rp 100.000
-
-tim 1: odd 1.80 (menang 1/2)
-tim 2: odd 1.70 (menang full)
-tim 3: odd 1.85 (menang full)
-
-effective odds:
-tim 1: ((1.80-1)÷2)+1 = 1.40
-tim 2: 1.70
-tim 3: 1.85
-
-total odds: 1.40 × 1.70 × 1.85
-          = 4.4030
-
-total hasil = 4.4030 × rp 100.000
-            = rp 440.300
-
-kemenangan = rp 440.300 - rp 100.000
-           = rp 340.300
-
-profit: 340.30% dari modal</div>
-                </div>
-                <div class="example-card lose">
-                    <h4><i class="fas fa-times-circle"></i> CONTOH KALAH 1/2</h4>
-                    <div class="example-content">modal: rp 100.000
-
-tim 1: odd 1.80 (menang full)
-tim 2: odd 1.70 (kalah 1/2)
-tim 3: odd 1.85 (menang full)
-
-effective odds:
-tim 1: 1.80
-tim 2: 1.70 × 0.50 = 0.85
-tim 3: 1.85
-
-total odds: 1.80 × 0.85 × 1.85
-          = 2.8305
-
-total hasil = 2.8305 × rp 100.000
-            = rp 283.050
-
-kemenangan = rp 283.050 - rp 100.000
-           = rp 183.050
-
-profit: 183.05% dari modal</div>
-                </div>
-                <div class="example-card win">
-                    <h4><i class="fas fa-equals"></i> CONTOH SERI</h4>
-                    <div class="example-content">modal: rp 100.000
-
-tim 1: odd 1.80 (seri)
-tim 2: odd 1.70 (menang full)
-tim 3: odd 1.85 (menang full)
-
-effective odds:
-tim 1: 1.00 (seri)
-tim 2: 1.70
-tim 3: 1.85
-
-total odds: 1.00 × 1.70 × 1.85
-          = 3.1450
-
-total hasil = 3.1450 × rp 100.000
-            = rp 314.500
-
-kemenangan = rp 314.500 - rp 100.000
-           = rp 214.500
-
-profit: 214.50% dari modal</div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- HANDICAP CALCULATOR -->
     <div id="handicap-section" class="calculator-section">
         <div class="control-panel">
             <div class="input-wrapper">
-                <label class="input-label">⚡ MODAL TARUHAN (RP)</label>
+                <label class="input-label" id="hc-stake-label">⚡ TARGET PROFIT / MODAL (RP)</label>
                 <div class="currency-input">
                     <span>Rp</span>
                     <input type="number" id="handicap-stake" value="100000" min="1000" step="1000" oninput="calculateHandicap()">
                 </div>
+                <div id="hc-odds-notice" class="odds-notice">⚠️ Odds Negatif: Input = Target Profit. Risiko aktual lebih besar.</div>
             </div>
             <div class="input-wrapper">
                 <label class="input-label">JENIS HANDICAP</label>
@@ -1334,8 +1232,9 @@ profit: 214.50% dari modal</div>
             </div>
             <div class="match-grid">
                 <div class="form-group">
-                    <label>ODD TIM PILIHAN</label>
-                    <input type="number" id="handicap-odd" step="0.01" min="1.01" value="1.90" oninput="calculateHandicap()">
+                    <label>ODD (Decimal / Malay)</label>
+                    <!-- ✅ FIXED: min changed to -10 -->
+                    <input type="number" id="handicap-odd" step="0.01" min="-10" max="100" value="1.90" oninput="calculateHandicap()">
                 </div>
                 <div class="form-group">
                     <label>HASIL PERTANDINGAN</label>
@@ -1378,117 +1277,18 @@ profit: 214.50% dari modal</div>
                 <div class="info-item"><strong>0.75 (3/4)</strong> Menang 1 goal = menang 1/2</div>
             </div>
         </div>
-
-        <div class="image-section">
-            <h3><i class="fas fa-futbol"></i> CONTOH PERHITUNGAN TARUHAN HANDICAP</h3>
-            <div class="image-container" onclick="openModal('handicap')">
-                <img src="https://i.imgur.com/26jC6g3.png" alt="Taruhan Handicap" id="img-handicap">
-                <div class="image-overlay">
-                    <i class="fas fa-search-plus"></i>
-                </div>
-            </div>
-            <div class="image-actions">
-                <button class="btn-action btn-zoom" onclick="openModal('handicap')">
-                    <i class="fas fa-expand"></i> ZOOM GAMBAR
-                </button>
-                <button class="btn-action btn-copy-image" onclick="copyImage('handicap')">
-                    <i class="fas fa-copy"></i> SALIN GAMBAR
-                </button>
-            </div>
-        </div>
-
-        <div class="example-section">
-            <h3><i class="fas fa-lightbulb"></i> CONTOH PERHITUNGAN LENGKAP</h3>
-            <div class="example-grid">
-                <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> CONTOH MENANG FULL</h4>
-                    <div class="example-content">modal: rp 100.000
-handicap: 0.5
-odd: 1.90
-skor: 2-1 (tim anda menang)
-
-hasil: menang penuh
-
-total hasil = rp 100.000 × 1.90
-            = rp 190.000
-
-kemenangan = rp 190.000 - rp 100.000
-           = rp 90.000
-
-profit: 90% dari modal</div>
-                </div>
-                <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> CONTOH MENANG 1/2</h4>
-                    <div class="example-content">modal: rp 100.000
-handicap: 0.25
-odd: 1.90
-skor: 1-1 (seri)
-
-hasil: menang 1/2
-(handicap 0.25, seri = menang 1/2)
-
-effective odd = ((1.90-1)÷2)+1
-              = (0.90÷2)+1
-              = 0.45+1
-              = 1.45
-
-total hasil = rp 100.000 × 1.45
-            = rp 145.000
-
-kemenangan = rp 145.000 - rp 100.000
-           = rp 45.000
-
-profit: 45% dari modal</div>
-                </div>
-                <div class="example-card lose">
-                    <h4><i class="fas fa-times-circle"></i> CONTOH KALAH 1/2</h4>
-                    <div class="example-content">modal: rp 100.000
-handicap: 0.75
-odd: 1.90
-skor: 1-0 (menang 1 gol)
-
-hasil: kalah 1/2
-(handicap 0.75, menang 1 gol = kalah 1/2)
-
-total hasil = rp 100.000 × 0.50
-            = rp 50.000
-
-kemenangan = rp 50.000 - rp 100.000
-           = -rp 50.000
-
-kerugian: 50% dari modal</div>
-                </div>
-                <div class="example-card win">
-                    <h4><i class="fas fa-equals"></i> CONTOH SERI/PUSH</h4>
-                    <div class="example-content">modal: rp 100.000
-handicap: 1.0
-odd: 1.90
-skor: 2-1 (menang 1 gol)
-
-hasil: push (uang kembali)
-(handicap 1.0, menang 1 gol = push)
-
-total hasil = rp 100.000 × 1.00
-            = rp 100.000
-
-kemenangan = rp 100.000 - rp 100.000
-           = rp 0
-
-modal kembali penuh</div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- OVER/UNDER CALCULATOR -->
     <div id="overunder-section" class="calculator-section">
         <div class="control-panel">
             <div class="input-wrapper">
-                <label class="input-label">⚡ MODAL TARUHAN (RP)</label>
+                <label class="input-label" id="ou-stake-label">⚡ TARGET PROFIT / MODAL (RP)</label>
                 <div class="currency-input">
                     <span>Rp</span>
                     <input type="number" id="ou-stake" value="100000" min="1000" step="1000" oninput="calculateOverUnder()">
                 </div>
+                <div id="ou-odds-notice" class="odds-notice">⚠️ Odds Negatif: Input = Target Profit. Risiko aktual lebih besar.</div>
             </div>
             <div class="input-wrapper">
                 <label class="input-label">PASARAN OVER/UNDER</label>
@@ -1550,8 +1350,9 @@ modal kembali penuh</div>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>ODD</label>
-                    <input type="number" id="ou-odd" step="0.01" min="1.01" value="1.95" oninput="calculateOverUnder()">
+                    <label>ODD (Decimal / Malay)</label>
+                    <!-- ✅ FIXED: min changed to -10 -->
+                    <input type="number" id="ou-odd" step="0.01" min="-10" max="100" value="1.95" oninput="calculateOverUnder()">
                 </div>
                 <div class="form-group">
                     <label>TOTAL GOL PERTANDINGAN</label>
@@ -1580,124 +1381,25 @@ modal kembali penuh</div>
                 <div class="info-item"><strong>2.75 (2 3/4)</strong> 3 gol = Menang 1/2</div>
             </div>
         </div>
-
-        <div class="image-section">
-            <h3><i class="fas fa-futbol"></i> CONTOH PERHITUNGAN TARUHAN OVER/UNDER</h3>
-            <div class="image-container" onclick="openModal('overunder')">
-                <img src="https://i.imgur.com/dSobBS5.png" alt="Taruhan Over/Under" id="img-overunder">
-                <div class="image-overlay">
-                    <i class="fas fa-search-plus"></i>
-                </div>
-            </div>
-            <div class="image-actions">
-                <button class="btn-action btn-zoom" onclick="openModal('overunder')">
-                    <i class="fas fa-expand"></i> ZOOM GAMBAR
-                </button>
-                <button class="btn-action btn-copy-image" onclick="copyImage('overunder')">
-                    <i class="fas fa-copy"></i> SALIN GAMBAR
-                </button>
-            </div>
-        </div>
-
-        <div class="example-section">
-            <h3><i class="fas fa-lightbulb"></i> CONTOH PERHITUNGAN LENGKAP</h3>
-            <div class="example-grid">
-                <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> CONTOH OVER MENANG FULL</h4>
-                    <div class="example-content">modal: rp 100.000
-pasaran: over 2.5
-odd: 1.95
-total gol: 3 gol
-
-hasil: over menang
-(3 gol > 2.5)
-
-total hasil = rp 100.000 × 1.95
-            = rp 195.000
-
-kemenangan = rp 195.000 - rp 100.000
-           = rp 95.000
-
-profit: 95% dari modal</div>
-                </div>
-                <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> CONTOH OVER MENANG 1/2</h4>
-                    <div class="example-content">modal: rp 100.000
-pasaran: over 2.75
-odd: 1.95
-total gol: 3 gol
-
-hasil: over menang 1/2
-(over 2.75, 3 gol = menang 1/2)
-
-effective odd = ((1.95-1)÷2)+1
-              = (0.95÷2)+1
-              = 0.475+1
-              = 1.475
-
-total hasil = rp 100.000 × 1.475
-            = rp 147.500
-
-kemenangan = rp 147.500 - rp 100.000
-           = rp 47.500
-
-profit: 47.50% dari modal</div>
-                </div>
-                <div class="example-card lose">
-                    <h4><i class="fas fa-times-circle"></i> CONTOH OVER KALAH 1/2</h4>
-                    <div class="example-content">modal: rp 100.000
-pasaran: over 2.25
-odd: 1.95
-total gol: 2 gol
-
-hasil: over kalah 1/2
-(over 2.25, 2 gol = kalah 1/2)
-
-total hasil = rp 100.000 × 0.50
-            = rp 50.000
-
-kemenangan = rp 50.000 - rp 100.000
-           = -rp 50.000
-
-kerugian: 50% dari modal</div>
-                </div>
-                <div class="example-card win">
-                    <h4><i class="fas fa-equals"></i> CONTOH OVER PUSH</h4>
-                    <div class="example-content">modal: rp 100.000
-pasaran: over 2.0
-odd: 1.95
-total gol: 2 gol
-
-hasil: push (uang kembali)
-(over 2.0, 2 gol = push)
-
-total hasil = rp 100.000 × 1.00
-            = rp 100.000
-
-kemenangan = rp 100.000 - rp 100.000
-           = rp 0
-
-modal kembali penuh</div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- TARUHAN TUNGGAL CALCULATOR -->
     <div id="tunggal-section" class="calculator-section">
         <div class="control-panel">
             <div class="input-wrapper">
-                <label class="input-label">⚡ MODAL TARUHAN (RP)</label>
+                <label class="input-label" id="tunggal-stake-label">⚡ TARGET PROFIT / MODAL (RP)</label>
                 <div class="currency-input">
                     <span>Rp</span>
                     <input type="number" id="tunggal-stake" value="100000" min="1000" step="1000" oninput="calculateTunggal()">
                 </div>
+                <div id="tunggal-odds-notice" class="odds-notice">⚠️ Odds Negatif: Input = Target Profit. Risiko aktual lebih besar.</div>
             </div>
             <div class="input-wrapper">
-                <label class="input-label">ODD</label>
+                <label class="input-label">ODD (Decimal / Malay)</label>
+                <!-- ✅ FIXED: min changed to -10 -->
                 <div class="currency-input">
                     <span>x</span>
-                    <input type="number" id="tunggal-odd" step="0.01" min="1.01" value="1.90" oninput="calculateTunggal()">
+                    <input type="number" id="tunggal-odd" step="0.01" min="-10" max="100" value="1.90" oninput="calculateTunggal()">
                 </div>
             </div>
         </div>
@@ -1753,62 +1455,6 @@ modal kembali penuh</div>
                 <div class="info-item"><strong>❌ KALAH</strong> Total Hasil = Rp 0<br>Kemenangan = -Modal (rugi)</div>
             </div>
         </div>
-
-        <div class="image-section">
-            <h3><i class="fas fa-futbol"></i> CONTOH PERHITUNGAN TARUHAN TUNGGAL</h3>
-            <div class="image-container" onclick="openModal('tunggal')">
-                <img src="https://i.imgur.com/eFEmBhV.png" alt="Taruhan Tunggal" id="img-tunggal">
-                <div class="image-overlay">
-                    <i class="fas fa-search-plus"></i>
-                </div>
-            </div>
-            <div class="image-actions">
-                <button class="btn-action btn-zoom" onclick="openModal('tunggal')">
-                    <i class="fas fa-expand"></i> ZOOM GAMBAR
-                </button>
-                <button class="btn-action btn-copy-image" onclick="copyImage('tunggal')">
-                    <i class="fas fa-copy"></i> SALIN GAMBAR
-                </button>
-            </div>
-        </div>
-
-        <div class="example-section">
-            <h3><i class="fas fa-lightbulb"></i> CONTOH PERHITUNGAN LENGKAP</h3>
-            <div class="example-grid">
-                <div class="example-card win">
-                    <h4><i class="fas fa-check-circle"></i> CONTOH MENANG FULL</h4>
-                    <div class="example-content">modal: rp 100.000
-odd: 1.90
-tim: manchester united
-
-hasil: menang
-
-total hasil = rp 100.000 × 1.90
-            = rp 190.000
-
-kemenangan = rp 190.000 - rp 100.000
-           = rp 90.000
-
-profit: 90% dari modal</div>
-                </div>
-                <div class="example-card lose">
-                    <h4><i class="fas fa-times-circle"></i> CONTOH KALAH PENUH</h4>
-                    <div class="example-content">modal: rp 100.000
-odd: 1.90
-tim: manchester united
-
-hasil: kalah
-
-total hasil = rp 100.000 × 0
-            = rp 0
-
-kemenangan = rp 0 - rp 100.000
-           = -rp 100.000
-
-kerugian: 100% dari modal</div>
-                </div>
-            </div>
-        </div>
     </div>
 
 </div>
@@ -1844,9 +1490,40 @@ kerugian: 100% dari modal</div>
         return num;
     }
 
-    function switchMode(mode) {
+    // ✅ NEW: Core function to handle Decimal & Malay/Indo Odds conversion
+    function processOddsInput(rawOdd, rawStake) {
+        const odd = parseFloat(rawOdd);
+        const stake = parseFloat(rawStake) || 0;
+
+        if (isNaN(odd) || isNaN(stake)) return { actualStake: stake, decimalOdd: 1.01, isNegative: false, displayNote: '' };
+
+        // Decimal format (>= 1.00)
+        if (odd >= 1.00) {
+            return { actualStake: stake, decimalOdd: odd, isNegative: false, displayNote: '' };
+        }
+        // Malay/Indo Positive (0.01 to 0.99)
+        if (odd > 0 && odd < 1.00) {
+            return { actualStake: stake, decimalOdd: 1 + odd, isNegative: false, displayNote: '' };
+        }
+        // Malay/Indo Negative (< 0, typically -0.01 to -10.00)
+        if (odd < 0) {
+            const absOdd = Math.abs(odd);
+            const actualStake = roundTo(stake * absOdd, 3); // Risk = Target * |Odd|
+            const decimalOdd = roundTo(1 + (1 / absOdd), 4); // Decimal equivalent
+            return {
+                actualStake,
+                decimalOdd,
+                isNegative: true,
+                displayNote: `Risk: ${formatRupiahAccurate(actualStake)} | Target Profit: ${formatRupiahAccurate(stake)}`
+            };
+        }
+        return { actualStake: stake, decimalOdd: 1.01, isNegative: false, displayNote: '' };
+    }
+
+    // ✅ FIXED: switchMode now accepts event properly
+    function switchMode(mode, event) {
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.closest('.mode-btn').classList.add('active');
+        event.currentTarget.classList.add('active');
         document.querySelectorAll('.calculator-section').forEach(section => section.classList.remove('active'));
         document.getElementById(mode + '-section').classList.add('active');
         if (mode === 'parlay') calculateParlay();
@@ -1873,6 +1550,7 @@ kerugian: 100% dari modal</div>
         const modal = document.getElementById('imageModal');
         const modalImg = document.getElementById('modalImage');
         const img = document.getElementById(`img-${type}`);
+        if(!img) return;
         modalImg.src = img.src;
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -1888,6 +1566,7 @@ kerugian: 100% dari modal</div>
 
     async function copyImage(type) {
         const img = document.getElementById(`img-${type}`);
+        if(!img) return;
         try {
             const response = await fetch(img.src);
             const blob = await response.blob();
@@ -1916,7 +1595,8 @@ kerugian: 100% dari modal</div>
             <div class="match-grid">
                 <div class="form-group">
                     <label>ODD</label>
-                    <input type="number" class="parlay-odd" step="0.01" min="1.01" value="${defaultOdd}" oninput="calculateParlay()">
+                    <!-- ✅ ALLOW NEGATIVE ODDS -->
+                    <input type="number" class="parlay-odd" step="0.01" min="-10" max="100" value="${defaultOdd}" oninput="calculateParlay()">
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
                     <label>HASIL</label>
@@ -1953,7 +1633,9 @@ kerugian: 100% dari modal</div>
     }
 
     function calculateParlay() {
-        const stake = validateInput(document.getElementById('parlay-stake').value, 1000);
+        const rawStake = validateInput(document.getElementById('parlay-stake').value, 1000);
+        // Parlay stake is usually actual risk. We keep it as is.
+        const stake = rawStake;
         const matches = document.querySelectorAll('#parlay-match-list .match-card');
         
         if (matches.length === 0) {
@@ -1972,7 +1654,9 @@ kerugian: 100% dari modal</div>
             const statusInput = match.querySelector('input[type="radio"]:checked');
             const effDisplay = match.querySelector('[id^="parlay-eff-"]');
             
-            let odd = validateInput(oddInput.value, 1.01, 100);
+            // ✅ CONVERT ODDS AUTOMATICALLY
+            const processed = processOddsInput(oddInput.value, 1); // multiplier 1 for decimal conversion only
+            let odd = processed.decimalOdd;
             const status = statusInput.value;
             
             let effOdd = 0;
@@ -2021,7 +1705,6 @@ kerugian: 100% dari modal</div>
         totalOdds = roundTo(totalOdds, 4);
         const totalReturn = roundTo(totalOdds * stake, 2);
         const profit = roundTo(totalReturn - stake, 2);
-        const profitPercent = roundTo((profit / stake) * 100, 2);
         
         calculationText += `perhitungan akhir:\n`;
         calculationText += `total odds: ${totalOdds.toFixed(4)}\n`;
@@ -2052,20 +1735,40 @@ kerugian: 100% dari modal</div>
     }
 
     function calculateHandicap() {
-        const stake = validateInput(document.getElementById('handicap-stake').value, 1000);
-        const odd = validateInput(document.getElementById('handicap-odd').value, 1.01, 100);
+        const rawStake = validateInput(document.getElementById('handicap-stake').value, 100);
+        const rawOdd = parseFloat(document.getElementById('handicap-odd').value) || 1.90;
         const handicapType = document.getElementById('handicap-type').value;
         const result = document.getElementById('handicap-result').value;
         const scoreYou = validateInput(document.getElementById('handicap-score-you').value, 0, 100);
         const scoreOpp = validateInput(document.getElementById('handicap-score-opp').value, 0, 100);
         
+        // ✅ PROCESS ODDS & STAKE AUTOMATICALLY
+        const processed = processOddsInput(rawOdd, rawStake);
+        const stake = processed.actualStake;
+        const odd = processed.decimalOdd;
+        const isNegative = processed.isNegative;
+
+        // Update UI Notice
+        const notice = document.getElementById('hc-odds-notice');
+        const label = document.getElementById('hc-stake-label');
+        if (isNegative) {
+            notice.classList.add('active');
+            notice.innerHTML = `⚠️ Odds Negatif (${rawOdd}) | ${processed.displayNote}`;
+            label.innerHTML = `⚡ TARGET PROFIT (RP)`;
+        } else {
+            notice.classList.remove('active');
+            label.innerHTML = `⚡ MODAL TARUHAN (RP)`;
+        }
+
         document.getElementById('handicap-odd-display').textContent = odd.toFixed(2);
         updateHandicapExplanation(handicapType);
         
         let effectiveOdd = 0, resultText = '';
         let calculationText = `jenis handicap: ${handicapType}\n`;
-        calculationText += `odd: ${odd.toFixed(2)}\n`;
-        calculationText += `modal taruhan: ${formatRupiahAccurate(stake)}\n`;
+        calculationText += `odd awal: ${rawOdd}\n`;
+        calculationText += `odd konversi: ${odd.toFixed(4)}\n`;
+        if(isNegative) calculationText += `modal aktual (risk): ${formatRupiahAccurate(stake)}\n`;
+        calculationText += `modal input: ${formatRupiahAccurate(rawStake)}\n`;
         calculationText += `skor akhir: ${scoreYou} - ${scoreOpp}\n`;
         calculationText += `selisih gol: ${scoreYou - scoreOpp}\n\n`;
         
@@ -2090,7 +1793,6 @@ kerugian: 100% dari modal</div>
         
         const totalReturn = roundTo(effectiveOdd * stake, 2);
         const profit = roundTo(totalReturn - stake, 2);
-        const profitPercent = roundTo((profit / stake) * 100, 2);
         
         calculationText += `perhitungan:\n`;
         calculationText += `hasil: ${resultText}\n`;
@@ -2139,7 +1841,7 @@ kerugian: 100% dari modal</div>
         calculationText += `            = ${formatRupiahAccurate(totalReturn)}\n\n`;
         calculationText += `kemenangan = total hasil - modal\n`;
         calculationText += `           = ${formatRupiahAccurate(totalReturn)} - ${formatRupiahAccurate(stake)}\n`;
-        calculationText += `           = ${formatRupiahAccurate(profit)}\n\n`;
+        calculationText += `           = ${formatRupiahAccurate(profit)}`;
         
         document.getElementById('handicap-total-return').textContent = formatRupiahAccurate(totalReturn);
         document.getElementById('handicap-kemenangan').textContent = formatRupiahAccurate(profit);
@@ -2204,11 +1906,28 @@ kerugian: 100% dari modal</div>
     }
 
     function calculateOverUnder() {
-        const stake = validateInput(document.getElementById('ou-stake').value, 1000);
-        const odd = validateInput(document.getElementById('ou-odd').value, 1.01, 100);
+        const rawStake = validateInput(document.getElementById('ou-stake').value, 100);
+        const rawOdd = parseFloat(document.getElementById('ou-odd').value) || 1.95;
         const line = parseFloat(document.getElementById('ou-line').value);
         const choice = document.getElementById('ou-choice').value;
         const totalGoals = validateInput(document.getElementById('ou-total-goals').value, 0, 50);
+        
+        // ✅ PROCESS ODDS & STAKE AUTOMATICALLY
+        const processed = processOddsInput(rawOdd, rawStake);
+        const stake = processed.actualStake;
+        const odd = processed.decimalOdd;
+        const isNegative = processed.isNegative;
+
+        const notice = document.getElementById('ou-odds-notice');
+        const label = document.getElementById('ou-stake-label');
+        if (isNegative) {
+            notice.classList.add('active');
+            notice.innerHTML = `⚠️ Odds Negatif (${rawOdd}) | ${processed.displayNote}`;
+            label.innerHTML = `⚡ TARGET PROFIT (RP)`;
+        } else {
+            notice.classList.remove('active');
+            label.innerHTML = `⚡ MODAL TARUHAN (RP)`;
+        }
         
         document.getElementById('ou-odd-display').textContent = odd.toFixed(2);
         updateOUExplanation(line, choice);
@@ -2216,8 +1935,10 @@ kerugian: 100% dari modal</div>
         let effectiveOdd = 0, resultText = '';
         let calculationText = `pasaran: ${line} goals\n`;
         calculationText += `pilihan: ${choice.toUpperCase()}\n`;
-        calculationText += `odd: ${odd.toFixed(2)}\n`;
-        calculationText += `modal taruhan: ${formatRupiahAccurate(stake)}\n`;
+        calculationText += `odd awal: ${rawOdd}\n`;
+        calculationText += `odd konversi: ${odd.toFixed(4)}\n`;
+        if(isNegative) calculationText += `modal aktual (risk): ${formatRupiahAccurate(stake)}\n`;
+        calculationText += `modal input: ${formatRupiahAccurate(rawStake)}\n`;
         calculationText += `total gol: ${totalGoals} gol\n\n`;
         
         if (choice === 'over') {
@@ -2262,7 +1983,6 @@ kerugian: 100% dari modal</div>
         
         const totalReturn = roundTo(effectiveOdd * stake, 2);
         const profit = roundTo(totalReturn - stake, 2);
-        const profitPercent = roundTo((profit / stake) * 100, 2);
         
         calculationText += `perhitungan:\n`;
         calculationText += `hasil: ${resultText}\n`;
@@ -2333,7 +2053,7 @@ kerugian: 100% dari modal</div>
         calculationText += `            = ${formatRupiahAccurate(totalReturn)}\n\n`;
         calculationText += `kemenangan = total hasil - modal\n`;
         calculationText += `           = ${formatRupiahAccurate(totalReturn)} - ${formatRupiahAccurate(stake)}\n`;
-        calculationText += `           = ${formatRupiahAccurate(profit)}\n\n`;
+        calculationText += `           = ${formatRupiahAccurate(profit)}`;
         
         document.getElementById('ou-total-return').textContent = formatRupiahAccurate(totalReturn);
         document.getElementById('ou-kemenangan').textContent = formatRupiahAccurate(profit);
@@ -2383,16 +2103,35 @@ kerugian: 100% dari modal</div>
     }
 
     function calculateTunggal() {
-        const stake = validateInput(document.getElementById('tunggal-stake').value, 1000);
-        const odd = validateInput(document.getElementById('tunggal-odd').value, 1.01, 100);
+        const rawStake = validateInput(document.getElementById('tunggal-stake').value, 100);
+        const rawOdd = parseFloat(document.getElementById('tunggal-odd').value) || 1.90;
         const result = document.getElementById('tunggal-result').value;
         const team = document.getElementById('tunggal-team').value || 'TIM PILIHAN';
+        
+        // ✅ PROCESS ODDS & STAKE AUTOMATICALLY
+        const processed = processOddsInput(rawOdd, rawStake);
+        const stake = processed.actualStake;
+        const odd = processed.decimalOdd;
+        const isNegative = processed.isNegative;
+
+        const notice = document.getElementById('tunggal-odds-notice');
+        const label = document.getElementById('tunggal-stake-label');
+        if (isNegative) {
+            notice.classList.add('active');
+            notice.innerHTML = `⚠️ Odds Negatif (${rawOdd}) | ${processed.displayNote}`;
+            label.innerHTML = `⚡ TARGET PROFIT (RP)`;
+        } else {
+            notice.classList.remove('active');
+            label.innerHTML = `⚡ MODAL TARUHAN (RP)`;
+        }
         
         document.getElementById('tunggal-odd-display').textContent = odd.toFixed(2);
         
         let calculationText = `tim: ${team}\n`;
-        calculationText += `odd: ${odd.toFixed(2)}\n`;
-        calculationText += `modal taruhan: ${formatRupiahAccurate(stake)}\n\n`;
+        calculationText += `odd awal: ${rawOdd}\n`;
+        calculationText += `odd konversi: ${odd.toFixed(4)}\n`;
+        if(isNegative) calculationText += `modal aktual (risk): ${formatRupiahAccurate(stake)}\n`;
+        calculationText += `modal input: ${formatRupiahAccurate(rawStake)}\n\n`;
         
         let totalReturn = 0;
         let profit = 0;
@@ -2426,15 +2165,13 @@ kerugian: 100% dari modal</div>
             calculationText += `seluruh modal taruhan hilang.`;
         }
         
-        const profitPercent = roundTo((profit / stake) * 100, 2);
-        
         calculationText += `\n\nhasil akhir:\n`;
         calculationText += `total hasil = effective odd × modal\n`;
         calculationText += `            = ${result === 'win' ? odd.toFixed(2) : '0'} × ${formatRupiahAccurate(stake)}\n`;
         calculationText += `            = ${formatRupiahAccurate(totalReturn)}\n\n`;
         calculationText += `kemenangan = total hasil - modal\n`;
         calculationText += `           = ${formatRupiahAccurate(totalReturn)} - ${formatRupiahAccurate(stake)}\n`;
-        calculationText += `           = ${formatRupiahAccurate(profit)}\n\n`;
+        calculationText += `           = ${formatRupiahAccurate(profit)}`;
         
         document.getElementById('tunggal-total-return').textContent = formatRupiahAccurate(totalReturn);
         document.getElementById('tunggal-kemenangan').textContent = formatRupiahAccurate(profit);
