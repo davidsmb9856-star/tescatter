@@ -197,7 +197,7 @@
             margin-bottom: 30px;
             box-shadow: 0 0 20px rgba(0,229,255,0.1), inset 0 0 20px rgba(0,229,255,0.05);
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr); /* ✅ Updated to 5 columns for new tab */
             gap: 10px;
             backdrop-filter: blur(10px);
         }
@@ -762,7 +762,7 @@
         }
 
         @media (max-width: 768px) {
-            .mode-switcher { grid-template-columns: 1fr 1fr; }
+            .mode-switcher { grid-template-columns: repeat(2, 1fr); } /* Mobile layout */
             .control-panel, .result-dashboard { grid-template-columns: 1fr; }
             .match-grid { grid-template-columns: 1fr; }
             .status-selector { grid-template-columns: 1fr 1fr; }
@@ -779,7 +779,7 @@
 <div class="container">
     <div class="header-card">
         <h1>⚡ KALKULATOR BETTING</h1>
-        <p class="subtitle">Perhitungan Akurat Mix Parlay, Handicap, Over/Under & Taruhan Tunggal</p>
+        <p class="subtitle">Perhitungan Akurat Mix Parlay, Handicap, Over/Under & 1x2</p>
         <a href="https://sportgg.xyz/how-to-play" target="_blank" class="how-to-play-btn">
             <i class="fas fa-book-open"></i> HOW TO PLAY
         </a>
@@ -797,6 +797,11 @@
         <button class="mode-btn" onclick="switchMode('overunder', event)">
             <i class="fas fa-chart-line"></i>
             <span>OVER/UNDER</span>
+        </button>
+        <!-- ✅ NEW TAB 1x2 -->
+        <button class="mode-btn" onclick="switchMode('1x2', event)">
+            <i class="fas fa-futbol"></i>
+            <span>1x2 (ODDS)</span>
         </button>
         <button class="mode-btn" onclick="switchMode('tunggal', event)">
             <i class="fas fa-star"></i>
@@ -1413,6 +1418,80 @@ modal kembali penuh</div>
         </div>
     </div>
 
+    <!-- ✅ NEW 1x2 CALCULATOR -->
+    <div id="1x2-section" class="calculator-section">
+        <div class="control-panel">
+            <div class="input-wrapper">
+                <label class="input-label" id="1x2-stake-label">⚡ MODAL TARUHAN (RP)</label>
+                <div class="currency-input">
+                    <span>Rp</span>
+                    <input type="number" id="1x2-stake" value="10000" min="1000" step="1000" oninput="calculate1x2()">
+                </div>
+                <div id="1x2-odds-notice" class="odds-notice"></div>
+            </div>
+            <div class="input-wrapper">
+                <label class="input-label">ODD (1 / X / 2)</label>
+                <div class="currency-input">
+                    <span>x</span>
+                    <input type="number" id="1x2-odd" step="0.01" min="-10" max="100" value="1.90" oninput="calculate1x2()">
+                </div>
+            </div>
+        </div>
+
+        <div class="result-dashboard">
+            <div class="result-card primary">
+                <i class="fas fa-percentage"></i><div class="result-label">ODD</div>
+                <div class="result-value" id="1x2-odd-display">1.90</div>
+            </div>
+            <div class="result-card info">
+                <i class="fas fa-money-bill-wave"></i><div class="result-label">TOTAL HASIL</div>
+                <div class="result-value" id="1x2-total-return">Rp 0</div>
+            </div>
+            <div class="result-card success">
+                <i class="fas fa-wallet"></i><div class="result-label">KEMENANGAN</div>
+                <div class="result-value" id="1x2-kemenangan">Rp 0</div>
+            </div>
+        </div>
+
+        <div class="match-card">
+            <div class="match-header">
+                <div class="match-title"><i class="fas fa-futbol"></i> DETAIL TARUHAN 1x2</div>
+            </div>
+            <div class="match-grid">
+                <div class="form-group">
+                    <label>NAMA TIM / PASARAN</label>
+                    <input type="text" id="1x2-team" value="Tim Pilihan" oninput="calculate1x2()">
+                </div>
+                <div class="form-group">
+                    <label>HASIL TARUHAN</label>
+                    <select id="1x2-result" onchange="calculate1x2()">
+                        <option value="win">Menang</option>
+                        <option value="lose">Kalah</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="calculation-box">
+            <div class="calculation-header">
+                <div class="calculation-title"><i class="fas fa-clipboard-list"></i> RINCIAN PERHITUNGAN</div>
+                <button class="btn-copy" onclick="copyCalculation('1x2')">
+                    <i class="fas fa-copy"></i> <span id="copy-text-1x2">SALIN</span>
+                </button>
+            </div>
+            <div class="calculation-content" id="1x2-calculation-text">Memuat...</div>
+        </div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> RUMUS 1x2 (MATCH ODDS)</h3>
+            <div class="info-grid">
+                <div class="info-item"><strong>✅ MENANG</strong> Total Hasil = Modal × Odd<br>Kemenangan = Total Hasil - Modal</div>
+                <div class="info-item"><strong>❌ KALAH</strong> Total Hasil = Rp 0<br>Kemenangan = -Modal (Rugi 100%)</div>
+                <div class="info-item"><strong>ℹ️ CATATAN</strong> Tidak ada konsep Menang/Kalah 1/2 atau Push di 1x2 standar.</div>
+            </div>
+        </div>
+    </div>
+
     <!-- TARUHAN TUNGGAL CALCULATOR -->
     <div id="tunggal-section" class="calculator-section">
         <div class="control-panel">
@@ -1577,6 +1656,7 @@ kerugian: 100% dari modal</div>
         if (mode === 'parlay') calculateParlay();
         else if (mode === 'handicap') calculateHandicap();
         else if (mode === 'overunder') calculateOverUnder();
+        else if (mode === '1x2') calculate1x2();
         else if (mode === 'tunggal') calculateTunggal();
     }
 
@@ -1853,6 +1933,54 @@ kerugian: 100% dari modal</div>
         updateCardColor('ou-kemenangan', profit);
     }
 
+    // ✅ FUNGSI 1x2 BARU
+    function calculate1x2() {
+        const rawStake = validateInput(document.getElementById('1x2-stake').value, 100);
+        const rawOdd = parseFloat(document.getElementById('1x2-odd').value) || 1.90;
+        const result = document.getElementById('1x2-result').value;
+        const team = document.getElementById('1x2-team').value || 'Tim Pilihan';
+        
+        const processed = processOddsInput(rawOdd, rawStake);
+        const stake = processed.actualStake, odd = processed.decimalOdd;
+        const notice = document.getElementById('1x2-odds-notice'), label = document.getElementById('1x2-stake-label');
+        
+        if(processed.isNegative) { 
+            notice.classList.add('active'); 
+            notice.innerHTML = `⚠️ Odds Negatif | Risiko Aktual: ${formatRupiahAccurate(stake)}`; 
+            label.innerHTML = `⚡ TARGET PROFIT (RP)`; 
+        } else { 
+            notice.classList.remove('active'); 
+            label.innerHTML = `⚡ MODAL TARUHAN (RP)`; 
+        }
+        
+        document.getElementById('1x2-odd-display').textContent = odd.toFixed(2);
+        
+        const totalReturn = result === 'win' ? roundTo(stake * odd, 0) : 0;
+        const profit = result === 'win' ? roundTo(totalReturn - stake, 0) : -stake;
+        
+        let text = "Berikut contoh ya bosku\n\n";
+        text += `Taruhan: 1x2 (Match Odds)\n`;
+        text += `Tim: ${team} | Odd: ${rawOdd} | Hasil: ${result === 'win' ? 'MENANG' : 'KALAH'}\n`;
+        text += `Modal Dipakai: ${formatRupiahAccurate(stake)}\n\n`;
+        
+        if(result === 'win') {
+            text += `Rumus: ${formatRupiahAccurate(stake)} × ${odd.toFixed(2)} = ${formatRupiahAccurate(totalReturn)}`;
+        } else {
+            text += `Rumus: ${formatRupiahAccurate(stake)} × 0 = Rp 0`;
+        }
+        
+        text += `\n\nTotal Hasil: ${formatRupiahAccurate(totalReturn)}`;
+        text += `\nKemenangan Bersih: ${formatRupiahAccurate(profit)}\n\n`;
+        text += profit > 0 ? `✅ Anda memenangkan ${formatRupiahAccurate(profit)}` : 
+                profit < 0 ? `❌ Rugi ${formatRupiahAccurate(Math.abs(profit))}` : 
+                `⚖️ Impas (modal kembali)`;
+        
+        document.getElementById('1x2-total-return').textContent = formatRupiahAccurate(totalReturn);
+        document.getElementById('1x2-kemenangan').textContent = formatRupiahAccurate(profit);
+        document.getElementById('1x2-calculation-text').textContent = text;
+        updateCardColor('1x2-kemenangan', profit);
+    }
+
     // FUNGSI TUNGGAL BARU
     function calculateTunggal() {
         const rawStake = validateInput(document.getElementById('tunggal-stake').value, 100);
@@ -1902,7 +2030,7 @@ kerugian: 100% dari modal</div>
 
     window.onload = function() {
         addParlayMatch(1.80); addParlayMatch(1.70); addParlayMatch(1.85);
-        calculateParlay(); calculateHandicap(); calculateOverUnder(); calculateTunggal();
+        calculateParlay(); calculateHandicap(); calculateOverUnder(); calculate1x2(); calculateTunggal();
     };
 </script>
 </body>
