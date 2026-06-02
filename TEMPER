@@ -30,7 +30,7 @@
         },
         // URL Script Google Apps Script untuk UPDATE tanggal/nominal (Wajib ada jika ingin save ke sheet)
         scriptUrl: 'https://script.google.com/macros/s/AKfycbya8o-PPA76I8CsTlEVmcANKVuxapOGU5WhhienU7NNQ6HO-igG4Ly8yZPujUZE6DFRlw/exec',
-        popup: { w: 950, h: 650, x: 25, y: 40 },
+        popup: { w: 500, h: 300, x: 25, y: 40 },
         theme: {
             bg: '#061420', input: '#0a1e30', blue: '#00d4ff', cyan: '#00fff7',
             green: '#00ff88', red: '#ff4757', orange: '#ff9f43',
@@ -475,8 +475,9 @@
     // ===== RENDER: PREDIKSI (WITH DATE CHANGER) =====
     function renderPrediksi(type, list) {
         const c = document.getElementById('c-prediksi');
+        if (!c) return;
 
-        // Header Kontrol Tanggal
+        // Header Kontrol Tanggal (Selalu tampil)
         const dateControlHtml = `
             <div class="pred-controls">
                 <input type="date" class="date-input" id="pred-date" value="${currentDate}">
@@ -485,52 +486,69 @@
             </div>
         `;
 
-        if (!list.length) {
-            c.innerHTML = dateControlHtml + '<div style="text-align:center;padding:25px;color:var(--lc-muted);font-size:11px">Tidak ada data untuk tanggal ini</div>';
+        if (!list || !list.length) {
+            c.innerHTML = dateControlHtml + '<div style="text-align:center;padding:25px;color:var(--lc-muted);font-size:11px">Tidak ada data ditemukan</div>';
         } else {
             const icons = { prediksi: '🔮', jadwal: '📅', link: '🔗' };
-            // Gabungkan semua data untuk ditampilkan dalam grid
-            const allData = [...data.prediksi, ...data.jadwal, ...data.link];
 
-            c.innerHTML = dateControlHtml + `<div class="pred-grid">${allData.map((it,i) => `<div class="pred-card" data-txt="${encodeURIComponent(it.content)}"><div class="pred-title">${icons[it.type||'prediksi']} ${escapeHtml(it.title)}</div><div class="pred-content">${formatBlock(it.content)}</div><div class="pred-copy">📋 Klik untuk copy</div></div>`).join('')}</div>`;
+            c.innerHTML = dateControlHtml + `<div class="pred-grid">${list.map((it,i) => {
+                // Tentukan icon berdasarkan tipe jika ada, default prediksi
+                let icon = '🔮';
+                if (it.type === 'jadwal') icon = '📅';
+                if (it.type === 'link') icon = '🔗';
 
-            // Event listener untuk copy
+                return `<div class="pred-card" data-txt="${encodeURIComponent(it.content)}">
+                    <div class="pred-title">${icon} ${escapeHtml(it.title)}</div>
+                    <div class="pred-content">${formatBlock(it.content)}</div>
+                    <div class="pred-copy">📋 Klik untuk copy</div>
+                </div>`;
+            }).join('')}</div>`;
+
+            // Event listener untuk copy pada kartu
             c.querySelectorAll('.pred-card').forEach(card => card.onclick = async e => {
-                try{await navigator.clipboard.writeText(decodeURIComponent(card.dataset.txt));toast('✅ Disalin');card.style.borderColor='var(--lc-green)';setTimeout(()=>card.style.borderColor='',350);}catch{toast('❗ Gagal');}
+                try{
+                    await navigator.clipboard.writeText(decodeURIComponent(card.dataset.txt));
+                    toast('✅ Disalin');
+                    card.style.borderColor='var(--lc-green)';
+                    setTimeout(()=>card.style.borderColor='',350);
+                } catch {
+                    toast('❗ Gagal menyalin');
+                }
             });
         }
 
-        // Event Listener untuk Ganti Tanggal
+        // Event Listener untuk Ganti Tanggal (Hanya pasang sekali atau cek keberadaan elemen)
         const dateBtn = document.getElementById('pred-date-btn');
         const dateInput = document.getElementById('pred-date');
         const statusSpan = document.getElementById('pred-date-status');
 
         if (dateBtn && dateInput) {
+            // Hapus listener lama jika ada (opsional, tapi onclick menimpa jadi aman)
             dateBtn.onclick = async () => {
                 const newDate = dateInput.value;
                 if (!newDate) return toast('Pilih tanggal', 'warning');
 
                 dateBtn.disabled = true;
-                statusSpan.textContent = 'Updating...';
+                dateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
 
-                // Simulasi update ke server (atau real update jika scriptUrl valid)
-                const success = await updateSheet('updateTanggal', newDate); // Fungsi dummy/real
+                // Simulasi update ke server
+                const success = await updateSheet('updateTanggal', newDate);
 
                 if (success) {
                     currentDate = newDate;
                     statusSpan.textContent = '✓ Saved';
                     toast('✅ Tanggal diperbarui');
-                    // Reload data prediksi untuk tanggal baru
-                    loadPrediksiData();
+                    loadPrediksiData(); // Reload data asli dari sheet
                 } else {
-                    // Fallback jika gagal update server, tetap update lokal
                     currentDate = newDate;
                     statusSpan.textContent = '✓ Local';
-                    toast('⚠️ Tanggal diubah (Local Mode)');
-                    // Di sini Anda bisa menambahkan logika filter data berdasarkan tanggal jika data sheet mendukung
-                    loadPrediksiData(); // Reload untuk refresh tampilan
+                    toast('⚠️ Mode Lokal (UI Only)');
+                    // Jika mode lokal, kita mungkin ingin memfilter data yang sudah diload sebelumnya
+                    // Tapi karena loadPrediksiData me-reload dari sheet, kita biarkan reload
+                    loadPrediksiData();
                 }
                 dateBtn.disabled = false;
+                dateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
             };
         }
     }
@@ -616,13 +634,31 @@
     // ===== SEARCH =====
     function doSearch(q) {
         q = q.toLowerCase().trim();
-        if (activeTab === 'kendala') { filtered.kendala = data.kendala.filter(x => x.judul.toLowerCase().includes(q) || [x.j1,x.j2,x.j3].some(y=>y?.toLowerCase().includes(q))); renderKendala(filtered.kendala); document.getElementById('lc-count').textContent = filtered.kendala.length; }
-        else if (activeTab === 'foto') { filtered.foto = data.foto.filter(x => x.judul.toLowerCase().includes(q)); renderFoto(filtered.foto); document.getElementById('lc-count').textContent = filtered.foto.length; }
+
+        if (activeTab === 'kendala') {
+            filtered.kendala = data.kendala.filter(x => x.judul.toLowerCase().includes(q) || [x.j1,x.j2,x.j3].some(y=>y?.toLowerCase().includes(q)));
+            renderKendala(filtered.kendala);
+            document.getElementById('lc-count').textContent = filtered.kendala.length;
+        }
+        else if (activeTab === 'foto') {
+            filtered.foto = data.foto.filter(x => x.judul.toLowerCase().includes(q));
+            renderFoto(filtered.foto);
+            document.getElementById('lc-count').textContent = filtered.foto.length;
+        }
         else if (activeTab === 'prediksi') {
-            const all = [...data.prediksi, ...data.jadwal, ...data.link];
-            filtered.prediksi = all.filter(x => x.title?.toLowerCase().includes(q) || x.content?.toLowerCase().includes(q));
-            // Render ulang dengan kontrol tanggal
+            // Gabungkan semua sumber data prediksi
+            const allPredData = [...data.prediksi, ...data.jadwal, ...data.link];
+
+            // Filter berdasarkan judul ATAU konten
+            filtered.prediksi = allPredData.filter(x =>
+                (x.title && x.title.toLowerCase().includes(q)) ||
+                (x.content && x.content.toLowerCase().includes(q))
+            );
+
+            // Render ulang tab prediksi dengan data yang sudah difilter
             renderPrediksi('prediksi', filtered.prediksi);
+
+            // Update counter
             document.getElementById('lc-count').textContent = filtered.prediksi.length;
         }
     }
