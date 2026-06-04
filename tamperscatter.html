@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         BonusSMB + IDNLIVE - All-in-One (Single Tab)
+// @name         BonusSMB + IDNLIVE - All-in-One (Stop at DEBIT + Single Tab)
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Gabungan: IDNLIVE Auto Search + BonusSMB Auto Fill (1 tab reuse)
+// @version      2.0
+// @description  Gabungan: IDNLIVE Auto Search (stop at DEBIT) + BonusSMB Auto Fill (1 tab reuse + auto focus back)
 // @match        https://regs.idnlive.live/report/transactionregion*
 // @match        https://bonussmb.com/tickets*
 // @grant        none
@@ -14,9 +14,6 @@
 
     const host = window.location.hostname;
 
-    // ================================================================
-    //  DETEKSI DOMAIN → jalankan modul yang sesuai
-    // ================================================================
     if (host.includes('idnlive')) {
         console.log('🎯 [All-in-One] Mode IDNLIVE aktif');
         runIDNLIVE();
@@ -26,7 +23,7 @@
     }
 
     // ################################################################
-    //  MODUL 1: IDNLIVE - Auto Search + Kirim via URL
+    //  MODUL 1: IDNLIVE - Auto Search (Stop at DEBIT)
     // ################################################################
     function runIDNLIVE() {
         const DEFAULT_NICKNAME = '';
@@ -39,6 +36,7 @@
         let zoomLevel = 1, isDragging = false;
         let startX, startY, translateX = 0, translateY = 0;
         let smbWindow = null;
+        let debitRowElement = null; // Simpan referensi row DEBIT
 
         const styles = document.createElement('style');
         styles.textContent = `
@@ -74,8 +72,9 @@
             .sbar { margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.8); border-radius: 8px; font-size: 10px; color: #666; text-align: center; min-height: 18px; font-weight: 600; }
             .div { height: 1px; background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent); margin: 10px 0; }
             [data-highlighted="true"] { background: #FFD700 !important; color: #000 !important; font-weight: 700 !important; padding: 2px 6px !important; border-radius: 4px !important; }
-            .row-debit { background: linear-gradient(90deg, #e8f8f0, #d4edda) !important; border-left: 3px solid #27ae60 !important; }
+            .row-debit { background: linear-gradient(90deg, #e8f8f0, #d4edda) !important; border-left: 3px solid #27ae60 !important; animation: debitPulse 2s ease-in-out infinite; }
             .row-credit { background: linear-gradient(90deg, #f8f9fa, #f1f3f5) !important; border-left: 3px solid #95a5a6 !important; }
+            @keyframes debitPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); } 50% { box-shadow: 0 0 0 8px rgba(39, 174, 96, 0); } }
             .tm-tc { position: fixed; top: 24px; right: 24px; z-index: 99999999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
             .tm-t { min-width: 320px; max-width: 400px; padding: 14px 18px; border-radius: 12px; color: #fff; font-family: 'Segoe UI', sans-serif; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.25); display: flex; align-items: center; gap: 12px; pointer-events: auto; animation: tSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); position: relative; overflow: hidden; }
             .tm-t.tm-out { animation: tSlideOut 0.3s ease-in forwards; }
@@ -138,7 +137,7 @@
             document.getElementById('tm-copy-code').onclick = () => copyIn('tm-code', 'Kode disalin!', 's');
             document.getElementById('tm-clear-code').onclick = () => { const i = document.getElementById('tm-code'); if (i.value.trim()) { i.value = ''; i.focus(); toast('Kode dihapus', 'w'); } };
             document.getElementById('tm-copy-debit').onclick = () => collectedDebits.size > 0 ? clip(Array.from(collectedDebits).join('\n'), `${collectedDebits.size} debit disalin!`, 's') : toast('Belum ada debit', 'w');
-            document.getElementById('tm-clear-debit').onclick = () => { if (collectedDebits.size > 0) { collectedDebits.clear(); debitFound = false; document.getElementById('tm-debit-result').value = ''; updDebit(); updTicketBtn(); toast('Debit dihapus', 'd'); } };
+            document.getElementById('tm-clear-debit').onclick = () => { if (collectedDebits.size > 0) { collectedDebits.clear(); debitFound = false; debitRowElement = null; document.getElementById('tm-debit-result').value = ''; updDebit(); updTicketBtn(); toast('Debit dihapus', 'd'); } };
             document.getElementById('tm-copy-link').onclick = () => copyIn('tm-image-url', 'Link disalin!', 's');
             document.getElementById('tm-clear-link').onclick = () => { const i = document.getElementById('tm-image-url'); if (i.value.trim()) { i.value = ''; i.focus(); toast('Link dihapus', 'w'); } };
             document.getElementById('tm-scan-code').onclick = () => { const u = document.getElementById('tm-image-url').value.trim(); if (u) scanImg(u, 0); else toast('Link kosong!', 'w'); };
@@ -147,7 +146,7 @@
                 document.getElementById('tm-nick').value = '';
                 document.getElementById('tm-code').value = '';
                 document.getElementById('tm-image-url').value = '';
-                collectedDebits.clear(); debitFound = false;
+                collectedDebits.clear(); debitFound = false; debitRowElement = null;
                 document.getElementById('tm-debit-result').value = '';
                 updDebit(); updTicketBtn();
                 toast('Semua data dihapus', 'd');
@@ -165,6 +164,9 @@
             updTicketBtn();
         }
 
+        // ================================================================
+        //  KIRIM DATA VIA URL - REUSE TAB + AUTO FOCUS BACK
+        // ================================================================
         function sendToTicket() {
             const nick = document.getElementById('tm-nick').value.trim();
             const code = document.getElementById('tm-code').value.trim();
@@ -186,11 +188,20 @@
             const url = `https://bonussmb.com/tickets?${params.toString()}`;
             console.log('🚀 Kirim ke BonusSMB:', url);
 
+            // Cek apakah window BonusSMB masih terbuka
             if (smbWindow && !smbWindow.closed) {
+                // Reuse tab yang sama
                 smbWindow.location.href = url;
-                smbWindow.focus();
                 toast('Data terkirim! (Tab BonusSMB di-reuse)', 's', '🎫 Berhasil!');
+
+                // Fokus ke tab BonusSMB sebentar, lalu kembali ke IDNLIVE
+                smbWindow.focus();
+                setTimeout(() => {
+                    window.focus(); // Kembali fokus ke IDNLIVE
+                    toast('✅ Kembali ke IDNLIVE', 'i', '🔄 Fokus kembali');
+                }, 1500);
             } else {
+                // Buka tab baru dengan nama tetap
                 smbWindow = window.open(url, SMB_WINDOW_NAME);
                 if (!smbWindow) {
                     toast('Popup diblokir! Izinkan popup untuk situs ini.', 'e', '⚠️ Gagal');
@@ -198,6 +209,12 @@
                 }
                 smbWindow.focus();
                 toast('Tab BonusSMB dibuka! (akan di-reuse berikutnya)', 's', '🎫 Berhasil!');
+
+                // Kembali fokus ke IDNLIVE setelah 2 detik
+                setTimeout(() => {
+                    window.focus();
+                    toast('✅ Kembali ke IDNLIVE', 'i', '🔄 Fokus kembali');
+                }, 2000);
             }
         }
 
@@ -305,12 +322,15 @@
         window.cwb = (b, t) => { navigator.clipboard.writeText(t).then(() => { b.innerHTML = '✓ OK'; b.style.background = '#11998e'; setTimeout(() => { b.innerHTML = '📋 Copy'; b.style.background = ''; }, 1000); }); };
         window.pk = k => { document.getElementById('tm-code').value = k; closeScan(); toast('Kode dipilih: '+k, 's'); };
 
+        // ================================================================
+        //  HANDLE START - STOP AT DEBIT
+        // ================================================================
         async function handleStart() {
             if (isRunning) return;
             const n = document.getElementById('tm-nick').value.trim(), c = document.getElementById('tm-code').value.trim();
             if (!n || !c) return toast('Isi semua kolom!', 'w');
-            collectedDebits.clear(); debitFound = false; updDebit(); updTicketBtn();
-            isRunning = true; stopRequested = false; togBtn(true); toast('Memulai...', 'i', '🚀 Start');
+            collectedDebits.clear(); debitFound = false; debitRowElement = null; updDebit(); updTicketBtn();
+            isRunning = true; stopRequested = false; togBtn(true); toast('Memulai pencarian DEBIT...', 'i', '🚀 Start');
             try {
                 await fillNick(n); await wait(300); await trigEnter();
                 await waitLoad(8000); await wait(500);
@@ -319,9 +339,18 @@
                     updSt(`🔍 Halaman ${pg}...`, '#f5576c');
                     const r = hlAll(c);
                     if (r.hasDebit) {
-                        debitFound = true; updDebit(); updTicketBtn();
-                        updSt(`✅ DEBIT di halaman ${pg}!`, '#11998e');
-                        toast(`DEBIT ditemukan! Siap kirim ke BonusSMB`, 's', '🎯 Jackpot!');
+                        debitFound = true;
+                        debitRowElement = r.debitRow; // Simpan referensi row DEBIT
+                        updDebit(); updTicketBtn();
+                        updSt(`✅ DEBIT ditemukan di halaman ${pg}!`, '#11998e');
+                        toast(`🎯 DEBIT ditemukan! Script berhenti di posisi DEBIT`, 's', '✅ Selesai!');
+
+                        // Scroll ke row DEBIT dan biarkan di situ (tidak scroll lagi)
+                        if (debitRowElement) {
+                            debitRowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+
+                        // STOP - tidak lanjut ke halaman berikutnya
                         break;
                     }
                     if (r.count > 0 && !r.hasDebit) updSt('⚠️ CREDIT saja, lanjut...', '#fa709a');
@@ -333,7 +362,12 @@
                     if (ch) { stuck = 0; pg++; await wait(300); } else { stuck++; await wait(1000); }
                 }
             } catch (e) { updSt('❌ '+e.message, '#e74c3c'); toast('Error: '+e.message, 'e'); }
-            finally { isRunning = false; togBtn(false); if (!debitFound) updSt('⚠️ Tanpa DEBIT', '#fa709a'); }
+            finally {
+                isRunning = false;
+                togBtn(false);
+                if (!debitFound) updSt('⚠️ Tanpa DEBIT', '#fa709a');
+                else updSt('✅ Berhenti di posisi DEBIT', '#11998e');
+            }
         }
 
         function extDb(r) {
@@ -391,15 +425,18 @@
             });
         }
 
+        // ================================================================
+        //  HIGHLIGHT ALL - RETURN DEBIT ROW REFERENCE
+        // ================================================================
         function hlAll(code) {
-            let count = 0, hasDebit = false;
+            let count = 0, hasDebit = false, debitRow = null;
             document.querySelectorAll('[data-highlighted="true"]').forEach(e => {
                 const tr = e.closest('tr');
                 if (tr) { tr.classList.remove('row-debit', 'row-credit'); tr.style.background = ''; tr.style.borderLeft = ''; }
                 const parent = e.parentNode;
                 parent.replaceChild(document.createTextNode(e.textContent), e);
             });
-            if (!document.body.innerText.includes(code)) return {count, hasDebit};
+            if (!document.body.innerText.includes(code)) return {count, hasDebit, debitRow};
             const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
             const tns = []; let n;
             while (n = w.nextNode()) if (n.nodeValue.includes(code)) tns.push(n);
@@ -422,6 +459,7 @@
                             if (db) {
                                 collectedDebits.add(db);
                                 hasDebit = true;
+                                debitRow = tr; // Simpan referensi row DEBIT
                                 tr.classList.add('row-debit');
                             } else {
                                 tr.classList.add('row-credit');
@@ -431,11 +469,8 @@
                 }
                 if (tn.parentNode) tn.parentNode.removeChild(tn);
             });
-            if (count > 0) {
-                const f = document.querySelector('[data-highlighted="true"]');
-                if (f) f.scrollIntoView({behavior:'smooth', block:'center'});
-            }
-            return {count, hasDebit};
+            // JANGAN auto-scroll ke highlight pertama - biarkan user lihat semua
+            return {count, hasDebit, debitRow};
         }
 
         function getNb() {
