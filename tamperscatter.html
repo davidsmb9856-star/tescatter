@@ -1,0 +1,888 @@
+// ==UserScript==
+// @name         BonusSMB + IDNLIVE - All-in-One (Single Tab)
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Gabungan: IDNLIVE Auto Search + BonusSMB Auto Fill (1 tab reuse)
+// @match        https://regs.idnlive.live/report/transactionregion*
+// @match        https://bonussmb.com/tickets*
+// @grant        none
+// @require      https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    const host = window.location.hostname;
+
+    // ================================================================
+    //  DETEKSI DOMAIN → jalankan modul yang sesuai
+    // ================================================================
+    if (host.includes('idnlive')) {
+        console.log('🎯 [All-in-One] Mode IDNLIVE aktif');
+        runIDNLIVE();
+    } else if (host.includes('bonussmb')) {
+        console.log('🎯 [All-in-One] Mode BonusSMB aktif');
+        runBonusSMB();
+    }
+
+    // ################################################################
+    //  MODUL 1: IDNLIVE - Auto Search + Kirim via URL
+    // ################################################################
+    function runIDNLIVE() {
+        const DEFAULT_NICKNAME = '';
+        const DEFAULT_CODE = '';
+        const DEFAULT_IMAGE_URL = '';
+        const SMB_WINDOW_NAME = 'BonusSMB_Tab';
+
+        let isRunning = false, stopRequested = false, currentDataIndex = 0;
+        let collectedDebits = new Set(), debitFound = false;
+        let zoomLevel = 1, isDragging = false;
+        let startX, startY, translateX = 0, translateY = 0;
+        let smbWindow = null;
+
+        const styles = document.createElement('style');
+        styles.textContent = `
+            #tm-panel { position: fixed; top: 20px; right: 20px; z-index: 999999; font-family: 'Segoe UI', sans-serif; }
+            .panel-box { background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,249,250,0.95)); backdrop-filter: blur(20px); border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.25); width: 320px; overflow: hidden; transition: all 0.3s; }
+            .panel-box:hover { transform: translateY(-2px); }
+            .panel-header { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 10px 14px; cursor: grab; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+            .panel-header:active { cursor: grabbing; }
+            .panel-header h3 { margin: 0; font-size: 13px; font-weight: 700; }
+            .panel-min { background: rgba(255,255,255,0.2); border: none; color: #fff; cursor: pointer; font-size: 16px; padding: 2px 8px; border-radius: 6px; }
+            .panel-min:hover { background: rgba(255,255,255,0.3); }
+            .panel-body { padding: 12px; }
+            .ig { margin-bottom: 8px; }
+            .ig label { font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 3px; font-weight: 700; }
+            .ir { display: flex; gap: 4px; align-items: center; }
+            .ir input { flex: 1; padding: 7px 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 11px; outline: none; transition: all 0.3s; background: rgba(255,255,255,0.8); }
+            .ir input:focus { border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.1); }
+            .btn { padding: 7px 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 700; transition: all 0.3s; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+            .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+            .bi { padding: 7px 8px; font-size: 12px; }
+            .bc { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+            .bd { background: linear-gradient(135deg, #fa709a, #fee140); }
+            .bs { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+            .bstart { flex: 1; padding: 10px; background: linear-gradient(135deg, #f093fb, #f5576c); font-size: 12px; font-weight: 800; }
+            .bstop { flex: 1; padding: 10px; background: linear-gradient(135deg, #4facfe, #00f2fe); font-size: 12px; font-weight: 800; }
+            .bticket { width: 100%; padding: 10px; background: linear-gradient(135deg, #11998e, #38ef7d); font-size: 12px; font-weight: 800; margin-top: 6px; }
+            .bticket:disabled { opacity: 0.5; cursor: not-allowed; }
+            .bclear { width: 100%; padding: 10px; background: linear-gradient(135deg, #fa709a, #fee140); font-size: 11px; font-weight: 700; margin-top: 6px; }
+            .dbox { background: linear-gradient(135deg, #ff9a9e, #fad0c4); border: 2px solid #f5576c; border-radius: 10px; padding: 10px; margin: 10px 0; }
+            .dhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+            .dhead label { font-size: 9px; color: #c0392b; font-weight: 800; text-transform: uppercase; margin: 0; }
+            .badge { background: #f5576c; color: #fff; font-size: 9px; padding: 2px 8px; border-radius: 12px; font-weight: 700; }
+            .sbar { margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.8); border-radius: 8px; font-size: 10px; color: #666; text-align: center; min-height: 18px; font-weight: 600; }
+            .div { height: 1px; background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent); margin: 10px 0; }
+            [data-highlighted="true"] { background: #FFD700 !important; color: #000 !important; font-weight: 700 !important; padding: 2px 6px !important; border-radius: 4px !important; }
+            .row-debit { background: linear-gradient(90deg, #e8f8f0, #d4edda) !important; border-left: 3px solid #27ae60 !important; }
+            .row-credit { background: linear-gradient(90deg, #f8f9fa, #f1f3f5) !important; border-left: 3px solid #95a5a6 !important; }
+            .tm-tc { position: fixed; top: 24px; right: 24px; z-index: 99999999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+            .tm-t { min-width: 320px; max-width: 400px; padding: 14px 18px; border-radius: 12px; color: #fff; font-family: 'Segoe UI', sans-serif; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.25); display: flex; align-items: center; gap: 12px; pointer-events: auto; animation: tSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); position: relative; overflow: hidden; }
+            .tm-t.tm-out { animation: tSlideOut 0.3s ease-in forwards; }
+            .tm-t::before { content: ''; position: absolute; top: 0; left: 0; height: 100%; width: 4px; background: rgba(255,255,255,0.5); }
+            .tm-s { background: linear-gradient(135deg, #11998e, #38ef7d); }
+            .tm-e { background: linear-gradient(135deg, #eb3349, #f45c43); }
+            .tm-w { background: linear-gradient(135deg, #f7971e, #ffd200); color: #333; }
+            .tm-i { background: linear-gradient(135deg, #667eea, #764ba2); }
+            .tm-d { background: linear-gradient(135deg, #fa709a, #fee140); color: #333; }
+            .tm-ico { font-size: 24px; flex-shrink: 0; animation: tBounce 0.6s ease; }
+            .tm-c { flex: 1; }
+            .tm-tt { font-weight: 800; font-size: 14px; margin-bottom: 2px; }
+            .tm-ms { font-size: 12px; opacity: 0.95; }
+            .tm-p { position: absolute; bottom: 0; left: 0; height: 3px; background: rgba(255,255,255,0.6); animation: tProg 3s linear forwards; }
+            .tm-x { background: rgba(255,255,255,0.25); border: none; color: #fff; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+            .tm-x:hover { background: rgba(255,255,255,0.5); transform: rotate(90deg); }
+            @keyframes tSlideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+            @keyframes tSlideOut { to { transform: translateX(120%); opacity: 0; } }
+            @keyframes tBounce { 0% { transform: scale(0); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
+            @keyframes tProg { from { width: 100%; } to { width: 0%; } }
+        `;
+        document.head.appendChild(styles);
+
+        function createPanel() {
+            if (document.getElementById('tm-panel')) return;
+            const panel = document.createElement('div');
+            panel.id = 'tm-panel';
+            panel.innerHTML = `
+                <div class="panel-box">
+                    <div class="panel-header" id="tm-header">
+                        <h3>🔍 Auto Search Pro</h3>
+                        <button class="panel-min" id="tm-min">_</button>
+                    </div>
+                    <div class="panel-body" id="tm-body">
+                        <div class="ig"><label>👤 Nickname</label><div class="ir"><input type="text" id="tm-nick" value="${DEFAULT_NICKNAME}"><button class="btn bi bc" id="tm-copy-nick">📋</button></div></div>
+                        <div class="ig"><label>🔑 Kode Transaksi</label><div class="ir"><input type="text" id="tm-code" value="${DEFAULT_CODE}"><button class="btn bi bc" id="tm-copy-code">📋</button><button class="btn bi bd" id="tm-clear-code">🗑️</button></div></div>
+                        <div class="div"></div>
+                        <div class="ig"><label>🖼️ Link Foto (OCR)</label><div class="ir"><input type="text" id="tm-image-url" value="${DEFAULT_IMAGE_URL}" placeholder="Link foto..."><button class="btn bi bc" id="tm-copy-link">📋</button><button class="btn bi bs" id="tm-scan-code">🔬</button><button class="btn bi bd" id="tm-clear-link">🗑️</button></div></div>
+                        <div class="dbox">
+                            <div class="dhead"><label>💰 Hasil Debit</label><span class="badge" id="tm-debit-count">0 item</span></div>
+                            <div class="ir"><input type="text" id="tm-debit-result" value="" readonly placeholder="Menunggu DEBIT..." style="font-weight:700; color:#c0392b; font-size:12px;"><button class="btn bi bc" id="tm-copy-debit" style="background:linear-gradient(135deg, #11998e, #38ef7d);">📋</button><button class="btn bi bd" id="tm-clear-debit">🗑️</button></div>
+                            <div id="tm-debit-detail" style="margin-top:4px; font-size:9px; color:#c0392b; font-weight:600; min-height:14px;"></div>
+                        </div>
+                        <div style="display:flex; gap:6px;"><button class="btn bstart" id="tm-start">▶ Cari DEBIT</button><button class="btn bstop" id="tm-stop" style="display:none;">⏹ Stop</button></div>
+                        <button class="btn bticket" id="tm-send-ticket" disabled>🎫 KIRIM KE BONUS SMB</button>
+                        <button class="btn bclear" id="tm-clear-all">🗑️ HAPUS SEMUA</button>
+                        <div class="sbar" id="tm-status">🎯 WAJIB cari sampai DEBIT!</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(panel);
+
+            if (!document.querySelector('.tm-tc')) {
+                const c = document.createElement('div'); c.className = 'tm-tc'; c.id = 'tm-tc'; document.body.appendChild(c);
+            }
+
+            document.getElementById('tm-start').onclick = handleStart;
+            document.getElementById('tm-stop').onclick = () => { stopRequested = true; toast('Dihentikan manual', 'i'); };
+            document.getElementById('tm-copy-nick').onclick = () => copyIn('tm-nick', 'Nickname disalin!', 's');
+            document.getElementById('tm-copy-code').onclick = () => copyIn('tm-code', 'Kode disalin!', 's');
+            document.getElementById('tm-clear-code').onclick = () => { const i = document.getElementById('tm-code'); if (i.value.trim()) { i.value = ''; i.focus(); toast('Kode dihapus', 'w'); } };
+            document.getElementById('tm-copy-debit').onclick = () => collectedDebits.size > 0 ? clip(Array.from(collectedDebits).join('\n'), `${collectedDebits.size} debit disalin!`, 's') : toast('Belum ada debit', 'w');
+            document.getElementById('tm-clear-debit').onclick = () => { if (collectedDebits.size > 0) { collectedDebits.clear(); debitFound = false; document.getElementById('tm-debit-result').value = ''; updDebit(); updTicketBtn(); toast('Debit dihapus', 'd'); } };
+            document.getElementById('tm-copy-link').onclick = () => copyIn('tm-image-url', 'Link disalin!', 's');
+            document.getElementById('tm-clear-link').onclick = () => { const i = document.getElementById('tm-image-url'); if (i.value.trim()) { i.value = ''; i.focus(); toast('Link dihapus', 'w'); } };
+            document.getElementById('tm-scan-code').onclick = () => { const u = document.getElementById('tm-image-url').value.trim(); if (u) scanImg(u, 0); else toast('Link kosong!', 'w'); };
+
+            document.getElementById('tm-clear-all').onclick = () => {
+                document.getElementById('tm-nick').value = '';
+                document.getElementById('tm-code').value = '';
+                document.getElementById('tm-image-url').value = '';
+                collectedDebits.clear(); debitFound = false;
+                document.getElementById('tm-debit-result').value = '';
+                updDebit(); updTicketBtn();
+                toast('Semua data dihapus', 'd');
+            };
+
+            document.getElementById('tm-send-ticket').onclick = sendToTicket;
+
+            document.getElementById('tm-min').onclick = () => {
+                const b = document.getElementById('tm-body');
+                b.style.display = b.style.display === 'none' ? 'block' : 'none';
+            };
+
+            drag(document.getElementById('tm-header'), panel);
+            makeScanModal();
+            updTicketBtn();
+        }
+
+        function sendToTicket() {
+            const nick = document.getElementById('tm-nick').value.trim();
+            const code = document.getElementById('tm-code').value.trim();
+            const link = document.getElementById('tm-image-url').value.trim();
+            const debit = document.getElementById('tm-debit-result').value.trim();
+
+            if (!nick || !code || !debit) {
+                toast('Lengkapi data dulu!', 'w');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                nickname: nick,
+                kodeTransaksi: code,
+                linkFoto: link,
+                hasilDebit: debit.replace(/[^0-9]/g, '')
+            });
+
+            const url = `https://bonussmb.com/tickets?${params.toString()}`;
+            console.log('🚀 Kirim ke BonusSMB:', url);
+
+            if (smbWindow && !smbWindow.closed) {
+                smbWindow.location.href = url;
+                smbWindow.focus();
+                toast('Data terkirim! (Tab BonusSMB di-reuse)', 's', '🎫 Berhasil!');
+            } else {
+                smbWindow = window.open(url, SMB_WINDOW_NAME);
+                if (!smbWindow) {
+                    toast('Popup diblokir! Izinkan popup untuk situs ini.', 'e', '⚠️ Gagal');
+                    return;
+                }
+                smbWindow.focus();
+                toast('Tab BonusSMB dibuka! (akan di-reuse berikutnya)', 's', '🎫 Berhasil!');
+            }
+        }
+
+        function updTicketBtn() {
+            const btn = document.getElementById('tm-send-ticket');
+            if (!btn) return;
+            const nick = document.getElementById('tm-nick')?.value.trim();
+            const code = document.getElementById('tm-code')?.value.trim();
+            const debit = document.getElementById('tm-debit-result')?.value.trim();
+            btn.disabled = !(nick && code && debit);
+        }
+
+        function toast(msg, type = 'i', title = null) {
+            const c = document.getElementById('tm-tc'); if (!c) return;
+            const I = { s: '✅', e: '❌', w: '⚠️', i: 'ℹ️', d: '🗑️' };
+            const T = { s: title || 'Berhasil!', e: title || 'Error!', w: title || 'Perhatian!', i: title || 'Info', d: title || 'Dihapus!' };
+            const t = document.createElement('div');
+            t.className = `tm-t tm-${type}`;
+            t.innerHTML = `<div class="tm-ico">${I[type]}</div><div class="tm-c"><div class="tm-tt">${T[type]}</div><div class="tm-ms">${msg}</div></div><button class="tm-x">×</button><div class="tm-p"></div>`;
+            c.appendChild(t);
+            const to = setTimeout(() => rmToast(t), 3000);
+            t.querySelector('.tm-x').onclick = () => { clearTimeout(to); rmToast(t); };
+        }
+        function rmToast(t) { if (!t.parentNode) return; t.classList.add('tm-out'); setTimeout(() => t.parentNode && t.parentNode.removeChild(t), 300); }
+
+        function copyIn(id, msg, type) { const v = document.getElementById(id).value.trim(); if (v) clip(v, msg, type); else toast('Kosong!', 'w'); }
+        function clip(text, msg, type = 's') { navigator.clipboard.writeText(text).then(() => toast(msg, type)).catch(() => { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); toast(msg, type); }); }
+
+        function makeScanModal() {
+            const m = document.createElement('div'); m.id = 'tm-sm';
+            m.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999999; justify-content:center; align-items:center; padding:20px;';
+            m.innerHTML = `<div style="background:#fff; border-radius:20px; max-width:90vw; width:100%; max-height:95vh; overflow:hidden; display:flex; flex-direction:column;">
+                <div style="background:linear-gradient(135deg, #667eea, #764ba2); color:#fff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; font-size:18px;">🔬 OCR Scanner</h3>
+                    <button id="tm-sc" style="background:rgba(255,255,255,0.2); border:none; font-size:24px; cursor:pointer; color:#fff; width:32px; height:32px; border-radius:50%;">&times;</button>
+                </div>
+                <div style="background:#f8f9fa; padding:10px 20px; border-bottom:1px solid #ddd; display:flex; align-items:center; gap:10px;">
+                    <button id="tm-zo" class="btn bi" style="background:linear-gradient(135deg, #fa709a, #fee140);">−</button>
+                    <span id="tm-zl" style="font-weight:700; min-width:60px; text-align:center;">100%</span>
+                    <button id="tm-zi" class="btn bi" style="background:linear-gradient(135deg, #11998e, #38ef7d);">+</button>
+                    <button id="tm-zr" class="btn" style="background:linear-gradient(135deg, #4facfe, #00f2fe); font-size:11px;">Reset</button>
+                    <button id="tm-zf" class="btn" style="background:linear-gradient(135deg, #a18cd1, #fbc2eb); font-size:11px;">Fit</button>
+                </div>
+                <div style="display:flex; flex:1; overflow:hidden;">
+                    <div id="tm-ic" style="flex:1; background:#2c3e50; overflow:hidden; position:relative; cursor:grab; min-height:400px;">
+                        <img id="tm-si" style="max-width:none; max-height:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);">
+                    </div>
+                    <div style="width:340px; background:#fff; border-left:1px solid #ddd; overflow-y:auto; padding:16px;"><div id="tm-sr">Memindai...</div></div>
+                </div></div>`;
+            document.body.appendChild(m);
+
+            document.getElementById('tm-sc').onclick = closeScan;
+            document.getElementById('tm-zi').onclick = () => setZ(zoomLevel + 0.25);
+            document.getElementById('tm-zo').onclick = () => setZ(zoomLevel - 0.25);
+            document.getElementById('tm-zr').onclick = () => { setZ(1); resetP(); };
+            document.getElementById('tm-zf').onclick = fitImg;
+            const c = document.getElementById('tm-ic');
+            c.addEventListener('wheel', e => { e.preventDefault(); setZ(zoomLevel + (e.deltaY > 0 ? -0.1 : 0.1)); });
+            c.addEventListener('mousedown', e => { if (zoomLevel > 1) { isDragging = true; startX = e.clientX - translateX; startY = e.clientY - translateY; } });
+            document.addEventListener('mousemove', e => { if (isDragging) { translateX = e.clientX - startX; translateY = e.clientY - startY; updTr(); } });
+            document.addEventListener('mouseup', () => isDragging = false);
+            c.addEventListener('dblclick', () => { setZ(1); resetP(); });
+        }
+
+        function setZ(l) { zoomLevel = Math.max(0.25, Math.min(5, l)); document.getElementById('tm-zl').textContent = Math.round(zoomLevel*100)+'%'; updTr(); }
+        function updTr() { document.getElementById('tm-si').style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) scale(${zoomLevel})`; }
+        function resetP() { translateX = 0; translateY = 0; updTr(); }
+        function fitImg() { const c = document.getElementById('tm-ic'), i = document.getElementById('tm-si'); if (!i.naturalWidth) return; setZ(Math.min(c.clientWidth/i.naturalWidth, c.clientHeight/i.naturalHeight)*0.95); resetP(); }
+        function closeScan() { document.getElementById('tm-sm').style.display = 'none'; setZ(1); resetP(); }
+
+        function drag(h, t) {
+            let p1=0, p2=0, p3=0, p4=0;
+            h.onmousedown = e => { e.preventDefault(); p3=e.clientX; p4=e.clientY;
+                document.onmouseup = () => { document.onmouseup=null; document.onmousemove=null; };
+                document.onmousemove = ev => { ev.preventDefault(); p1=p3-ev.clientX; p2=p4-ev.clientY; p3=ev.clientX; p4=ev.clientY;
+                    t.style.top = (t.offsetTop-p2)+'px'; t.style.left = (t.offsetLeft-p1)+'px'; t.style.right='auto'; }; };
+        }
+
+        async function scanImg(link, idx) {
+            currentDataIndex = idx; if (!link) return toast('Link kosong!', 'w');
+            const m = document.getElementById('tm-sm'), i = document.getElementById('tm-si'), r = document.getElementById('tm-sr');
+            i.src = link; i.onload = () => setTimeout(fitImg, 100);
+            m.style.display = 'flex'; r.innerHTML = '<span style="color:#666;">🔬 Memindai...</span>';
+            if (typeof Tesseract === 'undefined') { r.innerHTML = '<span style="color:#e74c3c;">⚠️ Tesseract belum dimuat</span>'; await wait(2000); if (typeof Tesseract === 'undefined') return; }
+            try {
+                const { data: { text } } = await Tesseract.recognize(link, 'ind', { logger: m => { if (m.status === 'recognizing text') r.innerHTML = `<div style="text-align:center; padding:20px;"><div style="font-size:40px;">🔍</div><div style="color:#667eea; font-weight:700;">Memindai ${Math.round(m.progress*100)}%</div></div>`; } });
+                const raw = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                let hg = [], hl = [];
+                for (let j = 0; j < raw.length; j++) {
+                    const mt = raw[j].match(/\b\d{9,10}\b/);
+                    if (mt) { if (j+1 < raw.length) { const nx = raw[j+1].match(/\b\d{8,}\b/); if (nx) { hg.push(mt[0]+nx[0]); j++; continue; } } hg.push(mt[0]); }
+                }
+                for (const line of raw) { const mt = line.match(/\d{8,}/g); if (mt) mt.forEach(x => hl.push(x)); }
+                hg = [...new Set(hg)]; hl = [...new Set(hl)];
+                r.innerHTML = '';
+                if (hg.length > 0) { const t = document.createElement('div'); t.innerHTML = '<b style="color:#667eea;">Hasil Gabungan:</b>'; r.appendChild(t);
+                    hg.forEach(k => { const d = document.createElement('div'); d.style.cssText = 'background:#f5f7fa; padding:10px; margin:6px 0; border-radius:8px; border-left:4px solid #667eea;';
+                        d.innerHTML = `<div style="font-weight:700; word-break:break-all;">${k}</div><div style="display:flex; gap:6px; margin-top:6px;"><button onclick="cwb(this,'${k}')" style="flex:1; padding:6px; background:linear-gradient(135deg, #4facfe, #00f2fe); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:700;">📋 Copy</button><button onclick="pk('${k}')" style="flex:1; padding:6px; background:linear-gradient(135deg, #11998e, #38ef7d); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:700;">✓ Pilih</button></div>`; r.appendChild(d); }); }
+                if (hl.length > 0) { const t = document.createElement('div'); t.innerHTML = '<b style="color:#11998e; margin-top:10px;">📋 Per Baris:</b>'; r.appendChild(t);
+                    hl.forEach(k => { const d = document.createElement('div'); d.style.cssText = 'background:#f5f7fa; padding:10px; margin:6px 0; border-radius:8px; border-left:4px solid #11998e;';
+                        d.innerHTML = `<div style="font-weight:700; word-break:break-all;">${k}</div><div style="display:flex; gap:6px; margin-top:6px;"><button onclick="cwb(this,'${k}')" style="flex:1; padding:6px; background:linear-gradient(135deg, #4facfe, #00f2fe); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:700;">📋 Copy</button><button onclick="pk('${k}')" style="flex:1; padding:6px; background:linear-gradient(135deg, #11998e, #38ef7d); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:700;">✓ Pilih</button></div>`; r.appendChild(d); }); }
+                if (hg.length === 0 && hl.length === 0) r.innerHTML = '<div style="text-align:center; padding:20px; color:#e74c3c; font-weight:700;">❌ Tidak ada angka</div>';
+            } catch (e) { r.innerHTML = '<span style="color:#e74c3c;">❌ Gagal</span>'; }
+        }
+        window.cwb = (b, t) => { navigator.clipboard.writeText(t).then(() => { b.innerHTML = '✓ OK'; b.style.background = '#11998e'; setTimeout(() => { b.innerHTML = '📋 Copy'; b.style.background = ''; }, 1000); }); };
+        window.pk = k => { document.getElementById('tm-code').value = k; closeScan(); toast('Kode dipilih: '+k, 's'); };
+
+        async function handleStart() {
+            if (isRunning) return;
+            const n = document.getElementById('tm-nick').value.trim(), c = document.getElementById('tm-code').value.trim();
+            if (!n || !c) return toast('Isi semua kolom!', 'w');
+            collectedDebits.clear(); debitFound = false; updDebit(); updTicketBtn();
+            isRunning = true; stopRequested = false; togBtn(true); toast('Memulai...', 'i', '🚀 Start');
+            try {
+                await fillNick(n); await wait(300); await trigEnter();
+                await waitLoad(8000); await wait(500);
+                let stuck = 0, pg = 1;
+                while (!stopRequested && !debitFound && stuck < 5 && pg <= 100) {
+                    updSt(`🔍 Halaman ${pg}...`, '#f5576c');
+                    const r = hlAll(c);
+                    if (r.hasDebit) {
+                        debitFound = true; updDebit(); updTicketBtn();
+                        updSt(`✅ DEBIT di halaman ${pg}!`, '#11998e');
+                        toast(`DEBIT ditemukan! Siap kirim ke BonusSMB`, 's', '🎯 Jackpot!');
+                        break;
+                    }
+                    if (r.count > 0 && !r.hasDebit) updSt('⚠️ CREDIT saja, lanjut...', '#fa709a');
+                    const nb = getNb();
+                    if (!nb || nb.disabled || nb.classList.contains('disabled')) { updSt('❌ Halaman terakhir', '#e74c3c'); toast('DEBIT tidak ditemukan', 'e', '❌ Gagal'); break; }
+                    updSt(`➡️ Halaman ${pg+1}...`, '#4facfe');
+                    nb.scrollIntoView({behavior:'smooth', block:'center'}); await wait(500); nb.click();
+                    const ch = await waitPg(10000);
+                    if (ch) { stuck = 0; pg++; await wait(300); } else { stuck++; await wait(1000); }
+                }
+            } catch (e) { updSt('❌ '+e.message, '#e74c3c'); toast('Error: '+e.message, 'e'); }
+            finally { isRunning = false; togBtn(false); if (!debitFound) updSt('⚠️ Tanpa DEBIT', '#fa709a'); }
+        }
+
+        function extDb(r) {
+            if (!r) return null; const t = r.innerText || '';
+            if (!/\bDebit\b/i.test(t)) return null;
+            if (/\bCredit\b/i.test(t) && !/\bDebit\b/i.test(t)) return null;
+            const m = t.match(/IDR\s*([\d.,]+)/); if (!m) return null;
+            const a = m[1].replace(/[,.\s]/g, '');
+            return /^\d+$/.test(a) && a.length >= 2 ? a : null;
+        }
+
+        function updDebit() {
+            const i = document.getElementById('tm-debit-result'), c = document.getElementById('tm-debit-count'), d = document.getElementById('tm-debit-detail');
+            if (collectedDebits.size === 0) { i.value = ''; c.textContent = '0 item'; d.textContent = debitFound ? '' : '⏳ Menunggu DEBIT...'; return; }
+            const s = [...collectedDebits].sort((a,b) => parseInt(b)-parseInt(a));
+            i.value = s[0]; c.textContent = `${collectedDebits.size} item`;
+            d.textContent = collectedDebits.size > 1 ? `Lainnya: ${s.slice(1).join(', ')}` : '✅ 1 DEBIT';
+        }
+
+        function updSt(m, c) { const e = document.getElementById('tm-status'); if(e) { e.textContent = m; e.style.color = c||'#666'; } }
+        function togBtn(r) { document.getElementById('tm-start').style.display = r?'none':'block'; document.getElementById('tm-stop').style.display = r?'block':'none'; }
+        function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        async function fillNick(n) {
+            const i = document.querySelector('input[placeholder*="Nickname"], input[placeholder*="nickname"]');
+            if (!i) throw new Error('Input Nickname tidak ditemukan!');
+            const s = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+            s.call(i, n); i.dispatchEvent(new Event('input', {bubbles:true})); i.dispatchEvent(new Event('change', {bubbles:true})); i.focus();
+        }
+
+        async function trigEnter() {
+            const i = document.querySelector('input[placeholder*="Nickname"], input[placeholder*="nickname"]');
+            if (!i) throw new Error('Input tidak ditemukan!');
+            i.focus(); await wait(50);
+            i.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true, view:window}));
+            await wait(30); i.dispatchEvent(new KeyboardEvent('keypress', {key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true, view:window, charCode:13}));
+            await wait(30); i.dispatchEvent(new KeyboardEvent('keyup', {key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true, view:window}));
+        }
+
+        function waitLoad(t=8000) {
+            return new Promise(r => {
+                const s = document.body.innerText.substring(500, 2000), st = Date.now();
+                const o = new MutationObserver(() => { const c = document.body.innerText.substring(500, 2000); if (c !== s && c.length > 100) { o.disconnect(); r(true); } });
+                o.observe(document.body, {childList:true, subtree:true, characterData:true});
+                setTimeout(() => { o.disconnect(); r(false); }, t);
+            });
+        }
+
+        function waitPg(t=10000) {
+            return new Promise(r => {
+                const tb = document.querySelector('table'), s = tb ? tb.innerText.substring(0,500) : '', st = Date.now();
+                const o = new MutationObserver(() => { const tb = document.querySelector('table'), c = tb ? tb.innerText.substring(0,500) : ''; if (c !== s && c.length > 100) { setTimeout(() => { o.disconnect(); r(true); }, 200); } });
+                o.observe(document.body, {childList:true, subtree:true});
+                setTimeout(() => { o.disconnect(); r(false); }, t);
+            });
+        }
+
+        function hlAll(code) {
+            let count = 0, hasDebit = false;
+            document.querySelectorAll('[data-highlighted="true"]').forEach(e => {
+                const tr = e.closest('tr');
+                if (tr) { tr.classList.remove('row-debit', 'row-credit'); tr.style.background = ''; tr.style.borderLeft = ''; }
+                const parent = e.parentNode;
+                parent.replaceChild(document.createTextNode(e.textContent), e);
+            });
+            if (!document.body.innerText.includes(code)) return {count, hasDebit};
+            const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+            const tns = []; let n;
+            while (n = w.nextNode()) if (n.nodeValue.includes(code)) tns.push(n);
+            tns.forEach(tn => {
+                const p = tn.parentNode;
+                if (!p || p.tagName === 'SCRIPT' || p.tagName === 'STYLE') return;
+                if (p.style && p.style.display === 'none') return;
+                const ps = tn.nodeValue.split(code);
+                for (let j = 0; j < ps.length; j++) {
+                    if (ps[j]) p.insertBefore(document.createTextNode(ps[j]), tn);
+                    if (j < ps.length - 1) {
+                        const sp = document.createElement('span');
+                        sp.textContent = code;
+                        sp.setAttribute('data-highlighted', 'true');
+                        p.insertBefore(sp, tn);
+                        count++;
+                        const tr = sp.closest('tr');
+                        if (tr) {
+                            const db = extDb(tr);
+                            if (db) {
+                                collectedDebits.add(db);
+                                hasDebit = true;
+                                tr.classList.add('row-debit');
+                            } else {
+                                tr.classList.add('row-credit');
+                            }
+                        }
+                    }
+                }
+                if (tn.parentNode) tn.parentNode.removeChild(tn);
+            });
+            if (count > 0) {
+                const f = document.querySelector('[data-highlighted="true"]');
+                if (f) f.scrollIntoView({behavior:'smooth', block:'center'});
+            }
+            return {count, hasDebit};
+        }
+
+        function getNb() {
+            let b = document.querySelector('button[title="Next"]') || document.querySelector('button[aria-label="Next"]'); if (b) return b;
+            b = document.querySelector('.pagination .next button') || document.querySelector('.pagination li.next a'); if (b) return b;
+            const all = Array.from(document.querySelectorAll('button, a'));
+            const bb = all.filter(e => { const r = e.getBoundingClientRect(); if (r.top < innerHeight*0.7 || r.width === 0 || r.height === 0) return false; const t = e.innerText.trim(); return t === '>' || t === '»' || t === 'Next' || (e.title||'').toLowerCase() === 'next'; });
+            return bb.length > 0 ? bb[0] : null;
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', createPanel); else createPanel();
+    }
+
+    // ################################################################
+    //  MODUL 2: BonusSMB - Auto Fill Form (URL Watcher)
+    // ################################################################
+    function runBonusSMB() {
+        const styles = document.createElement('style');
+        styles.textContent = `
+            .smb-toast {
+                position: fixed; top: 20px; right: 20px; z-index: 99999999;
+                min-width: 320px; padding: 16px 20px; border-radius: 12px;
+                color: #fff; font-family: 'Segoe UI', sans-serif; font-size: 13px; font-weight: 600;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                background: linear-gradient(135deg, #11998e, #38ef7d);
+                animation: smbSlideIn 0.4s ease;
+                display: flex; align-items: center; gap: 12px;
+            }
+            .smb-toast.error { background: linear-gradient(135deg, #eb3349, #f45c43); }
+            .smb-toast.info { background: linear-gradient(135deg, #667eea, #764ba2); }
+            .smb-toast.warning { background: linear-gradient(135deg, #f7971e, #ffd200); color: #333; }
+            .smb-toast.debug { background: linear-gradient(135deg, #a18cd1, #fbc2eb); color: #333; }
+            @keyframes smbSlideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+            @keyframes smbSlideOut { to { transform: translateX(400px); opacity: 0; } }
+        `;
+        document.head.appendChild(styles);
+
+        function toast(msg, type = 'success', duration = 2500) {
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️', debug: '🔍' };
+            const t = document.createElement('div');
+            t.className = `smb-toast ${type}`;
+            t.innerHTML = `<span style="font-size:20px;">${icons[type] || '✅'}</span><span>${msg}</span>`;
+            document.body.appendChild(t);
+            setTimeout(() => {
+                t.style.animation = 'smbSlideOut 0.2s ease-in forwards';
+                setTimeout(() => t.remove(), 200);
+            }, duration);
+        }
+
+        function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        let lastProcessedKey = '';
+        let isProcessing = false;
+
+        function getDataFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                nickname: urlParams.get('nickname'),
+                kodeTransaksi: urlParams.get('kodeTransaksi'),
+                linkFoto: urlParams.get('linkFoto'),
+                hasilDebit: urlParams.get('hasilDebit')
+            };
+        }
+
+        function clearURLParams() {
+            const url = new URL(window.location.href);
+            ['nickname', 'kodeTransaksi', 'linkFoto', 'hasilDebit'].forEach(p => url.searchParams.delete(p));
+            window.history.replaceState({}, document.title, url.pathname + url.search);
+        }
+
+        function getProcessedKey(data) {
+            return `${data.nickname}|${data.kodeTransaksi}|${data.hasilDebit}`;
+        }
+
+        async function clickDropdownControl(controlElement, label) {
+            console.log(`🖱️ [${label}] Klik dropdown...`);
+            controlElement.scrollIntoView({ behavior: 'instant', block: 'center' });
+            const rect = controlElement.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            try { controlElement.click(); } catch(e) {}
+            await wait(80);
+            const events = ['mousedown', 'mouseup', 'click'];
+            for (const evt of events) {
+                controlElement.dispatchEvent(new MouseEvent(evt, {
+                    bubbles: true, cancelable: true,
+                    clientX: x, clientY: y, button: 0, view: window
+                }));
+                await wait(30);
+            }
+        }
+
+        function findDropdownByLabel(labelText) {
+            console.log(`\n🔍 Mencari dropdown: "${labelText}"`);
+            const lower = labelText.toLowerCase();
+            const labels = document.querySelectorAll('label, .form-label, div[class*="label"]');
+            for (const label of labels) {
+                const text = (label.innerText || '').trim().toLowerCase();
+                if (text.includes(lower) && text.length < 50) {
+                    let parent = label.parentElement;
+                    for (let i = 0; i < 6 && parent; i++) {
+                        const control = parent.querySelector('[class*="control"], [class*="Control"]');
+                        const input = parent.querySelector('input[role="combobox"]');
+                        if (control) return { control, input, container: parent };
+                        parent = parent.parentElement;
+                    }
+                }
+            }
+            const allDivs = document.querySelectorAll('div');
+            for (const div of allDivs) {
+                const text = (div.innerText || '').trim();
+                if (text.toLowerCase().includes(lower) && text.length < 50 && text.length > 0) {
+                    const container = div.closest('[class*="container"]');
+                    if (container) {
+                        const control = container.querySelector('[class*="control"]');
+                        const input = container.querySelector('input[role="combobox"]');
+                        if (control) return { control, input, container };
+                    }
+                }
+            }
+            console.log(`  ❌ Dropdown "${labelText}" tidak ditemukan`);
+            return null;
+        }
+
+        async function waitForDropdownMenu(label, maxWait = 5000) {
+            console.log(`⏳ [${label}] Menunggu menu dropdown...`);
+            const start = Date.now();
+            while (Date.now() - start < maxWait) {
+                await wait(80);
+                const listboxes = document.querySelectorAll('[role="listbox"]');
+                for (const lb of listboxes) {
+                    if (lb.offsetParent !== null && lb.children.length > 0) {
+                        console.log(`  ✅ [${label}] Listbox: ${lb.children.length} opsi`);
+                        return lb;
+                    }
+                }
+                const menus = document.querySelectorAll('[class*="menu"], [class*="Menu"]');
+                for (const menu of menus) {
+                    if (menu.offsetParent !== null) {
+                        const opts = menu.querySelectorAll('[role="option"]');
+                        if (opts.length > 0) {
+                            console.log(`  ✅ [${label}] Menu: ${opts.length} opsi`);
+                            return menu;
+                        }
+                    }
+                }
+            }
+            console.log(`  ⚠️ [${label}] Menu tidak muncul setelah ${maxWait}ms`);
+            return null;
+        }
+
+        async function selectOption(menu, targetValue, label) {
+            console.log(`🎯 [${label}] Mencari opsi: "${targetValue}"`);
+            const lower = targetValue.toLowerCase();
+            const options = menu.querySelectorAll('[role="option"]');
+            for (const opt of options) {
+                const text = (opt.innerText || '').trim();
+                const optLower = text.toLowerCase();
+                if (optLower === lower || optLower.includes(lower)) {
+                    console.log(`  ✅ [${label}] MATCH: "${text}"`);
+                    const rect = opt.getBoundingClientRect();
+                    opt.dispatchEvent(new MouseEvent('click', {
+                        bubbles: true, cancelable: true,
+                        clientX: rect.left + rect.width/2,
+                        clientY: rect.top + rect.height/2,
+                        button: 0, view: window
+                    }));
+                    await wait(150);
+                    toast(`✅ ${label}: ${text}`, 'success');
+                    return true;
+                }
+            }
+            console.log(`  ❌ [${label}] Opsi "${targetValue}" tidak ditemukan`);
+            return false;
+        }
+
+        async function selectDropdown(labelText, value, placeholderText) {
+            console.log(`\n🎯 SELECT: ${labelText} → ${value}`);
+            toast(`🔍 ${labelText}...`, 'info', 1500);
+            const placeholder = placeholderText || labelText;
+            let attempts = 0;
+            const maxAttempts = 3;
+            while (attempts < maxAttempts) {
+                attempts++;
+                console.log(`🔄 Attempt ${attempts}/${maxAttempts}`);
+                const result = findDropdownByLabel(placeholder);
+                if (!result) {
+                    toast(`❌ Dropdown "${labelText}" tidak ditemukan`, 'error');
+                    return false;
+                }
+                const { control, input, container } = result;
+                await clickDropdownControl(control, labelText);
+                const menu = await waitForDropdownMenu(labelText, 4000);
+                if (!menu) {
+                    if (attempts < maxAttempts) { await wait(300); continue; }
+                    toast(`❌ Menu "${labelText}" tidak muncul`, 'error');
+                    return false;
+                }
+                const selected = await selectOption(menu, value, labelText);
+                if (selected) {
+                    await wait(300);
+                    return true;
+                }
+                if (attempts < maxAttempts) await wait(300);
+            }
+            toast(`❌ Gagal memilih "${value}"`, 'error');
+            return false;
+        }
+
+        async function fillByPlaceholder(placeholderText, value) {
+            if (!value) return false;
+            const inputs = document.querySelectorAll('input');
+            let target = null;
+            for (const input of inputs) {
+                const ph = (input.getAttribute('placeholder') || '').toLowerCase();
+                if (ph.includes(placeholderText.toLowerCase()) &&
+                    input.type !== 'hidden' &&
+                    !input.getAttribute('role')) {
+                    target = input;
+                    break;
+                }
+            }
+            if (!target) return false;
+            target.scrollIntoView({ behavior: 'instant', block: 'center' });
+            await wait(50);
+            target.focus();
+            const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+            if (setter) setter.call(target, value);
+            else target.value = value;
+            ['input', 'change', 'blur'].forEach(evt => {
+                target.dispatchEvent(new Event(evt, { bubbles: true }));
+            });
+            console.log(`✅ ${placeholderText}: ${value}`);
+            return true;
+        }
+
+        async function fillTextarea(placeholderText, value) {
+            if (!value) return false;
+            const textareas = document.querySelectorAll('textarea');
+            let target = null;
+            for (const ta of textareas) {
+                const ph = (ta.getAttribute('placeholder') || '').toLowerCase();
+                if (ph.includes(placeholderText.toLowerCase())) {
+                    target = ta;
+                    break;
+                }
+            }
+            if (!target) return false;
+            target.scrollIntoView({ behavior: 'instant', block: 'center' });
+            await wait(50);
+            target.focus();
+            const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+            if (setter) setter.call(target, value);
+            else target.value = value;
+            ['input', 'change', 'blur'].forEach(evt => {
+                target.dispatchEvent(new Event(evt, { bubbles: true }));
+            });
+            return true;
+        }
+
+        async function fillBettingan(value) {
+            if (!value) return false;
+            const allInputs = document.querySelectorAll('input');
+            for (const input of allInputs) {
+                const ph = input.getAttribute('placeholder') || '';
+                if (ph.includes('#') && !input.getAttribute('role')) {
+                    return await setInputValue(input, value);
+                }
+            }
+            const labels = Array.from(document.querySelectorAll('label, .form-label, span'));
+            for (const label of labels) {
+                const text = (label.innerText || '').toLowerCase().trim();
+                if ((text.includes('bettingan') || text.includes('taruhan')) && text.length < 50) {
+                    const parent = label.closest('.form-group, .form-field, .mb-3') || label.parentElement;
+                    if (parent) {
+                        const input = parent.querySelector('input:not([role="combobox"]):not([type="hidden"])');
+                        if (input) return await setInputValue(input, value);
+                    }
+                }
+            }
+            return false;
+        }
+
+        async function setInputValue(input, value) {
+            input.scrollIntoView({ behavior: 'instant', block: 'center' });
+            await wait(50);
+            input.focus();
+            input.click();
+            try {
+                const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+                if (setter) {
+                    setter.call(input, value);
+                    ['input', 'change'].forEach(evt => input.dispatchEvent(new Event(evt, { bubbles: true })));
+                    await wait(50);
+                    if (input.value === value || input.value.includes(value)) {
+                        toast('✅ Bettingan terisi!', 'success');
+                        return true;
+                    }
+                }
+            } catch (e) {}
+            try {
+                input.value = value;
+                ['input', 'change'].forEach(evt => input.dispatchEvent(new Event(evt, { bubbles: true })));
+                await wait(50);
+                if (input.value === value || input.value.includes(value)) {
+                    toast('✅ Bettingan terisi!', 'success');
+                    return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        async function pickFirstScatterOption() {
+            console.log('🎯 Mencari dropdown Jumlah Scatter...');
+            const result = findDropdownByLabel('scatter');
+            if (!result) {
+                console.warn('❌ Dropdown Scatter tidak ditemukan');
+                return false;
+            }
+            await clickDropdownControl(result.control, 'Scatter');
+            const menu = await waitForDropdownMenu('Scatter', 4000);
+            if (!menu) {
+                toast('❌ Menu Scatter tidak muncul', 'warning');
+                return false;
+            }
+            const options = menu.querySelectorAll('[role="option"]');
+            for (const opt of options) {
+                const text = (opt.innerText || '').trim().toLowerCase();
+                if (text.includes('pilih') || text.includes('masukkan') || text === '' || text === '-') continue;
+                console.log(`✅ Opsi Scatter: "${text}"`);
+                opt.click();
+                await wait(150);
+                return true;
+            }
+            toast('❌ Scatter tidak ada opsi valid', 'warning');
+            return false;
+        }
+
+        async function processData(data) {
+            if (isProcessing) {
+                console.log('⚠️ Masih ada proses berjalan, skip...');
+                return;
+            }
+            isProcessing = true;
+            toast(`📥 Data diterima: ${data.nickname}`, 'success');
+            try {
+                toast('🔍 Mencari tombol Tambah data...', 'info', 1500);
+                let tambahBtn = null;
+                const allButtons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
+                for (const btn of allButtons) {
+                    const text = (btn.innerText || '').trim().toLowerCase();
+                    if (text.includes('tambah data') || text.includes('+ tambah') || text === 'tambah') {
+                        tambahBtn = btn;
+                        break;
+                    }
+                }
+                if (!tambahBtn) {
+                    toast('❌ Tombol Tambah data tidak ditemukan!', 'error');
+                    return;
+                }
+                tambahBtn.scrollIntoView({ behavior: 'instant', block: 'center' });
+                await wait(200);
+                tambahBtn.click();
+                toast('✅ Tombol Tambah data diklik!', 'success');
+                let modalReady = false;
+                for (let i = 0; i < 50; i++) {
+                    await wait(100);
+                    const modal = document.querySelector('[class*="modal"], [class*="dialog"], [role="dialog"]');
+                    if (modal) {
+                        modalReady = true;
+                        break;
+                    }
+                }
+                if (!modalReady) {
+                    toast('⚠️ Modal tidak terbuka.', 'error');
+                    return;
+                }
+                await wait(500);
+                toast('📝 Mengisi form...', 'info', 1500);
+                await selectDropdown('Situs', 'Jonitogel', 'Pilih Situs');
+                await wait(1000);
+                await selectDropdown('Tipe Games', 'mahjong', 'Pilih games');
+                await wait(400);
+                await fillByPlaceholder('User ID', data.nickname);
+                await fillByPlaceholder('Kode Tiket', data.kodeTransaksi);
+                if (data.linkFoto && data.linkFoto.trim() !== '') {
+                    await fillTextarea('Link Bukti', data.linkFoto);
+                }
+                const bettingValue = data.hasilDebit.replace(/[^0-9]/g, '');
+                await fillBettingan(bettingValue);
+                await wait(300);
+                await pickFirstScatterOption();
+                await wait(400);
+                toast('✅ Semua field terisi!', 'success', 1500);
+                await wait(300);
+                toast('💾 Menyimpan...', 'info', 1500);
+                const buttons = Array.from(document.querySelectorAll('button'));
+                for (const btn of buttons) {
+                    const text = (btn.innerText || '').trim().toLowerCase();
+                    if (text.includes('simpan') || text.includes('save')) {
+                        btn.scrollIntoView({ behavior: 'instant', block: 'center' });
+                        await wait(200);
+                        btn.click();
+                        toast('🎉 Data disimpan!', 'success');
+                        break;
+                    }
+                }
+                await wait(1500);
+                clearURLParams();
+                toast('⏳ Menunggu data berikutnya...', 'info', 3000);
+            } catch (e) {
+                console.error('Error:', e);
+                toast('❌ Error: ' + e.message, 'error');
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        function startURLWatcher() {
+            console.log('👀 Memulai URL watcher...');
+            setInterval(() => {
+                if (isProcessing) return;
+                const data = getDataFromURL();
+                if (!data.nickname || !data.kodeTransaksi || !data.hasilDebit) return;
+                const key = getProcessedKey(data);
+                if (key === lastProcessedKey) return;
+                console.log('🆕 Data baru terdeteksi!');
+                lastProcessedKey = key;
+                processData(data);
+            }, 500);
+        }
+
+        async function main() {
+            await wait(800);
+            const initialData = getDataFromURL();
+            if (initialData.nickname && initialData.kodeTransaksi && initialData.hasilDebit) {
+                lastProcessedKey = getProcessedKey(initialData);
+                await processData(initialData);
+            }
+            startURLWatcher();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', main);
+        } else {
+            main();
+        }
+    }
+
+})();
