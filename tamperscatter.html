@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         BonusSMB + IDNLIVE - All-in-One (Stop at DEBIT + Single Tab)
 // @namespace    http://tampermonkey.net/
-// @version      2.1
-// @description  Gabungan: IDNLIVE Auto Search (stop at DEBIT) + BonusSMB Auto Fill (1 tab reuse + auto focus back) + OCR Auto-Fit
+// @version      2.2
+// @description  Gabungan: IDNLIVE Auto Search (stop at DEBIT) + BonusSMB Auto Fill (1 tab reuse + auto focus back) + OCR Auto-Fit. Fix: Tombol Tambah Data tidak ditemukan.
 // @match        https://regs.idnlive.live/report/transactionregion*
 // @match        https://bonussmb.com/tickets*
 // @grant        none
@@ -273,24 +273,15 @@
         function updTr() { document.getElementById('tm-si').style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) scale(${zoomLevel})`; }
         function resetP() { translateX = 0; translateY = 0; updTr(); }
 
-        // ================================================================
-        //  AUTO-FIT: Sesuaikan gambar ke container
-        // ================================================================
         function fitImg() {
             const c = document.getElementById('tm-ic'), i = document.getElementById('tm-si');
             if (!i.naturalWidth || !c.clientWidth || !c.clientHeight) {
-                console.log('⏳ fitImg: container/image belum siap, retry...');
                 setTimeout(fitImg, 100);
                 return;
             }
-
-            // Hitung skala yang pas (fit ke container dengan padding 5%)
             const scaleX = c.clientWidth / i.naturalWidth;
             const scaleY = c.clientHeight / i.naturalHeight;
             const scale = Math.min(scaleX, scaleY) * 0.95;
-
-            console.log(`📐 Auto-fit: image=${i.naturalWidth}x${i.naturalHeight}, container=${c.clientWidth}x${c.clientHeight}, scale=${scale.toFixed(3)}`);
-
             setZ(scale);
             resetP();
         }
@@ -305,35 +296,15 @@
                     t.style.top = (t.offsetTop-p2)+'px'; t.style.left = (t.offsetLeft-p1)+'px'; t.style.right='auto'; }; };
         }
 
-        // ================================================================
-        //  SCAN IMG - AUTO FIT SETELAH LOAD & SCAN SELESAI
-        // ================================================================
         async function scanImg(link, idx) {
             currentDataIndex = idx; if (!link) return toast('Link kosong!', 'w');
             const m = document.getElementById('tm-sm'), i = document.getElementById('tm-si'), r = document.getElementById('tm-sr');
-
-            // Reset zoom dan position
-            setZ(1);
-            resetP();
-
+            setZ(1); resetP();
             i.src = link;
             m.style.display = 'flex';
             r.innerHTML = '<span style="color:#666;">🔬 Memindai...</span>';
-
-            // AUTO-FIT saat gambar selesai load
-            i.onload = () => {
-                console.log('✅ Gambar selesai load, auto-fit...');
-                // Delay sedikit agar container ter-render sempurna
-                setTimeout(() => {
-                    fitImg();
-                    toast('🖼️ Gambar di-fit otomatis', 'i', '📐 Auto-Fit');
-                }, 150);
-            };
-
-            i.onerror = () => {
-                console.error('❌ Gagal load gambar');
-                toast('Gagal load gambar!', 'e', '❌ Error');
-            };
+            i.onload = () => { setTimeout(() => { fitImg(); toast('🖼️ Gambar di-fit otomatis', 'i', '📐 Auto-Fit'); }, 150); };
+            i.onerror = () => { toast('Gagal load gambar!', 'e', '❌ Error'); };
 
             if (typeof Tesseract === 'undefined') {
                 r.innerHTML = '<span style="color:#e74c3c;">⚠️ Tesseract belum dimuat</span>';
@@ -349,10 +320,7 @@
                         }
                     }
                 });
-
-                // AUTO-FIT lagi setelah scan selesai (jaga-jaga kalau ada resize)
                 setTimeout(fitImg, 100);
-
                 const raw = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                 let hg = [], hl = [];
                 for (let j = 0; j < raw.length; j++) {
@@ -369,7 +337,6 @@
                     hl.forEach(k => { const d = document.createElement('div'); d.style.cssText = 'background:#f5f7fa; padding:10px; margin:6px 0; border-radius:8px; border-left:4px solid #11998e;';
                         d.innerHTML = `<div style="font-weight:700; word-break:break-all;">${k}</div><div style="display:flex; gap:6px; margin-top:6px;"><button onclick="cwb(this,'${k}')" style="flex:1; padding:6px; background:linear-gradient(135deg, #4facfe, #00f2fe); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:700;">📋 Copy</button><button onclick="pk('${k}')" style="flex:1; padding:6px; background:linear-gradient(135deg, #11998e, #38ef7d); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:700;">✓ Pilih</button></div>`; r.appendChild(d); }); }
                 if (hg.length === 0 && hl.length === 0) r.innerHTML = '<div style="text-align:center; padding:20px; color:#e74c3c; font-weight:700;">❌ Tidak ada angka</div>';
-
                 toast('✅ Scan selesai! Gambar sudah di-fit', 's', '🔬 OCR Selesai');
             } catch (e) {
                 r.innerHTML = '<span style="color:#e74c3c;">❌ Gagal</span>';
@@ -398,10 +365,7 @@
                         updDebit(); updTicketBtn();
                         updSt(`✅ DEBIT ditemukan di halaman ${pg}!`, '#11998e');
                         toast(`🎯 DEBIT ditemukan! Script berhenti di posisi DEBIT`, 's', '✅ Selesai!');
-
-                        if (debitRowElement) {
-                            debitRowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
+                        if (debitRowElement) debitRowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         break;
                     }
                     if (r.count > 0 && !r.hasDebit) updSt('⚠️ CREDIT saja, lanjut...', '#fa709a');
@@ -593,7 +557,6 @@
         }
 
         async function clickDropdownControl(controlElement, label) {
-            console.log(`🖱️ [${label}] Klik dropdown...`);
             controlElement.scrollIntoView({ behavior: 'instant', block: 'center' });
             const rect = controlElement.getBoundingClientRect();
             const x = rect.left + rect.width / 2;
@@ -611,7 +574,6 @@
         }
 
         function findDropdownByLabel(labelText) {
-            console.log(`\n🔍 Mencari dropdown: "${labelText}"`);
             const lower = labelText.toLowerCase();
             const labels = document.querySelectorAll('label, .form-label, div[class*="label"]');
             for (const label of labels) {
@@ -638,46 +600,35 @@
                     }
                 }
             }
-            console.log(`  ❌ Dropdown "${labelText}" tidak ditemukan`);
             return null;
         }
 
         async function waitForDropdownMenu(label, maxWait = 5000) {
-            console.log(`⏳ [${label}] Menunggu menu dropdown...`);
             const start = Date.now();
             while (Date.now() - start < maxWait) {
                 await wait(80);
                 const listboxes = document.querySelectorAll('[role="listbox"]');
                 for (const lb of listboxes) {
-                    if (lb.offsetParent !== null && lb.children.length > 0) {
-                        console.log(`  ✅ [${label}] Listbox: ${lb.children.length} opsi`);
-                        return lb;
-                    }
+                    if (lb.offsetParent !== null && lb.children.length > 0) return lb;
                 }
                 const menus = document.querySelectorAll('[class*="menu"], [class*="Menu"]');
                 for (const menu of menus) {
                     if (menu.offsetParent !== null) {
                         const opts = menu.querySelectorAll('[role="option"]');
-                        if (opts.length > 0) {
-                            console.log(`  ✅ [${label}] Menu: ${opts.length} opsi`);
-                            return menu;
-                        }
+                        if (opts.length > 0) return menu;
                     }
                 }
             }
-            console.log(`  ⚠️ [${label}] Menu tidak muncul setelah ${maxWait}ms`);
             return null;
         }
 
         async function selectOption(menu, targetValue, label) {
-            console.log(`🎯 [${label}] Mencari opsi: "${targetValue}"`);
             const lower = targetValue.toLowerCase();
             const options = menu.querySelectorAll('[role="option"]');
             for (const opt of options) {
                 const text = (opt.innerText || '').trim();
                 const optLower = text.toLowerCase();
                 if (optLower === lower || optLower.includes(lower)) {
-                    console.log(`  ✅ [${label}] MATCH: "${text}"`);
                     const rect = opt.getBoundingClientRect();
                     opt.dispatchEvent(new MouseEvent('click', {
                         bubbles: true, cancelable: true,
@@ -690,25 +641,22 @@
                     return true;
                 }
             }
-            console.log(`  ❌ [${label}] Opsi "${targetValue}" tidak ditemukan`);
             return false;
         }
 
         async function selectDropdown(labelText, value, placeholderText) {
-            console.log(`\n🎯 SELECT: ${labelText} → ${value}`);
             toast(`🔍 ${labelText}...`, 'info', 1500);
             const placeholder = placeholderText || labelText;
             let attempts = 0;
             const maxAttempts = 3;
             while (attempts < maxAttempts) {
                 attempts++;
-                console.log(`🔄 Attempt ${attempts}/${maxAttempts}`);
                 const result = findDropdownByLabel(placeholder);
                 if (!result) {
                     toast(`❌ Dropdown "${labelText}" tidak ditemukan`, 'error');
                     return false;
                 }
-                const { control, input, container } = result;
+                const { control } = result;
                 await clickDropdownControl(control, labelText);
                 const menu = await waitForDropdownMenu(labelText, 4000);
                 if (!menu) {
@@ -750,7 +698,6 @@
             ['input', 'change', 'blur'].forEach(evt => {
                 target.dispatchEvent(new Event(evt, { bubbles: true }));
             });
-            console.log(`✅ ${placeholderText}: ${value}`);
             return true;
         }
 
@@ -831,12 +778,8 @@
         }
 
         async function pickFirstScatterOption() {
-            console.log('🎯 Mencari dropdown Jumlah Scatter...');
             const result = findDropdownByLabel('scatter');
-            if (!result) {
-                console.warn('❌ Dropdown Scatter tidak ditemukan');
-                return false;
-            }
+            if (!result) return false;
             await clickDropdownControl(result.control, 'Scatter');
             const menu = await waitForDropdownMenu('Scatter', 4000);
             if (!menu) {
@@ -847,7 +790,6 @@
             for (const opt of options) {
                 const text = (opt.innerText || '').trim().toLowerCase();
                 if (text.includes('pilih') || text.includes('masukkan') || text === '' || text === '-') continue;
-                console.log(`✅ Opsi Scatter: "${text}"`);
                 opt.click();
                 await wait(150);
                 return true;
@@ -856,39 +798,98 @@
             return false;
         }
 
+        // ================================================================
+        //  PROSES DATA (FIXED: TOMBOL TAMBAH DATA & SIMPAN)
+        // ================================================================
         async function processData(data) {
-            if (isProcessing) {
-                console.log('⚠️ Masih ada proses berjalan, skip...');
-                return;
-            }
+            if (isProcessing) return;
             isProcessing = true;
             toast(`📥 Data diterima: ${data.nickname}`, 'success');
             try {
                 toast('🔍 Mencari tombol Tambah data...', 'info', 1500);
                 let tambahBtn = null;
-                const allButtons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
-                for (const btn of allButtons) {
-                    const text = (btn.innerText || '').trim().toLowerCase();
-                    if (text.includes('tambah data') || text.includes('+ tambah') || text === 'tambah') {
-                        tambahBtn = btn;
-                        break;
+                let maxAttempts = 50; // Tunggu maksimal 10 detik (50 x 200ms)
+                let attempt = 0;
+
+                // Loop untuk menunggu tombol muncul dan mencocokkan teks
+                while (!tambahBtn && attempt < maxAttempts) {
+                    const allButtons = Array.from(document.querySelectorAll('button, a, [role="button"], div[onclick], span[onclick]'));
+                    for (const btn of allButtons) {
+                        // Ambil teks, bersihkan spasi berlebih, dan lowercase
+                        const text = (btn.innerText || btn.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+                        // Cek berbagai kemungkinan teks tombol
+                        if (text.includes('tambah data') ||
+                            text.includes('+ tambah') ||
+                            text === 'tambah' ||
+                            text.includes('add data') ||
+                            text.includes('tambah tiket') ||
+                            (text.includes('tambah') && !text.includes('tambah user') && !text.includes('tambah member') && text.length < 25)) {
+
+                            // Pastikan tombol terlihat (bukan hidden/display:none)
+                            const rect = btn.getBoundingClientRect();
+                            if (rect.width > 0 && rect.height > 0) {
+                                tambahBtn = btn;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!tambahBtn) {
+                        await wait(200);
+                        attempt++;
                     }
                 }
+
+                // Fallback jika tetap tidak ditemukan berdasarkan teks (cari berdasarkan class)
+                if (!tambahBtn) {
+                    console.warn('⚠️ Teks tombol tidak cocok, mencoba fallback berdasarkan class...');
+                    const fallbackBtns = document.querySelectorAll('.btn-primary, .btn-success, [class*="add"], [class*="tambah"], .btn-add');
+                    for (const btn of fallbackBtns) {
+                        const rect = btn.getBoundingClientRect();
+                        if (rect.width > 0 && rect.height > 0) {
+                            const text = (btn.innerText || '').toLowerCase();
+                            if (text.includes('tambah') || text.includes('add') || text.includes('+')) {
+                                tambahBtn = btn;
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 if (!tambahBtn) {
                     toast('❌ Tombol Tambah data tidak ditemukan!', 'error');
                     return;
                 }
+
                 tambahBtn.scrollIntoView({ behavior: 'instant', block: 'center' });
                 await wait(200);
-                tambahBtn.click();
+
+                // Klik dengan event lengkap untuk memastikan trigger (penting untuk framework modern)
+                const rect = tambahBtn.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+
+                ['mousedown', 'mouseup', 'click'].forEach(evt => {
+                    tambahBtn.dispatchEvent(new MouseEvent(evt, {
+                        bubbles: true, cancelable: true,
+                        clientX: x, clientY: y, button: 0, view: window
+                    }));
+                });
+                try { tambahBtn.click(); } catch(e) {}
+
                 toast('✅ Tombol Tambah data diklik!', 'success');
+
                 let modalReady = false;
                 for (let i = 0; i < 50; i++) {
                     await wait(100);
                     const modal = document.querySelector('[class*="modal"], [class*="dialog"], [role="dialog"]');
                     if (modal) {
-                        modalReady = true;
-                        break;
+                        const modalRect = modal.getBoundingClientRect();
+                        if (modalRect.width > 0 && modalRect.height > 0) {
+                            modalReady = true;
+                            break;
+                        }
                     }
                 }
                 if (!modalReady) {
@@ -896,6 +897,7 @@
                     return;
                 }
                 await wait(500);
+
                 toast('📝 Mengisi form...', 'info', 1500);
                 await selectDropdown('Situs', 'Jonitogel', 'Pilih Situs');
                 await wait(1000);
@@ -913,6 +915,7 @@
                 await wait(400);
                 toast('✅ Semua field terisi!', 'success', 1500);
                 await wait(300);
+
                 toast('💾 Menyimpan...', 'info', 1500);
                 const buttons = Array.from(document.querySelectorAll('button'));
                 for (const btn of buttons) {
@@ -920,11 +923,24 @@
                     if (text.includes('simpan') || text.includes('save')) {
                         btn.scrollIntoView({ behavior: 'instant', block: 'center' });
                         await wait(200);
-                        btn.click();
+
+                        // Klik tombol simpan dengan event lengkap
+                        const saveRect = btn.getBoundingClientRect();
+                        const sx = saveRect.left + saveRect.width / 2;
+                        const sy = saveRect.top + saveRect.height / 2;
+                        ['mousedown', 'mouseup', 'click'].forEach(evt => {
+                            btn.dispatchEvent(new MouseEvent(evt, {
+                                bubbles: true, cancelable: true,
+                                clientX: sx, clientY: sy, button: 0, view: window
+                            }));
+                        });
+                        try { btn.click(); } catch(e) {}
+
                         toast('🎉 Data disimpan!', 'success');
                         break;
                     }
                 }
+
                 await wait(1500);
                 clearURLParams();
                 toast('⏳ Menunggu data berikutnya...', 'info', 3000);
@@ -937,14 +953,12 @@
         }
 
         function startURLWatcher() {
-            console.log('👀 Memulai URL watcher...');
             setInterval(() => {
                 if (isProcessing) return;
                 const data = getDataFromURL();
                 if (!data.nickname || !data.kodeTransaksi || !data.hasilDebit) return;
                 const key = getProcessedKey(data);
                 if (key === lastProcessedKey) return;
-                console.log('🆕 Data baru terdeteksi!');
                 lastProcessedKey = key;
                 processData(data);
             }, 500);
