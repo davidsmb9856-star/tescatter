@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BonusSMB + IDNLIVE - All-in-One (Stop at DEBIT + Single Tab)
 // @namespace    http://tampermonkey.net/
-// @version      2.2
+// @version      2.4
 // @description  Gabungan: IDNLIVE Auto Search (stop at DEBIT) + BonusSMB Auto Fill (1 tab reuse + auto focus back) + OCR Auto-Fit + Anti-Race Condition
 // @match        https://regs.idnlive.live/report/transactionregion*
 // @match        https://bonussmb.com/tickets*
@@ -689,13 +689,10 @@
             return false;
         }
 
-        // ================================================================
-        //  PERBAIKAN: Tambahkan mekanisme tunggu (retry) untuk input form
-        // ================================================================
         async function fillByPlaceholder(placeholderText, value) {
             if (!value) return false;
             let target = null;
-            const maxWait = 5000; // Tunggu maksimal 5 detik
+            const maxWait = 5000;
             const startTime = Date.now();
 
             while (Date.now() - startTime < maxWait) {
@@ -713,10 +710,7 @@
                 await wait(300);
             }
 
-            if (!target) {
-                console.warn(`Input dengan placeholder "${placeholderText}" tidak ditemukan.`);
-                return false;
-            }
+            if (!target) return false;
 
             target.scrollIntoView({ behavior: 'instant', block: 'center' });
             await wait(50);
@@ -727,7 +721,6 @@
             ['input', 'change', 'blur'].forEach(evt => {
                 target.dispatchEvent(new Event(evt, { bubbles: true }));
             });
-            console.log(`✅ ${placeholderText}: ${value}`);
             return true;
         }
 
@@ -750,10 +743,7 @@
                 await wait(300);
             }
 
-            if (!target) {
-                console.warn(`Textarea dengan placeholder "${placeholderText}" tidak ditemukan.`);
-                return false;
-            }
+            if (!target) return false;
 
             target.scrollIntoView({ behavior: 'instant', block: 'center' });
             await wait(50);
@@ -804,10 +794,7 @@
                 await wait(300);
             }
 
-            if (!targetInput) {
-                console.warn('Input Bettingan tidak ditemukan.');
-                return false;
-            }
+            if (!targetInput) return false;
 
             return await setInputValue(targetInput, value);
         }
@@ -843,9 +830,7 @@
 
         async function pickFirstScatterOption() {
             const result = findDropdownByLabel('scatter');
-            if (!result) {
-                return false;
-            }
+            if (!result) return false;
             await clickDropdownControl(result.control, 'Scatter');
             const menu = await waitForDropdownMenu('Scatter', 4000);
             if (!menu) {
@@ -865,19 +850,13 @@
         }
 
         async function processData(data) {
-            if (isProcessing) {
-                console.log('⚠️ Masih ada proses berjalan, skip...');
-                return;
-            }
+            if (isProcessing) return;
             isProcessing = true;
             toast(`📥 Data diterima: ${data.nickname}`, 'success');
             try {
                 toast('🔍 Mencari tombol Tambah data...', 'info', 1500);
                 let tambahBtn = null;
 
-                // ================================================================
-                //  PERBAIKAN UTAMA: Tunggu hingga 15 detik untuk menemukan tombol
-                // ================================================================
                 const maxWaitTime = 15000;
                 const startTime = Date.now();
 
@@ -897,7 +876,7 @@
                         }
                     }
                     if (tambahBtn) break;
-                    await wait(500); // Cek ulang setiap 500ms
+                    await wait(500);
                 }
 
                 if (!tambahBtn) {
@@ -967,14 +946,12 @@
         }
 
         function startURLWatcher() {
-            console.log('👀 Memulai URL watcher...');
             setInterval(() => {
                 if (isProcessing) return;
                 const data = getDataFromURL();
                 if (!data.nickname || !data.kodeTransaksi || !data.hasilDebit) return;
                 const key = getProcessedKey(data);
                 if (key === lastProcessedKey) return;
-                console.log('🆕 Data baru terdeteksi!');
                 lastProcessedKey = key;
                 processData(data);
             }, 500);
