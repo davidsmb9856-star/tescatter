@@ -1,1032 +1,629 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSLINE Shift Manager</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --bg:#0a0f16;--bg2:#101820;--card:#151f2b;--card2:#1a2736;
-            --border:#243044;--border2:#2d3d54;
-            --fg:#e8edf4;--fg2:#c4ced9;--muted:#6b7f96;
-            --accent:#f0a500;--accent2:#ffbf33;
-            --cs:#f0a500;--cs-bg:rgba(240,165,0,.08);--cs-border:rgba(240,165,0,.18);
-            --kasir:#14b8a6;--kasir-bg:rgba(20,184,166,.08);--kasir-border:rgba(20,184,166,.18);
-            --pagi:#fb923c;--pagi-bg:rgba(251,146,60,.08);
-            --malam:#38bdf8;--malam-bg:rgba(56,189,248,.08);
-            --off:#f87171;--off-bg:rgba(248,113,113,.08);
-            --ok:#34d399;--ok-bg:rgba(52,211,153,.08);
-            --danger:#ef4444;--warn:#fbbf24;
-        }
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;overflow-x:hidden}
-        ::-webkit-scrollbar{width:5px}
-        ::-webkit-scrollbar-track{background:var(--bg)}
-        ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSLINE Shift Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{
+--bg:#060a10;--bg2:#0c1219;--bg3:#111a24;
+--card:#141e2a;--card2:#192636;
+--border:#1e2e40;--border2:#2a3f57;
+--fg:#e6ecf3;--fg2:#b8c5d4;--muted:#5c7290;
+--accent:#e8a000;--accent2:#ffc233;
+--cs:#e8a000;--cs-bg:rgba(232,160,0,.07);--cs-bd:rgba(232,160,0,.15);
+--kasir:#00c9a7;--kasir-bg:rgba(0,201,167,.07);--kasir-bd:rgba(0,201,167,.15);
+--pagi:#ff8c42;--pagi-bg:rgba(255,140,66,.06);
+--malam:#3b9eff;--malam-bg:rgba(59,158,255,.06);
+--off:#ff5c5c;--off-bg:rgba(255,92,92,.06);
+--ok:#2dd4a0;--warn:#fbbf24;--danger:#ef4444;
+--row-h:44px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-        /* ATMOSFER */
-        .atmo{position:fixed;inset:0;z-index:0;pointer-events:none;
-            background:radial-gradient(ellipse 700px 500px at 10% 15%,rgba(240,165,0,.03),transparent),
-            radial-gradient(ellipse 600px 600px at 90% 85%,rgba(56,189,248,.03),transparent),
-            radial-gradient(ellipse 400px 400px at 50% 50%,rgba(20,184,166,.02),transparent)}
-        .grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;
-            background-image:linear-gradient(var(--fg) 1px,transparent 1px),linear-gradient(90deg,var(--fg) 1px,transparent 1px);
-            background-size:50px 50px}
+.atmo{position:fixed;inset:0;z-index:0;pointer-events:none;
+background:radial-gradient(ellipse 800px 600px at 5% 10%,rgba(232,160,0,.025),transparent),
+radial-gradient(ellipse 700px 700px at 95% 90%,rgba(59,158,255,.025),transparent)}
+.lines{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.018;
+background-image:linear-gradient(var(--fg) 1px,transparent 1px),linear-gradient(90deg,var(--fg) 1px,transparent 1px);background-size:48px 48px}
 
-        /* HEADER */
-        header{position:sticky;top:0;z-index:100;background:rgba(10,15,22,.88);backdrop-filter:blur(20px);
-            border-bottom:1px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between}
-        .logo-area{display:flex;align-items:center;gap:10px}
-        .logo-box{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#c78500);
-            display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#000;
-            box-shadow:0 0 18px rgba(240,165,0,.2)}
-        .logo-txt h1{font-size:14px;font-weight:800;letter-spacing:1.5px;line-height:1.2}
-        .logo-txt span{font-size:10px;color:var(--muted);letter-spacing:.5px}
-        .hdr-right{display:flex;align-items:center;gap:8px}
-        .live-clock{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);
-            background:var(--cs-bg);padding:5px 12px;border-radius:7px;border:1px solid var(--cs-border);
-            display:flex;align-items:center;gap:6px}
-        .live-clock .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:blink 1.5s infinite}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-        .shift-live{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-        .shift-live.pagi{background:var(--pagi-bg);color:var(--pagi);border:1px solid rgba(251,146,60,.2)}
-        .shift-live.malam{background:var(--malam-bg);color:var(--malam);border:1px solid rgba(56,189,248,.2)}
-        .shift-live.libur{background:var(--off-bg);color:var(--off);border:1px solid rgba(248,113,113,.2)}
+/* HEADER */
+.hdr{position:sticky;top:0;z-index:200;background:rgba(6,10,16,.92);backdrop-filter:blur(24px);
+border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.lore-badge{display:flex;align-items:center;gap:8px}
+.lore-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#b07800);
+display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#000;letter-spacing:.5px}
+.lore-name{font-size:13px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}
+.lore-sub{font-size:9px;color:var(--muted);letter-spacing:.8px;font-weight:500}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.clock{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);background:var(--cs-bg);
+padding:4px 10px;border-radius:6px;border:1px solid var(--cs-bd);display:flex;align-items:center;gap:5px}
+.clock .d{width:4px;height:4px;border-radius:50%;background:var(--accent);animation:bk 1.5s infinite}
+@keyframes bk{0%,100%{opacity:1}50%{opacity:.2}}
+.sh-live{padding:3px 8px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.sh-live.pagi{background:var(--pagi-bg);color:var(--pagi);border:1px solid rgba(255,140,66,.15)}
+.sh-live.malam{background:var(--malam-bg);color:var(--malam);border:1px solid rgba(59,158,255,.15)}
+.sh-live.libur{background:var(--off-bg);color:var(--off);border:1px solid rgba(255,92,92,.15)}
 
-        .btn{padding:7px 14px;border-radius:7px;font-family:inherit;font-size:12px;font-weight:600;border:none;cursor:pointer;
-            display:inline-flex;align-items:center;gap:5px;transition:all .2s}
-        .btn-p{background:var(--accent);color:#000;box-shadow:0 0 12px rgba(240,165,0,.12)}
-        .btn-p:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 18px rgba(240,165,0,.2)}
-        .btn-o{background:transparent;color:var(--fg);border:1px solid var(--border)}
-        .btn-o:hover{background:var(--card);border-color:var(--muted)}
-        .btn-d{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.15)}
-        .btn-d:hover{background:rgba(239,68,68,.2)}
-        .btn-sm{padding:5px 9px;font-size:11px;border-radius:5px}
+.btn{padding:6px 12px;border-radius:6px;font-family:inherit;font-size:11px;font-weight:600;border:none;cursor:pointer;
+display:inline-flex;align-items:center;gap:4px;transition:all .2s}
+.btn-p{background:var(--accent);color:#000;box-shadow:0 0 10px rgba(232,160,0,.1)}
+.btn-p:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-o{background:transparent;color:var(--fg2);border:1px solid var(--border)}
+.btn-o:hover{background:var(--card);border-color:var(--muted)}
+.btn-d{background:rgba(239,68,68,.08);color:var(--danger);border:1px solid rgba(239,68,68,.12)}
+.btn-d:hover{background:rgba(239,68,68,.15)}
+.btn-sm{padding:4px 8px;font-size:10px;border-radius:5px}
 
-        /* MAIN */
-        main{position:relative;z-index:1;max-width:1340px;margin:0 auto;padding:20px}
+/* MAIN */
+main{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:16px 20px 40px}
 
-        /* TODAY BANNER */
-        .today-banner{border-radius:14px;padding:20px 24px;margin-bottom:20px;position:relative;overflow:hidden;
-            border:1px solid var(--border)}
-        .today-banner.regular{background:linear-gradient(135deg,var(--card),var(--card2))}
-        .today-banner.libur{background:linear-gradient(135deg,rgba(248,113,113,.06),rgba(220,38,38,.04));
-            border-color:rgba(248,113,113,.2)}
-        .today-banner .glow{position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;filter:blur(60px);opacity:.12}
-        .today-banner.libur .glow{background:var(--off)}
-        .today-banner.regular .glow{background:var(--accent)}
-        .today-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px}
-        .today-left{display:flex;align-items:center;gap:12px}
-        .today-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px}
-        .today-banner.libur .today-icon{background:var(--off-bg);color:var(--off)}
-        .today-banner.regular .today-icon{background:var(--cs-bg);color:var(--accent)}
-        .today-date{font-size:20px;font-weight:800}
-        .today-day{font-size:12px;color:var(--muted);font-weight:500}
-        .today-tag{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.5px}
-        .today-tag.libur{background:var(--off-bg);color:var(--off);border:1px solid rgba(248,113,113,.2)}
-        .today-tag.pagi{background:var(--pagi-bg);color:var(--pagi);border:1px solid rgba(251,146,60,.2)}
-        .today-tag.malam{background:var(--malam-bg);color:var(--malam);border:1px solid rgba(56,189,248,.2)}
+/* TODAY */
+.today{border-radius:12px;padding:18px 22px;margin-bottom:16px;position:relative;overflow:hidden;border:1px solid var(--border);background:var(--card)}
+.today.libur-mode{border-color:rgba(255,92,92,.18);background:linear-gradient(135deg,rgba(255,92,92,.04),var(--card))}
+.today .g{position:absolute;top:-50px;right:-50px;width:140px;height:140px;border-radius:50%;filter:blur(50px);opacity:.1}
+.today.libur-mode .g{background:var(--off)}.today:not(.libur-mode) .g{background:var(--accent)}
+.t-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.t-left{display:flex;align-items:center;gap:10px}
+.t-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.today.libur-mode .t-ico{background:var(--off-bg);color:var(--off)}
+.today:not(.libur-mode) .t-ico{background:var(--cs-bg);color:var(--accent)}
+.t-date{font-size:18px;font-weight:800;letter-spacing:.3px}
+.t-day{font-size:11px;color:var(--muted);font-weight:500}
+.t-tag{padding:3px 10px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.5px}
+.t-tag.libur{background:var(--off-bg);color:var(--off);border:1px solid rgba(255,92,92,.15)}
+.t-tag.pagi{background:var(--pagi-bg);color:var(--pagi);border:1px solid rgba(255,140,66,.15)}
+.t-tag.malam{background:var(--malam-bg);color:var(--malam);border:1px solid rgba(59,158,255,.15)}
+.t-tag.idle{background:var(--card2);color:var(--muted);border:1px solid var(--border)}
+.t-duty{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dchip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;font-size:11px;font-weight:600}
+.dchip.cs{background:var(--cs-bg);color:var(--cs);border:1px solid var(--cs-bd)}
+.dchip.kasir{background:var(--kasir-bg);color:var(--kasir);border:1px solid var(--kasir-bd)}
+.dchip .n{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700}
+.dchip .l{font-size:9px;opacity:.6;text-transform:uppercase;letter-spacing:.3px}
+.dchip .names{font-size:10px;opacity:.8;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pbar{height:3px;background:var(--border);border-radius:2px;margin-top:12px;overflow:hidden}
+.pfill{height:100%;border-radius:2px;transition:width 1s ease}
+.pfill.pagi{background:linear-gradient(90deg,var(--pagi),var(--accent))}
+.pfill.malam{background:linear-gradient(90deg,var(--malam),#818cf8)}
 
-        .today-duty{display:flex;gap:16px;flex-wrap:wrap}
-        .duty-chip{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600}
-        .duty-chip.cs{background:var(--cs-bg);color:var(--cs);border:1px solid var(--cs-border)}
-        .duty-chip.kasir{background:var(--kasir-bg);color:var(--kasir);border:1px solid var(--kasir-border)}
-        .duty-chip .num{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700}
-        .duty-chip .lbl{font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:.3px}
+/* STATS ROW */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.st{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;overflow:hidden;transition:all .25s}
+.st:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.st .si{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:8px}
+.st.pagi .si{background:var(--pagi-bg);color:var(--pagi)}
+.st.malam .si{background:var(--malam-bg);color:var(--malam)}
+.st.off .si{background:var(--off-bg);color:var(--off)}
+.st.total .si{background:rgba(45,212,160,.06);color:var(--ok)}
+.st .sv{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.st.pagi .sv{color:var(--pagi)}.st.malam .sv{color:var(--malam)}.st.off .sv{color:var(--off)}.st.total .sv{color:var(--ok)}
+.st .ss{font-size:10px;color:var(--muted);margin-top:4px;display:flex;gap:8px}
+.st .ss .cc{color:var(--cs)}.st .ss .kc{color:var(--kasir)}
+.st .sw{font-size:9px;color:var(--warn);margin-top:4px;display:flex;align-items:center;gap:3px}
+.st .gw{position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;filter:blur(30px);opacity:.1}
+.st.pagi .gw{background:var(--pagi)}.st.malam .gw{background:var(--malam)}.st.off .gw{background:var(--off)}.st.total .gw{background:var(--ok)}
 
-        .progress-bar{height:4px;background:var(--border);border-radius:2px;margin-top:14px;overflow:hidden}
-        .progress-fill{height:100%;border-radius:2px;transition:width 1s ease}
-        .progress-fill.pagi{background:linear-gradient(90deg,var(--pagi),var(--accent))}
-        .progress-fill.malam{background:linear-gradient(90deg,var(--malam),#818cf8)}
+/* TABS + SEARCH */
+.tabs{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.tg{display:flex;gap:2px;background:var(--bg2);border-radius:7px;padding:2px;border:1px solid var(--border)}
+.tb{padding:6px 14px;border-radius:5px;font-family:inherit;font-size:11px;font-weight:600;border:none;cursor:pointer;
+color:var(--muted);background:transparent;transition:all .2s;display:flex;align-items:center;gap:4px}
+.tb:hover{color:var(--fg)}
+.tb.ap{background:var(--pagi-bg);color:var(--pagi)}
+.tb.am{background:var(--malam-bg);color:var(--malam)}
+.tb.ao{background:var(--off-bg);color:var(--off)}
+.tb .bd{font-size:9px;padding:0px 5px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-weight:700}
+.tb.ap .bd{background:rgba(255,140,66,.12);color:var(--pagi)}
+.tb.am .bd{background:rgba(59,158,255,.12);color:var(--malam)}
+.tb.ao .bd{background:rgba(255,92,92,.12);color:var(--off)}
+.tb .wd{width:5px;height:5px;border-radius:50%;background:var(--warn);animation:bk 1s infinite}
+.sb{display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:0 8px;transition:border-color .2s}
+.sb:focus-within{border-color:var(--accent)}
+.sb i{color:var(--muted);font-size:11px}
+.sb input{background:none;border:none;outline:none;color:var(--fg);font-family:inherit;font-size:11px;padding:5px 0;width:140px}
+.sb input::placeholder{color:var(--muted)}
 
-        /* STATS */
-        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-        .st{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;transition:all .25s}
-        .st:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(0,0,0,.3)}
-        .st .ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px}
-        .st.pagi .ico{background:var(--pagi-bg);color:var(--pagi)}
-        .st.malam .ico{background:var(--malam-bg);color:var(--malam)}
-        .st.off .ico{background:var(--off-bg);color:var(--off)}
-        .st.total .ico{background:var(--ok-bg);color:var(--ok)}
-        .st .val{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
-        .st.pagi .val{color:var(--pagi)}.st.malam .val{color:var(--malam)}.st.off .val{color:var(--off)}.st.total .val{color:var(--ok)}
-        .st .sub{font-size:11px;color:var(--muted);margin-top:4px;display:flex;gap:10px}
-        .st .sub span{display:flex;align-items:center;gap:3px}
-        .st .sub .cs-c{color:var(--cs)}.st .sub .ks-c{color:var(--kasir)}
-        .st .warn{font-size:10px;color:var(--warn);margin-top:6px;display:flex;align-items:center;gap:4px}
-        .st .glow2{position:absolute;top:-25px;right:-25px;width:80px;height:80px;border-radius:50%;filter:blur(35px);opacity:.12}
-        .st.pagi .glow2{background:var(--pagi)}.st.malam .glow2{background:var(--malam)}
-        .st.off .glow2{background:var(--off)}.st.total .glow2{background:var(--ok)}
+/* SHIFT SECTION */
+.ss{display:none;animation:fi .25s ease}.ss.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-        /* TABS */
-        .tabs-area{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
-        .tab-grp{display:flex;gap:3px;background:var(--bg2);border-radius:9px;padding:3px;border:1px solid var(--border)}
-        .tab-b{padding:7px 16px;border-radius:7px;font-family:inherit;font-size:12px;font-weight:600;border:none;cursor:pointer;
-            color:var(--muted);background:transparent;transition:all .25s;display:flex;align-items:center;gap:5px}
-        .tab-b:hover{color:var(--fg)}
-        .tab-b.a-pagi{background:var(--pagi-bg);color:var(--pagi)}
-        .tab-b.a-malam{background:var(--malam-bg);color:var(--malam)}
-        .tab-b.a-off{background:var(--off-bg);color:var(--off)}
-        .tab-b .bdg{font-size:10px;padding:1px 6px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-weight:700}
-        .tab-b.a-pagi .bdg{background:rgba(251,146,60,.15);color:var(--pagi)}
-        .tab-b.a-malam .bdg{background:rgba(56,189,248,.15);color:var(--malam)}
-        .tab-b.a-off .bdg{background:rgba(248,113,113,.15);color:var(--off)}
-        .tab-b .warn-dot{width:6px;height:6px;border-radius:50%;background:var(--warn);animation:blink 1s infinite}
-        .search-box{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);
-            border-radius:7px;padding:0 10px;transition:border-color .2s}
-        .search-box:focus-within{border-color:var(--accent)}
-        .search-box i{color:var(--muted);font-size:12px}
-        .search-box input{background:none;border:none;outline:none;color:var(--fg);font-family:inherit;font-size:12px;padding:7px 0;width:160px}
-        .search-box input::placeholder{color:var(--muted)}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+.shl{display:flex;align-items:center;gap:8px}
+.shi{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.s-pagi .shi{background:var(--pagi-bg);color:var(--pagi)}
+.s-malam .shi{background:var(--malam-bg);color:var(--malam)}
+.s-off .shi{background:var(--off-bg);color:var(--off)}
+.sht h2{font-size:15px;font-weight:800}
+.s-pagi .sht h2{color:var(--pagi)}.s-malam .sht h2{color:var(--malam)}.s-off .sht h2{color:var(--off)}
+.sht p{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.scb{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:5px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.s-pagi .scb{background:var(--pagi-bg);color:var(--pagi);border:1px solid rgba(255,140,66,.1)}
+.s-malam .scb{background:var(--malam-bg);color:var(--malam);border:1px solid rgba(59,158,255,.1)}
 
-        /* SHIFT SECTION */
-        .shift-sec{display:none;animation:fadeIn .3s ease}
-        .shift-sec.active{display:block}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-        .shift-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
-        .shift-title{display:flex;align-items:center;gap:10px}
-        .shift-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
-        .s-pagi .shift-ico{background:var(--pagi-bg);color:var(--pagi)}
-        .s-malam .shift-ico{background:var(--malam-bg);color:var(--malam)}
-        .s-off .shift-ico{background:var(--off-bg);color:var(--off)}
-        .shift-tt h2{font-size:18px;font-weight:800}
-        .s-pagi .shift-tt h2{color:var(--pagi)}.s-malam .shift-tt h2{color:var(--malam)}.s-off .shift-tt h2{color:var(--off)}
-        .shift-tt p{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:1px}
-        .sched-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;
-            font-family:'JetBrains Mono',monospace}
-        .s-pagi .sched-badge{background:var(--pagi-bg);color:var(--pagi);border:1px solid rgba(251,146,60,.12)}
-        .s-malam .sched-badge{background:var(--malam-bg);color:var(--malam);border:1px solid rgba(56,189,248,.12)}
+/* TABLE LAYOUT - 1 BARIS PER KARYAWAN */
+.tbl{width:100%;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card)}
+.tbl-hdr{display:grid;grid-template-columns:36px 44px 1fr 72px 80px 80px;align-items:center;padding:0 12px;height:34px;
+background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;font-weight:600;color:var(--muted);
+text-transform:uppercase;letter-spacing:.5px}
+.tbl-hdr span:not(:first-child):not(:last-child){padding:0 6px}
+.tbl-body{max-height:520px;overflow-y:auto}
+.tbl-row{display:grid;grid-template-columns:36px 44px 1fr 72px 80px 80px;align-items:center;padding:0 12px;height:var(--row-h);
+border-bottom:1px solid rgba(30,46,64,.4);transition:all .15s;position:relative}
+.tbl-row:last-child{border-bottom:none}
+.tbl-row:hover{background:var(--card2)}
+.tbl-row:hover .r-acts{opacity:1}
 
-        /* EMPLOYEE GRID */
-        .emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}
-        .emp-c{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;
-            display:flex;align-items:center;gap:12px;transition:all .25s;position:relative;overflow:hidden}
-        .emp-c:hover{background:var(--card2);border-color:var(--muted);transform:translateX(3px)}
-        .emp-c .stripe{position:absolute;left:0;top:0;bottom:0;width:3px}
-        .s-pagi .emp-c .stripe{background:var(--pagi)}.s-malam .emp-c .stripe{background:var(--malam)}.s-off .emp-c .stripe{background:var(--off)}
-        .emp-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);font-weight:600;width:18px;text-align:center;flex-shrink:0}
-        .emp-av{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#000;flex-shrink:0}
-        .emp-av.cs{background:linear-gradient(135deg,var(--cs),#c78500)}
-        .emp-av.kasir{background:linear-gradient(135deg,var(--kasir),#0d9488)}
-        .emp-inf{flex:1;min-width:0}
-        .emp-nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .emp-meta{font-size:10px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-        .role-tag{font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.3px}
-        .role-tag.cs{background:var(--cs-bg);color:var(--cs);border:1px solid var(--cs-border)}
-        .role-tag.kasir{background:var(--kasir-bg);color:var(--kasir);border:1px solid var(--kasir-border)}
-        .emp-acts{display:flex;gap:3px;flex-shrink:0}
-        .ab{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;
-            background:transparent;border:1px solid transparent;color:var(--muted);font-size:10px;cursor:pointer;transition:all .2s}
-        .ab:hover{background:var(--bg2);border-color:var(--border);color:var(--fg)}
-        .ab.m-pagi:hover{color:var(--pagi);border-color:rgba(251,146,60,.25)}
-        .ab.m-malam:hover{color:var(--malam);border-color:rgba(56,189,248,.25)}
-        .ab.m-off:hover{color:var(--off);border-color:rgba(248,113,113,.25)}
-        .ab.del:hover{color:var(--danger);border-color:rgba(239,68,68,.25)}
+.r-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);font-weight:600;text-align:center}
+.r-av{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;color:#000}
+.r-av.cs{background:linear-gradient(135deg,var(--cs),#a07000)}
+.r-av.kasir{background:linear-gradient(135deg,var(--kasir),#008c74)}
+.r-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
+.r-role{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.3px;text-align:center;width:fit-content}
+.r-role.cs{background:var(--cs-bg);color:var(--cs);border:1px solid var(--cs-bd)}
+.r-role.kasir{background:var(--kasir-bg);color:var(--kasir);border:1px solid var(--kasir-bd)}
+.r-meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;padding:0 6px}
+.r-acts{display:flex;gap:2px;justify-content:flex-end;opacity:0;transition:opacity .15s}
+.ab{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+background:transparent;border:1px solid transparent;color:var(--muted);font-size:9px;cursor:pointer;transition:all .15s}
+.ab:hover{background:var(--bg3);border-color:var(--border);color:var(--fg)}
+.ab.mp:hover{color:var(--pagi);border-color:rgba(255,140,66,.2)}
+.ab.mm:hover{color:var(--malam);border-color:rgba(59,158,255,.2)}
+.ab.mo:hover{color:var(--off);border-color:rgba(255,92,92,.2)}
+.ab.ed:hover{color:var(--accent);border-color:var(--cs-bd)}
+.ab.dl:hover{color:var(--danger);border-color:rgba(239,68,68,.2)}
 
-        /* OFF BANNER */
-        .off-banner{background:var(--off-bg);border:1px solid rgba(248,113,113,.12);border-radius:10px;padding:14px 18px;
-            margin-bottom:14px;display:flex;align-items:center;gap:10px}
-        .off-banner i{color:var(--off);font-size:18px}
-        .off-banner .ob-t{font-size:13px;font-weight:700;color:var(--off)}
-        .off-banner .ob-s{font-size:11px;color:var(--muted);margin-top:2px}
+/* OFF SECTION */
+.off-ban{background:var(--off-bg);border:1px solid rgba(255,92,92,.1);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.off-ban i{color:var(--off);font-size:14px}
+.off-ban .obt{font-size:12px;font-weight:700;color:var(--off)}
+.off-ban .obs{font-size:10px;color:var(--muted);margin-top:1px}
 
-        /* MODAL */
-        .mo{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
-            display:none;align-items:center;justify-content:center;padding:16px}
-        .mo.show{display:flex}
-        .md{background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:100%;max-height:90vh;overflow-y:auto;
-            animation:mdIn .3s ease}
-        @keyframes mdIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-        .md-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-        .md-h h3{font-size:16px;font-weight:700}
-        .md-x{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;
-            background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .2s}
-        .md-x:hover{background:var(--card);color:var(--fg)}
-        .md-b{padding:20px}
-        .md-f{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
-        .md.wide{max-width:680px}
+/* MODAL */
+.mo{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:16px}
+.mo.show{display:flex}
+.md{background:var(--bg2);border:1px solid var(--border);border-radius:12px;width:100%;max-height:90vh;overflow-y:auto;animation:mi .25s ease}
+@keyframes mi{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.md.w{max-width:640px}
+.md-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.md-h h3{font-size:14px;font-weight:700}
+.md-x{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s}
+.md-x:hover{background:var(--card);color:var(--fg)}
+.md-b{padding:18px}
+.md-f{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:6px;justify-content:flex-end}
 
-        /* FORM */
-        .fg{margin-bottom:14px}
-        .fl{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
-        .fi{width:100%;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--fg);
-            font-family:inherit;font-size:13px;outline:none;transition:border-color .2s}
-        .fi:focus{border-color:var(--accent)}
-        .fi::placeholder{color:var(--muted)}
-        .fs{width:100%;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--fg);
-            font-family:inherit;font-size:13px;cursor:pointer;outline:none;appearance:none;
-            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%236b7f96' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-            background-repeat:no-repeat;background-position:right 10px center}
-        .fs:focus{border-color:var(--accent)}
-        .fs option{background:var(--card);color:var(--fg)}
-        .fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:10px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.fi{width:100%;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-family:inherit;font-size:12px;outline:none;transition:border-color .15s}
+.fi:focus{border-color:var(--accent)}
+.fi::placeholder{color:var(--muted)}
+.fs{width:100%;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-family:inherit;font-size:12px;cursor:pointer;outline:none;appearance:none;
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='%235c7290' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.fs:focus{border-color:var(--accent)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
-        /* SETTINGS */
-        .set-tabs{display:flex;gap:2px;background:var(--bg);border-radius:8px;padding:3px;margin-bottom:18px;border:1px solid var(--border)}
-        .set-tab{flex:1;padding:7px 10px;border-radius:6px;font-family:inherit;font-size:11px;font-weight:600;border:none;cursor:pointer;
-            color:var(--muted);background:transparent;transition:all .2s;text-align:center}
-        .set-tab:hover{color:var(--fg)}
-        .set-tab.active{background:var(--card);color:var(--fg);box-shadow:0 2px 8px rgba(0,0,0,.2)}
-        .set-panel{display:none;animation:fadeIn .25s ease}
-        .set-panel.active{display:block}
-        .set-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
-        .set-card h4{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px}
-        .set-card.sc-pagi h4{color:var(--pagi)}.set-card.sc-malam h4{color:var(--malam)}
-        .set-card.sc-off h4{color:var(--off)}.set-card.sc-gen h4{color:var(--ok)}
-        .tg{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-        .tg label{font-size:11px;color:var(--muted);font-weight:500;min-width:75px}
-        .tg input[type="time"],.tg input[type="number"]{flex:1;padding:7px 10px;background:var(--bg2);border:1px solid var(--border);
-            border-radius:7px;color:var(--fg);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none}
-        .tg input:focus{border-color:var(--accent)}
+/* SET TABS */
+.stt{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px;margin-bottom:14px;border:1px solid var(--border)}
+.stb{flex:1;padding:6px 8px;border-radius:4px;font-family:inherit;font-size:10px;font-weight:600;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .15s;text-align:center}
+.stb:hover{color:var(--fg)}
+.stb.active{background:var(--card);color:var(--fg);box-shadow:0 1px 6px rgba(0,0,0,.2)}
+.stp{display:none;animation:fi .2s ease}.stp.active{display:block}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px}
+.sc h4{font-size:12px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sc.scp h4{color:var(--pagi)}.sc.scm h4{color:var(--malam)}.sc.sco h4{color:var(--off)}.sc.scg h4{color:var(--ok)}
+.tig{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.tig label{font-size:10px;color:var(--muted);font-weight:500;min-width:65px}
+.tig input[type="time"],.tig input[type="number"]{flex:1;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--fg);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none}
+.tig input:focus{border-color:var(--accent)}
+.duty-sel{max-height:220px;overflow-y:auto;margin-top:6px}
+.dg{margin-bottom:8px}
+.dgt{font-size:10px;font-weight:700;padding:4px 7px;border-radius:4px;margin-bottom:4px;display:inline-flex;align-items:center;gap:4px}
+.dgt.cs{background:var(--cs-bg);color:var(--cs)}.dgt.kasir{background:var(--kasir-bg);color:var(--kasir)}
+.di{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;cursor:pointer;transition:background .1s;font-size:11px}
+.di:hover{background:var(--bg3)}
+.di input[type="checkbox"]{accent-color:var(--accent);width:13px;height:13px}
+.dw{font-size:9px;color:var(--warn);margin-top:3px;display:flex;align-items:center;gap:3px}
 
-        /* DUTY SELECT */
-        .duty-sel{max-height:250px;overflow-y:auto;margin-top:8px}
-        .duty-grp{margin-bottom:10px}
-        .duty-grp-title{font-size:11px;font-weight:700;padding:5px 8px;border-radius:5px;margin-bottom:6px;display:flex;align-items:center;gap:5px}
-        .duty-grp-title.cs{background:var(--cs-bg);color:var(--cs)}
-        .duty-grp-title.kasir{background:var(--kasir-bg);color:var(--kasir)}
-        .duty-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;cursor:pointer;transition:background .15s;font-size:12px}
-        .duty-item:hover{background:var(--bg2)}
-        .duty-item input[type="checkbox"]{accent-color:var(--accent);width:14px;height:14px}
-        .duty-count{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace}
-        .duty-warn{font-size:10px;color:var(--warn);margin-top:4px}
+/* TOAST */
+.tc{position:fixed;top:68px;right:16px;z-index:2000;display:flex;flex-direction:column;gap:5px}
+.tt{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px 14px;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:tin .25s ease;max-width:300px}
+.tt.tout{animation:tout .25s ease forwards}
+.tt.ok{border-left:3px solid var(--ok)}.tt.ok i{color:var(--ok)}
+.tt.err{border-left:3px solid var(--danger)}.tt.err i{color:var(--danger)}
+.tt.inf{border-left:3px solid var(--malam)}.tt.inf i{color:var(--malam)}
+@keyframes tin{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes tout{to{opacity:0;transform:translateX(20px)}}
 
-        /* TOAST */
-        .toast-c{position:fixed;top:72px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:6px}
-        .toast{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;
-            display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;box-shadow:0 6px 25px rgba(0,0,0,.4);
-            animation:tIn .3s ease;max-width:340px}
-        .toast.t-out{animation:tOut .3s ease forwards}
-        .toast.success{border-left:3px solid var(--ok)}.toast.success i{color:var(--ok)}
-        .toast.error{border-left:3px solid var(--danger)}.toast.error i{color:var(--danger)}
-        .toast.info{border-left:3px solid var(--malam)}.toast.info i{color:var(--malam)}
-        @keyframes tIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
-        @keyframes tOut{to{opacity:0;transform:translateX(30px)}}
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}.empty i{font-size:32px;margin-bottom:8px;opacity:.25}.empty p{font-size:12px}
 
-        .empty{text-align:center;padding:50px 20px;color:var(--muted)}
-        .empty i{font-size:40px;margin-bottom:12px;opacity:.3}
-        .empty p{font-size:13px}
-
-        @media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.fr{grid-template-columns:1fr}}
-        @media(max-width:600px){main{padding:14px}.stats{gap:8px}.st{padding:12px}.st .val{font-size:22px}
-            .emp-grid{grid-template-columns:1fr}.today-duty{flex-direction:column;gap:8px}
-            .search-box input{width:110px}}
-        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-    </style>
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.tbl-hdr,.tbl-row{grid-template-columns:28px 36px 1fr 60px 60px}}
+@media(max-width:600px){main{padding:12px}.stats{gap:6px}.st{padding:10px}.st .sv{font-size:20px}
+.tbl-hdr,.tbl-row{grid-template-columns:24px 32px 1fr 54px}
+.tbl-hdr span:nth-child(5),.tbl-row>*:nth-child(5),.tbl-hdr span:nth-child(6),.tbl-row>*:nth-child(6){display:none}
+.fr{grid-template-columns:1fr}.sb input{width:100px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
 </head>
 <body>
-<div class="atmo"></div>
-<div class="grid-bg"></div>
+<div class="atmo"></div><div class="lines"></div>
 
-<!-- HEADER -->
-<header>
-    <div class="logo-area">
-        <div class="logo-box">CS</div>
-        <div class="logo-txt">
-            <h1 id="hdrLore">CS KASIR CSLINE</h1>
-            <span>Shift Management System</span>
-        </div>
-    </div>
-    <div class="hdr-right">
-        <div class="live-clock"><span class="dot"></span><span id="clockTxt">--:--:--</span></div>
-        <div id="shiftLive"></div>
-        <button class="btn btn-o btn-sm" onclick="openSettings()"><i class="fas fa-cog"></i> Setting</button>
-        <button class="btn btn-p btn-sm" onclick="openAdd()"><i class="fas fa-plus"></i> Tambah</button>
-    </div>
+<header class="hdr">
+<div class="hdr-left">
+<div class="lore-badge"><div class="lore-icon">CS</div><div><div class="lore-name" id="hdrLore">CS KASIR CSLINE</div><div class="lore-sub">Shift Management</div></div></div>
+</div>
+<div class="hdr-right">
+<div class="clock"><span class="d"></span><span id="clkT">--:--:--</span></div>
+<div id="shLive"></div>
+<button class="btn btn-o btn-sm" onclick="openSet()"><i class="fas fa-sliders-h"></i> Setting</button>
+<button class="btn btn-p btn-sm" onclick="openAdd()"><i class="fas fa-plus"></i> Tambah</button>
+</div>
 </header>
 
 <main>
-    <!-- TODAY BANNER -->
-    <section class="today-banner regular" id="todayBanner">
-        <div class="glow"></div>
-        <div class="today-top">
-            <div class="today-left">
-                <div class="today-icon" id="todayIcon"><i class="fas fa-calendar-day"></i></div>
-                <div>
-                    <div class="today-date" id="todayDate">-</div>
-                    <div class="today-day" id="todayDay">-</div>
-                </div>
-            </div>
-            <div id="todayTag"></div>
-        </div>
-        <div class="today-duty" id="todayDuty"></div>
-        <div class="progress-bar" id="progressBar" style="display:none"><div class="progress-fill pagi" id="progressFill"></div></div>
-    </section>
+<!-- TODAY -->
+<section class="today" id="todayB"><div class="g"></div>
+<div class="t-top"><div class="t-left"><div class="t-ico" id="tIco"><i class="fas fa-calendar-day"></i></div>
+<div><div class="t-date" id="tDt">-</div><div class="t-day" id="tDy">-</div></div></div>
+<div id="tTag"></div></div>
+<div class="t-duty" id="tDuty"></div>
+<div class="pbar" id="pBar" style="display:none"><div class="pfill pagi" id="pFill"></div></div>
+</section>
 
-    <!-- STATS -->
-    <section class="stats" id="statsArea"></section>
+<!-- STATS -->
+<section class="stats" id="stA"></section>
 
-    <!-- TABS -->
-    <div class="tabs-area">
-        <div class="tab-grp">
-            <button class="tab-b a-pagi" data-tab="pagi" onclick="switchTab('pagi')"><i class="fas fa-sun"></i> Pagi <span class="bdg" id="bdgPagi">0</span></button>
-            <button class="tab-b" data-tab="malam" onclick="switchTab('malam')"><i class="fas fa-moon"></i> Malam <span class="bdg" id="bdgMalam">0</span></button>
-            <button class="tab-b" data-tab="off" onclick="switchTab('off')"><i class="fas fa-bed"></i> Off <span class="bdg" id="bdgOff">0</span></button>
-        </div>
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchIn" placeholder="Cari karyawan..." oninput="filterEmp()" aria-label="Cari karyawan">
-        </div>
-    </div>
+<!-- TABS -->
+<div class="tabs">
+<div class="tg">
+<button class="tb ap" data-tab="pagi" onclick="swTab('pagi')"><i class="fas fa-sun"></i> Pagi <span class="bd" id="bP">0</span></button>
+<button class="tb" data-tab="malam" onclick="swTab('malam')"><i class="fas fa-moon"></i> Malam <span class="bd" id="bM">0</span></button>
+<button class="tb" data-tab="off" onclick="swTab('off')"><i class="fas fa-bed"></i> Off <span class="bd" id="bO">0</span></button>
+</div>
+<div class="sb"><i class="fas fa-search"></i><input type="text" id="sIn" placeholder="Cari karyawan..." oninput="fEmp()" aria-label="Cari karyawan"></div>
+</div>
 
-    <!-- PAGI -->
-    <section class="shift-sec s-pagi active" id="secPagi">
-        <div class="shift-hdr">
-            <div class="shift-title">
-                <div class="shift-ico"><i class="fas fa-sun"></i></div>
-                <div class="shift-tt"><h2>Shift Pagi</h2><p id="pagiSched">06:00 - 14:00</p></div>
-            </div>
-            <div class="sched-badge" id="pagiDur"><i class="fas fa-clock"></i> <span>8 Jam</span></div>
-        </div>
-        <div class="emp-grid" id="gridPagi"></div>
-    </section>
+<!-- PAGI -->
+<section class="ss s-pagi active" id="sPagi">
+<div class="sh"><div class="shl"><div class="shi"><i class="fas fa-sun"></i></div><div class="sht"><h2>Shift Pagi</h2><p id="pSch">06:00 - 14:00</p></div></div>
+<div class="scb" id="pDur"><i class="fas fa-clock"></i> <span>8 Jam</span></div></div>
+<div class="tbl" id="tblPagi"><div class="tbl-hdr"><span>No</span><span></span><span>Nama</span><span>Role</span><span>Keterangan</span><span></span></div><div class="tbl-body" id="tbPagi"></div></div>
+</section>
 
-    <!-- MALAM -->
-    <section class="shift-sec s-malam" id="secMalam">
-        <div class="shift-hdr">
-            <div class="shift-title">
-                <div class="shift-ico"><i class="fas fa-moon"></i></div>
-                <div class="shift-tt"><h2>Shift Malam</h2><p id="malamSched">14:00 - 22:00</p></div>
-            </div>
-            <div class="sched-badge" id="malamDur"><i class="fas fa-clock"></i> <span>8 Jam</span></div>
-        </div>
-        <div class="emp-grid" id="gridMalam"></div>
-    </section>
+<!-- MALAM -->
+<section class="ss s-malam" id="sMalam">
+<div class="sh"><div class="shl"><div class="shi"><i class="fas fa-moon"></i></div><div class="sht"><h2>Shift Malam</h2><p id="mSch">14:00 - 22:00</p></div></div>
+<div class="scb" id="mDur"><i class="fas fa-clock"></i> <span>8 Jam</span></div></div>
+<div class="tbl" id="tblMalam"><div class="tbl-hdr"><span>No</span><span></span><span>Nama</span><span>Role</span><span>Keterangan</span><span></span></div><div class="tbl-body" id="tbMalam"></div></div>
+</section>
 
-    <!-- OFF -->
-    <section class="shift-sec s-off" id="secOff">
-        <div class="shift-hdr">
-            <div class="shift-title">
-                <div class="shift-ico"><i class="fas fa-bed"></i></div>
-                <div class="shift-tt"><h2>Sedang Off</h2><p>Karyawan yang sedang libur</p></div>
-            </div>
-        </div>
-        <div class="off-banner" id="offBanner">
-            <i class="fas fa-calendar-alt"></i>
-            <div><div class="ob-t" id="obTitle">-</div><div class="ob-s" id="obSub">-</div></div>
-        </div>
-        <div class="emp-grid" id="gridOff"></div>
-    </section>
+<!-- OFF -->
+<section class="ss s-off" id="sOff">
+<div class="sh"><div class="shl"><div class="shi"><i class="fas fa-bed"></i></div><div class="sht"><h2>Sedang Off</h2><p>Karyawan yang sedang libur</p></div></div></div>
+<div class="off-ban" id="offBan"><i class="fas fa-calendar-alt"></i><div><div class="obt" id="obT">-</div><div class="obs" id="obS">-</div></div></div>
+<div class="tbl" id="tblOff"><div class="tbl-hdr"><span>No</span><span></span><span>Nama</span><span>Role</span><span>Keterangan</span><span></span></div><div class="tbl-body" id="tbOff"></div></div>
+</section>
 </main>
 
-<!-- TOAST -->
-<div class="toast-c" id="toastC"></div>
+<div class="tc" id="tc"></div>
 
-<!-- MODAL: TAMBAH -->
-<div class="mo" id="addMo">
-    <div class="md">
-        <div class="md-h"><h3>Tambah Karyawan</h3><button class="md-x" onclick="closeMo('addMo')"><i class="fas fa-times"></i></button></div>
-        <div class="md-b">
-            <div class="fg"><label class="fl">Nama Lengkap</label><input type="text" class="fi" id="addNm" placeholder="Masukkan nama" autocomplete="off"></div>
-            <div class="fr">
-                <div class="fg"><label class="fl">Role</label><select class="fs" id="addRole"><option value="CS">CS</option><option value="Kasir">Kasir</option></select></div>
-                <div class="fg"><label class="fl">Shift</label><select class="fs" id="addShift"><option value="pagi">Pagi</option><option value="malam">Malam</option><option value="off">Off</option></select></div>
-            </div>
-            <div class="fg" id="addOffG" style="display:none"><label class="fl">Tanggal Kembali</label><input type="date" class="fi" id="addOffD"></div>
-        </div>
-        <div class="md-f"><button class="btn btn-o" onclick="closeMo('addMo')">Batal</button><button class="btn btn-p" onclick="addEmp()">Simpan</button></div>
-    </div>
+<!-- ADD -->
+<div class="mo" id="addMo"><div class="md"><div class="md-h"><h3>Tambah Karyawan</h3><button class="md-x" onclick="clMo('addMo')"><i class="fas fa-times"></i></button></div>
+<div class="md-b"><div class="fg"><label class="fl">Nama Lengkap</label><input type="text" class="fi" id="aNm" placeholder="Masukkan nama" autocomplete="off"></div>
+<div class="fr"><div class="fg"><label class="fl">Role</label><select class="fs" id="aRl"><option value="CS">CS</option><option value="Kasir">Kasir</option></select></div>
+<div class="fg"><label class="fl">Shift</label><select class="fs" id="aSh"><option value="pagi">Pagi</option><option value="malam">Malam</option><option value="off">Off</option></select></div></div>
+<div class="fg" id="aOG" style="display:none"><label class="fl">Tanggal Kembali</label><input type="date" class="fi" id="aOD"></div></div>
+<div class="md-f"><button class="btn btn-o" onclick="clMo('addMo')">Batal</button><button class="btn btn-p" onclick="addE()">Simpan</button></div></div></div>
+
+<!-- EDIT -->
+<div class="mo" id="editMo"><div class="md"><div class="md-h"><h3>Edit Karyawan</h3><button class="md-x" onclick="clMo('editMo')"><i class="fas fa-times"></i></button></div>
+<div class="md-b"><div class="fg"><label class="fl">Nama Lengkap</label><input type="text" class="fi" id="eNm" autocomplete="off"></div>
+<div class="fg"><label class="fl">Role</label><select class="fs" id="eRl"><option value="CS">CS</option><option value="Kasir">Kasir</option></select></div></div>
+<div class="md-f"><button class="btn btn-o" onclick="clMo('editMo')">Batal</button><button class="btn btn-p" onclick="svEdit()">Simpan</button></div></div></div>
+
+<!-- MOVE -->
+<div class="mo" id="mvMo"><div class="md"><div class="md-h"><h3>Pindahkan Karyawan</h3><button class="md-x" onclick="clMo('mvMo')"><i class="fas fa-times"></i></button></div>
+<div class="md-b"><div class="fg"><label class="fl">Nama</label><input type="text" class="fi" id="mvNm" readonly></div>
+<div class="fg"><label class="fl">Pindah ke Shift</label><select class="fs" id="mvSh"><option value="pagi">Pagi</option><option value="malam">Malam</option><option value="off">Off</option></select></div>
+<div class="fg" id="mvOG" style="display:none"><label class="fl">Tanggal Kembali</label><input type="date" class="fi" id="mvOD"></div></div>
+<div class="md-f"><button class="btn btn-o" onclick="clMo('mvMo')">Batal</button><button class="btn btn-p" onclick="cfMv()">Pindahkan</button></div></div></div>
+
+<!-- DELETE -->
+<div class="mo" id="dlMo"><div class="md" style="max-width:360px"><div class="md-h"><h3 style="color:var(--danger)">Hapus Karyawan</h3><button class="md-x" onclick="clMo('dlMo')"><i class="fas fa-times"></i></button></div>
+<div class="md-b"><p style="color:var(--muted);font-size:12px">Yakin ingin menghapus <strong id="dlNm" style="color:var(--fg)"></strong>?</p></div>
+<div class="md-f"><button class="btn btn-o" onclick="clMo('dlMo')">Batal</button><button class="btn btn-d" onclick="cfDl()"><i class="fas fa-trash"></i> Hapus</button></div></div></div>
+
+<!-- SETTINGS -->
+<div class="mo" id="setMo"><div class="md w"><div class="md-h"><h3><i class="fas fa-sliders-h" style="color:var(--accent);margin-right:5px"></i>Pengaturan</h3><button class="md-x" onclick="clMo('setMo')"><i class="fas fa-times"></i></button></div>
+<div class="md-b"><div class="stt">
+<button class="stb active" onclick="swST(this,'spU')">Umum</button>
+<button class="stb" onclick="swST(this,'spP')">Shift Pagi</button>
+<button class="stb" onclick="swST(this,'spM')">Shift Malam</button>
+<button class="stb" onclick="swST(this,'spJ')">Jaga Libur</button>
 </div>
-
-<!-- MODAL: EDIT -->
-<div class="mo" id="editMo">
-    <div class="md">
-        <div class="md-h"><h3>Edit Karyawan</h3><button class="md-x" onclick="closeMo('editMo')"><i class="fas fa-times"></i></button></div>
-        <div class="md-b">
-            <div class="fg"><label class="fl">Nama Lengkap</label><input type="text" class="fi" id="editNm" autocomplete="off"></div>
-            <div class="fg"><label class="fl">Role</label><select class="fs" id="editRole"><option value="CS">CS</option><option value="Kasir">Kasir</option></select></div>
-        </div>
-        <div class="md-f"><button class="btn btn-o" onclick="closeMo('editMo')">Batal</button><button class="btn btn-p" onclick="saveEdit()">Simpan</button></div>
-    </div>
+<div class="stp active" id="spU">
+<div class="sc scg"><h4><i class="fas fa-store"></i> Informasi Lore</h4><div class="fg" style="margin-bottom:0"><label class="fl">Nama Lore / Cabang</label><input type="text" class="fi" id="sLore" autocomplete="off"></div></div>
+<div class="sc sco"><h4><i class="fas fa-calendar-times"></i> Hari Libur</h4>
+<div class="fg"><label class="fl">Pilih Hari Libur Mingguan</label><select class="fs" id="sOD"><option value="0">Minggu</option><option value="1">Senin</option><option value="2">Selasa</option><option value="3">Rabu</option><option value="4">Kamis</option><option value="5">Jumat</option><option value="6">Sabtu</option></select></div>
+<div class="fr"><div class="tig"><label>Min CS</label><input type="number" id="sOCS" min="1" max="10"></div><div class="tig"><label>Min Kasir</label><input type="number" id="sOKS" min="1" max="10"></div></div></div>
 </div>
-
-<!-- MODAL: PINDAH -->
-<div class="mo" id="moveMo">
-    <div class="md">
-        <div class="md-h"><h3>Pindahkan Karyawan</h3><button class="md-x" onclick="closeMo('moveMo')"><i class="fas fa-times"></i></button></div>
-        <div class="md-b">
-            <div class="fg"><label class="fl">Nama</label><input type="text" class="fi" id="moveNm" readonly></div>
-            <div class="fg"><label class="fl">Pindah ke Shift</label><select class="fs" id="moveShift"><option value="pagi">Pagi</option><option value="malam">Malam</option><option value="off">Off</option></select></div>
-            <div class="fg" id="moveOffG" style="display:none"><label class="fl">Tanggal Kembali</label><input type="date" class="fi" id="moveOffD"></div>
-        </div>
-        <div class="md-f"><button class="btn btn-o" onclick="closeMo('moveMo')">Batal</button><button class="btn btn-p" onclick="confirmMove()">Pindahkan</button></div>
-    </div>
+<div class="stp" id="spP"><div class="sc scp"><h4><i class="fas fa-sun"></i> Jam Kerja Pagi</h4>
+<div class="tig"><label>Masuk</label><input type="time" id="sPS"></div><div class="tig"><label>Pulang</label><input type="time" id="sPE"></div>
+<div class="fr"><div class="tig"><label>Min CS</label><input type="number" id="sPCS" min="1" max="20"></div><div class="tig"><label>Min Kasir</label><input type="number" id="sPKS" min="1" max="20"></div></div></div></div>
+<div class="stp" id="spM"><div class="sc scm"><h4><i class="fas fa-moon"></i> Jam Kerja Malam</h4>
+<div class="tig"><label>Masuk</label><input type="time" id="sMS"></div><div class="tig"><label>Pulang</label><input type="time" id="sME"></div>
+<div class="fr"><div class="tig"><label>Min CS</label><input type="number" id="sMCS" min="1" max="20"></div><div class="tig"><label>Min Kasir</label><input type="number" id="sMKS" min="1" max="20"></div></div></div></div>
+<div class="stp" id="spJ"><div class="sc sco"><h4><i class="fas fa-user-shield"></i> Petugas Jaga Hari Libur</h4>
+<p style="font-size:10px;color:var(--muted);margin-bottom:8px">Pilih karyawan yang tetap jaga pada hari libur.</p><div id="dsA"></div></div></div>
 </div>
-
-<!-- MODAL: HAPUS -->
-<div class="mo" id="delMo">
-    <div class="md" style="max-width:380px">
-        <div class="md-h"><h3 style="color:var(--danger)">Hapus Karyawan</h3><button class="md-x" onclick="closeMo('delMo')"><i class="fas fa-times"></i></button></div>
-        <div class="md-b"><p style="color:var(--muted);font-size:13px">Yakin ingin menghapus <strong id="delNm" style="color:var(--fg)"></strong>? Tindakan ini tidak dapat dibatalkan.</p></div>
-        <div class="md-f"><button class="btn btn-o" onclick="closeMo('delMo')">Batal</button><button class="btn btn-d" onclick="confirmDel()"><i class="fas fa-trash"></i> Hapus</button></div>
-    </div>
-</div>
-
-<!-- MODAL: SETTINGS -->
-<div class="mo" id="setMo">
-    <div class="md wide">
-        <div class="md-h"><h3><i class="fas fa-cog" style="color:var(--accent);margin-right:6px"></i>Pengaturan</h3><button class="md-x" onclick="closeMo('setMo')"><i class="fas fa-times"></i></button></div>
-        <div class="md-b">
-            <div class="set-tabs">
-                <button class="set-tab active" onclick="switchSetTab(this,'setUmum')">Umum</button>
-                <button class="set-tab" onclick="switchSetTab(this,'setPagi')">Shift Pagi</button>
-                <button class="set-tab" onclick="switchSetTab(this,'setMalam')">Shift Malam</button>
-                <button class="set-tab" onclick="switchSetTab(this,'setJaga')">Jaga Libur</button>
-            </div>
-
-            <!-- UMUM -->
-            <div class="set-panel active" id="setUmum">
-                <div class="set-card sc-gen">
-                    <h4><i class="fas fa-store"></i> Informasi Lore</h4>
-                    <div class="fg"><label class="fl">Nama Lore / Cabang</label><input type="text" class="fi" id="setLore" autocomplete="off"></div>
-                </div>
-                <div class="set-card sc-off">
-                    <h4><i class="fas fa-calendar-times"></i> Hari Libur</h4>
-                    <div class="fg"><label class="fl">Pilih Hari Libur Mingguan</label>
-                        <select class="fs" id="setOffDay">
-                            <option value="0">Minggu</option><option value="1">Senin</option><option value="2">Selasa</option>
-                            <option value="3">Rabu</option><option value="4">Kamis</option><option value="5">Jumat</option><option value="6">Sabtu</option>
-                        </select>
-                    </div>
-                    <div class="fr">
-                        <div class="fg"><label class="fl">Min CS Jaga Libur</label><input type="number" class="fi" id="setOffCS" min="1" max="10"></div>
-                        <div class="fg"><label class="fl">Min Kasir Jaga Libur</label><input type="number" class="fi" id="setOffKasir" min="1" max="10"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SHIFT PAGI -->
-            <div class="set-panel" id="setPagi">
-                <div class="set-card sc-pagi">
-                    <h4><i class="fas fa-sun"></i> Jam Kerja Pagi</h4>
-                    <div class="tg"><label>Jam Masuk</label><input type="time" id="setPS"></div>
-                    <div class="tg"><label>Jam Pulang</label><input type="time" id="setPE"></div>
-                    <div class="fr">
-                        <div class="tg"><label>Min CS</label><input type="number" id="setPCS" min="1" max="20"></div>
-                        <div class="tg"><label>Min Kasir</label><input type="number" id="setPKasir" min="1" max="20"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SHIFT MALAM -->
-            <div class="set-panel" id="setMalam">
-                <div class="set-card sc-malam">
-                    <h4><i class="fas fa-moon"></i> Jam Kerja Malam</h4>
-                    <div class="tg"><label>Jam Masuk</label><input type="time" id="setMS"></div>
-                    <div class="tg"><label>Jam Pulang</label><input type="time" id="setME"></div>
-                    <div class="fr">
-                        <div class="tg"><label>Min CS</label><input type="number" id="setMCS" min="1" max="20"></div>
-                        <div class="tg"><label>Min Kasir</label><input type="number" id="setMKasir" min="1" max="20"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- JAGA LIBUR -->
-            <div class="set-panel" id="setJaga">
-                <div class="set-card sc-off">
-                    <h4><i class="fas fa-user-shield"></i> Petugas Jaga Hari Libur</h4>
-                    <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Pilih karyawan yang tetap jaga pada hari libur. Mereka akan ditampilkan di banner hari libur.</p>
-                    <div id="dutySelArea"></div>
-                </div>
-            </div>
-        </div>
-        <div class="md-f"><button class="btn btn-o" onclick="closeMo('setMo')">Batal</button><button class="btn btn-p" onclick="saveSet()"><i class="fas fa-save"></i> Simpan Pengaturan</button></div>
-    </div>
-</div>
+<div class="md-f"><button class="btn btn-o" onclick="clMo('setMo')">Batal</button><button class="btn btn-p" onclick="svSet()"><i class="fas fa-save"></i> Simpan</button></div></div></div>
 
 <script>
-// ============================================================
-// DATA AWAL
-// ============================================================
-const INIT = {
-    pagi: [
-        {id:1,name:"ASEP HARDIAN ZAHMAN",role:"CS"},
-        {id:2,name:"CALVIN SANDIKA HARAHAP",role:"CS"},
-        {id:3,name:"ABDUR RASYID",role:"CS"},
-        {id:4,name:"AGUNG PRASETIO SETIAWAN",role:"CS"},
-        {id:5,name:"BINSAR RIZKY SYABAN",role:"Kasir"},
-        {id:6,name:"TYPE SULTAN LUBIS",role:"CS"},
-        {id:7,name:"FEZY ROSELLY",role:"CS"},
-        {id:8,name:"JOSUA SIMANJUNTAK",role:"CS"},
-        {id:9,name:"MICHAEL",role:"CS"},
-        {id:10,name:"NAHDIYAH HIDAYANI TANJUNG",role:"Kasir"},
-        {id:11,name:"SELI SAHFITRI",role:"Kasir"},
-        {id:12,name:"APRINDA HAMID MULYADI",role:"Kasir"},
-        {id:13,name:"DAL TRIONO",role:"Kasir"},
-        {id:14,name:"ARWANA BAGUS SUHARTA SINAGA",role:"Kasir"},
-        {id:15,name:"FIRMAN FRANCISKUS PURBA",role:"Kasir"},
-        {id:16,name:"KEVIN MANURUNG",role:"CS"},
-        {id:17,name:"MHD FAUZI LUBIS",role:"Kasir"}
-    ],
-    malam: [
-        {id:18,name:"FERY ISNAN PANE",role:"CS"},
-        {id:19,name:"MUHAMMAD FADLY JULIANSYAH",role:"CS"},
-        {id:20,name:"GHEA GEMANANDA SANTOSO PUTRI",role:"Kasir"},
-        {id:21,name:"MUHAMMAD FAHMI ELFAROQI",role:"CS"},
-        {id:22,name:"MUHAMMAD FIQRI TANJUNG",role:"Kasir"},
-        {id:23,name:"SURES",role:"CS"},
-        {id:24,name:"FERDIANSYAH HIDAYAD",role:"CS"},
-        {id:25,name:"RAJUNA SEMBIRING",role:"CS"},
-        {id:26,name:"FIONA GUNAWAN",role:"Kasir"},
-        {id:27,name:"NOPRIADY",role:"Kasir"},
-        {id:28,name:"NOVI",role:"Kasir"},
-        {id:29,name:"ARI ANDIKA",role:"CS"},
-        {id:30,name:"DAVID",role:"Kasir"},
-        {id:31,name:"AGUSTINA NADEAK",role:"Kasir"},
-        {id:32,name:"ALDI IFANTRA",role:"Kasir"}
-    ],
-    off: [
-        {id:33,name:"DANU UMBARA",role:"CS",returnDate:"2026-06-21"},
-        {id:34,name:"BUDI SYAHPUTRA SIREGAR",role:"Kasir",returnDate:"2026-06-21"}
-    ]
-};
+const INIT={
+pagi:[
+{id:1,name:"ASEP HARDIAN ZAHMAN",role:"CS"},
+{id:2,name:"CALVIN SANDIKA HARAHAP",role:"CS"},
+{id:3,name:"ABDUR RASYID",role:"CS"},
+{id:4,name:"AGUNG PRASETIO SETIAWAN",role:"CS"},
+{id:5,name:"BINSAR RIZKY SYABAN",role:"Kasir"},
+{id:6,name:"TYPE SULTAN LUBIS",role:"CS"},
+{id:7,name:"FEZY ROSELLY",role:"CS"},
+{id:8,name:"JOSUA SIMANJUNTAK",role:"CS"},
+{id:9,name:"MICHAEL",role:"CS"},
+{id:10,name:"NAHDIYAH HIDAYANI TANJUNG",role:"Kasir"},
+{id:11,name:"SELI SAHFITRI",role:"Kasir"},
+{id:12,name:"APRINDA HAMID MULYADI",role:"Kasir"},
+{id:13,name:"DAL TRIONO",role:"Kasir"},
+{id:14,name:"ARWANA BAGUS SUHARTA SINAGA",role:"Kasir"},
+{id:15,name:"FIRMAN FRANCISKUS PURBA",role:"Kasir"},
+{id:16,name:"KEVIN MANURUNG",role:"CS"},
+{id:17,name:"MHD FAUZI LUBIS",role:"Kasir"}
+],
+malam:[
+{id:18,name:"FERY ISNAN PANE",role:"CS"},
+{id:19,name:"MUHAMMAD FADLY JULIANSYAH",role:"CS"},
+{id:20,name:"GHEA GEMANANDA SANTOSO PUTRI",role:"Kasir"},
+{id:21,name:"MUHAMMAD FAHMI ELFAROQI",role:"CS"},
+{id:22,name:"MUHAMMAD FIQRI TANJUNG",role:"Kasir"},
+{id:23,name:"SURES",role:"CS"},
+{id:24,name:"FERDIANSYAH HIDAYAD",role:"CS"},
+{id:25,name:"RAJUNA SEMBIRING",role:"CS"},
+{id:26,name:"FIONA GUNAWAN",role:"Kasir"},
+{id:27,name:"NOPRIADY",role:"Kasir"},
+{id:28,name:"NOVI",role:"Kasir"},
+{id:29,name:"ARI ANDIKA",role:"CS"},
+{id:30,name:"DAVID",role:"Kasir"},
+{id:31,name:"AGUSTINA NADEAK",role:"Kasir"},
+{id:32,name:"ALDI IFANTRA",role:"Kasir"}
+],
+off:[
+{id:33,name:"DANU UMBARA",role:"CS",returnDate:"2026-06-21"},
+{id:34,name:"BUDI SYAHPUTRA SIREGAR",role:"Kasir",returnDate:"2026-06-21"}
+]};
 
-// ============================================================
-// STATE
-// ============================================================
-let emp = JSON.parse(JSON.stringify(INIT));
-let nid = 35;
-let aTab = 'pagi';
-let moveT = null;
-let delT = null;
-let editT = null;
+let E=JSON.parse(JSON.stringify(INIT)),nid=35,aTab='pagi',mvT=null,dlT=null,edT=null;
+let C={loreName:"CS KASIR CSLINE",offDay:"0",offDayMinCS:2,offDayMinKasir:2,offDayDutyCS:[1,2],offDayDutyKasir:[5,10],
+pagiStart:"06:00",pagiEnd:"14:00",pagiMinCS:5,pagiMinKasir:4,malamStart:"14:00",malamEnd:"22:00",malamMinCS:4,malamMinKasir:4};
 
-let cfg = {
-    loreName:"CS KASIR CSLINE",
-    offDay:"0",
-    offDayMinCS:2,
-    offDayMinKasir:2,
-    offDayDutyCS:[1,2],
-    offDayDutyKasir:[5,10],
-    pagiStart:"06:00",pagiEnd:"14:00",pagiMinCS:5,pagiMinKasir:4,
-    malamStart:"14:00",malamEnd:"22:00",malamMinCS:4,malamMinKasir:4
-};
+const HR=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'],BL=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 
-const HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+function init(){loadS();uClk();setInterval(uClk,1000);rAll();
+document.getElementById('aSh').addEventListener('change',function(){document.getElementById('aOG').style.display=this.value==='off'?'block':'none'});
+document.getElementById('mvSh').addEventListener('change',function(){document.getElementById('mvOG').style.display=this.value==='off'?'block':'none'});}
 
-// ============================================================
-// INIT
-// ============================================================
-function init(){
-    loadStore();
-    upClock();
-    setInterval(upClock,1000);
-    renderAll();
-    document.getElementById('addShift').addEventListener('change',function(){
-        document.getElementById('addOffG').style.display=this.value==='off'?'block':'none';
-    });
-    document.getElementById('moveShift').addEventListener('change',function(){
-        document.getElementById('moveOffG').style.display=this.value==='off'?'block':'none';
-    });
-}
+function saveS(){try{localStorage.setItem('c_e',JSON.stringify(E));localStorage.setItem('c_c',JSON.stringify(C));localStorage.setItem('c_n',String(nid))}catch(e){}}
+function loadS(){try{const e=localStorage.getItem('c_e'),c=localStorage.getItem('c_c'),n=localStorage.getItem('c_n');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(n)nid=parseInt(n)}catch(e){}}
 
-// ============================================================
-// STORAGE
-// ============================================================
-function saveStore(){try{localStorage.setItem('cs_e',JSON.stringify(emp));localStorage.setItem('cs_c',JSON.stringify(cfg));localStorage.setItem('cs_n',nid.toString())}catch(e){}}
-function loadStore(){try{const e=localStorage.getItem('cs_e'),c=localStorage.getItem('cs_c'),n=localStorage.getItem('cs_n');if(e)emp=JSON.parse(e);if(c)cfg=JSON.parse(c);if(n)nid=parseInt(n)}catch(e){}}
-
-// ============================================================
-// CLOCK
-// ============================================================
-function upClock(){
-    const n=new Date();
-    document.getElementById('clockTxt').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
-    upToday();
-    upShiftLive();
-}
+function uClk(){const n=new Date();document.getElementById('clkT').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;uTdy();uSL()}
 function p(v){return String(v).padStart(2,'0')}
 function t2m(t){const[h,m]=t.split(':').map(Number);return h*60+m}
+function cDur(s,e){let a=t2m(s),b=t2m(e);if(b<=a)b+=1440;const d=b-a,h=Math.floor(d/60),mm=d%60;return mm>0?`${h} Jam ${mm} Menit`:`${h} Jam`}
 
-function upShiftLive(){
-    const n=new Date(),cm=n.getHours()*60+n.getMinutes();
-    const isOff=String(n.getDay())===String(cfg.offDay);
-    const el=document.getElementById('shiftLive');
-    if(isOff){el.innerHTML='<div class="shift-live libur"><i class="fas fa-moon" style="font-size:8px"></i> Hari Libur</div>'}
-    else if(cm>=t2m(cfg.pagiStart)&&cm<t2m(cfg.pagiEnd)){el.innerHTML='<div class="shift-live pagi"><i class="fas fa-circle" style="font-size:5px"></i> Shift Pagi</div>'}
-    else if(cm>=t2m(cfg.malamStart)&&cm<t2m(cfg.malamEnd)){el.innerHTML='<div class="shift-live malam"><i class="fas fa-circle" style="font-size:5px"></i> Shift Malam</div>'}
-    else{el.innerHTML=''}
+function uSL(){
+const n=new Date(),cm=n.getHours()*60+n.getMinutes(),isOff=String(n.getDay())===String(C.offDay),el=document.getElementById('shLive');
+if(isOff)el.innerHTML='<div class="sh-live libur">LIBUR</div>';
+else if(cm>=t2m(C.pagiStart)&&cm<t2m(C.pagiEnd))el.innerHTML='<div class="sh-live pagi">PAGI</div>';
+else if(cm>=t2m(C.malamStart)&&cm<t2m(C.malamEnd))el.innerHTML='<div class="sh-live malam">MALAM</div>';
+else el.innerHTML='';
 }
 
-// ============================================================
-// TODAY BANNER
-// ============================================================
-function upToday(){
-    const n=new Date(),dow=n.getDay();
-    const isOff=String(dow)===String(cfg.offDay);
-    const bn=document.getElementById('todayBanner');
-    const dt=document.getElementById('todayDate');
-    const dy=document.getElementById('todayDay');
-    const ic=document.getElementById('todayIcon');
-    const tg=document.getElementById('todayTag');
-    const du=document.getElementById('todayDuty');
-    const pb=document.getElementById('progressBar');
-    const pf=document.getElementById('progressFill');
+function uTdy(){
+const n=new Date(),dow=n.getDay(),isOff=String(dow)===String(C.offDay);
+const bn=document.getElementById('todayB'),dt=document.getElementById('tDt'),dy=document.getElementById('tDy'),ic=document.getElementById('tIco'),tg=document.getElementById('tTag'),du=document.getElementById('tDuty'),pb=document.getElementById('pBar'),pf=document.getElementById('pFill');
+dt.textContent=`${n.getDate()} ${BL[n.getMonth()]} ${n.getFullYear()}`;dy.textContent=HR[dow];
 
-    dt.textContent=`${n.getDate()} ${BULAN[n.getMonth()]} ${n.getFullYear()}`;
-    dy.textContent=HARI[dow];
+if(isOff){
+bn.className='today libur-mode';ic.innerHTML='<i class="fas fa-calendar-times"></i>';tg.innerHTML='<div class="t-tag libur">HARI LIBUR</div>';
+const dCS=C.offDayDutyCS||[],dKS=C.offDayDutyKasir||[];
+const all=[...E.pagi,...E.malam,...E.off];
+const csN=all.filter(e=>dCS.includes(e.id)).map(e=>e.name),ksN=all.filter(e=>dKS.includes(e.id)).map(e=>e.name);
+du.innerHTML=`<div class="dchip cs"><div class="n">${dCS.length}</div><div><div class="l">CS Jaga</div><div class="names">${csN.length?csN.join(', '):'-'}</div></div></div>
+<div class="dchip kasir"><div class="n">${dKS.length}</div><div><div class="l">Kasir Jaga</div><div class="names">${ksN.length?ksN.join(', '):'-'}</div></div></div>`;
+pb.style.display='none';
+}else{
+bn.className='today';ic.innerHTML='<i class="fas fa-calendar-day"></i>';
+const cm=n.getHours()*60+n.getMinutes(),ps=t2m(C.pagiStart),pe=t2m(C.pagiEnd),ms=t2m(C.malamStart),me=t2m(C.malamEnd);
+let cur=null,prog=0;
+if(cm>=ps&&cm<pe){cur='pagi';prog=(cm-ps)/(pe-ps)*100;tg.innerHTML='<div class="t-tag pagi">SHIFT PAGI</div>';pf.className='pfill pagi'}
+else if(cm>=ms&&cm<me){cur='malam';prog=(cm-ms)/(me-ms)*100;tg.innerHTML='<div class="t-tag malam">SHIFT MALAM</div>';pf.className='pfill malam'}
+else{tg.innerHTML='<div class="t-tag idle">DI LUAR JAM KERJA</div>'}
+if(cur){
+const l=E[cur],csc=l.filter(e=>e.role==='CS').length,ksc=l.filter(e=>e.role==='Kasir').length;
+const mCS=cur==='pagi'?C.pagiMinCS:C.malamMinCS,mKS=cur==='pagi'?C.pagiMinKasir:C.malamMinKasir;
+const warn=csc<mCS||ksc<mKS;
+du.innerHTML=`<div class="dchip cs"><div class="n">${csc}</div><div><div class="l">CS (min ${mCS})</div></div></div>
+<div class="dchip kasir"><div class="n">${ksc}</div><div><div class="l">Kasir (min ${mKS})</div></div></div>
+ ${warn?'<div style="font-size:10px;color:var(--warn);display:flex;align-items:center;gap:3px"><i class="fas fa-exclamation-triangle"></i> Staff kurang</div>':''}`;
+pb.style.display='block';pf.style.width=Math.min(100,Math.max(0,prog))+'%';
+}else{du.innerHTML='';pb.style.display='none'}
+}}
 
-    if(isOff){
-        bn.className='today-banner libur';
-        ic.innerHTML='<i class="fas fa-calendar-times"></i>';
-        tg.innerHTML='<div class="today-tag libur">HARI LIBUR</div>';
+function rAll(){rSt();rTbl('pagi');rTbl('malam');rTbl('off');uBdg();uSch();uOB();uTdy()}
 
-        // Tampilkan staff jaga libur
-        const dutyCS=cfg.offDayDutyCS||[];
-        const dutyKasir=cfg.offDayDutyKasir||[];
-        const allEmp=[...emp.pagi,...emp.malam,...emp.off];
-        const csNames=allEmp.filter(e=>dutyCS.includes(e.id)).map(e=>e.name);
-        const ksNames=allEmp.filter(e=>dutyKasir.includes(e.id)).map(e=>e.name);
-
-        du.innerHTML=`
-            <div class="duty-chip cs"><div><div class="num">${dutyCS.length}</div><div class="lbl">CS Jaga</div></div></div>
-            <div class="duty-chip kasir"><div><div class="num">${dutyKasir.length}</div><div class="lbl">Kasir Jaga</div></div></div>
-            <div style="flex:1;min-width:200px">
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px">CS: <span style="color:var(--cs);font-weight:600">${csNames.length?csNames.join(', '):'Belum ditentukan'}</span></div>
-                <div style="font-size:11px;color:var(--muted)">Kasir: <span style="color:var(--kasir);font-weight:600">${ksNames.length?ksNames.join(', '):'Belum ditentukan'}</span></div>
-            </div>`;
-        pb.style.display='none';
-    } else {
-        bn.className='today-banner regular';
-        ic.innerHTML='<i class="fas fa-calendar-day"></i>';
-
-        const cm=n.getHours()*60+n.getMinutes();
-        const ps=t2m(cfg.pagiStart),pe=t2m(cfg.pagiEnd),ms=t2m(cfg.malamStart),me=t2m(cfg.malamEnd);
-        let curShift=null,progress=0;
-
-        if(cm>=ps&&cm<pe){
-            curShift='pagi';progress=(cm-ps)/(pe-ps)*100;
-            tg.innerHTML='<div class="today-tag pagi">SHIFT PAGI AKTIF</div>';
-            pf.className='progress-fill pagi';
-        } else if(cm>=ms&&cm<me){
-            curShift='malam';progress=(cm-ms)/(me-ms)*100;
-            tg.innerHTML='<div class="today-tag malam">SHIFT MALAM AKTIF</div>';
-            pf.className='progress-fill malam';
-        } else {
-            tg.innerHTML='<div class="today-tag" style="background:var(--card);color:var(--muted);border:1px solid var(--border)">Di Luar Jam Kerja</div>';
-        }
-
-        if(curShift){
-            const list=emp[curShift];
-            const csC=list.filter(e=>e.role==='CS').length;
-            const ksC=list.filter(e=>e.role==='Kasir').length;
-            const minCS=curShift==='pagi'?cfg.pagiMinCS:cfg.malamMinCS;
-            const minKs=curShift==='pagi'?cfg.pagiMinKasir:cfg.malamMinKasir;
-            du.innerHTML=`
-                <div class="duty-chip cs"><div><div class="num">${csC}</div><div class="lbl">CS (Min ${minCS})</div></div></div>
-                <div class="duty-chip kasir"><div><div class="num">${ksC}</div><div class="lbl">Kasir (Min ${minKs})</div></div></div>
-                ${csC<minCS||ksC<minKs?'<div style="font-size:11px;color:var(--warn);display:flex;align-items:center;gap:4px"><i class="fas fa-exclamation-triangle"></i> Staff kurang dari minimum</div>':''}`;
-            pb.style.display='block';
-            pf.style.width=Math.min(100,Math.max(0,progress))+'%';
-        } else {
-            du.innerHTML='';
-            pb.style.display='none';
-        }
-    }
+function rSt(){
+const pc=E.pagi.filter(e=>e.role==='CS').length,pk=E.pagi.filter(e=>e.role==='Kasir').length;
+const mc=E.malam.filter(e=>e.role==='CS').length,mk=E.malam.filter(e=>e.role==='Kasir').length;
+const tot=E.pagi.length+E.malam.length+E.off.length;
+const pw=E.pagi.filter(e=>e.role==='CS').length<C.pagiMinCS||E.pagi.filter(e=>e.role==='Kasir').length<C.pagiMinKasir;
+const mw=E.malam.filter(e=>e.role==='CS').length<C.malamMinCS||E.malam.filter(e=>e.role==='Kasir').length<C.malamMinKasir;
+document.getElementById('stA').innerHTML=`
+<div class="st pagi"><div class="gw"></div><div class="si"><i class="fas fa-sun"></i></div><div class="sv">${E.pagi.length}</div><div class="ss"><span class="cc"><i class="fas fa-headset"></i> ${pc} CS</span><span class="kc"><i class="fas fa-cash-register"></i> ${pk} Kasir</span></div>${pw?'<div class="sw"><i class="fas fa-exclamation-triangle"></i> Di bawah minimum</div>':''}</div>
+<div class="st malam"><div class="gw"></div><div class="si"><i class="fas fa-moon"></i></div><div class="sv">${E.malam.length}</div><div class="ss"><span class="cc"><i class="fas fa-headset"></i> ${mc} CS</span><span class="kc"><i class="fas fa-cash-register"></i> ${mk} Kasir</span></div>${mw?'<div class="sw"><i class="fas fa-exclamation-triangle"></i> Di bawah minimum</div>':''}</div>
+<div class="st off"><div class="gw"></div><div class="si"><i class="fas fa-bed"></i></div><div class="sv">${E.off.length}</div><div class="ss"><span class="cc"><i class="fas fa-headset"></i> ${E.off.filter(e=>e.role==='CS').length} CS</span><span class="kc"><i class="fas fa-cash-register"></i> ${E.off.filter(e=>e.role==='Kasir').length} Kasir</span></div></div>
+<div class="st total"><div class="gw"></div><div class="si"><i class="fas fa-users"></i></div><div class="sv">${tot}</div><div class="ss"><span class="cc"><i class="fas fa-headset"></i> ${pc+mc+E.off.filter(e=>e.role==='CS').length} CS</span><span class="kc"><i class="fas fa-cash-register"></i> ${pk+mk+E.off.filter(e=>e.role==='Kasir').length} Kasir</span></div></div>`;
 }
 
-// ============================================================
-// DURASI
-// ============================================================
-function calcDur(s,e){let sm=t2m(s),em=t2m(e);if(em<=sm)em+=1440;const d=em-sm;const h=Math.floor(d/60),m=d%60;return m>0?`${h} Jam ${m} Menit`:`${h} Jam`}
+function rTbl(shift){
+const tb=document.getElementById(`tb${cp(shift)}`);
+const list=E[shift];
+const q=document.getElementById('sIn').value.toLowerCase().trim();
+const fl=q?list.filter(e=>e.name.toLowerCase().includes(q)):list;
 
-// ============================================================
-// RENDER ALL
-// ============================================================
-function renderAll(){renderStats();renderGrid('pagi');renderGrid('malam');renderGrid('off');upBadges();upSched();upOffBanner();upToday()}
+if(!fl.length){tb.innerHTML=`<div class="empty"><i class="fas fa-user-slash"></i><p>${q?'Tidak ditemukan':'Belum ada karyawan'}</p></div>`;return}
 
-function renderStats(){
-    const pc=emp.pagi.filter(e=>e.role==='CS').length,pk=emp.pagi.filter(e=>e.role==='Kasir').length;
-    const mc=emp.malam.filter(e=>e.role==='CS').length,mk=emp.malam.filter(e=>e.role==='Kasir').length;
-    const tot=emp.pagi.length+emp.malam.length+emp.off.length;
-    const pw=emp.pagi.length<cfg.pagiMinCS+cfg.pagiMinKasir;
-    const mw=emp.malam.length<cfg.malamMinCS+cfg.malamMinKasir;
+tb.innerHTML=fl.map((e,i)=>{
+const ini=gIni(e.name),rc=e.role==='CS'?'cs':'kasir';
+let meta='';
+if(shift==='off'&&e.returnDate){meta=fmD(e.returnDate);const cd=cdw(e.returnDate);if(cd)meta+=` · ${cd}`}
+else if(shift!=='off'){meta=e.role==='CS'?'Customer Service':'Kasir Tunai'}
+else{meta='Menunggu jadwal'}
 
-    document.getElementById('statsArea').innerHTML=`
-        <div class="st pagi"><div class="glow2"></div><div class="ico"><i class="fas fa-sun"></i></div>
-            <div class="val">${emp.pagi.length}</div><div class="sub"><span class="cs-c"><i class="fas fa-headset"></i> ${pc} CS</span><span class="ks-c"><i class="fas fa-cash-register"></i> ${pk} Kasir</span></div>
-            ${pw?`<div class="warn"><i class="fas fa-exclamation-triangle"></i> Di bawah minimum</div>`:''}</div>
-        <div class="st malam"><div class="glow2"></div><div class="ico"><i class="fas fa-moon"></i></div>
-            <div class="val">${emp.malam.length}</div><div class="sub"><span class="cs-c"><i class="fas fa-headset"></i> ${mc} CS</span><span class="ks-c"><i class="fas fa-cash-register"></i> ${mk} Kasir</span></div>
-            ${mw?`<div class="warn"><i class="fas fa-exclamation-triangle"></i> Di bawah minimum</div>`:''}</div>
-        <div class="st off"><div class="glow2"></div><div class="ico"><i class="fas fa-bed"></i></div>
-            <div class="val">${emp.off.length}</div><div class="sub"><span class="cs-c"><i class="fas fa-headset"></i> ${emp.off.filter(e=>e.role==='CS').length} CS</span><span class="ks-c"><i class="fas fa-cash-register"></i> ${emp.off.filter(e=>e.role==='Kasir').length} Kasir</span></div></div>
-        <div class="st total"><div class="glow2"></div><div class="ico"><i class="fas fa-users"></i></div>
-            <div class="val">${tot}</div><div class="sub"><span class="cs-c"><i class="fas fa-headset"></i> ${pc+mc+emp.off.filter(e=>e.role==='CS').length} CS</span><span class="ks-c"><i class="fas fa-cash-register"></i> ${pk+mk+emp.off.filter(e=>e.role==='Kasir').length} Kasir</span></div></div>`;
+let acts='';
+if(shift==='pagi')acts=`<button class="ab mm" title="Ke Malam" onclick="qMv(${e.id},'pagi','malam')"><i class="fas fa-moon"></i></button><button class="ab mo" title="Ke Off" onclick="qMv(${e.id},'pagi','off')"><i class="fas fa-bed"></i></button>`;
+else if(shift==='malam')acts=`<button class="ab mp" title="Ke Pagi" onclick="qMv(${e.id},'malam','pagi')"><i class="fas fa-sun"></i></button><button class="ab mo" title="Ke Off" onclick="qMv(${e.id},'malam','off')"><i class="fas fa-bed"></i></button>`;
+else acts=`<button class="ab mp" title="Ke Pagi" onclick="qMv(${e.id},'off','pagi')"><i class="fas fa-sun"></i></button><button class="ab mm" title="Ke Malam" onclick="qMv(${e.id},'off','malam')"><i class="fas fa-moon"></i></button>`;
+
+return`<div class="tbl-row"><span class="r-num">${i+1}</span><div class="r-av ${rc}">${ini}</div><span class="r-name">${e.name}</span><span class="r-role ${rc}">${e.role}</span><span class="r-meta">${meta}</span><div class="r-acts">${acts}<button class="ab ed" title="Edit" onclick="oEdit(${e.id},'${shift}')"><i class="fas fa-pen"></i></button><button class="ab dl" title="Hapus" onclick="oDel(${e.id},'${shift}')"><i class="fas fa-trash-alt"></i></button></div></div>`;
+}).join('')}
+
+function uBdg(){
+const pw=E.pagi.filter(e=>e.role==='CS').length<C.pagiMinCS||E.pagi.filter(e=>e.role==='Kasir').length<C.pagiMinKasir;
+const mw=E.malam.filter(e=>e.role==='CS').length<C.malamMinCS||E.malam.filter(e=>e.role==='Kasir').length<C.malamMinKasir;
+document.querySelector('[data-tab="pagi"]').innerHTML=`<i class="fas fa-sun"></i> Pagi <span class="bd">${E.pagi.length}</span>${pw?'<span class="wd"></span>':''}`;
+document.querySelector('[data-tab="malam"]').innerHTML=`<i class="fas fa-moon"></i> Malam <span class="bd">${E.malam.length}</span>${mw?'<span class="wd"></span>':''}`;
+document.querySelector('[data-tab="off"]').innerHTML=`<i class="fas fa-bed"></i> Off <span class="bd">${E.off.length}</span>`;
 }
 
-function renderGrid(shift){
-    const grid=document.getElementById(`grid${cap(shift)}`);
-    const list=emp[shift];
-    const q=document.getElementById('searchIn').value.toLowerCase().trim();
-    const filtered=q?list.filter(e=>e.name.toLowerCase().includes(q)):list;
-
-    if(!filtered.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><i class="fas fa-user-slash"></i><p>${q?'Tidak ditemukan':'Belum ada karyawan'}</p></div>`;return}
-
-    grid.innerHTML=filtered.map((e,i)=>{
-        const ini=ini2(e.name);
-        const roleCls=e.role==='CS'?'cs':'kasir';
-        const meta=[];
-        if(shift==='off'&&e.returnDate){
-            meta.push(`<i class="fas fa-calendar"></i> ${fmtDate(e.returnDate)}`);
-            const cd=countdown(e.returnDate);if(cd)meta.push(`<i class="fas fa-hourglass-half"></i> ${cd}`);
-        }
-        if(!meta.length)meta.push(`<i class="fas fa-id-badge"></i> ID-${String(e.id).padStart(3,'0')}`);
-
-        let acts='';
-        if(shift==='pagi')acts=`<button class="ab m-malam" title="Ke Malam" onclick="qMove(${e.id},'pagi','malam')"><i class="fas fa-moon"></i></button><button class="ab m-off" title="Ke Off" onclick="qMove(${e.id},'pagi','off')"><i class="fas fa-bed"></i></button>`;
-        else if(shift==='malam')acts=`<button class="ab m-pagi" title="Ke Pagi" onclick="qMove(${e.id},'malam','pagi')"><i class="fas fa-sun"></i></button><button class="ab m-off" title="Ke Off" onclick="qMove(${e.id},'malam','off')"><i class="fas fa-bed"></i></button>`;
-        else acts=`<button class="ab m-pagi" title="Ke Pagi" onclick="qMove(${e.id},'off','pagi')"><i class="fas fa-sun"></i></button><button class="ab m-malam" title="Ke Malam" onclick="qMove(${e.id},'off','malam')"><i class="fas fa-moon"></i></button>`;
-
-        return`<div class="emp-c"><div class="stripe"></div><span class="emp-num">${i+1}</span>
-            <div class="emp-av ${roleCls}">${ini}</div>
-            <div class="emp-inf"><div class="emp-nm">${e.name}</div>
-            <div class="emp-meta"><span class="role-tag ${roleCls}">${e.role}</span>${meta.join('')}</div></div>
-            <div class="emp-acts">${acts}
-            <button class="ab" title="Edit" onclick="openEdit(${e.id},'${shift}')"><i class="fas fa-pen"></i></button>
-            <button class="ab" title="Pindah" onclick="openMove(${e.id},'${shift}')"><i class="fas fa-exchange-alt"></i></button>
-            <button class="ab del" title="Hapus" onclick="openDel(${e.id},'${shift}')"><i class="fas fa-trash-alt"></i></button></div></div>`;
-    }).join('');
+function uSch(){
+document.getElementById('pSch').textContent=`${C.pagiStart} - ${C.pagiEnd}`;
+document.getElementById('mSch').textContent=`${C.malamStart} - ${C.malamEnd}`;
+document.getElementById('pDur').querySelector('span').textContent=cDur(C.pagiStart,C.pagiEnd);
+document.getElementById('mDur').querySelector('span').textContent=cDur(C.malamStart,C.malamEnd);
+document.getElementById('hdrLore').textContent=C.loreName;
 }
 
-function upBadges(){
-    document.getElementById('bdgPagi').textContent=emp.pagi.length;
-    document.getElementById('bdgMalam').textContent=emp.malam.length;
-    document.getElementById('bdgOff').textContent=emp.off.length;
-
-    // Warning dots on tabs
-    const pagiWarn=emp.pagi.filter(e=>e.role==='CS').length<cfg.pagiMinCS||emp.pagi.filter(e=>e.role==='Kasir').length<cfg.pagiMinKasir;
-    const malamWarn=emp.malam.filter(e=>e.role==='CS').length<cfg.malamMinCS||emp.malam.filter(e=>e.role==='Kasir').length<cfg.malamMinKasir;
-    document.querySelector('[data-tab="pagi"]').innerHTML=`<i class="fas fa-sun"></i> Pagi <span class="bdg" id="bdgPagi">${emp.pagi.length}</span>${pagiWarn?'<span class="warn-dot"></span>':''}`;
-    document.querySelector('[data-tab="malam"]').innerHTML=`<i class="fas fa-moon"></i> Malam <span class="bdg" id="bdgMalam">${emp.malam.length}</span>${malamWarn?'<span class="warn-dot"></span>':''}`;
+function uOB(){
+const ow=E.off.filter(e=>e.returnDate);
+if(ow.length){const earliest=ow.reduce((a,b)=>a.returnDate<b.returnDate?a:b);const cd=cdw(earliest.returnDate);
+document.getElementById('obT').textContent=`Kembali: ${fmD(earliest.returnDate)}`;document.getElementById('obS').textContent=cd||'Hari ini'}
+else{document.getElementById('obT').textContent=E.off.length?`${E.off.length} karyawan off`:'Tidak ada yang off';document.getElementById('obS').textContent=''}
 }
 
-function upSched(){
-    document.getElementById('pagiSched').textContent=`${cfg.pagiStart} - ${cfg.pagiEnd}`;
-    document.getElementById('malamSched').textContent=`${cfg.malamStart} - ${cfg.malamEnd}`;
-    document.getElementById('pagiDur').querySelector('span').textContent=calcDur(cfg.pagiStart,cfg.pagiEnd);
-    document.getElementById('malamDur').querySelector('span').textContent=calcDur(cfg.malamStart,cfg.malamEnd);
-    document.getElementById('hdrLore').textContent=cfg.loreName;
-}
+function cp(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function gIni(n){const p=n.trim().split(/\s+/);return p.length===1?p[0].substring(0,2).toUpperCase():(p[0][0]+p[p.length-1][0]).toUpperCase()}
+function fmD(d){if(!d)return'-';const dt=new Date(d+'T00:00:00');return`${dt.getDate()} ${BL[dt.getMonth()]} ${dt.getFullYear()}`}
+function cdw(d){if(!d)return null;const t=new Date(d+'T00:00:00'),n=new Date();n.setHours(0,0,0,0);const diff=Math.ceil((t-n)/864e5);if(diff<0)return'Sudah lewat';if(diff===0)return'Hari ini';if(diff===1)return'Besok';return`${diff} hari lagi`}
 
-function upOffBanner(){
-    const ow=emp.off.filter(e=>e.returnDate);
-    if(ow.length){
-        const earliest=ow.reduce((a,b)=>a.returnDate<b.returnDate?a:b);
-        const cd=countdown(earliest.returnDate);
-        document.getElementById('obTitle').textContent=`Kembali: ${fmtDate(earliest.returnDate)}`;
-        document.getElementById('obSub').textContent=cd?cd:'Hari ini jadwal kembali';
-    } else {
-        document.getElementById('obTitle').textContent=emp.off.length?`${emp.off.length} karyawan sedang off`:'Tidak ada yang off';
-        document.getElementById('obSub').textContent='';
-    }
-}
+function swTab(t){aTab=t;document.querySelectorAll('.tb').forEach(b=>{b.className='tb';if(b.dataset.tab===t)b.classList.add(t==='pagi'?'ap':t==='malam'?'am':'ao')});
+document.querySelectorAll('.ss').forEach(s=>s.classList.remove('active'));document.getElementById(`s${cp(t)}`).classList.add('active')}
+function fEmp(){rTbl('pagi');rTbl('malam');rTbl('off')}
 
-// ============================================================
-// HELPER
-// ============================================================
-function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
-function ini2(n){const p=n.trim().split(/\s+/);return p.length===1?p[0].substring(0,2).toUpperCase():(p[0][0]+p[p.length-1][0]).toUpperCase()}
-function fmtDate(d){if(!d)return'-';const dt=new Date(d+'T00:00:00');return`${dt.getDate()}-${BULAN[dt.getMonth()].substring(0,3)}-${dt.getFullYear()}`}
-function countdown(d){if(!d)return null;const t=new Date(d+'T00:00:00'),n=new Date();n.setHours(0,0,0,0);const diff=Math.ceil((t-n)/(864e5));if(diff<0)return'Sudah lewat';if(diff===0)return'Hari ini';if(diff===1)return'Besok';return`${diff} hari lagi`}
+// ADD
+function openAdd(){document.getElementById('aNm').value='';document.getElementById('aRl').value='CS';document.getElementById('aSh').value=aTab;
+document.getElementById('aOD').value='';document.getElementById('aOG').style.display=aTab==='off'?'block':'none';oMo('addMo');setTimeout(()=>document.getElementById('aNm').focus(),150)}
+function addE(){const nm=document.getElementById('aNm').value.trim().toUpperCase(),rl=document.getElementById('aRl').value,sh=document.getElementById('aSh').value,od=document.getElementById('aOD').value;
+if(!nm){toast('Nama tidak boleh kosong','err');return}
+if([...E.pagi,...E.malam,...E.off].find(e=>e.name===nm)){toast('Nama sudah ada','err');return}
+const ne={id:nid++,name:nm,role:rl};if(sh==='off'&&od)ne.returnDate=od;
+E[sh].push(ne);saveS();clMo('addMo');rAll();swTab(sh);toast(`${nm} ditambahkan ke ${cp(sh)}`,'ok')}
 
-// ============================================================
-// TABS
-// ============================================================
-function switchTab(t){
-    aTab=t;
-    document.querySelectorAll('.tab-b').forEach(b=>{b.className='tab-b';if(b.dataset.tab===t)b.classList.add(`a-${t}`)});
-    document.querySelectorAll('.shift-sec').forEach(s=>s.classList.remove('active'));
-    document.getElementById(`sec${cap(t)}`).classList.add('active');
-}
-function filterEmp(){renderGrid('pagi');renderGrid('malam');renderGrid('off')}
-
-// ============================================================
-// TAMBAH
-// ============================================================
-function openAdd(){
-    document.getElementById('addNm').value='';
-    document.getElementById('addRole').value='CS';
-    document.getElementById('addShift').value=aTab;
-    document.getElementById('addOffD').value='';
-    document.getElementById('addOffG').style.display=aTab==='off'?'block':'none';
-    openMo('addMo');setTimeout(()=>document.getElementById('addNm').focus(),200);
-}
-function addEmp(){
-    const nm=document.getElementById('addNm').value.trim().toUpperCase();
-    const rl=document.getElementById('addRole').value;
-    const sh=document.getElementById('addShift').value;
-    const od=document.getElementById('addOffD').value;
-    if(!nm){toast('Nama tidak boleh kosong','error');return}
-    const all=[...emp.pagi,...emp.malam,...emp.off];
-    if(all.find(e=>e.name===nm)){toast('Nama sudah ada','error');return}
-    const ne={id:nid++,name:nm,role:rl};
-    if(sh==='off'&&od)ne.returnDate=od;
-    emp[sh].push(ne);saveStore();closeMo('addMo');renderAll();switchTab(sh);
-    toast(`${nm} ditambahkan ke Shift ${cap(sh)}`,'success');
-}
-
-// ============================================================
 // EDIT
-// ============================================================
-function openEdit(id,sh){
-    const e=emp[sh].find(x=>x.id===id);if(!e)return;
-    editT={id,sh};
-    document.getElementById('editNm').value=e.name;
-    document.getElementById('editRole').value=e.role;
-    openMo('editMo');
-}
-function saveEdit(){
-    if(!editT)return;
-    const e=emp[editT.sh].find(x=>x.id===editT.id);if(!e)return;
-    const nm=document.getElementById('editNm').value.trim().toUpperCase();
-    const rl=document.getElementById('editRole').value;
-    if(!nm){toast('Nama tidak boleh kosong','error');return}
-    e.name=nm;e.role=rl;saveStore();closeMo('editMo');renderAll();
-    toast(`Data ${nm} diperbarui`,'success');editT=null;
-}
+function oEdit(id,sh){const e=E[sh].find(x=>x.id===id);if(!e)return;edT={id,sh};document.getElementById('eNm').value=e.name;document.getElementById('eRl').value=e.role;oMo('editMo')}
+function svEdit(){if(!edT)return;const e=E[edT.sh].find(x=>x.id===edT.id);if(!e)return;const nm=document.getElementById('eNm').value.trim().toUpperCase(),rl=document.getElementById('eRl').value;
+if(!nm){toast('Nama tidak boleh kosong','err');return}e.name=nm;e.role=rl;saveS();clMo('editMo');rAll();toast(`Data ${nm} diperbarui`,'ok');edT=null}
 
-// ============================================================
-// PINDAH (QUICK)
-// ============================================================
-function qMove(id,from,to){
-    const idx=emp[from].findIndex(e=>e.id===id);if(idx===-1)return;
-    const e=emp[from].splice(idx,1)[0];
-    if(to==='off'&&!e.returnDate){const d=new Date();d.setDate(d.getDate()+7);e.returnDate=d.toISOString().split('T')[0]}
-    if(from==='off'&&to!=='off')delete e.returnDate;
-    emp[to].push(e);saveStore();renderAll();
-    toast(`${e.name} dipindahkan ke Shift ${cap(to)}`,'success');
-}
+// QUICK MOVE
+function qMv(id,from,to){const idx=E[from].findIndex(e=>e.id===id);if(idx===-1)return;const e=E[from].splice(idx,1)[0];
+if(to==='off'&&!e.returnDate){const d=new Date();d.setDate(d.getDate()+7);e.returnDate=d.toISOString().split('T')[0]}
+if(from==='off'&&to!=='off')delete e.returnDate;
+E[to].push(e);saveS();rAll();toast(`${e.name} → Shift ${cp(to)}`,'ok')}
 
-// ============================================================
-// PINDAH (MODAL)
-// ============================================================
-function openMove(id,sh){
-    const e=emp[sh].find(x=>x.id===id);if(!e)return;
-    moveT={id,from:sh};
-    document.getElementById('moveNm').value=e.name;
-    document.getElementById('moveShift').value=sh==='pagi'?'malam':'pagi';
-    document.getElementById('moveOffD').value=e.returnDate||'';
-    document.getElementById('moveOffG').style.display='none';
-    openMo('moveMo');
-}
-function confirmMove(){
-    if(!moveT)return;
-    const to=document.getElementById('moveShift').value;
-    const od=document.getElementById('moveOffD').value;
-    const idx=emp[moveT.from].findIndex(e=>e.id===moveT.id);if(idx===-1)return;
-    const e=emp[moveT.from].splice(idx,1)[0];
-    if(to==='off'&&od)e.returnDate=od;
-    else if(to==='off'&&!od){const d=new Date();d.setDate(d.getDate()+7);e.returnDate=d.toISOString().split('T')[0]}
-    else delete e.returnDate;
-    emp[to].push(e);saveStore();closeMo('moveMo');renderAll();
-    toast(`${e.name} dipindahkan ke Shift ${cap(to)}`,'success');moveT=null;
-}
+// MOVE MODAL
+function oMv(id,sh){const e=E[sh].find(x=>x.id===id);if(!e)return;mvT={id,from:sh};document.getElementById('mvNm').value=e.name;
+document.getElementById('mvSh').value=sh==='pagi'?'malam':'pagi';document.getElementById('mvOD').value=e.returnDate||'';document.getElementById('mvOG').style.display='none';oMo('mvMo')}
+function cfMv(){if(!mvT)return;const to=document.getElementById('mvSh').value,od=document.getElementById('mvOD').value;
+const idx=E[mvT.from].findIndex(e=>e.id===mvT.id);if(idx===-1)return;const e=E[mvT.from].splice(idx,1)[0];
+if(to==='off'&&od)e.returnDate=od;else if(to==='off'&&!od){const d=new Date();d.setDate(d.getDate()+7);e.returnDate=d.toISOString().split('T')[0]}else delete e.returnDate;
+E[to].push(e);saveS();clMo('mvMo');rAll();toast(`${e.name} → Shift ${cp(to)}`,'ok');mvT=null}
 
-// ============================================================
-// HAPUS
-// ============================================================
-function openDel(id,sh){
-    const e=emp[sh].find(x=>x.id===id);if(!e)return;
-    delT={id,from:sh};document.getElementById('delNm').textContent=e.name;openMo('delMo');
-}
-function confirmDel(){
-    if(!delT)return;
-    const idx=emp[delT.from].findIndex(e=>e.id===delT.id);if(idx===-1)return;
-    const nm=emp[delT.from][idx].name;
-    // Hapus dari duty lists juga
-    cfg.offDayDutyCS=cfg.offDayDutyCS.filter(id=>id!==delT.id);
-    cfg.offDayDutyKasir=cfg.offDayDutyKasir.filter(id=>id!==delT.id);
-    emp[delT.from].splice(idx,1);saveStore();closeMo('delMo');renderAll();
-    toast(`${nm} dihapus`,'info');delT=null;
-}
+// DELETE
+function oDel(id,sh){const e=E[sh].find(x=>x.id===id);if(!e)return;dlT={id,from:sh};document.getElementById('dlNm').textContent=e.name;oMo('dlMo')}
+function cfDl(){if(!dlT)return;const idx=E[dlT.from].findIndex(e=>e.id===dlT.id);if(idx===-1)return;const nm=E[dlT.from][idx].name;
+C.offDayDutyCS=(C.offDayDutyCS||[]).filter(id=>id!==dlT.id);C.offDayDutyKasir=(C.offDayDutyKasir||[]).filter(id=>id!==dlT.id);
+E[dlT.from].splice(idx,1);saveS();clMo('dlMo');rAll();toast(`${nm} dihapus`,'inf');dlT=null}
 
-// ============================================================
 // SETTINGS
-// ============================================================
-function openSettings(){
-    document.getElementById('setLore').value=cfg.loreName;
-    document.getElementById('setOffDay').value=cfg.offDay;
-    document.getElementById('setOffCS').value=cfg.offDayMinCS;
-    document.getElementById('setOffKasir').value=cfg.offDayMinKasir;
-    document.getElementById('setPS').value=cfg.pagiStart;
-    document.getElementById('setPE').value=cfg.pagiEnd;
-    document.getElementById('setPCS').value=cfg.pagiMinCS;
-    document.getElementById('setPKasir').value=cfg.pagiMinKasir;
-    document.getElementById('setMS').value=cfg.malamStart;
-    document.getElementById('setME').value=cfg.malamEnd;
-    document.getElementById('setMCS').value=cfg.malamMinCS;
-    document.getElementById('setMKasir').value=cfg.malamMinKasir;
-    buildDutySel();
-    // Reset ke tab umum
-    document.querySelectorAll('.set-tab').forEach((t,i)=>{t.classList.toggle('active',i===0)});
-    document.querySelectorAll('.set-panel').forEach((p,i)=>{p.classList.toggle('active',i===0)});
-    openMo('setMo');
-}
+function openSet(){
+document.getElementById('sLore').value=C.loreName;document.getElementById('sOD').value=C.offDay;
+document.getElementById('sOCS').value=C.offDayMinCS;document.getElementById('sOKS').value=C.offDayMinKasir;
+document.getElementById('sPS').value=C.pagiStart;document.getElementById('sPE').value=C.pagiEnd;
+document.getElementById('sPCS').value=C.pagiMinCS;document.getElementById('sPKS').value=C.pagiMinKasir;
+document.getElementById('sMS').value=C.malamStart;document.getElementById('sME').value=C.malamEnd;
+document.getElementById('sMCS').value=C.malamMinCS;document.getElementById('sMKS').value=C.malamMinKasir;
+bDS();document.querySelectorAll('.stb').forEach((t,i)=>t.classList.toggle('active',i===0));
+document.querySelectorAll('.stp').forEach((p,i)=>p.classList.toggle('active',i===0));oMo('setMo')}
 
-function switchSetTab(btn,panelId){
-    document.querySelectorAll('.set-tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.set-panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(panelId).classList.add('active');
-    if(panelId==='setJaga')buildDutySel();
-}
+function swST(btn,pid){document.querySelectorAll('.stb').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.stp').forEach(p=>p.classList.remove('active'));
+btn.classList.add('active');document.getElementById(pid).classList.add('active');if(pid==='spJ')bDS()}
 
-function buildDutySel(){
-    const all=[...emp.pagi,...emp.malam];
-    const csList=all.filter(e=>e.role==='CS');
-    const ksList=all.filter(e=>e.role==='Kasir');
-    const csSel=cfg.offDayDutyCS||[];
-    const ksSel=cfg.offDayDutyKasir||[];
+function bDS(){
+const all=[...E.pagi,...E.malam];const csL=all.filter(e=>e.role==='CS'),ksL=all.filter(e=>e.role==='Kasir');
+const csS=C.offDayDutyCS||[],ksS=C.offDayDutyKasir||[];
+document.getElementById('dsA').innerHTML=`
+<div class="dg"><div class="dgt cs"><i class="fas fa-headset"></i> CS — <span id="csCt">${csS.length}</span> / Min ${C.offDayMinCS}</div>
+ ${csS.length<C.offDayMinCS?'<div class="dw"><i class="fas fa-exclamation-triangle"></i> Minimum '+C.offDayMinCS+' CS harus dipilih</div>':''}
+<div class="duty-sel">${csL.map(e=>`<label class="di"><input type="checkbox" class="dcc" value="${e.id}" ${csS.includes(e.id)?'checked':''}><span>${e.name}</span></label>`).join('')}</div></div>
+<div class="dg" style="margin-top:10px"><div class="dgt kasir"><i class="fas fa-cash-register"></i> Kasir — <span id="ksCt">${ksS.length}</span> / Min ${C.offDayMinKasir}</div>
+ ${ksS.length<C.offDayMinKasir?'<div class="dw"><i class="fas fa-exclamation-triangle"></i> Minimum '+C.offDayMinKasir+' Kasir harus dipilih</div>':''}
+<div class="duty-sel">${ksL.map(e=>`<label class="di"><input type="checkbox" class="dkc" value="${e.id}" ${ksS.includes(e.id)?'checked':''}><span>${e.name}</span></label>`).join('')}</div></div>`;
+document.querySelectorAll('.dcc').forEach(cb=>cb.addEventListener('change',()=>{document.getElementById('csCt').textContent=document.querySelectorAll('.dcc:checked').length}));
+document.querySelectorAll('.dkc').forEach(cb=>cb.addEventListener('change',()=>{document.getElementById('ksCt').textContent=document.querySelectorAll('.dkc:checked').length}))}
 
-    document.getElementById('dutySelArea').innerHTML=`
-        <div class="duty-grp">
-            <div class="duty-grp-title cs"><i class="fas fa-headset"></i> CS — Terpilih: <span id="csCnt">${csSel.length}</span> / Min ${cfg.offDayMinCS}</div>
-            ${csSel.length<cfg.offDayMinCS?'<div class="duty-warn"><i class="fas fa-exclamation-triangle"></i> Minimum '+cfg.offDayMinCS+' CS harus dipilih</div>':''}
-            <div class="duty-sel">${csList.map(e=>`<label class="duty-item"><input type="checkbox" class="duty-cs-cb" value="${e.id}" ${csSel.includes(e.id)?'checked':''}><span>${e.name}</span></label>`).join('')}</div>
-        </div>
-        <div class="duty-grp" style="margin-top:12px">
-            <div class="duty-grp-title kasir"><i class="fas fa-cash-register"></i> Kasir — Terpilih: <span id="ksCnt">${ksSel.length}</span> / Min ${cfg.offDayMinKasir}</div>
-            ${ksSel.length<cfg.offDayMinKasir?'<div class="duty-warn"><i class="fas fa-exclamation-triangle"></i> Minimum '+cfg.offDayMinKasir+' Kasir harus dipilih</div>':''}
-            <div class="duty-sel">${ksList.map(e=>`<label class="duty-item"><input type="checkbox" class="duty-ks-cb" value="${e.id}" ${ksSel.includes(e.id)?'checked':''}><span>${e.name}</span></label>`).join('')}</div>
-        </div>`;
+function svSet(){
+C.loreName=document.getElementById('sLore').value.trim()||'CS KASIR CSLINE';
+C.offDay=document.getElementById('sOD').value;C.offDayMinCS=parseInt(document.getElementById('sOCS').value)||2;C.offDayMinKasir=parseInt(document.getElementById('sOKS').value)||2;
+const ps=document.getElementById('sPS').value,pe=document.getElementById('sPE').value,ms=document.getElementById('sMS').value,me=document.getElementById('sME').value;
+if(t2m(pe)<=t2m(ps)){toast('Jam pulang pagi harus > jam masuk','err');return}
+if(t2m(me)<=t2m(ms)){toast('Jam pulang malam harus > jam masuk','err');return}
+C.pagiStart=ps;C.pagiEnd=pe;C.pagiMinCS=parseInt(document.getElementById('sPCS').value)||1;C.pagiMinKasir=parseInt(document.getElementById('sPKS').value)||1;
+C.malamStart=ms;C.malamEnd=me;C.malamMinCS=parseInt(document.getElementById('sMCS').value)||1;C.malamMinKasir=parseInt(document.getElementById('sMKS').value)||1;
+C.offDayDutyCS=Array.from(document.querySelectorAll('.dcc:checked')).map(cb=>parseInt(cb.value));
+C.offDayDutyKasir=Array.from(document.querySelectorAll('.dkc:checked')).map(cb=>parseInt(cb.value));
+if(C.offDayDutyCS.length<C.offDayMinCS){toast(`Minimum ${C.offDayMinCS} CS jaga libur`,'err');return}
+if(C.offDayDutyKasir.length<C.offDayMinKasir){toast(`Minimum ${C.offDayMinKasir} Kasir jaga libur`,'err');return}
+saveS();clMo('setMo');rAll();toast('Pengaturan disimpan','ok')}
 
-    // Update counter on change
-    document.querySelectorAll('.duty-cs-cb').forEach(cb=>cb.addEventListener('change',()=>{
-        document.getElementById('csCnt').textContent=document.querySelectorAll('.duty-cs-cb:checked').length;
-    }));
-    document.querySelectorAll('.duty-ks-cb').forEach(cb=>cb.addEventListener('change',()=>{
-        document.getElementById('ksCnt').textContent=document.querySelectorAll('.duty-ks-cb:checked').length;
-    }));
-}
-
-function saveSet(){
-    cfg.loreName=document.getElementById('setLore').value.trim()||'CS KASIR CSLINE';
-    cfg.offDay=document.getElementById('setOffDay').value;
-    cfg.offDayMinCS=parseInt(document.getElementById('setOffCS').value)||2;
-    cfg.offDayMinKasir=parseInt(document.getElementById('setOffKasir').value)||2;
-
-    const ps=document.getElementById('setPS').value,pe=document.getElementById('setPE').value;
-    const ms=document.getElementById('setMS').value,me=document.getElementById('setME').value;
-    if(t2m(pe)<=t2m(ps)){toast('Jam pulang pagi harus lebih besar dari jam masuk','error');return}
-    if(t2m(me)<=t2m(ms)){toast('Jam pulang malam harus lebih besar dari jam masuk','error');return}
-
-    cfg.pagiStart=ps;cfg.pagiEnd=pe;
-    cfg.pagiMinCS=parseInt(document.getElementById('setPCS').value)||1;
-    cfg.pagiMinKasir=parseInt(document.getElementById('setPKasir').value)||1;
-    cfg.malamStart=ms;cfg.malamEnd=me;
-    cfg.malamMinCS=parseInt(document.getElementById('setMCS').value)||1;
-    cfg.malamMinKasir=parseInt(document.getElementById('setMKasir').value)||1;
-
-    // Duty selections
-    cfg.offDayDutyCS=Array.from(document.querySelectorAll('.duty-cs-cb:checked')).map(cb=>parseInt(cb.value));
-    cfg.offDayDutyKasir=Array.from(document.querySelectorAll('.duty-ks-cb:checked')).map(cb=>parseInt(cb.value));
-
-    if(cfg.offDayDutyCS.length<cfg.offDayMinCS){toast(`Minimum ${cfg.offDayMinCS} CS harus dipilih untuk jaga libur`,'error');return}
-    if(cfg.offDayDutyKasir.length<cfg.offDayMinKasir){toast(`Minimum ${cfg.offDayMinKasir} Kasir harus dipilih untuk jaga libur`,'error');return}
-
-    saveStore();closeMo('setMo');renderAll();
-    toast('Pengaturan berhasil disimpan','success');
-}
-
-// ============================================================
 // MODAL
-// ============================================================
-function openMo(id){document.getElementById(id).classList.add('show');document.body.style.overflow='hidden'}
-function closeMo(id){document.getElementById(id).classList.remove('show');document.body.style.overflow=''}
+function oMo(id){document.getElementById(id).classList.add('show');document.body.style.overflow='hidden'}
+function clMo(id){document.getElementById(id).classList.remove('show');document.body.style.overflow=''}
 document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this){this.classList.remove('show');document.body.style.overflow=''}}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.mo.show').forEach(m=>m.classList.remove('show'));document.body.style.overflow=''}});
 
-// ============================================================
 // TOAST
-// ============================================================
-function toast(msg,type='info'){
-    const c=document.getElementById('toastC'),t=document.createElement('div');
-    t.className=`toast ${type}`;
-    const icons={success:'fa-check-circle',error:'fa-exclamation-circle',info:'fa-info-circle'};
-    t.innerHTML=`<i class="fas ${icons[type]||icons.info}"></i><span>${msg}</span>`;
-    c.appendChild(t);setTimeout(()=>{t.classList.add('t-out');setTimeout(()=>t.remove(),300)},3000);
-}
+function toast(msg,type='inf'){const c=document.getElementById('tc'),t=document.createElement('div');t.className=`tt ${type}`;
+const ic={ok:'fa-check-circle',err:'fa-exclamation-circle',inf:'fa-info-circle'};
+t.innerHTML=`<i class="fas ${ic[type]||ic.inf}"></i><span>${msg}</span>`;c.appendChild(t);setTimeout(()=>{t.classList.add('tout');setTimeout(()=>t.remove(),250)},2800)}
 
-// ============================================================
-// RESET (5x klik logo)
-// ============================================================
-let rc=0;
-document.querySelector('.logo-box').addEventListener('click',()=>{
-    rc++;if(rc>=5){rc=0;
-        emp=JSON.parse(JSON.stringify(INIT));nid=35;
-        cfg={loreName:"CS KASIR CSLINE",offDay:"0",offDayMinCS:2,offDayMinKasir:2,offDayDutyCS:[1,2],offDayDutyKasir:[5,10],
-            pagiStart:"06:00",pagiEnd:"14:00",pagiMinCS:5,pagiMinKasir:4,malamStart:"14:00",malamEnd:"22:00",malamMinCS:4,malamMinKasir:4};
-        saveStore();renderAll();toast('Data direset ke default','info');
-    }
-});
+// RESET
+let rc=0;document.querySelector('.lore-icon').addEventListener('click',()=>{rc++;if(rc>=5){rc=0;E=JSON.parse(JSON.stringify(INIT));nid=35;
+C={loreName:"CS KASIR CSLINE",offDay:"0",offDayMinCS:2,offDayMinKasir:2,offDayDutyCS:[1,2],offDayDutyKasir:[5,10],
+pagiStart:"06:00",pagiEnd:"14:00",pagiMinCS:5,pagiMinKasir:4,malamStart:"14:00",malamEnd:"22:00",malamMinCS:4,malamMinKasir:4};
+saveS();rAll();toast('Data direset','inf')}});
 
-// ============================================================
-// JALANKAN
-// ============================================================
 init();
 </script>
 </body>
