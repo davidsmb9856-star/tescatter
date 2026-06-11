@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         BonusSMB + IDNLIVE - All-in-One (Stop at DEBIT + Single Tab) [DARK MODE]
 // @namespace    http://tampermonkey.net/
-// @version      2.5
-// @description  Gabungan: IDNLIVE Auto Search (stop at DEBIT) + BonusSMB Auto Fill (1 tab reuse + auto focus back) + OCR Auto-Fit + Anti-Race Condition [DARK MODE EDITION]
+// @version      2.6
+// @description  Gabungan: IDNLIVE Auto Search (stop at DEBIT) + BonusSMB Auto Fill (1 tab reuse + auto focus back) + OCR Auto-Fit + Anti-Race Condition [DARK MODE EDITION] - OPTIMIZED SPEED
 // @match        https://regs.idnlive.live/report/transactionregion*
 // @match        https://bonussmb.com/tickets*
 // @grant        none
@@ -88,7 +88,7 @@
             .tm-c { flex: 1; }
             .tm-tt { font-weight: 800; font-size: 14px; margin-bottom: 2px; }
             .tm-ms { font-size: 12px; opacity: 0.95; }
-            .tm-p { position: absolute; bottom: 0; left: 0; height: 3px; background: rgba(255,255,255,0.6); animation: tProg 3s linear forwards; }
+            .tm-p { position: absolute; bottom: 0; left: 0; height: 3px; background: rgba(255,255,255,0.6); animation: tProg 2s linear forwards; }
             .tm-x { background: rgba(255,255,255,0.25); border: none; color: #fff; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
             .tm-x:hover { background: rgba(255,255,255,0.5); transform: rotate(90deg); }
             @keyframes tSlideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -192,7 +192,7 @@
                 setTimeout(() => {
                     window.focus();
                     toast('✅ Kembali ke IDNLIVE', 'i', '🔄 Fokus kembali');
-                }, 1500);
+                }, 800);
             } else {
                 smbWindow = window.open(url, SMB_WINDOW_NAME);
                 if (!smbWindow) {
@@ -204,7 +204,7 @@
                 setTimeout(() => {
                     window.focus();
                     toast('✅ Kembali ke IDNLIVE', 'i', '🔄 Fokus kembali');
-                }, 2000);
+                }, 1000);
             }
         }
 
@@ -225,7 +225,7 @@
             t.className = `tm-t tm-${type}`;
             t.innerHTML = `<div class="tm-ico">${I[type]}</div><div class="tm-c"><div class="tm-tt">${T[type]}</div><div class="tm-ms">${msg}</div></div><button class="tm-x">×</button><div class="tm-p"></div>`;
             c.appendChild(t);
-            const to = setTimeout(() => rmToast(t), 3000);
+            const to = setTimeout(() => rmToast(t), 2000);
             t.querySelector('.tm-x').onclick = () => { clearTimeout(to); rmToast(t); };
         }
         function rmToast(t) { if (!t.parentNode) return; t.classList.add('tm-out'); setTimeout(() => t.parentNode && t.parentNode.removeChild(t), 300); }
@@ -276,7 +276,7 @@
         function fitImg() {
             const c = document.getElementById('tm-ic'), i = document.getElementById('tm-si');
             if (!i.naturalWidth || !c.clientWidth || !c.clientHeight) {
-                setTimeout(fitImg, 100);
+                setTimeout(fitImg, 50);
                 return;
             }
             const scaleX = c.clientWidth / i.naturalWidth;
@@ -307,7 +307,7 @@
                 setTimeout(() => {
                     fitImg();
                     toast('🖼️ Gambar di-fit otomatis', 'i', '📐 Auto-Fit');
-                }, 150);
+                }, 50);
             };
             i.onerror = () => {
                 toast('Gagal load gambar!', 'e', '❌ Error');
@@ -315,7 +315,7 @@
 
             if (typeof Tesseract === 'undefined') {
                 r.innerHTML = '<span style="color:#e74c3c;">⚠️ Tesseract belum dimuat</span>';
-                await wait(2000);
+                await wait(1000);
                 if (typeof Tesseract === 'undefined') return;
             }
 
@@ -328,7 +328,7 @@
                     }
                 });
 
-                setTimeout(fitImg, 100);
+                setTimeout(fitImg, 50);
                 const raw = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                 let hg = [], hl = [];
                 for (let j = 0; j < raw.length; j++) {
@@ -361,8 +361,8 @@
             collectedDebits.clear(); debitFound = false; debitRowElement = null; updDebit(); updTicketBtn();
             isRunning = true; stopRequested = false; togBtn(true); toast('Memulai pencarian DEBIT...', 'i', '🚀 Start');
             try {
-                await fillNick(n); await wait(300); await trigEnter();
-                await waitLoad(8000); await wait(500);
+                await fillNick(n); await wait(100); await trigEnter();
+                await waitLoad(5000); await wait(100);
                 let stuck = 0, pg = 1;
                 while (!stopRequested && !debitFound && stuck < 5 && pg <= 100) {
                     updSt(`🔍 Halaman ${pg}...`, '#f5576c');
@@ -382,9 +382,9 @@
                     const nb = getNb();
                     if (!nb || nb.disabled || nb.classList.contains('disabled')) { updSt('❌ Halaman terakhir', '#e74c3c'); toast('DEBIT tidak ditemukan', 'e', '❌ Gagal'); break; }
                     updSt(`➡️ Halaman ${pg+1}...`, '#4facfe');
-                    nb.scrollIntoView({behavior:'smooth', block:'center'}); await wait(500); nb.click();
-                    const ch = await waitPg(10000);
-                    if (ch) { stuck = 0; pg++; await wait(300); } else { stuck++; await wait(1000); }
+                    nb.scrollIntoView({behavior:'smooth', block:'center'}); await wait(100); nb.click();
+                    const ch = await waitPg(5000);
+                    if (ch) { stuck = 0; pg++; await wait(100); } else { stuck++; await wait(500); }
                 }
             } catch (e) { updSt('❌ '+e.message, '#e74c3c'); toast('Error: '+e.message, 'e'); }
             finally {
@@ -426,13 +426,13 @@
         async function trigEnter() {
             const i = document.querySelector('input[placeholder*="Nickname"], input[placeholder*="nickname"]');
             if (!i) throw new Error('Input tidak ditemukan!');
-            i.focus(); await wait(50);
+            i.focus(); await wait(30);
             i.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true, view:window}));
-            await wait(30); i.dispatchEvent(new KeyboardEvent('keypress', {key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true, view:window, charCode:13}));
-            await wait(30); i.dispatchEvent(new KeyboardEvent('keyup', {key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true, view:window}));
+            await wait(20); i.dispatchEvent(new KeyboardEvent('keypress', {key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true, view:window, charCode:13}));
+            await wait(20); i.dispatchEvent(new KeyboardEvent('keyup', {key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true, cancelable:true, view:window}));
         }
 
-        function waitLoad(t=8000) {
+        function waitLoad(t=5000) {
             return new Promise(r => {
                 const s = document.body.innerText.substring(500, 2000), st = Date.now();
                 const o = new MutationObserver(() => { const c = document.body.innerText.substring(500, 2000); if (c !== s && c.length > 100) { o.disconnect(); r(true); } });
@@ -441,10 +441,10 @@
             });
         }
 
-        function waitPg(t=10000) {
+        function waitPg(t=5000) {
             return new Promise(r => {
                 const tb = document.querySelector('table'), s = tb ? tb.innerText.substring(0,500) : '', st = Date.now();
-                const o = new MutationObserver(() => { const tb = document.querySelector('table'), c = tb ? tb.innerText.substring(0,500) : ''; if (c !== s && c.length > 100) { setTimeout(() => { o.disconnect(); r(true); }, 200); } });
+                const o = new MutationObserver(() => { const tb = document.querySelector('table'), c = tb ? tb.innerText.substring(0,500) : ''; if (c !== s && c.length > 100) { setTimeout(() => { o.disconnect(); r(true); }, 50); } });
                 o.observe(document.body, {childList:true, subtree:true});
                 setTimeout(() => { o.disconnect(); r(false); }, t);
             });
@@ -530,7 +530,7 @@
         `;
         document.head.appendChild(styles);
 
-        function toast(msg, type = 'success', duration = 2500) {
+        function toast(msg, type = 'success', duration = 1500) {
             const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️', debug: '🔍' };
             const t = document.createElement('div');
             t.className = `smb-toast ${type}`;
@@ -573,14 +573,14 @@
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
             try { controlElement.click(); } catch(e) {}
-            await wait(80);
+            await wait(30);
             const events = ['mousedown', 'mouseup', 'click'];
             for (const evt of events) {
                 controlElement.dispatchEvent(new MouseEvent(evt, {
                     bubbles: true, cancelable: true,
                     clientX: x, clientY: y, button: 0, view: window
                 }));
-                await wait(30);
+                await wait(10);
             }
         }
 
@@ -614,10 +614,10 @@
             return null;
         }
 
-        async function waitForDropdownMenu(label, maxWait = 5000) {
+        async function waitForDropdownMenu(label, maxWait = 3000) {
             const start = Date.now();
             while (Date.now() - start < maxWait) {
-                await wait(80);
+                await wait(30);
                 const listboxes = document.querySelectorAll('[role="listbox"]');
                 for (const lb of listboxes) {
                     if (lb.offsetParent !== null && lb.children.length > 0) {
@@ -651,7 +651,7 @@
                         clientY: rect.top + rect.height/2,
                         button: 0, view: window
                     }));
-                    await wait(150);
+                    await wait(50);
                     toast(`✅ ${label}: ${text}`, 'success');
                     return true;
                 }
@@ -660,7 +660,7 @@
         }
 
         async function selectDropdown(labelText, value, placeholderText) {
-            toast(`🔍 ${labelText}...`, 'info', 1500);
+            toast(`🔍 ${labelText}...`, 'info', 1000);
             const placeholder = placeholderText || labelText;
             let attempts = 0;
             const maxAttempts = 3;
@@ -673,18 +673,18 @@
                 }
                 const { control, input, container } = result;
                 await clickDropdownControl(control, labelText);
-                const menu = await waitForDropdownMenu(labelText, 4000);
+                const menu = await waitForDropdownMenu(labelText, 3000);
                 if (!menu) {
-                    if (attempts < maxAttempts) { await wait(300); continue; }
+                    if (attempts < maxAttempts) { await wait(100); continue; }
                     toast(`❌ Menu "${labelText}" tidak muncul`, 'error');
                     return false;
                 }
                 const selected = await selectOption(menu, value, labelText);
                 if (selected) {
-                    await wait(300);
+                    await wait(100);
                     return true;
                 }
-                if (attempts < maxAttempts) await wait(300);
+                if (attempts < maxAttempts) await wait(100);
             }
             toast(`❌ Gagal memilih "${value}"`, 'error');
             return false;
@@ -693,7 +693,7 @@
         async function fillByPlaceholder(placeholderText, value) {
             if (!value) return false;
             let target = null;
-            const maxWait = 5000;
+            const maxWait = 3000;
             const startTime = Date.now();
 
             while (Date.now() - startTime < maxWait) {
@@ -708,13 +708,13 @@
                     }
                 }
                 if (target) break;
-                await wait(300);
+                await wait(100);
             }
 
             if (!target) return false;
 
             target.scrollIntoView({ behavior: 'instant', block: 'center' });
-            await wait(50);
+            await wait(10);
             target.focus();
             const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
             if (setter) setter.call(target, value);
@@ -728,7 +728,7 @@
         async function fillTextarea(placeholderText, value) {
             if (!value) return false;
             let target = null;
-            const maxWait = 5000;
+            const maxWait = 3000;
             const startTime = Date.now();
 
             while (Date.now() - startTime < maxWait) {
@@ -741,13 +741,13 @@
                     }
                 }
                 if (target) break;
-                await wait(300);
+                await wait(100);
             }
 
             if (!target) return false;
 
             target.scrollIntoView({ behavior: 'instant', block: 'center' });
-            await wait(50);
+            await wait(10);
             target.focus();
             const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
             if (setter) setter.call(target, value);
@@ -761,7 +761,7 @@
         async function fillBettingan(value) {
             if (!value) return false;
             let targetInput = null;
-            const maxWait = 5000;
+            const maxWait = 3000;
             const startTime = Date.now();
 
             while (Date.now() - startTime < maxWait) {
@@ -792,7 +792,7 @@
                 }
 
                 if (targetInput) break;
-                await wait(300);
+                await wait(100);
             }
 
             if (!targetInput) return false;
@@ -802,7 +802,7 @@
 
         async function setInputValue(input, value) {
             input.scrollIntoView({ behavior: 'instant', block: 'center' });
-            await wait(50);
+            await wait(10);
             input.focus();
             input.click();
             try {
@@ -810,7 +810,7 @@
                 if (setter) {
                     setter.call(input, value);
                     ['input', 'change'].forEach(evt => input.dispatchEvent(new Event(evt, { bubbles: true })));
-                    await wait(50);
+                    await wait(10);
                     if (input.value === value || input.value.includes(value)) {
                         toast('✅ Bettingan terisi!', 'success');
                         return true;
@@ -820,7 +820,7 @@
             try {
                 input.value = value;
                 ['input', 'change'].forEach(evt => input.dispatchEvent(new Event(evt, { bubbles: true })));
-                await wait(50);
+                await wait(10);
                 if (input.value === value || input.value.includes(value)) {
                     toast('✅ Bettingan terisi!', 'success');
                     return true;
@@ -833,7 +833,7 @@
             const result = findDropdownByLabel('scatter');
             if (!result) return false;
             await clickDropdownControl(result.control, 'Scatter');
-            const menu = await waitForDropdownMenu('Scatter', 4000);
+            const menu = await waitForDropdownMenu('Scatter', 3000);
             if (!menu) {
                 toast('❌ Menu Scatter tidak muncul', 'warning');
                 return false;
@@ -843,7 +843,7 @@
                 const text = (opt.innerText || '').trim().toLowerCase();
                 if (text.includes('pilih') || text.includes('masukkan') || text === '' || text === '-') continue;
                 opt.click();
-                await wait(150);
+                await wait(50);
                 return true;
             }
             toast('❌ Scatter tidak ada opsi valid', 'warning');
@@ -855,10 +855,10 @@
             isProcessing = true;
             toast(`📥 Data diterima: ${data.nickname}`, 'success');
             try {
-                toast('🔍 Mencari tombol Tambah data...', 'info', 1500);
+                toast('🔍 Mencari tombol Tambah data...', 'info', 1000);
                 let tambahBtn = null;
 
-                const maxWaitTime = 15000;
+                const maxWaitTime = 8000;
                 const startTime = Date.now();
 
                 while (Date.now() - startTime < maxWaitTime) {
@@ -877,22 +877,22 @@
                         }
                     }
                     if (tambahBtn) break;
-                    await wait(500);
+                    await wait(200);
                 }
 
                 if (!tambahBtn) {
-                    toast('❌ Tombol Tambah data tidak ditemukan setelah 15 detik!', 'error', 4000);
+                    toast('❌ Tombol Tambah data tidak ditemukan!', 'error', 2000);
                     return;
                 }
 
                 tambahBtn.scrollIntoView({ behavior: 'instant', block: 'center' });
-                await wait(200);
+                await wait(50);
                 tambahBtn.click();
                 toast('✅ Tombol Tambah data diklik!', 'success');
 
                 let modalReady = false;
                 for (let i = 0; i < 50; i++) {
-                    await wait(100);
+                    await wait(30);
                     const modal = document.querySelector('[class*="modal"], [class*="dialog"], [role="dialog"]');
                     if (modal) {
                         modalReady = true;
@@ -904,12 +904,12 @@
                     return;
                 }
 
-                await wait(500);
-                toast('📝 Mengisi form...', 'info', 1500);
+                await wait(200);
+                toast('📝 Mengisi form...', 'info', 1000);
                 await selectDropdown('Situs', 'Jonitogel', 'Pilih Situs');
-                await wait(1000);
+                await wait(300);
                 await selectDropdown('Tipe Games', 'mahjong', 'Pilih games');
-                await wait(400);
+                await wait(150);
                 await fillByPlaceholder('User ID', data.nickname);
                 await fillByPlaceholder('Kode Tiket', data.kodeTransaksi);
                 if (data.linkFoto && data.linkFoto.trim() !== '') {
@@ -917,27 +917,27 @@
                 }
                 const bettingValue = data.hasilDebit.replace(/[^0-9]/g, '');
                 await fillBettingan(bettingValue);
-                await wait(300);
+                await wait(100);
                 await pickFirstScatterOption();
-                await wait(400);
-                toast('✅ Semua field terisi!', 'success', 1500);
-                await wait(300);
-                toast('💾 Menyimpan...', 'info', 1500);
+                await wait(150);
+                toast('✅ Semua field terisi!', 'success', 1000);
+                await wait(100);
+                toast('💾 Menyimpan...', 'info', 1000);
 
                 const buttons = Array.from(document.querySelectorAll('button'));
                 for (const btn of buttons) {
                     const text = (btn.innerText || '').trim().toLowerCase();
                     if (text.includes('simpan') || text.includes('save')) {
                         btn.scrollIntoView({ behavior: 'instant', block: 'center' });
-                        await wait(200);
+                        await wait(50);
                         btn.click();
                         toast('🎉 Data disimpan!', 'success');
                         break;
                     }
                 }
-                await wait(1500);
+                await wait(500);
                 clearURLParams();
-                toast('⏳ Menunggu data berikutnya...', 'info', 3000);
+                toast('⏳ Menunggu data berikutnya...', 'info', 1500);
             } catch (e) {
                 console.error('Error:', e);
                 toast('❌ Error: ' + e.message, 'error');
@@ -955,11 +955,11 @@
                 if (key === lastProcessedKey) return;
                 lastProcessedKey = key;
                 processData(data);
-            }, 500);
+            }, 200);
         }
 
         async function main() {
-            await wait(800);
+            await wait(200);
             const initialData = getDataFromURL();
             if (initialData.nickname && initialData.kodeTransaksi && initialData.hasilDebit) {
                 lastProcessedKey = getProcessedKey(initialData);
