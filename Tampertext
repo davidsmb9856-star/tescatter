@@ -1,0 +1,1254 @@
+// ==UserScript==
+// @name         LiveChat Pro: Filter & Short Num Pass Gen + Toggle + Smart Panel
+// @namespace    http://tampermonkey.net/
+// @version      9.9
+// @description  Panel draggable, highlight chat, password generator, auto-refresh, export CSV. Menggunakan doc.write + AJAX Proxy untuk bypass total X-Frame-Options & CORS!
+// @author       You
+// @match        https://my.livechatinc.com/*
+// @grant        GM_setClipboard
+// @grant        GM_xmlhttpRequest
+// @grant        GM_notification
+// @connect      bk.augipt.com
+// @connect      www.bk.augipt.com
+// @connect      agwl2.admitoto.com
+// @connect      www.agwl2.admitoto.com
+// @connect      secure.bkstatic.net
+// @connect      cdnstatic.augipt.com
+// @connect      mongodata.augipt.com
+// @connect      www.mongodata.augipt.com
+// @connect      augipt.com
+// @connect      www.augipt.com
+// @connect      admitoto.com
+// @connect      www.admitoto.com
+// @connect      docs.google.com
+// @connect      *
+// @run-at       document-idle
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // ============================================
+    // KONFIGURASI GLOBAL
+    // ============================================
+    const DAILY_ITEMS = [
+        "beras", "gula", "garam", "minyak", "tepung", "telur", "susu", "kecap",
+        "saus", "cuka", "bawang", "jahe", "kunyit", "serai", "cabai", "tomat",
+        "wortel", "kentang", "sayur", "buah", "apel", "pisang", "jeruk", "mangga",
+        "pepaya", "melon", "nanas", "roti", "mie", "pasta", "keju", "mentega",
+        "madu", "sirup", "teh", "kopi", "coklat", "sabun", "sampo", "lap",
+        "obat", "kapas", "gunting", "jarum", "lem", "pensil", "pulpen", "buku",
+        "map", "uang", "tas", "sepatu", "kaos", "celana", "jam", "payung",
+        "lampu", "kipas", "panci", "wajan", "sendok", "garpu", "piring", "gelas",
+        "botol", "rak", "meja", "kursi", "sofa", "kasur", "bantal", "cat",
+        "paku", "baut", "obeng", "palu", "bor", "motor", "mobil", "bus",
+        "sepeda", "air", "api", "batu", "pasir", "besi", "kayu", "kaca"
+    ];
+
+    const CONFIG = {
+        debounceTime: 150,
+        maxNodesPerBatch: 50,
+        autoRefreshInterval: 30000,
+        notificationSound: true,
+        maxToastMessages: 3
+    };
+
+    let pendingNodes = new Set();
+    let debounceTimer = null;
+    let autoRefreshTimer = null;
+    let currentPanelUrl = null;
+    let toastQueue = [];
+
+    // ============================================
+    // CSS STYLES
+    // ============================================
+    const css = `
+        .lc-pro-toggle {
+            position: fixed; top: 20px; right: 20px; width: 48px; height: 48px;
+            background: radial-gradient(circle at 30% 30%, #00e5ff, #0077ff 70%, #003d82);
+            color: #fff; border-radius: 50%; font-size: 20px; display: flex; align-items: center; justify-content: center;
+            cursor: grab; z-index: 2147483647; box-shadow: 0 0 20px rgba(0, 229, 255, 0.6), 0 0 40px rgba(0, 119, 255, 0.3);
+            transition: box-shadow 0.3s, transform 0.2s; user-select: none; border: 2px solid rgba(255,255,255,0.3);
+            animation: lc-pro-pulse 3s ease-in-out infinite;
+        }
+        .lc-pro-toggle:active { cursor: grabbing; transform: scale(0.95); }
+        .lc-pro-toggle:hover { box-shadow: 0 0 30px rgba(0, 229, 255, 0.9); }
+        .lc-pro-toggle.dragging { cursor: grabbing; animation: none; transform: scale(1.1); }
+        @keyframes lc-pro-pulse { 0%, 100% { box-shadow: 0 0 20px rgba(0, 229, 255, 0.6); } 50% { box-shadow: 0 0 35px rgba(0, 229, 255, 0.9); } }
+
+        .lc-pro-panel {
+            position: fixed; top: 80px; right: 20px; width: 240px; max-height: 85vh; overflow-y: auto;
+            background: linear-gradient(145deg, rgba(15, 20, 35, 0.95), rgba(5, 10, 25, 0.98));
+            backdrop-filter: blur(20px); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); z-index: 2147483646; font-family: sans-serif; color: #e0e0e0;
+            opacity: 0; visibility: hidden; transform: translateY(-15px) scale(0.92);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none;
+        }
+        .lc-pro-panel.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); pointer-events: auto; }
+        .lc-pro-panel.dragging { transition: none; }
+        .lc-pro-panel::-webkit-scrollbar { width: 5px; }
+        .lc-pro-panel::-webkit-scrollbar-thumb { background: rgba(0, 229, 255, 0.3); border-radius: 3px; }
+
+        .lc-pro-header {
+            background: rgba(0, 229, 255, 0.1); color: #fff; padding: 12px 16px; font-weight: 700;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; cursor: grab;
+            display: flex; justify-content: space-between; align-items: center; user-select: none;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.2); position: sticky; top: 0; z-index: 10;
+            backdrop-filter: blur(15px); border-radius: 18px 18px 0 0;
+        }
+        .lc-pro-header:active { cursor: grabbing; }
+        .lc-pro-close { cursor: pointer; font-size: 18px; color: #888; transition: all 0.3s; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .lc-pro-close:hover { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+
+        .lc-pro-body { padding: 12px 14px; }
+        .lc-pro-group { margin-bottom: 10px; }
+        .lc-pro-label { display: flex; align-items: center; font-size: 9px; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; color: #00e5ff; }
+        .lc-pro-label::before { content: "▸"; margin-right: 4px; font-size: 8px; }
+
+        .lc-pro-textarea {
+            width: 100%; height: 48px; padding: 7px 10px; box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px;
+            background: rgba(0, 0, 0, 0.4); color: #fff; font-family: monospace; font-size: 10px; resize: none;
+        }
+        .lc-pro-textarea:focus { outline: none; border-color: #00e5ff; }
+
+        .lc-pro-actions { display: flex; gap: 6px; margin-bottom: 12px; }
+        .lc-pro-btn {
+            flex: 1; padding: 8px 5px; background: rgba(0, 229, 255, 0.1); color: #00e5ff;
+            border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 8px; font-weight: 700;
+            cursor: pointer; text-transform: uppercase; font-size: 9px; transition: all 0.25s;
+            display: block; width: 100%; margin-bottom: 4px;
+        }
+        .lc-pro-btn:hover { background: rgba(0, 229, 255, 0.3); border-color: #00e5ff; }
+        .lc-pro-btn.secondary { background: rgba(255, 255, 255, 0.03); color: #aaa; border-color: rgba(255, 255, 255, 0.1); }
+        .lc-pro-btn.secondary:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+        .lc-pro-btn.admin-btn { background: rgba(255, 100, 50, 0.2); color: #ff8866; border-color: rgba(255, 100, 50, 0.4); }
+        .lc-pro-btn.admin-btn:hover { background: rgba(255, 100, 50, 0.35); border-color: #ff8866; }
+        .lc-pro-btn.success { background: rgba(0, 255, 150, 0.15); color: #00ff96; border-color: rgba(0, 255, 150, 0.4); }
+        .lc-pro-btn.success:hover { background: rgba(0, 255, 150, 0.3); }
+
+        .lc-pro-switch-container {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.2);
+            padding: 9px 12px; margin-bottom: 12px; border-radius: 10px;
+        }
+        .lc-pro-switch-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #ddd; }
+        .lc-pro-switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+        .lc-pro-switch input { opacity: 0; width: 0; height: 0; }
+        .lc-pro-slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1); transition: .3s; border-radius: 20px;
+        }
+        .lc-pro-slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px;
+            background-color: #888; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .lc-pro-slider { background: #00e5ff; }
+        input:checked + .lc-pro-slider:before { transform: translateX(16px); background-color: #fff; }
+
+        .lc-pro-highlight { display: inline-block; font-weight: 700; padding: 1px 5px; margin: 0 2px; border-radius: 4px; }
+        .lc-pro-coarse { background: rgba(255, 50, 80, 0.25); color: #ff6b8b; border: 1px solid rgba(255, 50, 80, 0.5); }
+        .lc-pro-important { background: rgba(0, 229, 255, 0.2); color: #00e5ff; border: 1px solid rgba(0, 229, 255, 0.5); }
+
+        .lc-pro-toast {
+            position: fixed; bottom: 25px; right: 25px; background: rgba(15, 20, 35, 0.98);
+            color: #00e5ff; padding: 10px 18px; border: 1px solid rgba(0, 229, 255, 0.4);
+            border-radius: 10px; font-weight: 700; font-size: 11px; z-index: 2147483647;
+            transform: translateY(30px) scale(0.9); opacity: 0; transition: all 0.4s;
+            max-width: 300px;
+        }
+        .lc-pro-toast.show { transform: translateY(0) scale(1); opacity: 1; }
+        .lc-pro-toast.error { color: #ff6b8b; border-color: rgba(255, 68, 68, 0.4); }
+        .lc-pro-toast.success { color: #00ff96; border-color: rgba(0, 255, 150, 0.4); }
+
+        .lc-pro-divider { border-top: 1px dashed rgba(0, 229, 255, 0.2); margin: 12px 0; padding-top: 12px; position: relative; }
+        .lc-pro-divider::before {
+            content: "⚡"; position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+            background: rgba(10, 15, 25, 1); padding: 0 6px; color: #00e5ff; font-size: 10px;
+        }
+        .lc-pro-gen-title {
+            font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;
+            color: #00e5ff; display: flex; align-items: center; gap: 6px;
+        }
+        .lc-pro-gen-display {
+            width: 100%; height: 38px; padding: 0 10px; box-sizing: border-box;
+            border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5); font-family: monospace; font-size: 15px; font-weight: 800;
+            text-align: center; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;
+            color: #00e5ff; letter-spacing: 3px;
+        }
+
+        /* SMART PANEL CSS */
+        .lc-pro-iframe-panel {
+            position: fixed; top: 0; right: 0; width: 65vw; height: 100vh;
+            background: rgba(10, 15, 30, 0.98); backdrop-filter: blur(25px);
+            border-left: 2px solid rgba(0, 229, 255, 0.4);
+            box-shadow: -20px 0 60px rgba(0, 0, 0, 0.7);
+            z-index: 2147483645; transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex; flex-direction: column; font-family: sans-serif;
+        }
+        .lc-pro-iframe-panel.active { transform: translateX(0); }
+
+        .lc-pro-iframe-header {
+            background: rgba(0, 229, 255, 0.1); padding: 12px 18px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.3);
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .lc-pro-iframe-title-wrap { display: flex; align-items: center; gap: 10px; overflow: hidden; flex: 1; }
+        .lc-pro-iframe-icon {
+            width: 32px; height: 32px; border-radius: 8px; background: #00e5ff;
+            display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+        }
+        .lc-pro-iframe-title { color: #fff; font-size: 13px; font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lc-pro-iframe-subtitle { color: #888; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .lc-pro-iframe-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .lc-pro-iframe-btn {
+            padding: 6px 10px; border-radius: 6px; border: 1px solid; font-size: 10px; font-weight: 700;
+            cursor: pointer; transition: all 0.25s; text-transform: uppercase;
+        }
+        .lc-pro-iframe-btn.refresh-btn { background: rgba(0, 255, 150, 0.1); color: #00ff96; border-color: rgba(0, 255, 150, 0.3); }
+        .lc-pro-iframe-btn.refresh-btn:hover { background: rgba(0, 255, 150, 0.25); }
+        .lc-pro-iframe-btn.export-btn { background: rgba(255, 200, 0, 0.1); color: #ffc800; border-color: rgba(255, 200, 0, 0.3); }
+        .lc-pro-iframe-btn.export-btn:hover { background: rgba(255, 200, 0, 0.25); }
+        .lc-pro-iframe-btn.debug-btn { background: rgba(255, 200, 0, 0.1); color: #ffc800; border-color: rgba(255, 200, 0, 0.3); }
+        .lc-pro-iframe-btn.debug-btn:hover { background: rgba(255, 200, 0, 0.25); }
+        .lc-pro-iframe-btn.open-tab { background: rgba(0, 229, 255, 0.1); color: #00e5ff; border-color: rgba(0, 229, 255, 0.3); }
+        .lc-pro-iframe-btn.open-tab:hover { background: rgba(0, 229, 255, 0.25); }
+        .lc-pro-iframe-btn.close-panel { background: rgba(255, 68, 68, 0.1); color: #ff6b8b; border-color: rgba(255, 68, 68, 0.3); }
+        .lc-pro-iframe-btn.close-panel:hover { background: rgba(255, 68, 68, 0.25); }
+
+        .lc-pro-iframe-body { flex: 1; position: relative; overflow: hidden; background: #fff; min-height: 0; }
+        .lc-pro-iframe-body iframe { width: 100%; height: 100%; min-height: 600px; border: 0; background: #fff; display: block; }
+
+        .lc-pro-iframe-loader {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 10, 25, 0.95); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 15px; z-index: 5; transition: opacity 0.3s;
+        }
+        .lc-pro-iframe-loader.hidden { opacity: 0; pointer-events: none; }
+        .lc-pro-iframe-spinner {
+            width: 40px; height: 40px; border: 3px solid rgba(0, 229, 255, 0.2);
+            border-top-color: #00e5ff; border-radius: 50%; animation: lc-pro-spin 0.8s linear infinite;
+        }
+        @keyframes lc-pro-spin { to { transform: rotate(360deg); } }
+        .lc-pro-iframe-loader-text { color: #00e5ff; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+
+        .lc-pro-iframe-error {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 10, 25, 0.98); display: none; flex-direction: column;
+            align-items: center; justify-content: center; gap: 12px; padding: 30px; text-align: center; z-index: 6;
+        }
+        .lc-pro-iframe-error.show { display: flex; }
+        .lc-pro-iframe-error-icon { font-size: 48px; }
+        .lc-pro-iframe-error-title { color: #ff6b8b; font-size: 14px; font-weight: 700; text-transform: uppercase; }
+        .lc-pro-iframe-error-msg { color: #aaa; font-size: 11px; max-width: 400px; line-height: 1.5; }
+        .lc-pro-iframe-error-btn {
+            margin-top: 10px; padding: 10px 20px; background: #00e5ff; color: #000; border: 0; border-radius: 8px;
+            font-weight: 700; font-size: 11px; text-transform: uppercase; cursor: pointer; transition: all 0.25s;
+        }
+        .lc-pro-iframe-error-btn:hover { box-shadow: 0 0 15px rgba(0, 229, 255, 0.7); }
+
+        .lc-pro-iframe-resize { position: absolute; top: 0; left: -4px; width: 8px; height: 100%; cursor: ew-resize; z-index: 10; background: transparent; }
+        .lc-pro-iframe-resize:hover { background: rgba(0, 229, 255, 0.2); }
+
+        .lc-pro-debug-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 20; display: none; flex-direction: column;
+        }
+        .lc-pro-debug-modal.show { display: flex; }
+        .lc-pro-debug-header { padding: 10px; background: #333; color: #fff; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: bold; }
+        .lc-pro-debug-close { cursor: pointer; color: #ff6b8b; font-size: 16px; }
+        .lc-pro-debug-content { flex: 1; padding: 10px; overflow: auto; color: #0f0; font-family: monospace; font-size: 10px; white-space: pre-wrap; word-break: break-all; }
+
+        .lc-pro-auto-refresh-indicator {
+            position: absolute; top: 10px; right: 10px; background: rgba(0, 255, 150, 0.2);
+            color: #00ff96; padding: 4px 8px; border-radius: 4px; font-size: 9px; font-weight: 700;
+            border: 1px solid rgba(0, 255, 150, 0.4); z-index: 15;
+        }
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+
+    // ============================================
+    // UI - Toggle Button
+    // ============================================
+    const toggleBtn = document.createElement('div');
+    toggleBtn.className = 'lc-pro-toggle';
+    toggleBtn.innerHTML = '⚡';
+    toggleBtn.title = 'LiveChat Pro Tools';
+    document.body.appendChild(toggleBtn);
+
+    // ============================================
+    // UI - Control Panel
+    // ============================================
+    const popupPanel = document.createElement('div');
+    popupPanel.className = 'lc-pro-panel';
+    popupPanel.innerHTML = `
+        <div class="lc-pro-header">
+            <span>LiveChat Tools</span>
+            <span class="lc-pro-close">&times;</span>
+        </div>
+        <div class="lc-pro-body">
+            <div class="lc-pro-switch-container">
+                <span class="lc-pro-switch-label">Highlight Chat</span>
+                <label class="lc-pro-switch">
+                    <input type="checkbox" id="lc-pro-enable-toggle" checked>
+                    <span class="lc-pro-slider"></span>
+                </label>
+            </div>
+            <div class="lc-pro-group">
+                <label class="lc-pro-label">Kata Kasar</label>
+                <textarea id="lc-pro-coarse" class="lc-pro-textarea" placeholder="pisah, dengan, koma..."></textarea>
+            </div>
+            <div class="lc-pro-group">
+                <label class="lc-pro-label">Kata Penting</label>
+                <textarea id="lc-pro-important" class="lc-pro-textarea" placeholder="pisah, dengan, koma..."></textarea>
+            </div>
+            <div class="lc-pro-actions">
+                <button id="lc-pro-save" class="lc-pro-btn">💾 Simpan</button>
+                <button id="lc-pro-scan" class="lc-pro-btn secondary">🔍 Scan</button>
+            </div>
+            <div class="lc-pro-divider"></div>
+            <div class="lc-pro-group">
+                <label class="lc-pro-label">Waiting Menu</label>
+                <button class="lc-pro-btn waiting-menu-btn" data-url="https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/all" data-name="📋 All Waiting">📋 All Waiting</button>
+                <button class="lc-pro-btn waiting-menu-btn" data-url="https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/bri" data-name="🏛️ BRI">🏛️ BRI</button>
+                <button class="lc-pro-btn waiting-menu-btn" data-url="https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/dana" data-name="💰 DANA">💰 DANA</button>
+                <button class="lc-pro-btn waiting-menu-btn" data-url="https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/gopay" data-name="📱 GoPay">📱 GoPay</button>
+                <button class="lc-pro-btn waiting-menu-btn" data-url="https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/mybca" data-name="🏧 MyBCA">🏧 MyBCA</button>
+            </div>
+            <div class="lc-pro-group">
+                <label class="lc-pro-label">Sheet Menu (Editable)</label>
+                <button class="lc-pro-btn waiting-menu-btn" data-url="https://docs.google.com/spreadsheets/d/1hD4dB9WvtyH4T33huzxI_UKF3N2LVvDj6rmF1y0zHQU/edit?gid=428538130#gid=428538130" data-name="🏦 BNI SHEET">🏦 BNI SHEET</button>
+                <button class="lc-pro-btn waiting-menu-btn" data-url="https://docs.google.com/spreadsheets/d/1pIUE9Zy4W2MPMf77NCd1xLxP014P5rbEcXmF9n3Wd8U/edit?gid=1739048826#gid=1739048826" data-name="🔗 LINKAJA SHEET">🔗 LINKAJA SHEET</button>
+                <button class="lc-pro-btn waiting-menu-btn" data-url="https://docs.google.com/spreadsheets/d/1vajGn6xpQ9TlzBQxRAcsTXS4tGzettlnrDT9SbOF1Fk/edit?gid=1000704251#gid=1000704251" data-name="💳 OVO SHEET">💳 OVO SHEET</button>
+            </div>
+            <div class="lc-pro-group">
+                <label class="lc-pro-label">Admin Menu</label>
+                <button class="lc-pro-btn admin-btn" data-url="https://agwl2.admitoto.com/agentplayerlist.php" data-name="🧑‍💼 ADMIN Player List">🧑‍💼 ADMIN - Player List</button>
+            </div>
+            <div class="lc-pro-divider">
+                <div class="lc-pro-gen-title">🔐 Password Generator</div>
+                <div class="lc-pro-group">
+                    <label class="lc-pro-label">6 Karakter (2 Huruf + 4 Angka)</label>
+                    <div id="lc-pro-pass-display" class="lc-pro-gen-display">--</div>
+                    <button id="lc-pro-copy-btn" class="lc-pro-btn" style="width: 100%;">⚡ Generate & Copy</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popupPanel);
+
+    // ============================================
+    // UI - SMART PANEL
+    // ============================================
+    const iframePanel = document.createElement('div');
+    iframePanel.className = 'lc-pro-iframe-panel';
+    iframePanel.innerHTML = `
+        <div class="lc-pro-iframe-resize"></div>
+        <div class="lc-pro-iframe-header">
+            <div class="lc-pro-iframe-title-wrap">
+                <div class="lc-pro-iframe-icon" id="lc-pro-iframe-icon">🚀</div>
+                <div style="overflow:hidden; flex:1;">
+                    <div class="lc-pro-iframe-title" id="lc-pro-iframe-title">Loading...</div>
+                    <div class="lc-pro-iframe-subtitle" id="lc-pro-iframe-subtitle">-</div>
+                </div>
+            </div>
+            <div class="lc-pro-iframe-actions">
+                <button class="lc-pro-iframe-btn refresh-btn" id="lc-pro-iframe-refresh" title="Refresh Manual">🔄</button>
+                <button class="lc-pro-iframe-btn export-btn" id="lc-pro-iframe-export" title="Export ke CSV">📊</button>
+                <button class="lc-pro-iframe-btn debug-btn" id="lc-pro-iframe-debug" title="Lihat HTML mentah (Debug)">🐛</button>
+                <button class="lc-pro-iframe-btn open-tab" id="lc-pro-iframe-open-tab">↗ Tab</button>
+                <button class="lc-pro-iframe-btn close-panel" id="lc-pro-iframe-close">✕</button>
+            </div>
+        </div>
+        <div class="lc-pro-iframe-body">
+            <div class="lc-pro-auto-refresh-indicator" id="lc-pro-auto-refresh-indicator" style="display:none;">Auto-refresh: 30s</div>
+            <div class="lc-pro-iframe-loader" id="lc-pro-iframe-loader">
+                <div class="lc-pro-iframe-spinner"></div>
+                <div class="lc-pro-iframe-loader-text">Mengambil data & bypass CORS...</div>
+            </div>
+            <div class="lc-pro-iframe-error" id="lc-pro-iframe-error">
+                <div class="lc-pro-iframe-error-icon">⚠️</div>
+                <div class="lc-pro-iframe-error-title">Gagal Memuat Konten</div>
+                <div class="lc-pro-iframe-error-msg" id="lc-pro-iframe-error-msg">Situs mungkin memerlukan login atau memblokir akses.</div>
+                <button class="lc-pro-iframe-error-btn" id="lc-pro-iframe-error-btn">↗ Buka di Tab Baru</button>
+            </div>
+            <div class="lc-pro-debug-modal" id="lc-pro-debug-modal">
+                <div class="lc-pro-debug-header">
+                    <span>DEBUG: HTML MENTAH YANG DIAMBIL</span>
+                    <span class="lc-pro-debug-close" id="lc-pro-debug-close">✕ Tutup</span>
+                </div>
+                <div class="lc-pro-debug-content" id="lc-pro-debug-content"></div>
+            </div>
+            <iframe id="lc-pro-iframe" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation allow-downloads" referrerpolicy="no-referrer"></iframe>
+        </div>
+    `;
+    document.body.appendChild(iframePanel);
+
+    // ============================================
+    // Load saved positions
+    // ============================================
+    const savedIconPos = JSON.parse(localStorage.getItem('lc_pro_icon_pos') || 'null');
+    const savedPanelPos = JSON.parse(localStorage.getItem('lc_pro_panel_pos') || 'null');
+    const savedIframeWidth = localStorage.getItem('lc_pro_iframe_width');
+
+    if (savedIconPos) { toggleBtn.style.left = savedIconPos.x + 'px'; toggleBtn.style.top = savedIconPos.y + 'px'; toggleBtn.style.right = 'auto'; }
+    if (savedPanelPos) { popupPanel.style.left = savedPanelPos.x + 'px'; popupPanel.style.top = savedPanelPos.y + 'px'; popupPanel.style.right = 'auto'; }
+    if (savedIframeWidth) { iframePanel.style.width = savedIframeWidth; }
+
+    // ============================================
+    // Drag logic
+    // ============================================
+    function makeDraggable(element, handle, storageKey, options = {}) {
+        let isDragging = false, startX, startY, initLeft, initTop, hasMoved = false;
+        const onMouseDown = (e) => {
+            if (e.target.closest('.lc-pro-close, .lc-pro-iframe-btn')) return;
+            isDragging = true; hasMoved = false; element.classList.add('dragging');
+            const rect = element.getBoundingClientRect(); startX = e.clientX; startY = e.clientY;
+            initLeft = rect.left; initTop = rect.top; e.preventDefault();
+        };
+        const onMouseMove = (e) => {
+            if (!isDragging) return; hasMoved = true;
+            element.style.left = `${Math.max(0, Math.min(initLeft + (e.clientX - startX), window.innerWidth - element.offsetWidth))}px`;
+            element.style.top = `${Math.max(0, Math.min(initTop + (e.clientY - startY), window.innerHeight - element.offsetHeight))}px`;
+            element.style.right = 'auto';
+        };
+        const onMouseUp = () => {
+            if (!isDragging) return; isDragging = false; element.classList.remove('dragging');
+            if (hasMoved && storageKey) {
+                const rect = element.getBoundingClientRect();
+                localStorage.setItem(storageKey, JSON.stringify({ x: rect.left, y: rect.top }));
+            }
+            if (!hasMoved && options.onClick) options.onClick();
+        };
+        handle.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    }
+
+    makeDraggable(toggleBtn, toggleBtn, 'lc_pro_icon_pos', { onClick: () => popupPanel.classList.toggle('active') });
+    makeDraggable(popupPanel, popupPanel.querySelector('.lc-pro-header'), 'lc_pro_panel_pos');
+    popupPanel.querySelector('.lc-pro-close').addEventListener('click', () => popupPanel.classList.remove('active'));
+
+    // ============================================
+    // Resize
+    // ============================================
+    const resizeHandle = iframePanel.querySelector('.lc-pro-iframe-resize');
+    let isResizing = false;
+    resizeHandle.addEventListener('mousedown', (e) => { isResizing = true; e.preventDefault(); });
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        iframePanel.style.width = Math.max(320, Math.min(window.innerWidth - e.clientX, window.innerWidth - 100)) + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+        if (isResizing) { isResizing = false; localStorage.setItem('lc_pro_iframe_width', iframePanel.style.width); }
+    });
+
+    // ============================================
+    // Toast Notification System
+    // ============================================
+    function showToast(msg, type = 'info') {
+        const t = document.createElement('div');
+        t.className = `lc-pro-toast ${type}`;
+        t.textContent = msg;
+        document.body.appendChild(t);
+
+        toastQueue.push(t);
+        if (toastQueue.length > CONFIG.maxToastMessages) {
+            const oldToast = toastQueue.shift();
+            oldToast.remove();
+        }
+
+        setTimeout(() => t.classList.add('show'), 10);
+        setTimeout(() => {
+            t.classList.remove('show');
+            setTimeout(() => {
+                t.remove();
+                toastQueue = toastQueue.filter(item => item !== t);
+            }, 400);
+        }, 2500);
+    }
+
+    // ============================================
+    // Data management
+    // ============================================
+    const coarseInput = document.getElementById('lc-pro-coarse');
+    const importantInput = document.getElementById('lc-pro-important');
+    const enableToggle = document.getElementById('lc-pro-enable-toggle');
+    coarseInput.value = localStorage.getItem('lc_pro_coarse') || '';
+    importantInput.value = localStorage.getItem('lc_pro_important') || '';
+    enableToggle.checked = localStorage.getItem('lc_pro_enabled') !== 'false';
+
+    function getWords(type) {
+        const val = type === 'coarse' ? coarseInput.value : importantInput.value;
+        return val.split(',').map(w => w.trim().toLowerCase()).filter(w => w.length > 0);
+    }
+
+    enableToggle.addEventListener('change', () => {
+        localStorage.setItem('lc_pro_enabled', enableToggle.checked);
+        if (enableToggle.checked) { scanAllText(); showToast('Highlight Diaktifkan', 'success'); }
+        else { clearAllHighlights(); showToast('Highlight Dimatikan'); }
+    });
+
+    document.getElementById('lc-pro-save').addEventListener('click', () => {
+        localStorage.setItem('lc_pro_coarse', coarseInput.value);
+        localStorage.setItem('lc_pro_important', importantInput.value);
+        if (enableToggle.checked) scanAllText();
+        showToast('Tersimpan', 'success');
+    });
+
+    document.getElementById('lc-pro-scan').addEventListener('click', () => {
+        if (enableToggle.checked) { scanAllText(); showToast('Scanning...', 'info'); }
+        else showToast('Aktifkan Highlight dulu', 'error');
+    });
+
+    function clearAllHighlights() {
+        document.querySelectorAll('.lc-pro-highlight').forEach(span => {
+            if (span.parentNode) span.parentNode.replaceChild(document.createTextNode(span.textContent), span);
+        });
+    }
+
+    // ============================================
+    // Password generator
+    // ============================================
+    const passDisplay = document.getElementById('lc-pro-pass-display');
+    const copyBtn = document.getElementById('lc-pro-copy-btn');
+
+    function generatePassword() {
+        const word = DAILY_ITEMS[Math.floor(Math.random() * DAILY_ITEMS.length)];
+        const twoLetters = word.substring(0, 2).toLowerCase();
+        let fourDigits = '';
+        for (let i = 0; i < 4; i++) fourDigits += Math.floor(Math.random() * 10);
+        const finalPass = twoLetters + fourDigits;
+        passDisplay.textContent = finalPass;
+        return finalPass;
+    }
+
+    copyBtn.addEventListener('click', () => {
+        const newPass = generatePassword();
+        if (typeof GM_setClipboard !== 'undefined') GM_setClipboard(newPass);
+        else navigator.clipboard.writeText(newPass).catch(err => console.error('Gagal copy:', err));
+        showToast('Generated & Copied', 'success');
+    });
+
+    // ============================================
+    // SMART PANEL LOGIC (v9.9 - GOOGLE SHEETS SUPPORT)
+    // ============================================
+    const iframe = document.getElementById('lc-pro-iframe');
+    const iframeLoader = document.getElementById('lc-pro-iframe-loader');
+    const iframeError = document.getElementById('lc-pro-iframe-error');
+    const iframeErrorMsg = document.getElementById('lc-pro-iframe-error-msg');
+    const iframeTitle = document.getElementById('lc-pro-iframe-title');
+    const iframeSubtitle = document.getElementById('lc-pro-iframe-subtitle');
+    const iframeIcon = document.getElementById('lc-pro-iframe-icon');
+    const debugModal = document.getElementById('lc-pro-debug-modal');
+    const debugContent = document.getElementById('lc-pro-debug-content');
+    const autoRefreshIndicator = document.getElementById('lc-pro-auto-refresh-indicator');
+
+    let lastFetchedHtml = '';
+
+    function getIconForMenu(name) {
+        if (name.includes('All')) return '📋';
+        if (name.includes('BNI')) return '🏦';
+        if (name.includes('BRI')) return '🏛️';
+        if (name.includes('DANA')) return '💰';
+        if (name.includes('GoPay')) return '📱';
+        if (name.includes('LINKAJA')) return '🔗';
+        if (name.includes('MyBCA')) return '🏧';
+        if (name.includes('OVO')) return '💳';
+        if (name.includes('ADMIN')) return '🧑‍💼';
+        if (name.includes('SHEET')) return '📊';
+        return '🚀';
+    }
+
+    // Check if URL is Google Sheets
+    function isGoogleSheets(url) {
+        return url.includes('docs.google.com/spreadsheets');
+    }
+
+    // ============================================
+    // HTML Modification & Proxy Injection
+    // ============================================
+    function modifyHtml(html, url) {
+        const urlObj = new URL(url);
+        const baseUrl = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
+
+        // Handle FRAMESET (Admin Panel)
+        if (/<frameset/i.test(html)) {
+            console.log('[LiveChat Pro] Converting <frameset> to HTML5 layout...');
+            const frameRegex = /<frame[^>]+src=["']([^"']+)["'][^>]*>/gi;
+            const frames = [];
+            let match;
+            while ((match = frameRegex.exec(html)) !== null) {
+                frames.push(match[1]);
+            }
+
+            if (frames.length > 0) {
+                const framesetMatch = html.match(/<frameset([^>]*)>/i);
+                const attrs = framesetMatch ? framesetMatch[1] : '';
+                const rowsMatch = attrs.match(/rows=["']([^"']+)["']/i);
+                const colsMatch = attrs.match(/cols=["']([^"']+)["']/i);
+
+                let iframesHtml = '';
+                if (frames.length === 3) {
+                    const topSrc = frames[0];
+                    const leftSrc = frames[1];
+                    const mainSrc = frames[2];
+                    const topHeight = rowsMatch ? rowsMatch[1].split(',')[0].trim() : '40px';
+                    const leftWidth = colsMatch ? colsMatch[1].split(',')[0].trim() : '200px';
+
+                    iframesHtml = `
+                        <iframe data-src="${topSrc}" style="width:100%;height:${topHeight};border:0;display:block;" name="jalanmaster"></iframe>
+                        <div style="display:flex;height:calc(100% - ${topHeight});">
+                            <iframe data-src="${leftSrc}" style="width:${leftWidth};height:100%;border:0;display:block;" name="menu"></iframe>
+                            <iframe data-src="${mainSrc}" style="flex:1;height:100%;border:0;display:block;" name="master"></iframe>
+                        </div>
+                    `;
+                } else {
+                    iframesHtml = frames.map((src, i) =>
+                        `<iframe data-src="${src}" style="width:100%;flex:1;border:0;display:block;" name="frame${i}"></iframe>`
+                    ).join('');
+                    iframesHtml = `<div style="display:flex;flex-direction:column;height:100%;">${iframesHtml}</div>`;
+                }
+
+                html = `<!DOCTYPE html><html><head><base href="${baseUrl}"></head><body style="margin:0;padding:0;height:100%;overflow:hidden;background:#fff;">
+                    ${iframesHtml}
+                    <script>
+                        document.querySelectorAll('iframe[data-src]').forEach((iframe, index) => {
+                            const url = iframe.getAttribute('data-src');
+                            const id = 'frame_' + index + '_' + Math.random().toString(36).substring(7);
+
+                            const listener = (event) => {
+                                if (event.data && event.data.type === 'lc-pro-frame-html' && event.data.id === id) {
+                                    window.removeEventListener('message', listener);
+                                    try {
+                                        const doc = iframe.contentDocument || iframe.contentWindow.document;
+                                        doc.open();
+                                        doc.write(event.data.html);
+                                        doc.close();
+                                    } catch(e) { console.error('[LiveChat Pro] Failed to write inner frame', e); }
+                                }
+                            };
+                            window.addEventListener('message', listener);
+
+                            window.parent.postMessage({
+                                type: 'lc-pro-fetch-frame',
+                                id: id,
+                                url: new URL(url, document.baseURI).href
+                            }, '*');
+                        });
+                    <\/script>
+                </body></html>`;
+                return html;
+            }
+        }
+
+        // Inject <base> tag
+        const baseTag = `<base href="${baseUrl}">`;
+        if (!/<base[^>]*>/i.test(html)) {
+            html = html.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
+            if (!html.includes(baseTag)) {
+                html = html.replace(/<html([^>]*)>/i, `<html$1><head>${baseTag}</head>`);
+            }
+        }
+
+        // Inject CSS Fix & AJAX Proxy Script
+        const fixAndProxy = `
+        <style>
+            html.js body * { visibility: visible !important; }
+            body { background: #fff !important; color: #000 !important; }
+            .hidden, .hide, .collapse, .closed { display: revert !important; visibility: visible !important; height: auto !important; overflow: visible !important; }
+        </style>
+        <script>
+            document.documentElement.classList.remove('no-js');
+            document.documentElement.classList.add('js');
+
+            // Tipu situs agar mengira dia tidak di dalam iframe (PENTING untuk Google Sheets)
+            try {
+                Object.defineProperty(window, 'top', { get: () => window, configurable: true });
+                Object.defineProperty(window, 'parent', { get: () => window, configurable: true });
+                Object.defineProperty(window, 'frameElement', { get: () => null, configurable: true });
+
+                // Override window.open agar tetap di panel
+                const _origOpen = window.open;
+                window.open = function(url, name, specs) {
+                    if (url && typeof url === 'string') {
+                        try {
+                            window.parent.postMessage({ type: 'lc-pro-navigate', url: new URL(url, document.baseURI).href }, '*');
+                            return null;
+                        } catch(e) {}
+                    }
+                    return _origOpen.apply(this, arguments);
+                };
+            } catch(e) {}
+
+            window.fetch = function(url, options) {
+                return new Promise((resolve, reject) => {
+                    const id = 'f_' + Math.random().toString(36).substring(7);
+                    const reqUrl = new URL(url, document.baseURI || window.location.href).href;
+
+                    let headers = {};
+                    if (options && options.headers) {
+                        if (options.headers instanceof Headers) {
+                            options.headers.forEach((value, key) => { headers[key] = value; });
+                        } else if (typeof options.headers === 'object') {
+                            headers = Object.assign({}, options.headers);
+                        }
+                    }
+
+                    const listener = (event) => {
+                        if (event.data && event.data.type === 'lc-pro-ajax-res' && event.data.id === id) {
+                            window.removeEventListener('message', listener);
+                            resolve({
+                                ok: event.data.status >= 200 && event.data.status < 300,
+                                status: event.data.status,
+                                text: () => Promise.resolve(event.data.text),
+                                json: () => Promise.resolve(JSON.parse(event.data.text)),
+                                headers: new Headers()
+                            });
+                        }
+                    };
+                    window.addEventListener('message', listener);
+
+                    window.parent.postMessage({
+                        type: 'lc-pro-ajax-req',
+                        id: id,
+                        method: (options && options.method) || 'GET',
+                        url: reqUrl,
+                        body: options && options.body,
+                        headers: headers
+                    }, '*');
+                });
+            };
+
+            const origXhrOpen = XMLHttpRequest.prototype.open;
+            const origXhrSend = XMLHttpRequest.prototype.send;
+            const origXhrSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
+
+            XMLHttpRequest.prototype.open = function(method, url) {
+                this._pm = method;
+                this._pu = new URL(url, document.baseURI || window.location.href).href;
+                this._headers = {};
+                return origXhrOpen.apply(this, arguments);
+            };
+
+            XMLHttpRequest.prototype.setRequestHeader = function(name, value) {
+                if (!this._headers) this._headers = {};
+                this._headers[name] = value;
+                return origXhrSetRequestHeader.apply(this, arguments);
+            };
+
+            XMLHttpRequest.prototype.send = function(body) {
+                const xhr = this;
+                const id = 'x_' + Math.random().toString(36).substring(7);
+
+                const listener = (event) => {
+                    if (event.data && event.data.type === 'lc-pro-ajax-res' && event.data.id === id) {
+                        window.removeEventListener('message', listener);
+                        try {
+                            Object.defineProperty(xhr, 'status', { value: event.data.status, writable: true });
+                            Object.defineProperty(xhr, 'responseText', { value: event.data.text, writable: true });
+                            Object.defineProperty(xhr, 'readyState', { value: 4, writable: true });
+                            if (xhr.onreadystatechange) xhr.onreadystatechange();
+                            if (xhr.onload) xhr.onload();
+                        } catch(e) {}
+                    }
+                };
+                window.addEventListener('message', listener);
+
+                window.parent.postMessage({
+                    type: 'lc-pro-ajax-req',
+                    id: id,
+                    method: xhr._pm || 'GET',
+                    url: xhr._pu || window.location.href,
+                    body: body,
+                    headers: xhr._headers || {}
+                }, '*');
+            };
+
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (link && link.href && !link.href.startsWith('javascript:')) {
+                    e.preventDefault();
+                    window.parent.postMessage({ type: 'lc-pro-navigate', url: link.href }, '*');
+                }
+            }, true);
+        <\/script>`;
+
+        html = html.replace(/<\/head>/i, fixAndProxy + '</head>');
+        if (!html.includes(fixAndProxy)) {
+            html = fixAndProxy + html;
+        }
+
+        return html;
+    }
+
+    // ============================================
+    // Render HTML to iframe
+    // ============================================
+    function renderInIframe(htmlContent) {
+        try {
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(htmlContent);
+            doc.close();
+            return true;
+        } catch (e) {
+            console.error('[LiveChat Pro] doc.write failed:', e);
+            return false;
+        }
+    }
+
+    // ============================================
+    // Open Smart Panel
+    // ============================================
+    async function openSmartPanel(menuName, url) {
+        console.log('[LiveChat Pro] Opening:', menuName, url);
+        currentPanelUrl = url;
+        iframeTitle.textContent = menuName;
+        iframeSubtitle.textContent = url;
+        iframeIcon.textContent = getIconForMenu(menuName);
+
+        iframeError.classList.remove('show');
+        debugModal.classList.remove('show');
+        iframeLoader.classList.remove('hidden');
+        iframe.removeAttribute('srcdoc');
+        iframePanel.classList.add('active');
+
+        // Start auto-refresh for waiting menus ONLY (not for Google Sheets)
+        if (url.includes('/waiting/')) {
+            startAutoRefresh();
+            autoRefreshIndicator.style.display = 'block';
+        } else {
+            stopAutoRefresh();
+            autoRefreshIndicator.style.display = 'none';
+        }
+
+        try {
+            // For Google Sheets, use direct iframe src instead of doc.write
+            // because Google Sheets has strict CSP and requires proper origin
+            if (isGoogleSheets(url)) {
+                console.log('[LiveChat Pro] Loading Google Sheets directly...');
+
+                // Use embed URL for better iframe compatibility
+                const embedUrl = url.replace('/edit', '/embed');
+
+                // Try direct src first (works if user is logged in to Google)
+                iframe.src = url;
+
+                // Fallback: if direct loading fails due to X-Frame-Options,
+                // show a message to open in new tab
+                setTimeout(() => {
+                    iframeLoader.classList.add('hidden');
+                    console.log('[LiveChat Pro] Google Sheets loaded');
+                }, 2000);
+
+                return;
+            }
+
+            const response = await new Promise((resolve, reject) => {
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: url,
+                    anonymous: false,
+                    headers: {
+                        'Referer': url,
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'User-Agent': navigator.userAgent
+                    },
+                    onload: (res) => {
+                        if (res.status >= 200 && res.status < 300) resolve(res.responseText);
+                        else reject(new Error(`HTTP ${res.status}: ${res.statusText}`));
+                    },
+                    onerror: (err) => reject(new Error('Network Error')),
+                    timeout: 15000
+                });
+            });
+
+            lastFetchedHtml = response;
+            console.log('[LiveChat Pro] Fetch success. Length:', response.length);
+
+            const modifiedHtml = modifyHtml(response, url);
+
+            iframe.src = 'about:blank';
+
+            setTimeout(() => {
+                if (renderInIframe(modifiedHtml)) {
+                    iframeLoader.classList.add('hidden');
+                    console.log('[LiveChat Pro] HTML rendered via doc.write dengan AJAX Proxy aktif!');
+                } else {
+                    iframe.srcdoc = modifiedHtml;
+                    iframeLoader.classList.add('hidden');
+                }
+            }, 100);
+
+        } catch (error) {
+            console.error('[LiveChat Pro] Fetch failed:', error);
+            iframeLoader.classList.add('hidden');
+            iframeError.classList.add('show');
+            iframeErrorMsg.textContent = `Gagal mengambil data: ${error.message}. Pastikan Anda sudah login di situs tersebut di tab browser yang sama.`;
+            showToast('Gagal memuat panel', 'error');
+        }
+    }
+
+    // ============================================
+    // Auto-refresh functionality
+    // ============================================
+    function startAutoRefresh() {
+        stopAutoRefresh();
+        autoRefreshTimer = setInterval(() => {
+            if (currentPanelUrl && iframePanel.classList.contains('active')) {
+                console.log('[LiveChat Pro] Auto-refreshing...');
+                openSmartPanel(iframeTitle.textContent, currentPanelUrl);
+                showToast('Auto-refreshed', 'success');
+            }
+        }, CONFIG.autoRefreshInterval);
+    }
+
+    function stopAutoRefresh() {
+        if (autoRefreshTimer) {
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = null;
+        }
+    }
+
+    // ============================================
+    // Export to CSV
+    // ============================================
+    function exportToCSV() {
+        try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const table = iframeDoc.querySelector('table');
+
+            if (!table) {
+                showToast('Tidak ada tabel untuk diekspor', 'error');
+                return;
+            }
+
+            let csv = [];
+            const rows = table.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const cols = row.querySelectorAll('td, th');
+                const rowData = [];
+                cols.forEach(col => {
+                    let text = col.innerText.replace(/"/g, '""');
+                    rowData.push(`"${text}"`);
+                });
+                csv.push(rowData.join(','));
+            });
+
+            const csvString = csv.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', `export_${new Date().getTime()}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('Data berhasil diekspor', 'success');
+        } catch (e) {
+            console.error('[LiveChat Pro] Export failed:', e);
+            showToast('Gagal mengekspor data', 'error');
+        }
+    }
+
+    // ============================================
+    // Message listener for AJAX proxy & navigation
+    // ============================================
+    window.addEventListener('message', async (event) => {
+        // Handle AJAX Request from iframe
+        if (event.data && event.data.type === 'lc-pro-ajax-req') {
+            const { id, method, url, body, headers: origHeaders } = event.data;
+
+            let nativeBody = body;
+            let isFormData = false;
+            const reqHeaders = Object.assign({
+                'Referer': currentPanelUrl || url,
+                'Accept': '*/*',
+                'User-Agent': navigator.userAgent
+            }, origHeaders || {});
+
+            // Convert cross-realm FormData/URLSearchParams to native objects
+            if (body) {
+                const typeName = body.constructor ? body.constructor.name : '';
+
+                if (typeName === 'FormData') {
+                    isFormData = true;
+                    nativeBody = new FormData();
+                    body.forEach((value, key) => {
+                        nativeBody.append(key, value);
+                    });
+                    delete reqHeaders['Content-Type'];
+                    delete reqHeaders['content-type'];
+                } else if (typeName === 'URLSearchParams') {
+                    nativeBody = body.toString();
+                    if (!reqHeaders['Content-Type'] && !reqHeaders['content-type']) {
+                        reqHeaders['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+                    }
+                }
+            }
+
+            try {
+                const res = await new Promise((resolve, reject) => {
+                    GM_xmlhttpRequest({
+                        method: method,
+                        url: url,
+                        data: nativeBody,
+                        anonymous: false,
+                        headers: reqHeaders,
+                        onload: (r) => resolve({ status: r.status, text: r.responseText }),
+                        onerror: (e) => reject(e)
+                    });
+                });
+                iframe.contentWindow.postMessage({
+                    type: 'lc-pro-ajax-res',
+                    id: id,
+                    status: res.status,
+                    text: res.text
+                }, '*');
+            } catch (e) {
+                iframe.contentWindow.postMessage({
+                    type: 'lc-pro-ajax-res',
+                    id: id,
+                    status: 500,
+                    text: 'Network Error: ' + (e.message || 'Unknown')
+                }, '*');
+            }
+        }
+
+        // Handle Fetch Frame Request from converted frameset
+        if (event.data && event.data.type === 'lc-pro-fetch-frame') {
+            const { id, url } = event.data;
+            try {
+                const res = await new Promise((resolve, reject) => {
+                    GM_xmlhttpRequest({
+                        method: 'GET',
+                        url: url,
+                        anonymous: false,
+                        headers: {
+                            'Referer': currentPanelUrl || url,
+                            'Accept': 'text/html,*/*',
+                            'User-Agent': navigator.userAgent
+                        },
+                        onload: (r) => resolve({ status: r.status, text: r.responseText }),
+                        onerror: (e) => reject(e)
+                    });
+                });
+
+                const modifiedInnerHtml = modifyHtml(res.text, url);
+
+                iframe.contentWindow.postMessage({
+                    type: 'lc-pro-frame-html',
+                    id: id,
+                    html: modifiedInnerHtml
+                }, '*');
+            } catch (e) {
+                console.error('[LiveChat Pro] Failed to fetch inner frame', e);
+            }
+        }
+
+        // Handle Navigation from iframe
+        if (event.data && event.data.type === 'lc-pro-navigate') {
+            openSmartPanel('Navigasi', event.data.url);
+        }
+    });
+
+    // ============================================
+    // Button event listeners
+    // ============================================
+    document.getElementById('lc-pro-iframe-refresh').addEventListener('click', () => {
+        if (currentPanelUrl) {
+            openSmartPanel(iframeTitle.textContent, currentPanelUrl);
+            showToast('Refreshing...', 'info');
+        }
+    });
+
+    document.getElementById('lc-pro-iframe-export').addEventListener('click', exportToCSV);
+
+    document.getElementById('lc-pro-iframe-debug').addEventListener('click', () => {
+        if (lastFetchedHtml) {
+            debugContent.textContent = lastFetchedHtml.substring(0, 3000) + (lastFetchedHtml.length > 3000 ? '\n\n... [DIPOTONG, TOTAL: ' + lastFetchedHtml.length + ' KARAKTER] ...' : '');
+            debugModal.classList.add('show');
+        } else {
+            debugContent.textContent = "Belum ada data HTML yang diambil.";
+            debugModal.classList.add('show');
+        }
+    });
+
+    document.getElementById('lc-pro-debug-close').addEventListener('click', () => {
+        debugModal.classList.remove('show');
+    });
+
+    function closeIframePanel() {
+        stopAutoRefresh();
+        iframePanel.classList.remove('active');
+        debugModal.classList.remove('show');
+        autoRefreshIndicator.style.display = 'none';
+        setTimeout(() => {
+            iframe.removeAttribute('srcdoc');
+            iframe.src = 'about:blank';
+            iframeError.classList.remove('show');
+            iframeLoader.classList.remove('hidden');
+            lastFetchedHtml = '';
+            currentPanelUrl = null;
+        }, 400);
+    }
+
+    document.getElementById('lc-pro-iframe-close').addEventListener('click', closeIframePanel);
+    document.getElementById('lc-pro-iframe-open-tab').addEventListener('click', () => {
+        if (currentPanelUrl) window.open(currentPanelUrl, '_blank');
+    });
+    document.getElementById('lc-pro-iframe-error-btn').addEventListener('click', () => {
+        if (currentPanelUrl) window.open(currentPanelUrl, '_blank');
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (debugModal.classList.contains('show')) debugModal.classList.remove('show');
+            else if (iframePanel.classList.contains('active')) closeIframePanel();
+        }
+        if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+            popupPanel.classList.toggle('active');
+        }
+        if (e.ctrlKey && e.shiftKey && e.key === 'R' && currentPanelUrl) {
+            openSmartPanel(iframeTitle.textContent, currentPanelUrl);
+        }
+    });
+
+    // Bind all menu buttons (waiting + admin)
+    document.querySelectorAll('.waiting-menu-btn, .admin-btn').forEach(btn => {
+        btn.addEventListener('click', () => openSmartPanel(btn.getAttribute('data-name'), btn.getAttribute('data-url')));
+    });
+
+    // ============================================
+    // External link interceptor
+    // ============================================
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link && link.href) {
+            if (link.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-iframe-panel, .lc-pro-debug-modal')) return;
+            const isLiveChatDomain = link.href.includes('livechatinc.com') || link.href.includes('livechat') || link.href.startsWith('/') || link.href.startsWith('#');
+            if (!isLiveChatDomain) {
+                e.preventDefault(); e.stopPropagation();
+                openSmartPanel('Link Eksternal', link.href);
+            }
+        }
+    }, true);
+
+    const originalWindowOpen = window.open;
+    window.open = function(url, name, specs) {
+        if (url && typeof url === 'string') {
+            try {
+                const resolvedUrl = new URL(url, window.location.href).href;
+                if (!resolvedUrl.includes('livechatinc.com') && name === '_blank') {
+                    openSmartPanel('Popup', resolvedUrl);
+                    return null;
+                }
+            } catch (err) {}
+        }
+        return originalWindowOpen.apply(this, arguments);
+    };
+
+    // ============================================
+    // Core processing (filter chat)
+    // ============================================
+    function processTextNode(textNode) {
+        if (!enableToggle.checked || !textNode.nodeValue || !textNode.nodeValue.trim()) return;
+        if (textNode.parentNode.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-highlight, .lc-pro-iframe-panel, .lc-pro-debug-modal')) return;
+
+        const coarseWords = getWords('coarse');
+        const importantWords = getWords('important');
+        if (coarseWords.length === 0 && importantWords.length === 0) return;
+
+        const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        let allWords = [];
+        coarseWords.forEach(w => allWords.push({ word: w, type: 'lc-pro-coarse' }));
+        importantWords.forEach(w => allWords.push({ word: w, type: 'lc-pro-important' }));
+        allWords.sort((a, b) => b.word.length - a.word.length);
+
+        const pattern = allWords.map(w => escapeRegExp(w.word)).join('|');
+        if (!pattern) return;
+
+        const regex = new RegExp(`(${pattern})`, 'gi');
+        const text = textNode.nodeValue;
+        if (!regex.test(text)) return;
+        regex.lastIndex = 0;
+
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0, match, hasMatch = false;
+        while ((match = regex.exec(text)) !== null) {
+            hasMatch = true;
+            if (match.index > lastIndex) fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+            const matchedWord = match[0];
+            const wordObj = allWords.find(w => w.word.toLowerCase() === matchedWord.toLowerCase());
+            const span = document.createElement('span');
+            span.className = `lc-pro-highlight ${wordObj.type}`;
+            span.textContent = matchedWord;
+            fragment.appendChild(span);
+            lastIndex = regex.lastIndex;
+        }
+        if (hasMatch) {
+            if (lastIndex < text.length) fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+            if (textNode.parentNode) textNode.parentNode.replaceChild(fragment, textNode);
+        }
+    }
+
+    function scanAllText() {
+        clearAllHighlights();
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        const nodesToProcess = [];
+        let node, count = 0;
+        while ((node = walker.nextNode()) && count < 2000) {
+            if (!node.parentNode.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-iframe-panel, .lc-pro-debug-modal')) nodesToProcess.push(node);
+            count++;
+        }
+        nodesToProcess.forEach(processTextNode);
+    }
+
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach(mutation => {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.TEXT_NODE) pendingNodes.add(node);
+                    else if (node.nodeType === Node.ELEMENT_NODE) {
+                        if (node.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-highlight, .lc-pro-iframe-panel, .lc-pro-debug-modal')) return;
+                        const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, false);
+                        let textNode;
+                        while ((textNode = walker.nextNode())) pendingNodes.add(textNode);
+                    }
+                });
+            }
+        });
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            if (pendingNodes.size === 0) return;
+            const nodesArray = Array.from(pendingNodes);
+            pendingNodes.clear();
+            nodesArray.slice(0, CONFIG.maxNodesPerBatch).forEach(processTextNode);
+            if (nodesArray.length > CONFIG.maxNodesPerBatch) {
+                nodesArray.slice(CONFIG.maxNodesPerBatch).forEach(n => pendingNodes.add(n));
+                debounceTimer = setTimeout(() => {}, 50);
+            }
+        }, CONFIG.debounceTime);
+    });
+
+    setTimeout(() => {
+        if (enableToggle.checked) scanAllText();
+        try { observer.observe(document.body, { childList: true, subtree: true }); }
+        catch (e) { console.log('Observer failed, retrying...', e); }
+    }, 1500);
+
+    console.log('[LiveChat Pro] Smart Panel v9.9 Loaded - Google Sheets Support Added');
+    showToast('LiveChat Pro v9.9 siap digunakan!', 'success');
+
+})();
