@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         LiveChat Pro: Filter & Short Num Pass Gen + Toggle + Smart Panel
+// @name         LiveChat Pro: Filter & Short Num Pass Gen + Toggle + Smart Panel + Cool Waiting Bank HUD
 // @namespace    http://tampermonkey.net/
-// @version      10.0
-// @description  Panel draggable, highlight chat, password generator, auto-refresh, export CSV, auto-login QRIS XPAY, auto-click PORTAL. Menggunakan doc.write + AJAX Proxy untuk bypass total X-Frame-Options & CORS!
+// @version      11.0
+// @description  Panel draggable, highlight chat, password generator, auto-refresh, export CSV, PORTAL mini popup, Waiting Bank HUD draggable & fast refresh.
 // @author       You
 // @match        https://my.livechatinc.com/*
 // @grant        GM_setClipboard
@@ -10,16 +10,12 @@
 // @grant        GM_notification
 // @connect      bk.augipt.com
 // @connect      www.bk.augipt.com
-// @connect      agwl2.admitoto.com
-// @connect      www.agwl2.admitoto.com
 // @connect      secure.bkstatic.net
 // @connect      cdnstatic.augipt.com
 // @connect      mongodata.augipt.com
 // @connect      www.mongodata.augipt.com
 // @connect      augipt.com
 // @connect      www.augipt.com
-// @connect      admitoto.com
-// @connect      www.admitoto.com
 // @connect      docs.google.com
 // @connect      m2qris.com
 // @connect      www.m2qris.com
@@ -53,7 +49,8 @@
         maxNodesPerBatch: 50,
         autoRefreshInterval: 30000,
         notificationSound: true,
-        maxToastMessages: 3
+        maxToastMessages: 3,
+        waitingBankInterval: 5000
     };
 
     let pendingNodes = new Set();
@@ -125,8 +122,6 @@
         .lc-pro-btn:hover { background: rgba(0, 229, 255, 0.3); border-color: #00e5ff; }
         .lc-pro-btn.secondary { background: rgba(255, 255, 255, 0.03); color: #aaa; border-color: rgba(255, 255, 255, 0.1); }
         .lc-pro-btn.secondary:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
-        .lc-pro-btn.admin-btn { background: rgba(255, 100, 50, 0.2); color: #ff8866; border-color: rgba(255, 100, 50, 0.4); }
-        .lc-pro-btn.admin-btn:hover { background: rgba(255, 100, 50, 0.35); border-color: #ff8866; }
         .lc-pro-btn.success { background: rgba(0, 255, 150, 0.15); color: #00ff96; border-color: rgba(0, 255, 150, 0.4); }
         .lc-pro-btn.success:hover { background: rgba(0, 255, 150, 0.3); }
 
@@ -270,6 +265,200 @@
             color: #00ff96; padding: 4px 8px; border-radius: 4px; font-size: 9px; font-weight: 700;
             border: 1px solid rgba(0, 255, 150, 0.4); z-index: 15;
         }
+
+        /* MINI POPUP FOR PORTAL */
+        .lc-pro-mini-popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 450px;
+            height: 500px;
+            background: rgba(10, 15, 30, 0.98);
+            backdrop-filter: blur(25px);
+            border: 2px solid rgba(0, 229, 255, 0.4);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 229, 255, 0.2);
+            z-index: 2147483648;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.8) translateY(20px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+        .lc-pro-mini-popup.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .lc-pro-mini-popup-header {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 119, 255, 0.2));
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: grab;
+            user-select: none;
+            border-radius: 14px 14px 0 0;
+        }
+        .lc-pro-mini-popup-header:active { cursor: grabbing; }
+        .lc-pro-mini-popup-title {
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lc-pro-mini-popup-close {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff6b8b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        .lc-pro-mini-popup-close:hover {
+            background: rgba(255, 68, 68, 0.4);
+            transform: rotate(90deg);
+        }
+        .lc-pro-mini-popup-body {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+            border-radius: 0 0 14px 14px;
+        }
+        .lc-pro-mini-popup-body iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #fff;
+        }
+
+        /* ============================================ */
+        /* WAITING BANK COOL HUD WIDGET (DRAGGABLE)     */
+        /* ============================================ */
+        #wb-container {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-30px);
+            z-index: 2147483640;
+            background: rgba(15, 20, 35, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            border-radius: 50px;
+            padding: 8px 10px 8px 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 229, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+            pointer-events: none;
+            cursor: grab;
+        }
+        #wb-container.active {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+        #wb-container.dragging {
+            cursor: grabbing;
+            transition: none;
+        }
+        #wb-total {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #e0e0e0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            padding-right: 15px;
+        }
+        .wb-count {
+            background: linear-gradient(135deg, #00e5ff, #0077ff);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 900;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+            animation: wb-pulse 2s infinite;
+            min-width: 20px;
+            text-align: center;
+        }
+        @keyframes wb-pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 229, 255, 0.5); transform: scale(1); }
+            50% { box-shadow: 0 0 25px rgba(0, 229, 255, 0.9); transform: scale(1.05); }
+        }
+        #wb-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            max-width: 60vw;
+            padding: 2px 0;
+        }
+        #wb-chips::-webkit-scrollbar { display: none; }
+        .wb-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid;
+            transition: all 0.2s ease;
+            cursor: default;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .wb-chip:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.2);
+        }
+        .wb-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: wb-dot-pulse 1.5s infinite;
+        }
+        @keyframes wb-dot-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+        .wb-empty {
+            color: #00ff96;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #wb-status {
+            font-size: 14px;
+            color: #00e5ff;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+        @keyframes wb-spin { to { transform: rotate(360deg); } }
     `;
 
     const style = document.createElement('style');
@@ -321,18 +510,12 @@
                 <button class="lc-pro-btn waiting-menu-btn" data-url="https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/all" data-name="📋 All Waiting">📋 All Waiting</button>
                 <button class="lc-pro-btn waiting-menu-btn" data-url="https://m2qris.com/login" data-name="💳 QRIS XPAY">💳 QRIS XPAY</button>
                 <button class="lc-pro-btn waiting-menu-btn" data-url="https://tescatter.vercel.app/index.html" data-name="🌐 PORTAL">🌐 PORTAL</button>
-                <button class="lc-pro-btn waiting-menu-btn" data-url="https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/gopay" data-name="📱 GoPay">📱 GoPay</button>
-                <button class="lc-pro-btn waiting-menu-btn" data-url="https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/mybca" data-name="🏧 MyBCA">🏧 MyBCA</button>
             </div>
             <div class="lc-pro-group">
                 <label class="lc-pro-label">Sheet Menu (Editable)</label>
                 <button class="lc-pro-btn waiting-menu-btn" data-url="https://docs.google.com/spreadsheets/d/1hD4dB9WvtyH4T33huzxI_UKF3N2LVvDj6rmF1y0zHQU/edit?gid=428538130#gid=428538130" data-name="🏦 BNI SHEET">🏦 BNI SHEET</button>
                 <button class="lc-pro-btn waiting-menu-btn" data-url="https://docs.google.com/spreadsheets/d/1pIUE9Zy4W2MPMf77NCd1xLxP014P5rbEcXmF9n3Wd8U/edit?gid=1739048826#gid=1739048826" data-name="🔗 LINKAJA SHEET">🔗 LINKAJA SHEET</button>
                 <button class="lc-pro-btn waiting-menu-btn" data-url="https://docs.google.com/spreadsheets/d/1vajGn6xpQ9TlzBQxRAcsTXS4tGzettlnrDT9SbOF1Fk/edit?gid=1000704251#gid=1000704251" data-name="💳 OVO SHEET">💳 OVO SHEET</button>
-            </div>
-            <div class="lc-pro-group">
-                <label class="lc-pro-label">Admin Menu</label>
-                <button class="lc-pro-btn admin-btn" data-url="https://agwl2.admitoto.com/agentplayerlist.php" data-name="🧑‍💼 ADMIN Player List">🧑‍💼 ADMIN - Player List</button>
             </div>
             <div class="lc-pro-divider">
                 <div class="lc-pro-gen-title">🔐 Password Generator</div>
@@ -399,6 +582,7 @@
     const savedIconPos = JSON.parse(localStorage.getItem('lc_pro_icon_pos') || 'null');
     const savedPanelPos = JSON.parse(localStorage.getItem('lc_pro_panel_pos') || 'null');
     const savedIframeWidth = localStorage.getItem('lc_pro_iframe_width');
+    const savedWbPos = JSON.parse(localStorage.getItem('lc_pro_wb_pos') || 'null');
 
     if (savedIconPos) { toggleBtn.style.left = savedIconPos.x + 'px'; toggleBtn.style.top = savedIconPos.y + 'px'; toggleBtn.style.right = 'auto'; }
     if (savedPanelPos) { popupPanel.style.left = savedPanelPos.x + 'px'; popupPanel.style.top = savedPanelPos.y + 'px'; popupPanel.style.right = 'auto'; }
@@ -420,6 +604,7 @@
             element.style.left = `${Math.max(0, Math.min(initLeft + (e.clientX - startX), window.innerWidth - element.offsetWidth))}px`;
             element.style.top = `${Math.max(0, Math.min(initTop + (e.clientY - startY), window.innerHeight - element.offsetHeight))}px`;
             element.style.right = 'auto';
+            element.style.transform = 'none';
         };
         const onMouseUp = () => {
             if (!isDragging) return; isDragging = false; element.classList.remove('dragging');
@@ -460,13 +645,13 @@
         t.className = `lc-pro-toast ${type}`;
         t.textContent = msg;
         document.body.appendChild(t);
-        
+
         toastQueue.push(t);
         if (toastQueue.length > CONFIG.maxToastMessages) {
             const oldToast = toastQueue.shift();
             oldToast.remove();
         }
-        
+
         setTimeout(() => t.classList.add('show'), 10);
         setTimeout(() => {
             t.classList.remove('show');
@@ -491,25 +676,25 @@
         const val = type === 'coarse' ? coarseInput.value : importantInput.value;
         return val.split(',').map(w => w.trim().toLowerCase()).filter(w => w.length > 0);
     }
-    
+
     enableToggle.addEventListener('change', () => {
         localStorage.setItem('lc_pro_enabled', enableToggle.checked);
         if (enableToggle.checked) { scanAllText(); showToast('Highlight Diaktifkan', 'success'); }
         else { clearAllHighlights(); showToast('Highlight Dimatikan'); }
     });
-    
+
     document.getElementById('lc-pro-save').addEventListener('click', () => {
         localStorage.setItem('lc_pro_coarse', coarseInput.value);
         localStorage.setItem('lc_pro_important', importantInput.value);
         if (enableToggle.checked) scanAllText();
         showToast('Tersimpan', 'success');
     });
-    
+
     document.getElementById('lc-pro-scan').addEventListener('click', () => {
         if (enableToggle.checked) { scanAllText(); showToast('Scanning...', 'info'); }
         else showToast('Aktifkan Highlight dulu', 'error');
     });
-    
+
     function clearAllHighlights() {
         document.querySelectorAll('.lc-pro-highlight').forEach(span => {
             if (span.parentNode) span.parentNode.replaceChild(document.createTextNode(span.textContent), span);
@@ -521,7 +706,7 @@
     // ============================================
     const passDisplay = document.getElementById('lc-pro-pass-display');
     const copyBtn = document.getElementById('lc-pro-copy-btn');
-    
+
     function generatePassword() {
         const word = DAILY_ITEMS[Math.floor(Math.random() * DAILY_ITEMS.length)];
         const twoLetters = word.substring(0, 2).toLowerCase();
@@ -531,7 +716,7 @@
         passDisplay.textContent = finalPass;
         return finalPass;
     }
-    
+
     copyBtn.addEventListener('click', () => {
         const newPass = generatePassword();
         if (typeof GM_setClipboard !== 'undefined') GM_setClipboard(newPass);
@@ -540,7 +725,7 @@
     });
 
     // ============================================
-    // SMART PANEL LOGIC (v10.0 - AUTO LOGIN & CLICK)
+    // SMART PANEL LOGIC
     // ============================================
     const iframe = document.getElementById('lc-pro-iframe');
     const iframeLoader = document.getElementById('lc-pro-iframe-loader');
@@ -561,216 +746,146 @@
         if (name.includes('QRIS')) return '💳';
         if (name.includes('PORTAL')) return '🌐';
         if (name.includes('DANA')) return '💰';
-        if (name.includes('GoPay')) return '📱';
         if (name.includes('LINKAJA')) return '🔗';
-        if (name.includes('MyBCA')) return '🏧';
         if (name.includes('OVO')) return '💳';
-        if (name.includes('ADMIN')) return '🧑‍💼';
         if (name.includes('SHEET')) return '📊';
         return '🚀';
     }
 
-    // Check if URL is Google Sheets
-    function isGoogleSheets(url) {
-        return url.includes('docs.google.com/spreadsheets');
+    function isGoogleSheets(url) { return url.includes('docs.google.com/spreadsheets'); }
+    function isQrisXpay(url) { return url.includes('m2qris.com'); }
+    function isPortal(url) { return url.includes('tescatter.vercel.app'); }
+
+    // ============================================
+    // MINI POPUP FOR PORTAL
+    // ============================================
+    let miniPopup = null;
+
+    function createMiniPopup() {
+        if (miniPopup) return miniPopup;
+
+        miniPopup = document.createElement('div');
+        miniPopup.className = 'lc-pro-mini-popup';
+        miniPopup.innerHTML = `
+            <div class="lc-pro-mini-popup-header">
+                <div class="lc-pro-mini-popup-title">
+                    <span>🌐</span>
+                    <span id="mini-popup-title-text">PORTAL</span>
+                </div>
+                <div class="lc-pro-mini-popup-close" id="mini-popup-close">&times;</div>
+            </div>
+            <div class="lc-pro-mini-popup-body">
+                <iframe id="mini-popup-iframe" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" referrerpolicy="no-referrer"></iframe>
+            </div>
+        `;
+        document.body.appendChild(miniPopup);
+
+        const header = miniPopup.querySelector('.lc-pro-mini-popup-header');
+        const closeBtn = miniPopup.querySelector('#mini-popup-close');
+
+        makeDraggable(miniPopup, header, 'lc_pro_mini_popup_pos');
+        closeBtn.addEventListener('click', closeMiniPopup);
+
+        return miniPopup;
     }
 
-    // Check if URL is QRIS XPAY
-    function isQrisXpay(url) {
-        return url.includes('m2qris.com');
+    function openMiniPopup(url, title = 'PORTAL') {
+        const popup = createMiniPopup();
+        const titleEl = popup.querySelector('#mini-popup-title-text');
+        const iframeEl = popup.querySelector('#mini-popup-iframe');
+
+        titleEl.textContent = title;
+        iframeEl.src = url;
+        popup.classList.add('active');
+
+        showToast(`Mini popup: ${title}`, 'success');
     }
 
-    // Check if URL is PORTAL
-    function isPortal(url) {
-        return url.includes('tescatter.vercel.app');
+    function closeMiniPopup() {
+        if (miniPopup) {
+            miniPopup.classList.remove('active');
+            setTimeout(() => {
+                const iframeEl = miniPopup.querySelector('#mini-popup-iframe');
+                if (iframeEl) iframeEl.src = 'about:blank';
+            }, 300);
+        }
     }
 
     // ============================================
-    // AUTO LOGIN FOR QRIS XPAY
-    // ============================================
-    function injectQrisAutoLogin() {
-        console.log('[LiveChat Pro] Injecting QRIS XPAY auto-login...');
-        
-        const autoLoginScript = `
-        <script>
-            (function() {
-                console.log('[QRIS XPAY] Auto-login script loaded');
-                
-                function attemptLogin() {
-                    console.log('[QRIS XPAY] Attempting auto-login...');
-                    
-                    // Find username field
-                    const usernameInput = document.querySelector('input[name="username"], input[type="text"], input[placeholder*="username" i], input[placeholder*="user" i]');
-                    if (usernameInput) {
-                        usernameInput.value = 'velaadavid';
-                        usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
-                        usernameInput.dispatchEvent(new Event('change', { bubbles: true }));
-                        console.log('[QRIS XPAY] Username filled');
-                    }
-                    
-                    // Find password field
-                    const passwordInput = document.querySelector('input[name="password"], input[type="password"]');
-                    if (passwordInput) {
-                        passwordInput.value = 'smbdavid0113';
-                        passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
-                        passwordInput.dispatchEvent(new Event('change', { bubbles: true }));
-                        console.log('[QRIS XPAY] Password filled');
-                    }
-                    
-                    // Find and check "Sign in as Staff" checkbox
-                    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-                    let staffChecked = false;
-                    checkboxes.forEach(cb => {
-                        const label = cb.closest('label');
-                        const parent = cb.parentElement;
-                        const text = (label ? label.textContent : '') + (parent ? parent.textContent : '');
-                        if (text.toLowerCase().includes('staff') || text.toLowerCase().includes('sign in as staff')) {
-                            if (!cb.checked) {
-                                cb.click();
-                                console.log('[QRIS XPAY] Staff checkbox checked');
-                            }
-                            staffChecked = true;
-                        }
-                    });
-                    
-                    // Find Toko Email field
-                    const emailInputs = document.querySelectorAll('input[type="email"], input[name*="email" i], input[placeholder*="email" i], input[placeholder*="toko" i]');
-                    emailInputs.forEach(input => {
-                        input.value = 'jonitogel@xpayapi.com';
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                        input.dispatchEvent(new Event('change', { bubbles: true }));
-                        console.log('[QRIS XPAY] Toko Email filled');
-                    });
-                    
-                    // Find and click Continue/Submit button
-                    setTimeout(() => {
-                        const buttons = document.querySelectorAll('button[type="submit"], button, input[type="submit"]');
-                        let clicked = false;
-                        buttons.forEach(btn => {
-                            const text = btn.textContent || btn.value || '';
-                            if (text.toLowerCase().includes('continue') || text.toLowerCase().includes('login') || text.toLowerCase().includes('sign in') || text.toLowerCase().includes('submit')) {
-                                if (!clicked) {
-                                    btn.click();
-                                    console.log('[QRIS XPAY] Continue button clicked');
-                                    clicked = true;
-                                }
-                            }
-                        });
-                        
-                        if (!clicked && buttons.length > 0) {
-                            buttons[0].click();
-                            console.log('[QRIS XPAY] First button clicked as fallback');
-                        }
-                    }, 500);
-                }
-                
-                // Wait for form to load
-                let attempts = 0;
-                const maxAttempts = 20;
-                const checkForm = setInterval(() => {
-                    attempts++;
-                    const hasInput = document.querySelector('input[type="text"], input[type="password"]');
-                    if (hasInput || attempts >= maxAttempts) {
-                        clearInterval(checkForm);
-                        if (hasInput) {
-                            setTimeout(attemptLogin, 500);
-                        } else {
-                            console.log('[QRIS XPAY] Form not found after ${maxAttempts} attempts');
-                        }
-                    }
-                }, 300);
-            })();
-        <\/script>`;
-        
-        return autoLoginScript;
-    }
-
-    // ============================================
-    // AUTO CLICK FOR PORTAL
+    // PORTAL AUTO CLICK (Open Mini Popup)
     // ============================================
     function injectPortalAutoClick() {
-        console.log('[LiveChat Pro] Injecting PORTAL auto-click...');
-        
+        console.log('[LiveChat Pro] Injecting PORTAL auto-click with mini popup...');
         const autoClickScript = `
         <script>
             (function() {
                 console.log('[PORTAL] Auto-click script loaded');
-                
+
                 function clickMenu() {
-                    console.log('[PORTAL] Looking for menu to click...');
-                    
-                    // Look for menu items, buttons, or links in popup/modal
-                    const selectors = [
-                        'button',
-                        'a[href]',
-                        '[role="button"]',
-                        '[role="menuitem"]',
-                        '.menu-item',
-                        '.nav-item',
-                        '[class*="menu"]',
-                        '[class*="nav"]',
-                        '[class*="button"]'
-                    ];
-                    
+                    const selectors = 'button, a[href], [role="button"], [role="menuitem"], .menu-item, .nav-item, [class*="menu"] a, [class*="nav"] a, [class*="button"]';
                     let clicked = false;
-                    
-                    // First, try to find popup/modal
                     const modals = document.querySelectorAll('[class*="modal"], [class*="popup"], [class*="dialog"], [role="dialog"]');
-                    
+
                     if (modals.length > 0) {
-                        console.log('[PORTAL] Found modal/popup');
                         modals.forEach(modal => {
                             if (clicked) return;
-                            const clickable = modal.querySelectorAll(selectors.join(', '));
+                            const clickable = modal.querySelectorAll(selectors);
                             clickable.forEach(el => {
                                 if (clicked) return;
                                 const text = el.textContent || '';
                                 if (text.trim().length > 0 && text.trim().length < 50) {
-                                    el.click();
-                                    console.log('[PORTAL] Clicked element in modal:', text.trim());
-                                    clicked = true;
+                                    const href = el.getAttribute('href') || el.getAttribute('data-url') || '';
+                                    if (href && !href.startsWith('javascript:') && !href.startsWith('#')) {
+                                        const fullUrl = new URL(href, window.location.href).href;
+                                        window.parent.postMessage({
+                                            type: 'lc-pro-open-mini-popup',
+                                            url: fullUrl,
+                                            title: text.trim()
+                                        }, '*');
+                                        clicked = true;
+                                    } else {
+                                        el.click();
+                                        clicked = true;
+                                    }
                                 }
                             });
                         });
                     }
-                    
-                    // If no modal found, click first menu item
+
                     if (!clicked) {
-                        const allClickable = document.querySelectorAll(selectors.join(', '));
+                        const allClickable = document.querySelectorAll(selectors);
                         allClickable.forEach(el => {
                             if (clicked) return;
                             const text = el.textContent || '';
                             if (text.trim().length > 0 && text.trim().length < 50) {
-                                el.click();
-                                console.log('[PORTAL] Clicked first menu item:', text.trim());
-                                clicked = true;
+                                const href = el.getAttribute('href') || el.getAttribute('data-url') || '';
+                                if (href && !href.startsWith('javascript:') && !href.startsWith('#')) {
+                                    const fullUrl = new URL(href, window.location.href).href;
+                                    window.parent.postMessage({
+                                        type: 'lc-pro-open-mini-popup',
+                                        url: fullUrl,
+                                        title: text.trim()
+                                    }, '*');
+                                    clicked = true;
+                                } else {
+                                    el.click();
+                                    clicked = true;
+                                }
                             }
                         });
                     }
-                    
-                    if (!clicked) {
-                        console.log('[PORTAL] No menu found to click');
-                    }
                 }
-                
-                // Wait for page to load
+
                 let attempts = 0;
-                const maxAttempts = 20;
                 const checkPage = setInterval(() => {
                     attempts++;
-                    const hasContent = document.body && document.body.children.length > 0;
-                    if (hasContent || attempts >= maxAttempts) {
+                    if (document.body && document.body.children.length > 0 || attempts >= 20) {
                         clearInterval(checkPage);
-                        if (hasContent) {
-                            setTimeout(clickMenu, 1000);
-                        } else {
-                            console.log('[PORTAL] Page not loaded after ${maxAttempts} attempts');
-                        }
+                        setTimeout(clickMenu, 1000);
                     }
                 }, 300);
             })();
         <\/script>`;
-        
         return autoClickScript;
     }
 
@@ -781,30 +896,24 @@
         const urlObj = new URL(url);
         const baseUrl = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
 
-        // Handle FRAMESET (Admin Panel)
         if (/<frameset/i.test(html)) {
             console.log('[LiveChat Pro] Converting <frameset> to HTML5 layout...');
             const frameRegex = /<frame[^>]+src=["']([^"']+)["'][^>]*>/gi;
             const frames = [];
             let match;
-            while ((match = frameRegex.exec(html)) !== null) {
-                frames.push(match[1]);
-            }
+            while ((match = frameRegex.exec(html)) !== null) frames.push(match[1]);
 
             if (frames.length > 0) {
                 const framesetMatch = html.match(/<frameset([^>]*)>/i);
                 const attrs = framesetMatch ? framesetMatch[1] : '';
                 const rowsMatch = attrs.match(/rows=["']([^"']+)["']/i);
                 const colsMatch = attrs.match(/cols=["']([^"']+)["']/i);
-                
+
                 let iframesHtml = '';
                 if (frames.length === 3) {
-                    const topSrc = frames[0];
-                    const leftSrc = frames[1];
-                    const mainSrc = frames[2];
+                    const topSrc = frames[0]; const leftSrc = frames[1]; const mainSrc = frames[2];
                     const topHeight = rowsMatch ? rowsMatch[1].split(',')[0].trim() : '40px';
                     const leftWidth = colsMatch ? colsMatch[1].split(',')[0].trim() : '200px';
-                    
                     iframesHtml = `
                         <iframe data-src="${topSrc}" style="width:100%;height:${topHeight};border:0;display:block;" name="jalanmaster"></iframe>
                         <div style="display:flex;height:calc(100% - ${topHeight});">
@@ -813,9 +922,7 @@
                         </div>
                     `;
                 } else {
-                    iframesHtml = frames.map((src, i) => 
-                        `<iframe data-src="${src}" style="width:100%;flex:1;border:0;display:block;" name="frame${i}"></iframe>`
-                    ).join('');
+                    iframesHtml = frames.map((src, i) => `<iframe data-src="${src}" style="width:100%;flex:1;border:0;display:block;" name="frame${i}"></iframe>`).join('');
                     iframesHtml = `<div style="display:flex;flex-direction:column;height:100%;">${iframesHtml}</div>`;
                 }
 
@@ -825,25 +932,17 @@
                         document.querySelectorAll('iframe[data-src]').forEach((iframe, index) => {
                             const url = iframe.getAttribute('data-src');
                             const id = 'frame_' + index + '_' + Math.random().toString(36).substring(7);
-                            
                             const listener = (event) => {
                                 if (event.data && event.data.type === 'lc-pro-frame-html' && event.data.id === id) {
                                     window.removeEventListener('message', listener);
                                     try {
                                         const doc = iframe.contentDocument || iframe.contentWindow.document;
-                                        doc.open();
-                                        doc.write(event.data.html);
-                                        doc.close();
+                                        doc.open(); doc.write(event.data.html); doc.close();
                                     } catch(e) { console.error('[LiveChat Pro] Failed to write inner frame', e); }
                                 }
                             };
                             window.addEventListener('message', listener);
-                            
-                            window.parent.postMessage({
-                                type: 'lc-pro-fetch-frame',
-                                id: id,
-                                url: new URL(url, document.baseURI).href
-                            }, '*');
+                            window.parent.postMessage({ type: 'lc-pro-fetch-frame', id: id, url: new URL(url, document.baseURI).href }, '*');
                         });
                     <\/script>
                 </body></html>`;
@@ -851,16 +950,12 @@
             }
         }
 
-        // Inject <base> tag
         const baseTag = `<base href="${baseUrl}">`;
         if (!/<base[^>]*>/i.test(html)) {
             html = html.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
-            if (!html.includes(baseTag)) {
-                html = html.replace(/<html([^>]*)>/i, `<html$1><head>${baseTag}</head>`);
-            }
+            if (!html.includes(baseTag)) html = html.replace(/<html([^>]*)>/i, `<html$1><head>${baseTag}</head>`);
         }
 
-        // Inject CSS Fix & AJAX Proxy Script
         const fixAndProxy = `
         <style>
             html.js body * { visibility: visible !important; }
@@ -870,86 +965,50 @@
         <script>
             document.documentElement.classList.remove('no-js');
             document.documentElement.classList.add('js');
-
-            // Tipu situs agar mengira dia tidak di dalam iframe (PENTING untuk Google Sheets)
             try {
                 Object.defineProperty(window, 'top', { get: () => window, configurable: true });
                 Object.defineProperty(window, 'parent', { get: () => window, configurable: true });
                 Object.defineProperty(window, 'frameElement', { get: () => null, configurable: true });
-                
-                // Override window.open agar tetap di panel
                 const _origOpen = window.open;
                 window.open = function(url, name, specs) {
                     if (url && typeof url === 'string') {
-                        try {
-                            window.parent.postMessage({ type: 'lc-pro-navigate', url: new URL(url, document.baseURI).href }, '*');
-                            return null;
-                        } catch(e) {}
+                        try { window.parent.postMessage({ type: 'lc-pro-navigate', url: new URL(url, document.baseURI).href }, '*'); return null; } catch(e) {}
                     }
                     return _origOpen.apply(this, arguments);
                 };
             } catch(e) {}
-
             window.fetch = function(url, options) {
                 return new Promise((resolve, reject) => {
                     const id = 'f_' + Math.random().toString(36).substring(7);
                     const reqUrl = new URL(url, document.baseURI || window.location.href).href;
-
                     let headers = {};
                     if (options && options.headers) {
-                        if (options.headers instanceof Headers) {
-                            options.headers.forEach((value, key) => { headers[key] = value; });
-                        } else if (typeof options.headers === 'object') {
-                            headers = Object.assign({}, options.headers);
-                        }
+                        if (options.headers instanceof Headers) options.headers.forEach((value, key) => { headers[key] = value; });
+                        else if (typeof options.headers === 'object') headers = Object.assign({}, options.headers);
                     }
-
                     const listener = (event) => {
                         if (event.data && event.data.type === 'lc-pro-ajax-res' && event.data.id === id) {
                             window.removeEventListener('message', listener);
-                            resolve({
-                                ok: event.data.status >= 200 && event.data.status < 300,
-                                status: event.data.status,
-                                text: () => Promise.resolve(event.data.text),
-                                json: () => Promise.resolve(JSON.parse(event.data.text)),
-                                headers: new Headers()
-                            });
+                            resolve({ ok: event.data.status >= 200 && event.data.status < 300, status: event.data.status, text: () => Promise.resolve(event.data.text), json: () => Promise.resolve(JSON.parse(event.data.text)), headers: new Headers() });
                         }
                     };
                     window.addEventListener('message', listener);
-
-                    window.parent.postMessage({
-                        type: 'lc-pro-ajax-req',
-                        id: id,
-                        method: (options && options.method) || 'GET',
-                        url: reqUrl,
-                        body: options && options.body,
-                        headers: headers
-                    }, '*');
+                    window.parent.postMessage({ type: 'lc-pro-ajax-req', id: id, method: (options && options.method) || 'GET', url: reqUrl, body: options && options.body, headers: headers }, '*');
                 });
             };
-
             const origXhrOpen = XMLHttpRequest.prototype.open;
             const origXhrSend = XMLHttpRequest.prototype.send;
             const origXhrSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
-
             XMLHttpRequest.prototype.open = function(method, url) {
-                this._pm = method;
-                this._pu = new URL(url, document.baseURI || window.location.href).href;
-                this._headers = {};
+                this._pm = method; this._pu = new URL(url, document.baseURI || window.location.href).href; this._headers = {};
                 return origXhrOpen.apply(this, arguments);
             };
-
             XMLHttpRequest.prototype.setRequestHeader = function(name, value) {
-                if (!this._headers) this._headers = {};
-                this._headers[name] = value;
+                if (!this._headers) this._headers = {}; this._headers[name] = value;
                 return origXhrSetRequestHeader.apply(this, arguments);
             };
-
             XMLHttpRequest.prototype.send = function(body) {
-                const xhr = this;
-                const id = 'x_' + Math.random().toString(36).substring(7);
-
+                const xhr = this; const id = 'x_' + Math.random().toString(36).substring(7);
                 const listener = (event) => {
                     if (event.data && event.data.type === 'lc-pro-ajax-res' && event.data.id === id) {
                         window.removeEventListener('message', listener);
@@ -963,17 +1022,8 @@
                     }
                 };
                 window.addEventListener('message', listener);
-
-                window.parent.postMessage({
-                    type: 'lc-pro-ajax-req',
-                    id: id,
-                    method: xhr._pm || 'GET',
-                    url: xhr._pu || window.location.href,
-                    body: body,
-                    headers: xhr._headers || {}
-                }, '*');
+                window.parent.postMessage({ type: 'lc-pro-ajax-req', id: id, method: xhr._pm || 'GET', url: xhr._pu || window.location.href, body: body, headers: xhr._headers || {} }, '*');
             };
-
             document.addEventListener('click', function(e) {
                 const link = e.target.closest('a');
                 if (link && link.href && !link.href.startsWith('javascript:')) {
@@ -984,38 +1034,20 @@
         <\/script>`;
 
         html = html.replace(/<\/head>/i, fixAndProxy + '</head>');
-        if (!html.includes(fixAndProxy)) {
-            html = fixAndProxy + html;
-        }
+        if (!html.includes(fixAndProxy)) html = fixAndProxy + html;
 
-        // Inject auto-login for QRIS XPAY
-        if (isQrisXpay(url)) {
-            html = html.replace(/<\/body>/i, injectQrisAutoLogin() + '</body>');
-            if (!html.includes(injectQrisAutoLogin())) {
-                html += injectQrisAutoLogin();
-            }
-        }
-
-        // Inject auto-click for PORTAL
         if (isPortal(url)) {
             html = html.replace(/<\/body>/i, injectPortalAutoClick() + '</body>');
-            if (!html.includes(injectPortalAutoClick())) {
-                html += injectPortalAutoClick();
-            }
+            if (!html.includes(injectPortalAutoClick())) html += injectPortalAutoClick();
         }
 
         return html;
     }
 
-    // ============================================
-    // Render HTML to iframe
-    // ============================================
     function renderInIframe(htmlContent) {
         try {
             const doc = iframe.contentDocument || iframe.contentWindow.document;
-            doc.open();
-            doc.write(htmlContent);
-            doc.close();
+            doc.open(); doc.write(htmlContent); doc.close();
             return true;
         } catch (e) {
             console.error('[LiveChat Pro] doc.write failed:', e);
@@ -1023,9 +1055,6 @@
         }
     }
 
-    // ============================================
-    // Open Smart Panel
-    // ============================================
     async function openSmartPanel(menuName, url) {
         console.log('[LiveChat Pro] Opening:', menuName, url);
         currentPanelUrl = url;
@@ -1039,7 +1068,9 @@
         iframe.removeAttribute('srcdoc');
         iframePanel.classList.add('active');
 
-        // Start auto-refresh for waiting menus ONLY (not for Google Sheets, QRIS, or PORTAL)
+        // AUTO HIDE popupPanel
+        popupPanel.classList.remove('active');
+
         if (url.includes('/waiting/')) {
             startAutoRefresh();
             autoRefreshIndicator.style.display = 'block';
@@ -1049,7 +1080,6 @@
         }
 
         try {
-            // For Google Sheets, use direct iframe src instead of doc.write
             if (isGoogleSheets(url)) {
                 console.log('[LiveChat Pro] Loading Google Sheets directly...');
                 iframe.src = url;
@@ -1060,72 +1090,49 @@
                 return;
             }
 
-            // For QRIS XPAY and PORTAL, use direct iframe src with auto-injection
-            if (isQrisXpay(url) || isPortal(url)) {
-                console.log('[LiveChat Pro] Loading with auto-injection...');
+            if (isQrisXpay(url)) {
+                console.log('[LiveChat Pro] Loading QRIS XPAY directly...');
                 iframe.src = url;
-                
-                // Wait for iframe to load, then inject scripts
+                setTimeout(() => {
+                    iframeLoader.classList.add('hidden');
+                }, 2000);
+                return;
+            }
+
+            if (isPortal(url)) {
+                console.log('[LiveChat Pro] Loading PORTAL with auto-click...');
+                iframe.src = url;
                 iframe.onload = () => {
                     console.log('[LiveChat Pro] Iframe loaded, injecting scripts...');
                     try {
                         const doc = iframe.contentDocument || iframe.contentWindow.document;
-                        
-                        if (isQrisXpay(url)) {
-                            const script = doc.createElement('script');
-                            script.textContent = injectQrisAutoLogin().replace(/<\/?script>/g, '');
-                            doc.body.appendChild(script);
-                            console.log('[LiveChat Pro] QRIS auto-login injected');
-                            showToast('Auto-login QRIS XPAY dimulai...', 'success');
-                        }
-                        
-                        if (isPortal(url)) {
-                            const script = doc.createElement('script');
-                            script.textContent = injectPortalAutoClick().replace(/<\/?script>/g, '');
-                            doc.body.appendChild(script);
-                            console.log('[LiveChat Pro] PORTAL auto-click injected');
-                            showToast('Auto-click PORTAL dimulai...', 'success');
-                        }
-                    } catch (e) {
-                        console.error('[LiveChat Pro] Injection failed:', e);
-                    }
-                    
+                        const script = doc.createElement('script');
+                        script.textContent = injectPortalAutoClick().replace(/<\/?script>/g, '');
+                        doc.body.appendChild(script);
+                        showToast('PORTAL dimuat - klik menu untuk buka mini popup', 'success');
+                    } catch (e) { console.error('[LiveChat Pro] Injection failed:', e); }
                     iframeLoader.classList.add('hidden');
                 };
-                
                 return;
             }
 
             const response = await new Promise((resolve, reject) => {
                 GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: url,
-                    anonymous: false,
-                    headers: {
-                        'Referer': url,
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                        'User-Agent': navigator.userAgent
-                    },
-                    onload: (res) => {
-                        if (res.status >= 200 && res.status < 300) resolve(res.responseText);
-                        else reject(new Error(`HTTP ${res.status}: ${res.statusText}`));
-                    },
+                    method: 'GET', url: url, anonymous: false,
+                    headers: { 'Referer': url, 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'User-Agent': navigator.userAgent },
+                    onload: (res) => { if (res.status >= 200 && res.status < 300) resolve(res.responseText); else reject(new Error(`HTTP ${res.status}: ${res.statusText}`)); },
                     onerror: (err) => reject(new Error('Network Error')),
                     timeout: 15000
                 });
             });
 
             lastFetchedHtml = response;
-            console.log('[LiveChat Pro] Fetch success. Length:', response.length);
-
             const modifiedHtml = modifyHtml(response, url);
-
             iframe.src = 'about:blank';
 
             setTimeout(() => {
                 if (renderInIframe(modifiedHtml)) {
                     iframeLoader.classList.add('hidden');
-                    console.log('[LiveChat Pro] HTML rendered via doc.write dengan AJAX Proxy aktif!');
                 } else {
                     iframe.srcdoc = modifiedHtml;
                     iframeLoader.classList.add('hidden');
@@ -1141,14 +1148,10 @@
         }
     }
 
-    // ============================================
-    // Auto-refresh functionality
-    // ============================================
     function startAutoRefresh() {
         stopAutoRefresh();
         autoRefreshTimer = setInterval(() => {
             if (currentPanelUrl && iframePanel.classList.contains('active')) {
-                console.log('[LiveChat Pro] Auto-refreshing...');
                 openSmartPanel(iframeTitle.textContent, currentPanelUrl);
                 showToast('Auto-refreshed', 'success');
             }
@@ -1156,28 +1159,16 @@
     }
 
     function stopAutoRefresh() {
-        if (autoRefreshTimer) {
-            clearInterval(autoRefreshTimer);
-            autoRefreshTimer = null;
-        }
+        if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
     }
 
-    // ============================================
-    // Export to CSV
-    // ============================================
     function exportToCSV() {
         try {
             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
             const table = iframeDoc.querySelector('table');
-            
-            if (!table) {
-                showToast('Tidak ada tabel untuk diekspor', 'error');
-                return;
-            }
-
+            if (!table) { showToast('Tidak ada tabel untuk diekspor', 'error'); return; }
             let csv = [];
             const rows = table.querySelectorAll('tr');
-            
             rows.forEach(row => {
                 const cols = row.querySelectorAll('td, th');
                 const rowData = [];
@@ -1187,19 +1178,16 @@
                 });
                 csv.push(rowData.join(','));
             });
-
             const csvString = csv.join('\n');
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
-            
             link.setAttribute('href', url);
             link.setAttribute('download', `export_${new Date().getTime()}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
             showToast('Data berhasil diekspor', 'success');
         } catch (e) {
             console.error('[LiveChat Pro] Export failed:', e);
@@ -1207,32 +1195,17 @@
         }
     }
 
-    // ============================================
-    // Message listener for AJAX proxy & navigation
-    // ============================================
     window.addEventListener('message', async (event) => {
-        // Handle AJAX Request from iframe
         if (event.data && event.data.type === 'lc-pro-ajax-req') {
             const { id, method, url, body, headers: origHeaders } = event.data;
-            
             let nativeBody = body;
-            let isFormData = false;
-            const reqHeaders = Object.assign({
-                'Referer': currentPanelUrl || url,
-                'Accept': '*/*',
-                'User-Agent': navigator.userAgent
-            }, origHeaders || {});
+            const reqHeaders = Object.assign({ 'Referer': currentPanelUrl || url, 'Accept': '*/*', 'User-Agent': navigator.userAgent }, origHeaders || {});
 
-            // Convert cross-realm FormData/URLSearchParams to native objects
             if (body) {
                 const typeName = body.constructor ? body.constructor.name : '';
-                
                 if (typeName === 'FormData') {
-                    isFormData = true;
                     nativeBody = new FormData();
-                    body.forEach((value, key) => {
-                        nativeBody.append(key, value);
-                    });
+                    body.forEach((value, key) => { nativeBody.append(key, value); });
                     delete reqHeaders['Content-Type'];
                     delete reqHeaders['content-type'];
                 } else if (typeName === 'URLSearchParams') {
@@ -1245,94 +1218,47 @@
 
             try {
                 const res = await new Promise((resolve, reject) => {
-                    GM_xmlhttpRequest({
-                        method: method,
-                        url: url,
-                        data: nativeBody,
-                        anonymous: false,
-                        headers: reqHeaders,
-                        onload: (r) => resolve({ status: r.status, text: r.responseText }),
-                        onerror: (e) => reject(e)
-                    });
+                    GM_xmlhttpRequest({ method: method, url: url, data: nativeBody, anonymous: false, headers: reqHeaders, onload: (r) => resolve({ status: r.status, text: r.responseText }), onerror: (e) => reject(e) });
                 });
-                iframe.contentWindow.postMessage({
-                    type: 'lc-pro-ajax-res',
-                    id: id,
-                    status: res.status,
-                    text: res.text
-                }, '*');
+                iframe.contentWindow.postMessage({ type: 'lc-pro-ajax-res', id: id, status: res.status, text: res.text }, '*');
             } catch (e) {
-                iframe.contentWindow.postMessage({
-                    type: 'lc-pro-ajax-res',
-                    id: id,
-                    status: 500,
-                    text: 'Network Error: ' + (e.message || 'Unknown')
-                }, '*');
+                iframe.contentWindow.postMessage({ type: 'lc-pro-ajax-res', id: id, status: 500, text: 'Network Error: ' + (e.message || 'Unknown') }, '*');
             }
         }
 
-        // Handle Fetch Frame Request from converted frameset
         if (event.data && event.data.type === 'lc-pro-fetch-frame') {
             const { id, url } = event.data;
             try {
                 const res = await new Promise((resolve, reject) => {
-                    GM_xmlhttpRequest({
-                        method: 'GET',
-                        url: url,
-                        anonymous: false,
-                        headers: {
-                            'Referer': currentPanelUrl || url,
-                            'Accept': 'text/html,*/*',
-                            'User-Agent': navigator.userAgent
-                        },
-                        onload: (r) => resolve({ status: r.status, text: r.responseText }),
-                        onerror: (e) => reject(e)
-                    });
+                    GM_xmlhttpRequest({ method: 'GET', url: url, anonymous: false, headers: { 'Referer': currentPanelUrl || url, 'Accept': 'text/html,*/*', 'User-Agent': navigator.userAgent }, onload: (r) => resolve({ status: r.status, text: r.responseText }), onerror: (e) => reject(e) });
                 });
-                
                 const modifiedInnerHtml = modifyHtml(res.text, url);
-                
-                iframe.contentWindow.postMessage({
-                    type: 'lc-pro-frame-html',
-                    id: id,
-                    html: modifiedInnerHtml
-                }, '*');
-            } catch (e) {
-                console.error('[LiveChat Pro] Failed to fetch inner frame', e);
-            }
+                iframe.contentWindow.postMessage({ type: 'lc-pro-frame-html', id: id, html: modifiedInnerHtml }, '*');
+            } catch (e) { console.error('[LiveChat Pro] Failed to fetch inner frame', e); }
         }
 
-        // Handle Navigation from iframe
         if (event.data && event.data.type === 'lc-pro-navigate') {
             openSmartPanel('Navigasi', event.data.url);
         }
-    });
 
-    // ============================================
-    // Button event listeners
-    // ============================================
-    document.getElementById('lc-pro-iframe-refresh').addEventListener('click', () => {
-        if (currentPanelUrl) {
-            openSmartPanel(iframeTitle.textContent, currentPanelUrl);
-            showToast('Refreshing...', 'info');
+        if (event.data && event.data.type === 'lc-pro-open-mini-popup') {
+            openMiniPopup(event.data.url, event.data.title || 'PORTAL');
         }
     });
 
+    document.getElementById('lc-pro-iframe-refresh').addEventListener('click', () => {
+        if (currentPanelUrl) { openSmartPanel(iframeTitle.textContent, currentPanelUrl); showToast('Refreshing...', 'info'); }
+    });
     document.getElementById('lc-pro-iframe-export').addEventListener('click', exportToCSV);
-
     document.getElementById('lc-pro-iframe-debug').addEventListener('click', () => {
         if (lastFetchedHtml) {
             debugContent.textContent = lastFetchedHtml.substring(0, 3000) + (lastFetchedHtml.length > 3000 ? '\n\n... [DIPOTONG, TOTAL: ' + lastFetchedHtml.length + ' KARAKTER] ...' : '');
-            debugModal.classList.add('show');
         } else {
             debugContent.textContent = "Belum ada data HTML yang diambil.";
-            debugModal.classList.add('show');
         }
+        debugModal.classList.add('show');
     });
-
-    document.getElementById('lc-pro-debug-close').addEventListener('click', () => {
-        debugModal.classList.remove('show');
-    });
+    document.getElementById('lc-pro-debug-close').addEventListener('click', () => { debugModal.classList.remove('show'); });
 
     function closeIframePanel() {
         stopAutoRefresh();
@@ -1350,38 +1276,30 @@
     }
 
     document.getElementById('lc-pro-iframe-close').addEventListener('click', closeIframePanel);
-    document.getElementById('lc-pro-iframe-open-tab').addEventListener('click', () => {
-        if (currentPanelUrl) window.open(currentPanelUrl, '_blank');
-    });
-    document.getElementById('lc-pro-iframe-error-btn').addEventListener('click', () => {
-        if (currentPanelUrl) window.open(currentPanelUrl, '_blank');
-    });
+    document.getElementById('lc-pro-iframe-open-tab').addEventListener('click', () => { if (currentPanelUrl) window.open(currentPanelUrl, '_blank'); });
+    document.getElementById('lc-pro-iframe-error-btn').addEventListener('click', () => { if (currentPanelUrl) window.open(currentPanelUrl, '_blank'); });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (debugModal.classList.contains('show')) debugModal.classList.remove('show');
+            else if (miniPopup && miniPopup.classList.contains('active')) closeMiniPopup();
             else if (iframePanel.classList.contains('active')) closeIframePanel();
         }
-        if (e.ctrlKey && e.shiftKey && e.key === 'L') {
-            popupPanel.classList.toggle('active');
-        }
-        if (e.ctrlKey && e.shiftKey && e.key === 'R' && currentPanelUrl) {
-            openSmartPanel(iframeTitle.textContent, currentPanelUrl);
-        }
+        if (e.ctrlKey && e.shiftKey && e.key === 'L') popupPanel.classList.toggle('active');
+        if (e.ctrlKey && e.shiftKey && e.key === 'R' && currentPanelUrl) openSmartPanel(iframeTitle.textContent, currentPanelUrl);
     });
 
-    // Bind all menu buttons (waiting + admin)
-    document.querySelectorAll('.waiting-menu-btn, .admin-btn').forEach(btn => {
-        btn.addEventListener('click', () => openSmartPanel(btn.getAttribute('data-name'), btn.getAttribute('data-url')));
+    document.querySelectorAll('.waiting-menu-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            popupPanel.classList.remove('active');
+            openSmartPanel(btn.getAttribute('data-name'), btn.getAttribute('data-url'));
+        });
     });
 
-    // ============================================
-    // External link interceptor
-    // ============================================
     document.addEventListener('click', function(e) {
         const link = e.target.closest('a');
         if (link && link.href) {
-            if (link.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-iframe-panel, .lc-pro-debug-modal')) return;
+            if (link.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-iframe-panel, .lc-pro-debug-modal, .lc-pro-mini-popup')) return;
             const isLiveChatDomain = link.href.includes('livechatinc.com') || link.href.includes('livechat') || link.href.startsWith('/') || link.href.startsWith('#');
             if (!isLiveChatDomain) {
                 e.preventDefault(); e.stopPropagation();
@@ -1409,7 +1327,7 @@
     // ============================================
     function processTextNode(textNode) {
         if (!enableToggle.checked || !textNode.nodeValue || !textNode.nodeValue.trim()) return;
-        if (textNode.parentNode.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-highlight, .lc-pro-iframe-panel, .lc-pro-debug-modal')) return;
+        if (textNode.parentNode.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-highlight, .lc-pro-iframe-panel, .lc-pro-debug-modal, .lc-pro-mini-popup')) return;
 
         const coarseWords = getWords('coarse');
         const importantWords = getWords('important');
@@ -1454,7 +1372,7 @@
         const nodesToProcess = [];
         let node, count = 0;
         while ((node = walker.nextNode()) && count < 2000) {
-            if (!node.parentNode.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-iframe-panel, .lc-pro-debug-modal')) nodesToProcess.push(node);
+            if (!node.parentNode.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-iframe-panel, .lc-pro-debug-modal, .lc-pro-mini-popup')) nodesToProcess.push(node);
             count++;
         }
         nodesToProcess.forEach(processTextNode);
@@ -1466,7 +1384,7 @@
                 mutation.addedNodes.forEach(node => {
                     if (node.nodeType === Node.TEXT_NODE) pendingNodes.add(node);
                     else if (node.nodeType === Node.ELEMENT_NODE) {
-                        if (node.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-highlight, .lc-pro-iframe-panel, .lc-pro-debug-modal')) return;
+                        if (node.closest('.lc-pro-panel, .lc-pro-toggle, .lc-pro-toast, .lc-pro-highlight, .lc-pro-iframe-panel, .lc-pro-debug-modal, .lc-pro-mini-popup')) return;
                         const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, false);
                         let textNode;
                         while ((textNode = walker.nextNode())) pendingNodes.add(textNode);
@@ -1493,7 +1411,144 @@
         catch (e) { console.log('Observer failed, retrying...', e); }
     }, 1500);
 
-    console.log('[LiveChat Pro] Smart Panel v10.0 Loaded - Auto Login QRIS XPAY & Auto Click PORTAL');
-    showToast('LiveChat Pro v10.0 siap digunakan!', 'success');
+    console.log('[LiveChat Pro] Smart Panel v11.0 Loaded - With Mini Popup & Fast Waiting Bank!');
+    showToast('LiveChat Pro v11.0 siap digunakan!', 'success');
+
+    // ============================================
+    // 🏦 WAITING BANK COOL HUD WIDGET (DRAGGABLE & FAST)
+    // ============================================
+    const WB_URL = "https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/all";
+    let wbLastData = [];
+
+    function wbGetColor(bank) {
+        bank = bank.toUpperCase();
+        if (bank.includes("OVO")) return "#ea80fc";
+        if (bank.includes("LINK")) return "#ff5252";
+        if (bank.includes("BNI")) return "#ffab40";
+        if (bank.includes("BRI")) return "#448aff";
+        if (bank.includes("BCA")) return "#69f0ae";
+        if (bank.includes("DANA")) return "#40c4ff";
+        if (bank.includes("GOPAY")) return "#00e676";
+        if (bank.includes("SHOPEE")) return "#ff6e40";
+        if (bank.includes("MANDIRI")) return "#18ffff";
+        if (bank.includes("BSI")) return "#b2ff59";
+        if (bank.includes("CIMB")) return "#ff1744";
+        if (bank.includes("PERMATA")) return "#e040fb";
+        if (bank.includes("BJB")) return "#ffd740";
+        if (bank.includes("BTPN")) return "#ffd740";
+        if (bank.includes("JAGO")) return "#00b0ff";
+        if (bank.includes("JENIUS")) return "#1de9b6";
+        if (bank.includes("ALLO")) return "#ff9100";
+        if (bank.includes("SAHABAT")) return "#d500f9";
+        if (bank.includes("NEO")) return "#2979ff";
+        if (bank.includes("SEABANK")) return "#00bfa5";
+        if (bank.includes("LINAS")) return "#ffab40";
+        if (bank.includes("MAYBANK")) return "#ffeb3b";
+        if (bank.includes("PANIN")) return "#ff5722";
+        if (bank.includes("OCBC")) return "#e53935";
+        if (bank.includes("UOB")) return "#1e88e5";
+        if (bank.includes("DBS")) return "#3949ab";
+        if (bank.includes("HSBC")) return "#d32f2f";
+        return "#ffffff";
+    }
+
+    function wbCreateWidget() {
+        if (document.getElementById('wb-container')) return;
+        const wb = document.createElement('div');
+        wb.id = 'wb-container';
+        wb.innerHTML = `
+            <div id="wb-total">
+                <span style="font-size:16px;">🏦</span>
+                <span style="font-size:11px; letter-spacing:1px;">WAITING</span>
+                <span class="wb-count" id="wb-count">0</span>
+            </div>
+            <div id="wb-chips"></div>
+            <div id="wb-status" title="Auto-refresh ${CONFIG.waitingBankInterval/1000}s">🔄</div>
+        `;
+        document.body.appendChild(wb);
+
+        if (savedWbPos) {
+            wb.style.left = savedWbPos.x + 'px';
+            wb.style.top = savedWbPos.y + 'px';
+            wb.style.transform = 'none';
+        }
+
+        makeDraggable(wb, wb, 'lc_pro_wb_pos');
+
+        setTimeout(() => wb.classList.add('active'), 100);
+    }
+
+    function wbRender(data) {
+        const wbCount = document.getElementById('wb-count');
+        const wbChips = document.getElementById('wb-chips');
+        if (!wbCount || !wbChips) return;
+
+        if (!data || !data.length) {
+            wbCount.textContent = '0';
+            wbChips.innerHTML = `<div class="wb-empty">✅ CLEAR</div>`;
+            return;
+        }
+
+        const total = data.reduce((a, b) => a + (b.jumlah || 0), 0);
+        wbCount.textContent = total;
+
+        wbChips.innerHTML = data.map(x => {
+            const color = wbGetColor(x.bank);
+            return `
+                <div class="wb-chip" style="border-color: ${color}60; color: ${color}; background: ${color}15; box-shadow: 0 0 15px ${color}20;">
+                    <div class="wb-dot" style="background: ${color}; box-shadow: 0 0 8px ${color};"></div>
+                    <span>${x.bank}</span>
+                    <span style="font-weight:900; margin-left:2px;">${x.jumlah}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function wbFetch() {
+        const statusEl = document.getElementById('wb-status');
+        if(statusEl) statusEl.style.animation = 'wb-spin 1s linear infinite';
+
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: WB_URL,
+            timeout: 15000,
+            onload: function (res) {
+                if(statusEl) statusEl.style.animation = '';
+                try {
+                    if (res.status !== 200) { wbRender(wbLastData); return; }
+                    const doc = new DOMParser().parseFromString(res.responseText, "text/html");
+                    const data = [];
+                    doc.querySelectorAll("a.nav-item").forEach(a => {
+                        const img = a.querySelector("img");
+                        const badge = a.querySelector("span.badge-primary");
+                        if (!img || !badge) return;
+                        const bank = img.alt.trim();
+                        const jumlah = parseInt(badge.textContent.trim(), 10);
+                        const ignore = ["ALL", "TOTAL", "SEMUA"];
+                        if (ignore.includes(bank.toUpperCase())) return;
+                        if (jumlah > 0) data.push({ bank, jumlah });
+                    });
+                    data.sort((a, b) => b.jumlah - a.jumlah);
+                    wbLastData = data;
+                    wbRender(data);
+                } catch (e) {
+                    console.error('[Waiting Bank] Parse error:', e);
+                    wbRender(wbLastData);
+                }
+            },
+            onerror: function () {
+                if(statusEl) statusEl.style.animation = '';
+                wbRender(wbLastData);
+            }
+        });
+    }
+
+    function wbStart() {
+        wbCreateWidget();
+        wbFetch();
+        setInterval(wbFetch, CONFIG.waitingBankInterval);
+    }
+
+    wbStart();
 
 })();
