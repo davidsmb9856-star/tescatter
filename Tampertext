@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         LiveChat Pro: Filter & Short Num Pass Gen + Toggle + Smart Panel + Cool Waiting Bank HUD
 // @namespace    http://tampermonkey.net/
-// @version      11.0
-// @description  Panel draggable, highlight chat, password generator, auto-refresh, export CSV, PORTAL mini popup, Waiting Bank HUD draggable & fast refresh.
+// @version      11.3
+// @description  Panel draggable, highlight chat, password generator, auto-refresh, export CSV, PORTAL mini popup, SEAMLESS login-keep, Sheet auto-zoom 80%.
 // @author       You
 // @match        https://my.livechatinc.com/*
 // @grant        GM_setClipboard
@@ -20,6 +20,7 @@
 // @connect      m2qris.com
 // @connect      www.m2qris.com
 // @connect      tescatter.vercel.app
+// @connect      regs.idnlive.live
 // @connect      *
 // @run-at       document-idle
 // ==/UserScript==
@@ -510,6 +511,7 @@
                 <button class="lc-pro-btn waiting-menu-btn" data-url="https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/all" data-name="📋 All Waiting">📋 All Waiting</button>
                 <button class="lc-pro-btn waiting-menu-btn" data-url="https://m2qris.com/login" data-name="💳 QRIS XPAY">💳 QRIS XPAY</button>
                 <button class="lc-pro-btn waiting-menu-btn" data-url="https://tescatter.vercel.app/index.html" data-name="🌐 PORTAL">🌐 PORTAL</button>
+                <button class="lc-pro-btn waiting-menu-btn" data-url="https://regs.idnlive.live/report/transactionregion" data-name="🔗 SEAMLESS">🔗 SEAMLESS</button>
             </div>
             <div class="lc-pro-group">
                 <label class="lc-pro-label">Sheet Menu (Editable)</label>
@@ -745,6 +747,7 @@
         if (name.includes('BNI')) return '🏦';
         if (name.includes('QRIS')) return '💳';
         if (name.includes('PORTAL')) return '🌐';
+        if (name.includes('SEAMLESS')) return '🔗';
         if (name.includes('DANA')) return '💰';
         if (name.includes('LINKAJA')) return '🔗';
         if (name.includes('OVO')) return '💳';
@@ -755,6 +758,7 @@
     function isGoogleSheets(url) { return url.includes('docs.google.com/spreadsheets'); }
     function isQrisXpay(url) { return url.includes('m2qris.com'); }
     function isPortal(url) { return url.includes('tescatter.vercel.app'); }
+    function isSeamless(url) { return url.includes('regs.idnlive.live'); }
 
     // ============================================
     // MINI POPUP FOR PORTAL
@@ -821,69 +825,61 @@
             (function() {
                 console.log('[PORTAL] Auto-click script loaded');
 
-                function clickMenu() {
-                    const selectors = 'button, a[href], [role="button"], [role="menuitem"], .menu-item, .nav-item, [class*="menu"] a, [class*="nav"] a, [class*="button"]';
-                    let clicked = false;
-                    const modals = document.querySelectorAll('[class*="modal"], [class*="popup"], [class*="dialog"], [role="dialog"]');
+                function handleAllClickables() {
+                    const selectors = 'button, a[href], [role="button"], [role="menuitem"], .menu-item, .nav-item, [class*="menu"] a, [class*="nav"] a, [class*="button"], [onclick], .clickable, .btn, .link';
+                    const allClickable = document.querySelectorAll(selectors);
 
-                    if (modals.length > 0) {
-                        modals.forEach(modal => {
-                            if (clicked) return;
-                            const clickable = modal.querySelectorAll(selectors);
-                            clickable.forEach(el => {
-                                if (clicked) return;
-                                const text = el.textContent || '';
-                                if (text.trim().length > 0 && text.trim().length < 50) {
-                                    const href = el.getAttribute('href') || el.getAttribute('data-url') || '';
-                                    if (href && !href.startsWith('javascript:') && !href.startsWith('#')) {
-                                        const fullUrl = new URL(href, window.location.href).href;
-                                        window.parent.postMessage({
-                                            type: 'lc-pro-open-mini-popup',
-                                            url: fullUrl,
-                                            title: text.trim()
-                                        }, '*');
-                                        clicked = true;
-                                    } else {
-                                        el.click();
-                                        clicked = true;
-                                    }
-                                }
-                            });
-                        });
-                    }
+                    allClickable.forEach(el => {
+                        if (el.dataset.lcProBound) return;
+                        el.dataset.lcProBound = 'true';
 
-                    if (!clicked) {
-                        const allClickable = document.querySelectorAll(selectors);
-                        allClickable.forEach(el => {
-                            if (clicked) return;
-                            const text = el.textContent || '';
-                            if (text.trim().length > 0 && text.trim().length < 50) {
-                                const href = el.getAttribute('href') || el.getAttribute('data-url') || '';
-                                if (href && !href.startsWith('javascript:') && !href.startsWith('#')) {
-                                    const fullUrl = new URL(href, window.location.href).href;
-                                    window.parent.postMessage({
-                                        type: 'lc-pro-open-mini-popup',
-                                        url: fullUrl,
-                                        title: text.trim()
-                                    }, '*');
-                                    clicked = true;
-                                } else {
-                                    el.click();
-                                    clicked = true;
-                                }
+                        el.addEventListener('click', function(e) {
+                            const text = (this.textContent || '').trim();
+                            if (text.length === 0 || text.length > 80) return;
+
+                            const href = this.getAttribute('href') || this.getAttribute('data-url') || this.getAttribute('data-href') || '';
+
+                            if (href && !href.startsWith('javascript:') && !href.startsWith('#') && href.length > 3) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+
+                                const fullUrl = new URL(href, window.location.href).href;
+                                window.parent.postMessage({
+                                    type: 'lc-pro-open-mini-popup',
+                                    url: fullUrl,
+                                    title: text.substring(0, 40)
+                                }, '*');
+                                return false;
                             }
-                        });
-                    }
+                        }, true);
+                    });
                 }
 
-                let attempts = 0;
-                const checkPage = setInterval(() => {
-                    attempts++;
-                    if (document.body && document.body.children.length > 0 || attempts >= 20) {
-                        clearInterval(checkPage);
-                        setTimeout(clickMenu, 1000);
+                // Initial run
+                setTimeout(handleAllClickables, 500);
+                setTimeout(handleAllClickables, 1500);
+                setTimeout(handleAllClickables, 3000);
+
+                // MutationObserver untuk detect menu baru yang di-load dinamis
+                const observer = new MutationObserver(function(mutations) {
+                    let hasNewNodes = false;
+                    mutations.forEach(function(m) {
+                        if (m.addedNodes.length > 0) hasNewNodes = true;
+                    });
+                    if (hasNewNodes) {
+                        setTimeout(handleAllClickables, 200);
                     }
-                }, 300);
+                });
+
+                if (document.body) {
+                    observer.observe(document.body, { childList: true, subtree: true });
+                } else {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        observer.observe(document.body, { childList: true, subtree: true });
+                        handleAllClickables();
+                    });
+                }
             })();
         <\/script>`;
         return autoClickScript;
@@ -955,6 +951,15 @@
             html = html.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
             if (!html.includes(baseTag)) html = html.replace(/<html([^>]*)>/i, `<html$1><head>${baseTag}</head>`);
         }
+
+        // Hapus frame-busting scripts
+        html = html.replace(/if\s*\(\s*top\s*!==?\s*self\s*\)/gi, 'if(false)');
+        html = html.replace(/if\s*\(\s*self\s*!==?\s*top\s*\)/gi, 'if(false)');
+        html = html.replace(/if\s*\(\s*window\.top\s*!==?\s*window\s*\)/gi, 'if(false)');
+        html = html.replace(/if\s*\(\s*window\.parent\s*!==?\s*window\s*\)/gi, 'if(false)');
+        html = html.replace(/top\.location\s*=\s*self\.location/gi, '// removed frame-busting');
+        html = html.replace(/self\.location\s*=\s*top\.location/gi, '// removed frame-busting');
+        html = html.replace(/window\.top\.location\s*=\s*window\.self\.location/gi, '// removed frame-busting');
 
         const fixAndProxy = `
         <style>
@@ -1080,13 +1085,57 @@
         }
 
         try {
+            // ==========================================
+            // GOOGLE SHEETS: Load langsung + Auto Zoom 80%
+            // ==========================================
             if (isGoogleSheets(url)) {
-                console.log('[LiveChat Pro] Loading Google Sheets directly...');
+                console.log('[LiveChat Pro] Loading Google Sheets directly with auto-zoom 80%...');
                 iframe.src = url;
-                setTimeout(() => {
-                    iframeLoader.classList.add('hidden');
-                    console.log('[LiveChat Pro] Google Sheets loaded');
-                }, 2000);
+
+                // Reset zoom dulu
+                iframe.style.zoom = '';
+                iframe.style.transform = '';
+                iframe.style.transformOrigin = '';
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+
+                let zoomAttempts = 0;
+                const applyZoom = () => {
+                    zoomAttempts++;
+                    try {
+                        // Coba inject CSS zoom ke contentDocument (mungkin gagal karena CORS)
+                        const doc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (doc && doc.body) {
+                            const zoomStyle = doc.createElement('style');
+                            zoomStyle.textContent = `
+                                body { zoom: 0.8 !important; }
+                                .docs-sheet-ui-body { zoom: 0.8 !important; }
+                                #docs-editor { zoom: 0.8 !important; }
+                                .grid-container { zoom: 0.8 !important; }
+                            `;
+                            doc.head.appendChild(zoomStyle);
+                            console.log('[LiveChat Pro] Google Sheets zoom injected via contentDocument');
+                        }
+                    } catch(e) {
+                        // Fallback: apply zoom ke iframe element itself (Chrome supports this)
+                        console.log('[LiveChat Pro] Applying zoom via iframe element (CORS blocked contentDocument)');
+                    }
+
+                    // Selalu apply zoom ke iframe element juga (bekerja di Chrome)
+                    iframe.style.zoom = '0.8';
+
+                    if (zoomAttempts < 5) {
+                        setTimeout(applyZoom, 1000);
+                    }
+                };
+
+                iframe.onload = () => {
+                    setTimeout(applyZoom, 500);
+                    setTimeout(() => {
+                        iframeLoader.classList.add('hidden');
+                        showToast('Sheet dimuat - Zoom 80%', 'success');
+                    }, 1000);
+                };
                 return;
             }
 
@@ -1116,26 +1165,109 @@
                 return;
             }
 
+            // ==========================================
+            // SEAMLESS & ALL OTHERS: Fetch via GM_xmlhttpRequest
+            // Cookies browser PASTI ikut (anonymous: false)
+            // HTML dimodifikasi untuk hapus frame-busting + inject proxy
+            // ==========================================
+            console.log('[LiveChat Pro] Fetching via GM_xmlhttpRequest (cookies will be sent)...');
+
             const response = await new Promise((resolve, reject) => {
                 GM_xmlhttpRequest({
                     method: 'GET', url: url, anonymous: false,
-                    headers: { 'Referer': url, 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'User-Agent': navigator.userAgent },
-                    onload: (res) => { if (res.status >= 200 && res.status < 300) resolve(res.responseText); else reject(new Error(`HTTP ${res.status}: ${res.statusText}`)); },
+                    headers: {
+                        'Referer': url,
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'User-Agent': navigator.userAgent
+                    },
+                    onload: (res) => {
+                        if (res.status >= 200 && res.status < 300) resolve(res.responseText);
+                        else reject(new Error(`HTTP ${res.status}: ${res.statusText}`));
+                    },
                     onerror: (err) => reject(new Error('Network Error')),
                     timeout: 15000
                 });
             });
 
             lastFetchedHtml = response;
-            const modifiedHtml = modifyHtml(response, url);
+            let modifiedHtml = modifyHtml(response, url);
+
+            // Khusus SEAMLESS: pastikan navigation guard ter-inject
+            if (isSeamless(url)) {
+                const seamlessGuard = `
+                <script>
+                    (function() {
+                        console.log('[SEAMLESS] Navigation guard loaded - keeping all links inside iframe');
+
+                        // Override window.open
+                        const origOpen = window.open;
+                        window.open = function(url, name, specs) {
+                            if (url && typeof url === 'string') {
+                                try {
+                                    const fullUrl = new URL(url, window.location.href).href;
+                                    window.parent.postMessage({ type: 'lc-pro-navigate', url: fullUrl }, '*');
+                                    return null;
+                                } catch(e) {}
+                            }
+                            return origOpen.apply(this, arguments);
+                        };
+
+                        // Override semua link target="_blank" agar tetap di iframe
+                        document.addEventListener('click', function(e) {
+                            const link = e.target.closest('a');
+                            if (link && link.href && !link.href.startsWith('javascript:')) {
+                                const target = link.getAttribute('target');
+                                if (target === '_blank' || target === '_new' || target === '_parent' || target === '_top') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    window.parent.postMessage({ type: 'lc-pro-navigate', url: link.href }, '*');
+                                    return false;
+                                }
+                                // Semua link di SEAMLESS tetap di iframe
+                                e.preventDefault();
+                                window.parent.postMessage({ type: 'lc-pro-navigate', url: link.href }, '*');
+                            }
+                        }, true);
+
+                        // Override form submission
+                        document.addEventListener('submit', function(e) {
+                            const form = e.target;
+                            const target = form.getAttribute('target');
+                            if (target === '_blank' || target === '_new') {
+                                form.setAttribute('target', '_self');
+                            }
+                        }, true);
+
+                        // MutationObserver untuk bind link baru yang muncul dinamis
+                        const observer = new MutationObserver(function() {
+                            document.querySelectorAll('a[target="_blank"], a[target="_new"]').forEach(a => {
+                                a.setAttribute('target', '_self');
+                            });
+                        });
+                        if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+
+                        console.log('[SEAMLESS] Navigation guard active - all links stay in iframe');
+                    })();
+                <\/script>`;
+
+                modifiedHtml = modifiedHtml.replace(/<\/body>/i, seamlessGuard + '</body>');
+                if (!modifiedHtml.includes(seamlessGuard)) modifiedHtml += seamlessGuard;
+            }
+
             iframe.src = 'about:blank';
 
             setTimeout(() => {
                 if (renderInIframe(modifiedHtml)) {
                     iframeLoader.classList.add('hidden');
+                    if (isSeamless(url)) {
+                        showToast('SEAMLESS dimuat - Login session aktif ✓', 'success');
+                    }
                 } else {
                     iframe.srcdoc = modifiedHtml;
                     iframeLoader.classList.add('hidden');
+                    if (isSeamless(url)) {
+                        showToast('SEAMLESS dimuat - Login session aktif ✓', 'success');
+                    }
                 }
             }, 100);
 
@@ -1272,6 +1404,11 @@
             iframeLoader.classList.remove('hidden');
             lastFetchedHtml = '';
             currentPanelUrl = null;
+            // Reset zoom saat close
+            iframe.style.zoom = '';
+            iframe.style.transform = '';
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
         }, 400);
     }
 
@@ -1411,8 +1548,8 @@
         catch (e) { console.log('Observer failed, retrying...', e); }
     }, 1500);
 
-    console.log('[LiveChat Pro] Smart Panel v11.0 Loaded - With Mini Popup & Fast Waiting Bank!');
-    showToast('LiveChat Pro v11.0 siap digunakan!', 'success');
+    console.log('[LiveChat Pro] Smart Panel v11.3 Loaded - SEAMLESS Login Keep + Sheet Zoom 80% + Portal Mini Popup!');
+    showToast('LiveChat Pro v11.3 siap digunakan!', 'success');
 
     // ============================================
     // 🏦 WAITING BANK COOL HUD WIDGET (DRAGGABLE & FAST)
