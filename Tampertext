@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         LiveChat Pro: Filter & Short Num Pass Gen + Toggle + Smart Panel + Cool Waiting Bank HUD
 // @namespace    http://tampermonkey.net/
-// @version      11.5
-// @description  Panel draggable, highlight chat, password generator, auto-refresh, export CSV, PORTAL mini popup, SEAMLESS direct-iframe (like new Chrome tab), Sheet auto-zoom 90%.
+// @version      11.7
+// @description  Panel draggable, highlight chat, password generator, auto-refresh, export CSV, PORTAL mini popup, Sheet auto-zoom 90%, Waiting Bank HUD.
 // @author       You
 // @match        https://my.livechatinc.com/*
 // @grant        GM_setClipboard
@@ -17,11 +17,7 @@
 // @connect      augipt.com
 // @connect      www.augipt.com
 // @connect      docs.google.com
-// @connect      m2qris.com
-// @connect      www.m2qris.com
 // @connect      tescatter.vercel.app
-// @connect      regs.idnlive.live
-// @connect      www.regs.idnlive.live
 // @connect      *
 // @run-at       document-idle
 // ==/UserScript==
@@ -384,11 +380,8 @@
             </div>
             <div class="lc-pro-divider"></div>
             <div class="lc-pro-group">
-                <label class="lc-pro-label">Waiting Menu</label>
-                <button class="lc-pro-btn waiting-menu-btn" data-url="https://bk.augipt.com/jonitogel/mutasi/suksesbugil/deposit/waiting/all" data-name="📋 All Waiting">📋 All Waiting</button>
-                <button class="lc-pro-btn waiting-menu-btn" data-url="https://m2qris.com/login" data-name="💳 QRIS XPAY">💳 QRIS XPAY</button>
+                <label class="lc-pro-label">Menu</label>
                 <button class="lc-pro-btn waiting-menu-btn" data-url="https://tescatter.vercel.app/index.html" data-name="🌐 PORTAL">🌐 PORTAL</button>
-                <button class="lc-pro-btn waiting-menu-btn" data-url="https://regs.idnlive.live/report/transactionregion" data-name="🔗 SEAMLESS">🔗 SEAMLESS</button>
             </div>
             <div class="lc-pro-group">
                 <label class="lc-pro-label">Sheet Menu (Editable)</label>
@@ -620,11 +613,8 @@
     let lastFetchedHtml = '';
 
     function getIconForMenu(name) {
-        if (name.includes('All')) return '📋';
         if (name.includes('BNI')) return '🏦';
-        if (name.includes('QRIS')) return '💳';
         if (name.includes('PORTAL')) return '🌐';
-        if (name.includes('SEAMLESS')) return '🔗';
         if (name.includes('DANA')) return '💰';
         if (name.includes('LINKAJA')) return '🔗';
         if (name.includes('OVO')) return '💳';
@@ -633,13 +623,9 @@
     }
 
     function isGoogleSheets(url) { return url.includes('docs.google.com/spreadsheets'); }
-    function isQrisXpay(url) { return url.includes('m2qris.com'); }
     function isPortal(url) { return url.includes('tescatter.vercel.app'); }
-    function isSeamless(url) { return url.includes('regs.idnlive.live'); }
     function isDirectIframe(url) {
-        // Semua menu yang butuh login session → load langsung via iframe.src
-        // Ini persis seperti membuka tab baru di Chrome: cookies, AJAX, navigasi semua normal
-        return isSeamless(url) || isQrisXpay(url) || isPortal(url) || isGoogleSheets(url);
+        return isPortal(url) || isGoogleSheets(url);
     }
 
     // ============================================
@@ -779,92 +765,6 @@
     }
 
     // ============================================
-    // SEAMLESS ENHANCEMENT SCRIPT
-    // Injected after iframe loads to:
-    // 1. Hide page loader
-    // 2. Prevent frame-busting
-    // 3. Keep navigation inside iframe
-    // ============================================
-    function getSeamlessEnhancementScript() {
-        return `
-            (function() {
-                try {
-                    // 1. Hide page loader
-                    var loader = document.querySelector('.page-loader, .page-loader-base, .blockui');
-                    if (loader) {
-                        loader.style.display = 'none';
-                        loader.style.visibility = 'hidden';
-                        loader.style.opacity = '0';
-                    }
-                    document.body.classList.remove('page-loading-enabled', 'page-loading');
-                    
-                    // Also hide any overlay that might block interaction
-                    var overlays = document.querySelectorAll('.overlay, .modal-backdrop, .blockUI');
-                    overlays.forEach(function(o) { o.style.display = 'none'; });
-                } catch(e) {}
-
-                // 2. Prevent frame-busting
-                try {
-                    Object.defineProperty(window, 'top', { get: function() { return window; }, configurable: true });
-                    Object.defineProperty(window, 'parent', { get: function() { return window; }, configurable: true });
-                    Object.defineProperty(window, 'frameElement', { get: function() { return null; }, configurable: true });
-                } catch(e) {}
-
-                // 3. Override window.open to notify parent
-                var origOpen = window.open;
-                window.open = function(url, name, specs) {
-                    if (url && typeof url === 'string') {
-                        try {
-                            var fullUrl = new URL(url, window.location.href).href;
-                            window.parent.postMessage({ type: 'lc-pro-navigate', url: fullUrl }, '*');
-                            return null;
-                        } catch(e) {}
-                    }
-                    return origOpen.apply(this, arguments);
-                };
-
-                // 4. Intercept link clicks with target="_blank" to keep in iframe
-                document.addEventListener('click', function(e) {
-                    var link = e.target.closest('a');
-                    if (link) {
-                        var target = link.getAttribute('target');
-                        if (target === '_blank' || target === '_new' || target === '_parent' || target === '_top') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            try {
-                                window.parent.postMessage({ type: 'lc-pro-navigate', url: link.href }, '*');
-                            } catch(err) {
-                                window.location.href = link.href;
-                            }
-                        }
-                    }
-                }, true);
-
-                // 5. Intercept form submissions with target="_blank"
-                document.addEventListener('submit', function(e) {
-                    var form = e.target;
-                    var target = form.getAttribute('target');
-                    if (target === '_blank' || target === '_new') {
-                        form.setAttribute('target', '_self');
-                    }
-                }, true);
-
-                // 6. MutationObserver to handle dynamically added links
-                var linkObserver = new MutationObserver(function() {
-                    document.querySelectorAll('a[target="_blank"], a[target="_new"]').forEach(function(a) {
-                        if (!a.dataset.lcProFixed) {
-                            a.dataset.lcProFixed = 'true';
-                        }
-                    });
-                });
-                if (document.body) linkObserver.observe(document.body, { childList: true, subtree: true });
-
-                console.log('[SEAMLESS] Enhancement script applied');
-            })();
-        `;
-    }
-
-    // ============================================
     // GOOGLE SHEETS ZOOM SCRIPT
     // ============================================
     function getSheetsZoomScript() {
@@ -885,7 +785,7 @@
     }
 
     // ============================================
-    // HTML Modification (only for All Waiting & frameset sites)
+    // HTML Modification (only for frameset sites)
     // ============================================
     function modifyHtml(html, url) {
         const urlObj = new URL(url);
@@ -1060,60 +960,28 @@
         iframePanel.classList.add('active');
         popupPanel.classList.remove('active');
 
-        if (url.includes('/waiting/')) {
-            startAutoRefresh();
-            autoRefreshIndicator.style.display = 'block';
-        } else {
-            stopAutoRefresh();
-            autoRefreshIndicator.style.display = 'none';
-        }
+        stopAutoRefresh();
+        autoRefreshIndicator.style.display = 'none';
 
         // ==========================================
         // DIRECT IFRAME MODE (Like New Chrome Tab)
-        // Untuk SEAMLESS, PORTAL, QRIS XPAY, Google Sheets
-        // Browser yang handle semuanya: cookies, AJAX, navigasi
         // ==========================================
         if (isDirectIframe(url)) {
             console.log('[LiveChat Pro] Loading via direct iframe.src (like new Chrome tab)...');
             
-            // Set iframe src - browser akan kirim cookies otomatis
             iframe.src = url;
             
-            // Setup onload handler
             iframe.onload = () => {
                 console.log('[LiveChat Pro] Iframe loaded:', menuName);
                 iframeLoader.classList.add('hidden');
                 
-                // ==========================================
-                // SEAMLESS: Inject enhancement script
-                // ==========================================
-                if (isSeamless(url)) {
-                    const injected = injectScriptIntoIframe(iframe, getSeamlessEnhancementScript());
-                    if (injected) {
-                        showToast('SEAMLESS dimuat - Login aktif ✓', 'success');
-                    } else {
-                        showToast('SEAMLESS dimuat (native mode)', 'info');
-                    }
-                    return;
-                }
-                
-                // ==========================================
-                // GOOGLE SHEETS: Apply zoom 90%
-                // ==========================================
                 if (isGoogleSheets(url)) {
-                    // Apply zoom via iframe element (works in Chrome)
                     iframe.style.zoom = '0.9';
-                    
-                    // Also try to inject zoom CSS into content
                     injectScriptIntoIframe(iframe, getSheetsZoomScript());
-                    
                     showToast('Sheet dimuat - Zoom 90%', 'success');
                     return;
                 }
                 
-                // ==========================================
-                // PORTAL: Inject auto-click for mini popup
-                // ==========================================
                 if (isPortal(url)) {
                     const injected = injectScriptIntoIframe(iframe, injectPortalAutoClick().replace(/<\/?script>/g, ''));
                     if (injected) {
@@ -1123,17 +991,8 @@
                     }
                     return;
                 }
-                
-                // ==========================================
-                // QRIS XPAY: Just loaded
-                // ==========================================
-                if (isQrisXpay(url)) {
-                    showToast('QRIS XPAY dimuat', 'success');
-                    return;
-                }
             };
             
-            // Error handler - if iframe fails to load
             iframe.onerror = () => {
                 iframeLoader.classList.add('hidden');
                 iframeError.classList.add('show');
@@ -1141,19 +1000,15 @@
                 showToast('Gagal memuat panel', 'error');
             };
             
-            // Fallback timeout - if nothing happens after 8 seconds
             setTimeout(() => {
                 if (!iframeLoader.classList.contains('hidden')) {
-                    // Still loading, might be stuck
                     console.log('[LiveChat Pro] Iframe loading timeout, checking...');
                     try {
                         const doc = iframe.contentDocument || iframe.contentWindow.document;
                         if (doc && doc.body && doc.body.innerHTML.length > 100) {
-                            // Content is there, just hide loader
                             iframeLoader.classList.add('hidden');
                         }
                     } catch(e) {
-                        // Cross-origin, can't check - assume it's loading
                         iframeLoader.classList.add('hidden');
                     }
                 }
@@ -1163,8 +1018,7 @@
         }
 
         // ==========================================
-        // FETCH MODE (For All Waiting & other sites)
-        // Fetch via GM_xmlhttpRequest, modify HTML, render via doc.write
+        // FETCH MODE
         // ==========================================
         try {
             console.log('[LiveChat Pro] Fetching via GM_xmlhttpRequest...');
@@ -1476,8 +1330,8 @@
         catch (e) { console.log('Observer failed, retrying...', e); }
     }, 1500);
 
-    console.log('[LiveChat Pro] Smart Panel v11.5 Loaded - Direct Iframe Mode (Like New Chrome Tab)!');
-    showToast('LiveChat Pro v11.5 siap digunakan!', 'success');
+    console.log('[LiveChat Pro] Smart Panel v11.7 Loaded - Direct Iframe Mode (Like New Chrome Tab)!');
+    showToast('LiveChat Pro v11.7 siap digunakan!', 'success');
 
     // ============================================
     // 🏦 WAITING BANK COOL HUD WIDGET
