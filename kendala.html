@@ -538,7 +538,7 @@ body {
   transform: translateY(-2px);
 }
 
-/* ========== TOMBOL BUKA SEMUA LINK (BARU) ========== */
+/* ========== TOMBOL BUKA SEMUA LINK ========== */
 .open-all-links-btn {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
@@ -1360,13 +1360,26 @@ function extractLinks(text) {
   return text.match(urlPattern) || [];
 }
 
+// ✅ FUNGSI YANG SUDAH DIPERBAIKI - Mencegah HTML rusak
 function formatContent(text, links = []) {
   if (!text) return '';
+  
+  // Escape HTML terlebih dahulu
   let formatted = escapeHtml(text);
+  
+  // Ganti URL dengan link, tapi HANYA jika URL tidak ada di dalam atribut HTML
   links.forEach(link => {
+    // Escape link untuk match dengan text yang sudah di-escape
+    const escapedLink = escapeHtml(link);
     const displayText = link.length > 45 ? link.substring(0, 42) + '...' : link;
-    formatted = formatted.replace(new RegExp(escapeRegExp(link), 'g'), `<a href="${link}" target="_blank" rel="noopener">${displayText}</a>`);
+    
+    // ✅ PENTING: Match URL yang TIDAK didahului oleh " atau '
+    // Ini mencegah penggantian URL yang ada di dalam atribut HTML seperti href="..."
+    const regex = new RegExp(`(^|[^"'=])${escapeRegExp(escapedLink)}`, 'g');
+    
+    formatted = formatted.replace(regex, `$1<a href="${escapedLink}" target="_blank" rel="noopener">${displayText}</a>`);
   });
+  
   return formatted;
 }
 
@@ -1385,7 +1398,6 @@ function createPhotoSection(item) {
 
 function createLinkButtons(links) {
   if (links.length === 0) return '';
-  // Encode links as base64 to safely pass via onclick
   const linksEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(links))));
   return `
     <div class="link-buttons">
@@ -1403,7 +1415,7 @@ function createLinkButtons(links) {
     </div>`;
 }
 
-// ================= FUNGSI BARU: BUKA SEMUA LINK =================
+// ================= FUNGSI BUKA SEMUA LINK =================
 function openAllLinks(linksEncoded) {
   try {
     const links = JSON.parse(decodeURIComponent(escape(atob(linksEncoded))));
@@ -1415,7 +1427,6 @@ function openAllLinks(linksEncoded) {
     let openedCount = 0;
     let blockedCount = 0;
     
-    // Buka link satu per satu dengan jeda kecil untuk menghindari popup blocker
     links.forEach((link, index) => {
       setTimeout(() => {
         const newWindow = window.open(link, '_blank', 'noopener,noreferrer');
@@ -1425,7 +1436,6 @@ function openAllLinks(linksEncoded) {
           blockedCount++;
         }
         
-        // Tampilkan notifikasi setelah link terakhir
         if (index === links.length - 1) {
           setTimeout(() => {
             if (blockedCount > 0) {
@@ -1435,7 +1445,7 @@ function openAllLinks(linksEncoded) {
             }
           }, 200);
         }
-      }, index * 150); // Jeda 150ms antar link
+      }, index * 150);
     });
   } catch (error) {
     console.error('Error membuka semua link:', error);
