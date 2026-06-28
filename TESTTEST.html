@@ -3,60 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🐒 ScriptVault — Cloud Tampermonkey Manager</title>
+<title>🐒 ScriptVault</title>
 <style>
 :root{
-  --bg-0:#1a1a1a;
-  --bg-1:#222222;
-  --bg-2:#2a2a2a;
-  --bg-3:#333333;
-  --border:rgba(255,255,255,0.08);
-  --border-hi:rgba(255,255,255,0.15);
-  --text:#e8e8e8;
-  --text-dim:#9a9a9a;
-  --text-mute:#6a6a6a;
-  --accent:#6b8afd;
-  --success:#6bcf7f;
-  --danger:#e06c75;
-  --warn:#e5c07b;
-  --grad-main:linear-gradient(135deg,#6b8afd 0%,#8b7cfd 100%);
+  --bg-0:#1a1a1a;--bg-1:#222;--bg-2:#2a2a2a;--bg-3:#333;
+  --border:rgba(255,255,255,.08);--border-hi:rgba(255,255,255,.15);
+  --text:#e8e8e8;--text-dim:#9a9a9a;--text-mute:#6a6a6a;
+  --accent:#6b8afd;--success:#6bcf7f;--danger:#e06c75;--warn:#e5c07b;
+  --grad:linear-gradient(135deg,#6b8afd,#8b7cfd);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);color:var(--text);overflow:hidden}
-.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:40px 40px}
-.app{position:relative;z-index:1;display:grid;grid-template-columns:260px 1fr;height:100vh}
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:40px 40px}
 
-/* Setup Screen */
-.setup-screen{position:fixed;inset:0;z-index:100;background:var(--bg-0);display:flex;align-items:center;justify-content:center;padding:20px}
-.setup-card{max-width:520px;width:100%;background:var(--bg-1);border:1px solid var(--border-hi);border-radius:16px;padding:32px;position:relative}
-.setup-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad-main);border-radius:16px 16px 0 0}
-.setup-logo{width:70px;height:70px;margin:0 auto 18px;border-radius:18px;background:var(--grad-main);display:grid;place-items:center;font-size:34px;box-shadow:0 8px 24px rgba(107,138,253,.3)}
-.setup-card h2{font-size:22px;margin-bottom:8px;text-align:center}
-.setup-card .sub{color:var(--text-dim);font-size:13px;margin-bottom:20px;text-align:center;line-height:1.6}
-.step{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
-.step-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.step-num{width:24px;height:24px;border-radius:50%;background:var(--grad-main);display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
-.step-title{font-weight:700;font-size:13px}
-.step-body{font-size:12.5px;color:var(--text-dim);line-height:1.6;padding-left:34px}
-.step-body a{color:var(--accent);text-decoration:none}
-.step-body a:hover{text-decoration:underline}
-.step-body code{background:var(--bg-3);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11.5px;color:var(--accent)}
-.setup-actions{display:flex;gap:8px;margin-top:18px}
-.setup-actions .btn{flex:1;justify-content:center;padding:11px;font-size:13px}
-.bin-result{background:var(--bg-0);border:1px solid var(--success);border-radius:10px;padding:14px;margin-top:14px;display:none}
-.bin-result.show{display:block}
-.bin-result-label{font-size:11px;color:var(--success);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
-.bin-result-id{font-family:monospace;font-size:13px;color:var(--accent);background:var(--bg-2);padding:8px 10px;border-radius:6px;word-break:break-all;margin-bottom:10px;border:1px solid var(--border)}
-.bin-result p{font-size:11.5px;color:var(--text-dim);line-height:1.6}
-.bin-result code{background:var(--bg-3);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px;color:var(--accent)}
+/* Loading Screen */
+.loading-screen{
+  position:fixed;inset:0;z-index:999;background:var(--bg-0);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  transition:opacity .4s;
+}
+.loading-screen.hide{opacity:0;pointer-events:none}
+.spinner{
+  width:44px;height:44px;border:3px solid var(--bg-3);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--text-dim);font-size:14px}
+.loading-sub{color:var(--text-mute);font-size:12px;max-width:400px;text-align:center;line-height:1.6}
+
+/* Layout */
+.app{position:relative;z-index:1;display:grid;grid-template-columns:260px 1fr;height:100vh;opacity:0;transition:opacity .4s}
+.app.show{opacity:1}
 
 /* Sidebar */
 .sidebar{background:var(--bg-1);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 14px;overflow-y:auto}
 .logo{display:flex;align-items:center;gap:11px;padding:6px 10px 18px;border-bottom:1px solid var(--border);margin-bottom:18px}
-.logo-icon{width:38px;height:38px;border-radius:10px;background:var(--grad-main);display:grid;place-items:center;font-size:20px;box-shadow:0 4px 12px rgba(107,138,253,.25)}
-.logo-text h1{font-size:15px;font-weight:800;letter-spacing:-.3px;color:var(--text)}
+.logo-icon{width:38px;height:38px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-size:20px;box-shadow:0 4px 12px rgba(107,138,253,.25)}
+.logo-text h1{font-size:15px;font-weight:800;color:var(--text)}
 .logo-text p{font-size:10px;color:var(--text-mute);letter-spacing:2px;text-transform:uppercase}
+
 .vault-card{background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:18px}
 .vault-head{display:flex;align-items:center;gap:10px}
 .vault-icon{width:36px;height:36px;border-radius:10px;background:var(--bg-3);display:grid;place-items:center;font-size:18px;border:1px solid var(--border)}
@@ -65,27 +52,30 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
 .vault-status{font-size:10px;color:var(--success);display:flex;align-items:center;gap:4px}
 .vault-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 6px var(--success)}
 .vault-id{font-size:9px;color:var(--text-mute);font-family:monospace;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 .nav{display:flex;flex-direction:column;gap:3px;margin-bottom:18px}
 .nav-label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:2px;padding:8px 12px;font-weight:700}
 .nav-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;cursor:pointer;color:var(--text-dim);font-size:13px;font-weight:500;transition:all .15s;position:relative}
 .nav-item:hover{background:var(--bg-2);color:var(--text)}
 .nav-item.active{background:var(--bg-2);color:var(--text)}
-.nav-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--grad-main);border-radius:0 3px 3px 0}
+.nav-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--grad);border-radius:0 3px 3px 0}
 .nav-icon{font-size:15px;width:18px;text-align:center}
 .nav-badge{margin-left:auto;background:var(--bg-3);color:var(--text-dim);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;border:1px solid var(--border)}
+
 .sidebar-footer{margin-top:auto;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--text-mute)}
 
 /* Main */
 .main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg-0)}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg-1)}
-.topbar h2{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.topbar h2{font-size:17px;font-weight:700}
 .topbar-actions{display:flex;gap:8px;align-items:center}
 .search-box{display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:9px;padding:7px 12px;width:240px;transition:all .15s}
 .search-box:focus-within{border-color:var(--accent)}
 .search-box input{background:none;border:none;outline:none;color:var(--text);flex:1;font-size:13px}
 .search-box input::placeholder{color:var(--text-mute)}
+
 .btn{padding:8px 14px;border:none;border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
-.btn-primary{background:var(--grad-main);color:#fff;box-shadow:0 2px 8px rgba(107,138,253,.3)}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 2px 8px rgba(107,138,253,.3)}
 .btn-primary:hover{filter:brightness(1.1)}
 .btn-ghost{background:var(--bg-2);color:var(--text);border:1px solid var(--border)}
 .btn-ghost:hover{background:var(--bg-3);border-color:var(--border-hi)}
@@ -93,22 +83,27 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
 .btn-danger:hover{background:rgba(224,108,117,.2)}
 .btn-icon{width:34px;height:34px;padding:0;display:grid;place-items:center;background:var(--bg-2);border:1px solid var(--border);border-radius:9px;color:var(--text-dim);cursor:pointer;transition:all .15s}
 .btn-icon:hover{color:var(--text);border-color:var(--border-hi)}
+
 .content{flex:1;overflow-y:auto;padding:22px 24px}
 .content::-webkit-scrollbar{width:8px}
 .content::-webkit-scrollbar-track{background:transparent}
 .content::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:4px}
+
 .view{display:none;animation:fadeIn .25s ease}
 .view.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
 .stat-card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .2s}
 .stat-card:hover{border-color:var(--border-hi)}
 .stat-label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
-.stat-value{font-size:26px;font-weight:800;margin-top:5px;letter-spacing:-.5px}
+.stat-value{font-size:26px;font-weight:800;margin-top:5px}
 .stat-sub{font-size:11px;color:var(--text-dim);margin-top:3px}
+
 .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .section-head h3{font-size:15px;font-weight:700}
 .section-head .hint{font-size:12px;color:var(--text-mute)}
+
 .script-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .script-card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s}
 .script-card:hover{border-color:var(--border-hi);background:var(--bg-2)}
@@ -120,25 +115,38 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
 .script-meta span{display:flex;align-items:center;gap:4px}
 .script-actions{display:flex;gap:5px;margin-top:8px}
 .script-actions .btn{padding:5px 9px;font-size:11px;flex:1;justify-content:center}
+
 .empty-state{text-align:center;padding:50px 20px;background:var(--bg-1);border:1px dashed var(--border);border-radius:12px}
 .empty-icon{width:70px;height:70px;margin:0 auto 14px;border-radius:18px;background:var(--bg-2);display:grid;place-items:center;font-size:32px;border:1px solid var(--border)}
 .empty-state h4{font-size:15px;margin-bottom:5px}
 .empty-state p{color:var(--text-dim);font-size:12.5px;margin-bottom:14px}
+
 .editor-card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:18px}
 .editor-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
 .editor-toolbar h3{font-size:15px;font-weight:700}
 .editor-toolbar .tools{display:flex;gap:7px;flex-wrap:wrap}
+
 .field{margin-bottom:12px}
 .field label{display:block;font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:5px}
 .field input,.field textarea{width:100%;padding:10px 12px;background:var(--bg-0);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-family:inherit;transition:all .15s}
 .field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(107,138,253,.12)}
 .field textarea{min-height:420px;resize:vertical;font-family:'JetBrains Mono','Fira Code',Consolas,monospace;font-size:12.5px;line-height:1.6;tab-size:2}
 .field-hint{display:flex;justify-content:space-between;font-size:11px;color:var(--text-mute);margin-top:5px}
+
 .settings-grid{display:grid;gap:12px}
 .setting-item{background:var(--bg-1);border:1px solid var(--border);border-radius:11px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.setting-info{flex:1;min-width:0}
 .setting-info h4{font-size:13.5px;margin-bottom:2px}
 .setting-info p{font-size:11.5px;color:var(--text-dim)}
 .setting-value{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--accent);background:rgba(107,138,253,.08);padding:5px 9px;border-radius:6px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid rgba(107,138,253,.2)}
+.url-copy-box{
+  background:var(--bg-0);border:1px solid var(--border);border-radius:8px;
+  padding:10px;font-family:monospace;font-size:11px;color:var(--accent);
+  word-break:break-all;margin-top:8px;line-height:1.5;
+  display:flex;align-items:flex-start;gap:8px;
+}
+.url-copy-box span{flex:1;user-select:all}
+
 .toast-wrap{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px}
 .toast{background:var(--bg-2);border:1px solid var(--border-hi);border-radius:10px;padding:10px 16px;min-width:240px;display:flex;align-items:center;gap:9px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:slideIn .25s cubic-bezier(.2,.8,.2,1);font-size:12.5px;font-weight:500}
 .toast.success{border-left:3px solid var(--success)}
@@ -147,65 +155,41 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
 .toast.warn{border-left:3px solid var(--warn)}
 .toast-icon{font-size:16px}
 @keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
-@media (max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{padding:12px 14px}.content{padding:14px}.search-box{width:140px}}
+
+.info-banner{
+  background:rgba(107,138,253,.08);border:1px solid rgba(107,138,253,.25);
+  border-radius:12px;padding:16px;margin-bottom:18px;
+  font-size:12.5px;line-height:1.7;color:var(--text-dim);
+}
+.info-banner h4{color:var(--accent);font-size:13px;margin-bottom:6px}
+.info-banner code{
+  background:var(--bg-0);padding:2px 6px;border-radius:4px;
+  font-family:monospace;font-size:11px;color:var(--accent);
+  border:1px solid var(--border);
+}
+
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .topbar{padding:12px 14px}
+  .content{padding:14px}
+  .search-box{width:140px}
+}
 </style>
 </head>
 <body>
 
 <div class="bg-grid"></div>
 
-<!-- SETUP SCREEN (muncul hanya jika VAULT_BIN_ID belum diisi) -->
-<div class="setup-screen" id="setupScreen" style="display:none">
-  <div class="setup-card">
-    <div class="setup-logo">🐒</div>
-    <h2>Setup Vault Pertama Kali</h2>
-    <p class="sub">Buat Bin sekali di JSONBin.io, lalu paste ID-nya ke kode HTML.<br>Setelah itu, HTML bisa dibuka di PC manapun — data tetap tersimpan di cloud.</p>
-    
-    <div class="step">
-      <div class="step-head">
-        <div class="step-num">1</div>
-        <div class="step-title">Buat Bin Baru</div>
-      </div>
-      <div class="step-body">
-        Klik tombol di bawah untuk membuat bin otomatis via API:
-        <button class="btn btn-primary" style="margin-top:10px;width:100%" onclick="autoCreateBin()">🚀 Buat Bin Otomatis</button>
-      </div>
-    </div>
-
-    <div class="step">
-      <div class="step-head">
-        <div class="step-num">2</div>
-        <div class="step-title">Copy Bin ID</div>
-      </div>
-      <div class="step-body">
-        Setelah bin dibuat, ID akan muncul di bawah. Klik untuk copy.
-      </div>
-      <div class="bin-result" id="binResult">
-        <div class="bin-result-label">✅ Bin ID Baru:</div>
-        <div class="bin-result-id" id="binIdText" onclick="copyBinId()" style="cursor:pointer" title="Klik untuk copy">-</div>
-        <p><strong>Langkah selanjutnya:</strong><br>
-        1. Buka file HTML ini di text editor (Notepad/VSCode)<br>
-        2. Cari baris <code>const VAULT_BIN_ID = "";</code><br>
-        3. Ganti dengan <code>const VAULT_BIN_ID = "PASTE_ID_DISINI";</code><br>
-        4. Save file & refresh browser</p>
-        <button class="btn btn-ghost" style="margin-top:10px;width:100%" onclick="copyBinId()">📋 Copy Bin ID</button>
-      </div>
-    </div>
-
-    <div class="step">
-      <div class="step-head">
-        <div class="step-num">3</div>
-        <div class="step-title">Atau Manual (opsional)</div>
-      </div>
-      <div class="step-body">
-        Buka <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> → Login → Klik <strong>"+ Create Bin"</strong> → Kosongkan isi → Save → Copy Bin ID.
-      </div>
-    </div>
-  </div>
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Menghubungkan ke cloud...</div>
+  <div class="loading-sub" id="loadingSub">Memuat vault dari JSONBin.io</div>
 </div>
 
-<!-- APP -->
-<div class="app" id="app" style="display:none">
+<!-- App -->
+<div class="app" id="app">
   <aside class="sidebar">
     <div class="logo">
       <div class="logo-icon">🐒</div>
@@ -214,41 +198,29 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
         <p>Cloud Manager</p>
       </div>
     </div>
-
     <div class="vault-card">
       <div class="vault-head">
         <div class="vault-icon">🗄️</div>
         <div class="vault-info">
           <div class="vault-name">Main Vault</div>
-          <div class="vault-status">Connected</div>
+          <div class="vault-status" id="vaultStatus">Connected</div>
           <div class="vault-id" id="vaultIdDisplay">-</div>
         </div>
       </div>
     </div>
-
     <div class="nav">
       <div class="nav-label">Menu</div>
-      <div class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
-        <span class="nav-icon">📊</span>Dashboard
-      </div>
-      <div class="nav-item" data-view="scripts" onclick="switchView('scripts')">
-        <span class="nav-icon">📜</span>Script
-        <span class="nav-badge" id="navCount">0</span>
-      </div>
-      <div class="nav-item" data-view="editor" onclick="switchView('editor');newScript()">
-        <span class="nav-icon">✏️</span>Editor
-      </div>
-      <div class="nav-item" data-view="settings" onclick="switchView('settings')">
-        <span class="nav-icon">⚙️</span>Pengaturan
-      </div>
+      <div class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+      <div class="nav-item" data-view="scripts" onclick="switchView('scripts')"><span class="nav-icon">📜</span>Script<span class="nav-badge" id="navCount">0</span></div>
+      <div class="nav-item" data-view="editor" onclick="switchView('editor');newScript()"><span class="nav-icon">✏️</span>Editor</div>
+      <div class="nav-item" data-view="settings" onclick="switchView('settings')"><span class="nav-icon">⚙️</span>Pengaturan</div>
     </div>
-
     <div class="sidebar-footer">
       <div style="display:flex;align-items:center;gap:6px">
         <span style="width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 6px var(--success)"></span>
-        <span id="footerStatus">Cloud Online</span>
+        <span>Cloud Online</span>
       </div>
-      <div style="margin-top:5px;font-size:10px">v3.0 · Portable Mode</div>
+      <div style="margin-top:5px;font-size:10px">v3.0 · No localStorage</div>
     </div>
   </aside>
 
@@ -256,55 +228,33 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
     <div class="topbar">
       <h2 id="viewTitle">📊 Dashboard</h2>
       <div class="topbar-actions">
-        <div class="search-box">
-          <span>🔍</span>
-          <input type="text" id="searchInput" placeholder="Cari script..." oninput="renderScripts()">
-        </div>
+        <div class="search-box"><span>🔍</span><input type="text" id="searchInput" placeholder="Cari script..." oninput="renderScripts()"></div>
         <button class="btn-icon" onclick="syncNow()" title="Sync">🔄</button>
-        <button class="btn btn-primary" onclick="switchView('editor');newScript()">➕ Script Baru</button>
+        <button class="btn btn-primary" onclick="switchView('editor');newScript()">➕ Baru</button>
       </div>
     </div>
 
     <div class="content">
+      <!-- Dashboard -->
       <div class="view active" id="view-dashboard">
+        <div id="urlBanner"></div>
         <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Total Script</div>
-            <div class="stat-value" id="statTotal">0</div>
-            <div class="stat-sub">Tersimpan di cloud</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Karakter Total</div>
-            <div class="stat-value" id="statChars">0</div>
-            <div class="stat-sub">Ukuran kode</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Terakhir Update</div>
-            <div class="stat-value" id="statLast" style="font-size:14px">-</div>
-            <div class="stat-sub">Waktu lokal</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Status Cloud</div>
-            <div class="stat-value" style="color:var(--success);font-size:16px">● Online</div>
-            <div class="stat-sub">JSONBin.io</div>
-          </div>
+          <div class="stat-card"><div class="stat-label">Total Script</div><div class="stat-value" id="statTotal">0</div><div class="stat-sub">Tersimpan di cloud</div></div>
+          <div class="stat-card"><div class="stat-label">Karakter Total</div><div class="stat-value" id="statChars">0</div><div class="stat-sub">Ukuran kode</div></div>
+          <div class="stat-card"><div class="stat-label">Terakhir Update</div><div class="stat-value" id="statLast" style="font-size:14px">-</div><div class="stat-sub">Waktu lokal</div></div>
+          <div class="stat-card"><div class="stat-label">Status</div><div class="stat-value" style="color:var(--success);font-size:16px">● Online</div><div class="stat-sub">JSONBin.io</div></div>
         </div>
-
-        <div class="section-head">
-          <h3>⚡ Script Terbaru</h3>
-          <span class="hint">5 script terakhir</span>
-        </div>
+        <div class="section-head"><h3>⚡ Script Terbaru</h3><span class="hint">5 terakhir</span></div>
         <div id="recentList"></div>
       </div>
 
+      <!-- Scripts -->
       <div class="view" id="view-scripts">
-        <div class="section-head">
-          <h3>📜 Semua Script</h3>
-          <span class="hint"><span id="filteredCount">0</span> script</span>
-        </div>
+        <div class="section-head"><h3>📜 Semua Script</h3><span class="hint"><span id="filteredCount">0</span> script</span></div>
         <div id="scriptsList"></div>
       </div>
 
+      <!-- Editor -->
       <div class="view" id="view-editor">
         <div class="editor-card">
           <div class="editor-toolbar">
@@ -315,76 +265,60 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
               <button class="btn btn-primary" onclick="saveScript()">💾 Simpan</button>
             </div>
           </div>
-          <div class="field">
-            <label>Nama Script</label>
-            <input type="text" id="scriptName" placeholder="Contoh: Auto Click Bot" maxlength="80">
-          </div>
-          <div class="field">
-            <label>Deskripsi</label>
-            <input type="text" id="scriptDesc" placeholder="Deskripsi singkat (opsional)" maxlength="200">
-          </div>
+          <div class="field"><label>Nama Script</label><input type="text" id="scriptName" placeholder="Contoh: Auto Click Bot" maxlength="80"></div>
+          <div class="field"><label>Deskripsi</label><input type="text" id="scriptDesc" placeholder="Opsional" maxlength="200"></div>
           <div class="field">
             <label>Script Code</label>
             <textarea id="scriptCode" placeholder="// ==UserScript==
 // @name         My Script
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  Script description
 // @match        https://example.com/*
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
-    // Your code here...
 })();"></textarea>
-            <div class="field-hint">
-              <span>Ctrl+S untuk simpan cepat</span>
-              <span><span id="charCount">0</span> karakter · <span id="lineCount">0</span> baris</span>
-            </div>
+            <div class="field-hint"><span>Ctrl+S simpan cepat</span><span><span id="charCount">0</span> chars · <span id="lineCount">0</span> lines</span></div>
           </div>
         </div>
       </div>
 
+      <!-- Settings -->
       <div class="view" id="view-settings">
-        <div class="section-head">
-          <h3>⚙️ Pengaturan</h3>
-        </div>
+        <div class="section-head"><h3>⚙️ Pengaturan</h3></div>
         <div class="settings-grid">
           <div class="setting-item">
             <div class="setting-info">
-              <h4>🔑 X-Master-Key</h4>
-              <p>Kunci API JSONBin.io (hardcoded)</p>
+              <h4>🔗 URL Akses Vault</h4>
+              <p>Copy URL ini dan buka di PC manapun untuk mengakses vault yang sama. <strong>Bookmark URL ini!</strong></p>
             </div>
-            <div class="setting-value" id="dispKey">••••••••••••••••</div>
+          </div>
+          <div style="padding:0 0 4px">
+            <div class="url-copy-box">
+              <span id="vaultUrl">-</span>
+              <button class="btn btn-primary" style="flex-shrink:0;padding:6px 12px;font-size:11px" onclick="copyVaultUrl()">📋 Copy</button>
+            </div>
           </div>
           <div class="setting-item">
-            <div class="setting-info">
-              <h4>🗄️ Vault Bin ID</h4>
-              <p>Hardcoded di kode HTML (portable)</p>
-            </div>
+            <div class="setting-info"><h4>🗄️ Vault Bin ID</h4><p>ID bin di JSONBin.io</p></div>
             <div class="setting-value" id="dispBin">-</div>
           </div>
           <div class="setting-item">
-            <div class="setting-info">
-              <h4>📦 Total Script</h4>
-              <p>Jumlah script tersimpan</p>
-            </div>
+            <div class="setting-info"><h4>🔑 API Key</h4><p>Hardcoded di HTML</p></div>
+            <div class="setting-value" id="dispKey">••••••••</div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info"><h4>📦 Total Script</h4><p>Jumlah tersimpan</p></div>
             <div class="setting-value" id="dispTotal">0</div>
           </div>
           <div class="setting-item">
-            <div class="setting-info">
-              <h4>🌐 Mode Portable</h4>
-              <p>Bisa dibuka di PC manapun tanpa setup</p>
-            </div>
-            <div class="setting-value" style="color:var(--success)">● Aktif</div>
+            <div class="setting-info"><h4>🔄 Sync Manual</h4><p>Reload data dari cloud</p></div>
+            <button class="btn btn-ghost" onclick="syncNow()">🔄 Sync</button>
           </div>
           <div class="setting-item">
-            <div class="setting-info">
-              <h4>🔄 Sync Manual</h4>
-              <p>Reload data dari cloud</p>
-            </div>
-            <button class="btn btn-ghost" onclick="syncNow()">🔄 Sync Sekarang</button>
+            <div class="setting-info"><h4>💡 Cara Pindah PC</h4><p>Tidak ada data di PC ini. Semua di cloud. Cukup copy URL di atas → buka di PC lain.</p></div>
           </div>
         </div>
       </div>
@@ -395,269 +329,262 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-/* ============================================
-   🔑 KONFIGURASI — EDIT BAGIAN INI
-============================================ */
-
-// API Key JSONBin.io (sudah diisi)
 const MASTER_KEY = "$2a$10$G1wQvXgxfGvzuKP/loOtleElR8x6Pcu.rR2V6gKRGQzsFgLdDn7qq";
+const API = "https://api.jsonbin.io/v3/b";
+const VAULT_NAME = "ScriptVault_Main";
 
-// ⚠️ PENTING: Paste Bin ID di sini setelah membuat bin pertama kali
-// Contoh: const VAULT_BIN_ID = "65a1b2c3d4e5f6789abcdef0";
-const VAULT_BIN_ID = "";  // <-- ISI DENGAN BIN ID ANDA
-
-const API_BASE = "https://api.jsonbin.io/v3/b";
-
-/* ============================================
-   STATE
-============================================ */
+let VAULT_BIN_ID = null;
 let scripts = [];
 let editingId = null;
 
 /* ============================================
-   INIT
+   BOOT
 ============================================ */
-(async function init(){
-  // Cek apakah Bin ID sudah dikonfigurasi
-  if (!VAULT_BIN_ID || VAULT_BIN_ID.trim() === ""){
-    // Tampilkan setup screen
-    document.getElementById('setupScreen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
-    return;
-  }
-  
-  // Bin ID sudah ada, load app
+(async function boot(){
+  const lt = document.getElementById('loadingText');
+  const ls = document.getElementById('loadingSub');
+
   try {
-    document.getElementById('app').style.display = 'grid';
-    document.getElementById('footerStatus').textContent = 'Menghubungkan...';
-    toast('Menghubungkan ke cloud...','info');
-    
-    const valid = await verifyVault(VAULT_BIN_ID);
-    if (!valid){
-      toast('Bin ID tidak valid. Periksa konfigurasi.','error');
-      document.getElementById('setupScreen').style.display = 'flex';
-      document.getElementById('app').style.display = 'none';
-      return;
+    // 1. Cek apakah ada Bin ID di URL parameter ?v=xxx
+    const params = new URLSearchParams(window.location.search);
+    const urlBinId = params.get('v');
+
+    if (urlBinId) {
+      // URL sudah ada Bin ID → langsung gunakan
+      lt.textContent = 'Memverifikasi vault...';
+      ls.textContent = 'Bin ID ditemukan di URL';
+      VAULT_BIN_ID = urlBinId;
+
+      const ok = await verifyVault(VAULT_BIN_ID);
+      if (!ok) {
+        lt.textContent = 'Vault tidak ditemukan...';
+        ls.textContent = 'Membuat vault baru';
+        VAULT_BIN_ID = await createVault();
+        updateUrl(VAULT_BIN_ID);
+      }
+    } else {
+      // Tidak ada Bin ID di URL → buat vault baru
+      lt.textContent = 'Membuat vault baru...';
+      ls.textContent = 'Pertama kali dibuka, menyiapkan cloud storage';
+      VAULT_BIN_ID = await createVault();
+      updateUrl(VAULT_BIN_ID);
     }
-    
+
+    // 2. Load scripts
+    lt.textContent = 'Memuat script...';
     await loadScripts();
+
+    // 3. Show app
+    document.getElementById('loadingScreen').classList.add('hide');
+    document.getElementById('app').classList.add('show');
     initApp();
-    document.getElementById('footerStatus').textContent = 'Cloud Online';
-    toast(`Vault siap · ${scripts.length} script`,'success');
-  } catch(err){
-    console.error(err);
-    toast('Gagal connect: '+err.message,'error');
+
+    setTimeout(() => document.getElementById('loadingScreen').remove(), 500);
+
+  } catch(err) {
+    lt.textContent = '❌ Gagal terhubung';
+    ls.textContent = err.message;
+    ls.style.color = '#e06c75';
   }
 })();
 
 /* ============================================
-   AUTO CREATE BIN (untuk setup screen)
+   URL MANAGEMENT (bukan localStorage!)
 ============================================ */
-async function autoCreateBin(){
+function updateUrl(binId) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('v', binId);
   try {
-    toast('Membuat bin baru...','info');
-    const res = await fetch(API_BASE, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'X-Master-Key': MASTER_KEY },
-      body: JSON.stringify({
-        metadata:{ 
-          name: 'ScriptVault_Main', 
-          type:'main-vault', 
-          created: new Date().toISOString(),
-          app:'ScriptVault'
-        },
-        scripts: []
-      })
-    });
-    if (!res.ok){
-      throw new Error('HTTP '+res.status);
-    }
-    const data = await res.json();
-    const binId = data.metadata.id;
-    
-    // Tampilkan hasil
-    document.getElementById('binIdText').textContent = binId;
-    document.getElementById('binResult').classList.add('show');
-    toast('✅ Bin berhasil dibuat!','success');
-  } catch(err){
-    toast('Gagal buat bin: '+err.message,'error');
+    history.replaceState(null, '', url.toString());
+  } catch(e) {
+    // file:// protocol fallback — tidak bisa replaceState di beberapa browser
+    console.warn('replaceState gagal, URL manual:', url.toString());
   }
 }
 
-function copyBinId(){
-  const id = document.getElementById('binIdText').textContent;
-  if (!id || id === '-') return;
-  navigator.clipboard.writeText(id).then(()=>{
-    toast('✅ Bin ID disalin ke clipboard','success');
+function getVaultUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.set('v', VAULT_BIN_ID);
+  // Bersihkan hash
+  url.hash = '';
+  return url.toString();
+}
+
+function copyVaultUrl() {
+  const url = getVaultUrl();
+  navigator.clipboard.writeText(url).then(() => {
+    toast('URL vault berhasil dicopy! Paste di PC lain.', 'success');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('URL vault berhasil dicopy!', 'success');
   });
 }
 
 /* ============================================
-   VAULT OPERATIONS
+   CLOUD API
 ============================================ */
-async function verifyVault(binId){
-  try {
-    const res = await fetch(API_BASE+'/'+binId+'/latest', {
-      headers:{ 'X-Master-Key': MASTER_KEY }
-    });
-    return res.ok;
-  } catch(e){
-    return false;
-  }
+async function createVault() {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
+    body: JSON.stringify({
+      metadata: { name: VAULT_NAME, app: 'ScriptVault', created: new Date().toISOString() },
+      scripts: []
+    })
+  });
+  if (!res.ok) throw new Error('Gagal buat vault: ' + (await res.text()));
+  const data = await res.json();
+  return data.metadata.id;
 }
 
-async function loadScripts(){
-  const res = await fetch(API_BASE+'/'+VAULT_BIN_ID+'/latest', {
-    headers:{ 'X-Master-Key': MASTER_KEY }
-  });
-  if (!res.ok){ scripts = []; return; }
+async function verifyVault(binId) {
+  try {
+    const res = await fetch(API + '/' + binId + '/latest', { headers: { 'X-Master-Key': MASTER_KEY } });
+    return res.ok;
+  } catch(e) { return false; }
+}
+
+async function loadScripts() {
+  const res = await fetch(API + '/' + VAULT_BIN_ID + '/latest', { headers: { 'X-Master-Key': MASTER_KEY } });
+  if (!res.ok) { scripts = []; return; }
   const data = await res.json();
   scripts = data.record.scripts || [];
 }
 
-async function saveScriptsToCloud(){
-  const res = await fetch(API_BASE+'/'+VAULT_BIN_ID, {
-    method:'PUT',
-    headers:{ 'Content-Type':'application/json', 'X-Master-Key': MASTER_KEY },
+async function saveToCloud() {
+  const res = await fetch(API + '/' + VAULT_BIN_ID, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
     body: JSON.stringify({
-      metadata:{ 
-        name:'ScriptVault_Main', 
-        type:'main-vault', 
-        updated: new Date().toISOString() 
-      },
+      metadata: { name: VAULT_NAME, app: 'ScriptVault', updated: new Date().toISOString() },
       scripts: scripts
     })
   });
-  if (!res.ok) throw new Error('Gagal sync: HTTP '+res.status);
+  if (!res.ok) throw new Error('Gagal sync: ' + (await res.text()));
 }
 
 /* ============================================
-   APP INIT
+   APP
 ============================================ */
-function initApp(){
+function initApp() {
   document.getElementById('vaultIdDisplay').textContent = VAULT_BIN_ID;
-  document.getElementById('dispKey').textContent = MASTER_KEY.substring(0,10)+'...'+MASTER_KEY.substring(MASTER_KEY.length-6);
   document.getElementById('dispBin').textContent = VAULT_BIN_ID;
+  document.getElementById('dispKey').textContent = MASTER_KEY.substring(0, 12) + '...';
+  document.getElementById('vaultUrl').textContent = getVaultUrl();
   document.getElementById('navCount').textContent = scripts.length;
-  document.getElementById('dispTotal').textContent = scripts.length;
+
+  // Banner di dashboard untuk mengingatkan bookmark
+  document.getElementById('urlBanner').innerHTML = `
+    <div class="info-banner">
+      <h4>📌 Penting: Bookmark URL Ini!</h4>
+      Data tersimpan 100% di cloud. Untuk membuka vault yang sama di PC lain, gunakan URL ini:<br>
+      <div class="url-copy-box" style="margin-top:8px">
+        <span>${getVaultUrl()}</span>
+        <button class="btn btn-primary" style="flex-shrink:0;padding:6px 12px;font-size:11px" onclick="copyVaultUrl()">📋 Copy</button>
+      </div>
+    </div>
+  `;
+
   renderAll();
-  
+
   document.getElementById('scriptCode').addEventListener('input', updateCodeStats);
   document.getElementById('scriptCode').addEventListener('keydown', e => {
-    if (e.ctrlKey && e.key === 's'){ e.preventDefault(); saveScript(); }
-    if (e.key === 'Tab'){
+    if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveScript(); }
+    if (e.key === 'Tab') {
       e.preventDefault();
-      const t = e.target;
-      const s = t.selectionStart, end = t.selectionEnd;
-      t.value = t.value.substring(0,s)+'  '+t.value.substring(end);
-      t.selectionStart = t.selectionEnd = s+2;
+      const t = e.target, s = t.selectionStart, end = t.selectionEnd;
+      t.value = t.value.substring(0, s) + '  ' + t.value.substring(end);
+      t.selectionStart = t.selectionEnd = s + 2;
     }
   });
 }
 
-function renderAll(){ renderDashboard(); renderScripts(); }
+function renderAll() { renderDashboard(); renderScripts(); }
 
-function renderDashboard(){
+function renderDashboard() {
   document.getElementById('statTotal').textContent = scripts.length;
   document.getElementById('dispTotal').textContent = scripts.length;
-  const totalChars = scripts.reduce((a,s)=>a+(s.code? s.code.length:0),0);
+  const totalChars = scripts.reduce((a, s) => a + (s.code ? s.code.length : 0), 0);
   document.getElementById('statChars').textContent = totalChars.toLocaleString('id-ID');
-  const sorted = [...scripts].sort((a,b)=> new Date(b.updated) - new Date(a.updated));
-  const last = sorted[0];
-  document.getElementById('statLast').textContent = last ? timeAgo(last.updated) : 'Belum ada';
-  const recent = sorted.slice(0,5);
-  const container = document.getElementById('recentList');
-  if (recent.length === 0){
-    container.innerHTML = emptyHTML('Belum ada script','Klik "Script Baru" untuk membuat script pertama');
-  } else {
-    container.innerHTML = '<div class="script-grid">'+recent.map(scriptCardHTML).join('')+'</div>';
-  }
+  const sorted = [...scripts].sort((a, b) => new Date(b.updated) - new Date(a.updated));
+  document.getElementById('statLast').textContent = sorted[0] ? timeAgo(sorted[0].updated) : 'Belum ada';
+  const recent = sorted.slice(0, 5);
+  const c = document.getElementById('recentList');
+  c.innerHTML = recent.length === 0
+    ? emptyHTML('Belum ada script', 'Klik "➕ Baru" untuk membuat script pertama')
+    : '<div class="script-grid">' + recent.map(scriptCardHTML).join('') + '</div>';
 }
 
-function renderScripts(){
+function renderScripts() {
   const q = document.getElementById('searchInput').value.toLowerCase();
-  const filtered = scripts.filter(s => 
-    (s.name||'').toLowerCase().includes(q) || 
-    (s.desc||'').toLowerCase().includes(q)
-  );
-  document.getElementById('filteredCount').textContent = filtered.length;
-  const container = document.getElementById('scriptsList');
-  if (filtered.length === 0){
-    container.innerHTML = emptyHTML(
-      q ? 'Tidak ditemukan' : 'Vault kosong',
-      q ? 'Coba kata kunci lain' : 'Klik "Script Baru" untuk memulai'
-    );
-  } else {
-    const sorted = filtered.sort((a,b)=> new Date(b.updated) - new Date(a.updated));
-    container.innerHTML = '<div class="script-grid">'+sorted.map(scriptCardHTML).join('')+'</div>';
-  }
+  const f = scripts.filter(s => (s.name || '').toLowerCase().includes(q) || (s.desc || '').toLowerCase().includes(q));
+  document.getElementById('filteredCount').textContent = f.length;
+  const c = document.getElementById('scriptsList');
+  c.innerHTML = f.length === 0
+    ? emptyHTML(q ? 'Tidak ditemukan' : 'Vault kosong', q ? 'Coba kata kunci lain' : 'Klik "➕ Baru" untuk memulai')
+    : '<div class="script-grid">' + f.sort((a, b) => new Date(b.updated) - new Date(a.updated)).map(scriptCardHTML).join('') + '</div>';
 }
 
-function scriptCardHTML(s){
-  const icon = guessIcon(s.name);
-  const desc = s.desc || 'Tanpa deskripsi';
-  const size = s.code ? (s.code.length/1024).toFixed(1)+'KB' : '0KB';
-  return `
-    <div class="script-card" onclick="editScript('${s.id}')">
-      <div class="script-card-head">
-        <div class="script-icon">${icon}</div>
-        <div style="flex:1;min-width:0">
-          <div class="script-title">${escapeHtml(s.name||'Unnamed')}</div>
-          <div class="script-desc">${escapeHtml(desc)}</div>
-        </div>
-      </div>
-      <div class="script-meta">
-        <span>📅 ${timeAgo(s.updated)}</span>
-        <span>📝 ${size}</span>
-      </div>
-      <div class="script-actions" onclick="event.stopPropagation()">
-        <button class="btn btn-ghost" onclick="editScript('${s.id}')">✏️ Edit</button>
-        <button class="btn btn-ghost" onclick="duplicateScript('${s.id}')">📋 Duplikat</button>
-        <button class="btn btn-ghost" onclick="quickCopy('${s.id}')">📋</button>
+function scriptCardHTML(s) {
+  return `<div class="script-card" onclick="editScript('${s.id}')">
+    <div class="script-card-head">
+      <div class="script-icon">${guessIcon(s.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="script-title">${esc(s.name || 'Unnamed')}</div>
+        <div class="script-desc">${esc(s.desc || 'Tanpa deskripsi')}</div>
       </div>
     </div>
-  `;
-}
-
-function emptyHTML(title,msg){
-  return `
-    <div class="empty-state">
-      <div class="empty-icon">📭</div>
-      <h4>${title}</h4>
-      <p>${msg}</p>
-      <button class="btn btn-primary" onclick="switchView('editor');newScript()">➕ Buat Script Pertama</button>
+    <div class="script-meta">
+      <span>📅 ${timeAgo(s.updated)}</span>
+      <span>📝 ${s.code ? (s.code.length / 1024).toFixed(1) + 'KB' : '0KB'}</span>
     </div>
-  `;
+    <div class="script-actions" onclick="event.stopPropagation()">
+      <button class="btn btn-ghost" onclick="editScript('${s.id}')">✏️ Edit</button>
+      <button class="btn btn-ghost" onclick="duplicateScript('${s.id}')">📋 Duplikat</button>
+      <button class="btn btn-ghost" onclick="quickCopy('${s.id}')">📋</button>
+    </div>
+  </div>`;
 }
 
-function guessIcon(name){
-  if (!name) return '📄';
-  const n = name.toLowerCase();
-  const rules = [
-    ['auto|bot','🤖'],['click','👆'],['download|dl','⬇️'],['skip|bypass','⏭️'],
-    ['ui|theme','🎨'],['api|fetch','🔌'],['game','🎮'],['youtube|yt','▶️'],
-    ['twitter|x.com','🐦'],['facebook|fb','📘'],['instagram|ig','📸'],['tiktok','🎵'],
-    ['whatsapp|wa','💬'],['login|auth','🔐'],['scraper|scrape','🕷️']
-  ];
-  for (const [kw,ic] of rules){
-    if (kw.split('|').some(k=>n.includes(k))) return ic;
-  }
+function emptyHTML(t, m) {
+  return `<div class="empty-state"><div class="empty-icon">📭</div><h4>${t}</h4><p>${m}</p>
+    <button class="btn btn-primary" onclick="switchView('editor');newScript()">➕ Buat Script Pertama</button></div>`;
+}
+
+function guessIcon(n) {
+  if (!n) return '📄'; const l = n.toLowerCase();
+  if (l.includes('auto') || l.includes('bot')) return '🤖';
+  if (l.includes('click')) return '👆';
+  if (l.includes('download') || l.includes('dl')) return '⬇️';
+  if (l.includes('skip') || l.includes('bypass')) return '⏭️';
+  if (l.includes('theme') || l.includes('ui')) return '🎨';
+  if (l.includes('game')) return '🎮';
+  if (l.includes('youtube') || l.includes('yt')) return '▶️';
+  if (l.includes('scraper') || l.includes('scrape')) return '🕷️';
   return '📜';
 }
 
-function switchView(name){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+/* Navigation */
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const nav = document.querySelector(`.nav-item[data-view="${name}"]`);
   if (nav) nav.classList.add('active');
-  const titles = {dashboard:'📊 Dashboard',scripts:'📜 Script',editor:'✏️ Editor',settings:'⚙️ Pengaturan'};
+  const titles = { dashboard: '📊 Dashboard', scripts: '📜 Script', editor: '✏️ Editor', settings: '⚙️ Pengaturan' };
   document.getElementById('viewTitle').textContent = titles[name];
-  if (name==='dashboard') renderDashboard();
-  if (name==='scripts') renderScripts();
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'scripts') renderScripts();
 }
 
-function newScript(){
+/* Editor */
+function newScript() {
   editingId = null;
   document.getElementById('scriptName').value = '';
   document.getElementById('scriptDesc').value = '';
@@ -667,145 +594,80 @@ function newScript(){
   updateCodeStats();
 }
 
-function editScript(id){
-  const s = scripts.find(x=>x.id===id);
-  if (!s) return;
+function editScript(id) {
+  const s = scripts.find(x => x.id === id); if (!s) return;
   editingId = id;
-  document.getElementById('scriptName').value = s.name||'';
-  document.getElementById('scriptDesc').value = s.desc||'';
-  document.getElementById('scriptCode').value = s.code||'';
-  document.getElementById('editorTitle').textContent = '✏️ Edit: '+(s.name||'Unnamed');
+  document.getElementById('scriptName').value = s.name || '';
+  document.getElementById('scriptDesc').value = s.desc || '';
+  document.getElementById('scriptCode').value = s.code || '';
+  document.getElementById('editorTitle').textContent = '✏️ ' + (s.name || 'Unnamed');
   document.getElementById('btnDelete').style.display = 'inline-flex';
   updateCodeStats();
   switchView('editor');
 }
 
-function updateCodeStats(){
-  const code = document.getElementById('scriptCode').value;
-  document.getElementById('charCount').textContent = code.length.toLocaleString('id-ID');
-  document.getElementById('lineCount').textContent = code ? code.split('\n').length : 0;
+function updateCodeStats() {
+  const c = document.getElementById('scriptCode').value;
+  document.getElementById('charCount').textContent = c.length.toLocaleString('id-ID');
+  document.getElementById('lineCount').textContent = c ? c.split('\n').length : 0;
 }
 
-async function saveScript(){
+async function saveScript() {
   const name = document.getElementById('scriptName').value.trim();
   const desc = document.getElementById('scriptDesc').value.trim();
   const code = document.getElementById('scriptCode').value;
-  if (!name){ toast('Nama script wajib diisi','error'); return; }
-  if (!code){ toast('Script code tidak boleh kosong','error'); return; }
+  if (!name) { toast('Nama wajib diisi', 'error'); return; }
+  if (!code) { toast('Code tidak boleh kosong', 'error'); return; }
   const now = new Date().toISOString();
-  if (editingId){
-    const i = scripts.findIndex(s=>s.id===editingId);
-    if (i>=0) scripts[i] = { ...scripts[i], name, desc, code, updated: now };
+  if (editingId) {
+    const i = scripts.findIndex(s => s.id === editingId);
+    if (i >= 0) scripts[i] = { ...scripts[i], name, desc, code, updated: now };
   } else {
-    const newS = {
-      id: 's_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),
-      name, desc, code, created: now, updated: now
-    };
-    scripts.push(newS);
-    editingId = newS.id;
+    const ns = { id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6), name, desc, code, created: now, updated: now };
+    scripts.push(ns); editingId = ns.id;
   }
   try {
-    toast('Menyimpan ke cloud...','info');
-    await saveScriptsToCloud();
-    document.getElementById('editorTitle').textContent = '✏️ Edit: '+name;
+    toast('Menyimpan...', 'info');
+    await saveToCloud();
+    document.getElementById('editorTitle').textContent = '✏️ ' + name;
     document.getElementById('btnDelete').style.display = 'inline-flex';
     document.getElementById('navCount').textContent = scripts.length;
-    document.getElementById('dispTotal').textContent = scripts.length;
     renderAll();
-    toast('✅ Berhasil disimpan ke cloud','success');
-  } catch(err){
-    toast('Gagal simpan: '+err.message,'error');
-  }
+    toast('✅ Tersimpan di cloud', 'success');
+  } catch (e) { toast('Gagal: ' + e.message, 'error'); }
 }
 
-async function deleteScript(){
-  if (!editingId) return;
-  if (!confirm('Yakin ingin menghapus script ini?')) return;
-  scripts = scripts.filter(s=>s.id!==editingId);
+async function deleteScript() {
+  if (!editingId || !confirm('Hapus script ini?')) return;
+  scripts = scripts.filter(s => s.id !== editingId);
   try {
-    await saveScriptsToCloud();
-    toast('Script dihapus','success');
+    await saveToCloud();
+    toast('Dihapus', 'success');
     document.getElementById('navCount').textContent = scripts.length;
-    document.getElementById('dispTotal').textContent = scripts.length;
-    newScript();
-    renderAll();
-    switchView('scripts');
-  } catch(err){
-    toast('Gagal hapus: '+err.message,'error');
-  }
+    newScript(); renderAll(); switchView('scripts');
+  } catch (e) { toast('Gagal', 'error'); }
 }
 
-async function duplicateScript(id){
-  const s = scripts.find(x=>x.id===id);
-  if (!s) return;
+async function duplicateScript(id) {
+  const s = scripts.find(x => x.id === id); if (!s) return;
   const now = new Date().toISOString();
-  const copy = {
-    id:'s_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),
-    name: s.name+' (Copy)', desc: s.desc, code: s.code,
-    created: now, updated: now
-  };
-  scripts.push(copy);
-  try {
-    await saveScriptsToCloud();
-    document.getElementById('navCount').textContent = scripts.length;
-    document.getElementById('dispTotal').textContent = scripts.length;
-    renderAll();
-    toast('Script diduplikat','success');
-  } catch(err){
-    toast('Gagal duplikat','error');
-  }
+  scripts.push({ id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6), name: s.name + ' (Copy)', desc: s.desc, code: s.code, created: now, updated: now });
+  try { await saveToCloud(); document.getElementById('navCount').textContent = scripts.length; renderAll(); toast('Diduplikat', 'success'); } catch (e) { toast('Gagal', 'error'); }
 }
 
-function quickCopy(id){
-  const s = scripts.find(x=>x.id===id);
-  if (!s) return;
-  navigator.clipboard.writeText(s.code||'').then(()=>toast('Script disalin','success'));
-}
+function quickCopy(id) { const s = scripts.find(x => x.id === id); if (s) navigator.clipboard.writeText(s.code || '').then(() => toast('Disalin', 'success')); }
+function copyScript() { const c = document.getElementById('scriptCode').value; if (c) navigator.clipboard.writeText(c).then(() => toast('Disalin', 'success')); else toast('Kosong', 'error'); }
+async function syncNow() { try { toast('Syncing...', 'info'); await loadScripts(); renderAll(); toast('✅ Sync OK', 'success'); } catch (e) { toast('Gagal', 'error'); } }
 
-function copyScript(){
-  const code = document.getElementById('scriptCode').value;
-  if (!code){ toast('Tidak ada script','error'); return; }
-  navigator.clipboard.writeText(code).then(()=>toast('Script disalin','success'));
-}
-
-async function syncNow(){
-  try {
-    toast('Syncing...','info');
-    await loadScripts();
-    renderAll();
-    toast('✅ Sync berhasil','success');
-  } catch(err){
-    toast('Sync gagal','error');
-  }
-}
-
-function escapeHtml(t){
-  if (!t) return '';
-  return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-function timeAgo(dateStr){
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  const diff = (Date.now() - d.getTime())/1000;
-  if (diff < 60) return 'baru saja';
-  if (diff < 3600) return Math.floor(diff/60)+' menit lalu';
-  if (diff < 86400) return Math.floor(diff/3600)+' jam lalu';
-  if (diff < 2592000) return Math.floor(diff/86400)+' hari lalu';
-  return d.toLocaleDateString('id-ID');
-}
-
-function toast(msg, type='info'){
-  const wrap = document.getElementById('toastWrap');
-  const el = document.createElement('div');
-  el.className = 'toast '+type;
-  const icons = { success:'✅', error:'❌', info:'ℹ️', warn:'⚠️' };
-  el.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${escapeHtml(msg)}</span>`;
-  wrap.appendChild(el);
-  setTimeout(()=>{
-    el.style.animation = 'slideIn .25s reverse';
-    setTimeout(()=>el.remove(),250);
-  },2800);
+/* Utils */
+function esc(t) { if (!t) return ''; return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function timeAgo(d) { if (!d) return '-'; const s = (Date.now() - new Date(d).getTime()) / 1000; if (s < 60) return 'baru saja'; if (s < 3600) return Math.floor(s / 60) + 'm lalu'; if (s < 86400) return Math.floor(s / 3600) + 'j lalu'; if (s < 2592000) return Math.floor(s / 86400) + 'h lalu'; return new Date(d).toLocaleDateString('id-ID'); }
+function toast(msg, type = 'info') {
+  const w = document.getElementById('toastWrap'), el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span class="toast-icon">${{ success: '✅', error: '❌', info: 'ℹ️', warn: '⚠️' }[type] || 'ℹ️'}</span><span>${esc(msg)}</span>`;
+  w.appendChild(el);
+  setTimeout(() => { el.style.animation = 'slideIn .25s reverse'; setTimeout(() => el.remove(), 250); }, 3000);
 }
 </script>
 </body>
