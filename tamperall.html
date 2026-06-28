@@ -196,6 +196,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .info-box{background:linear-gradient(135deg,rgba(96,165,250,.06),rgba(59,130,246,.02));border:1px solid rgba(96,165,250,.2);border-radius:12px;padding:14px;margin-bottom:16px;font-size:12px;line-height:1.6;color:var(--text-2)}
 .info-box h4{color:var(--info);font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
 
+.info-box.ok{background:linear-gradient(135deg,rgba(74,222,128,.06),rgba(34,197,94,.02));border-color:rgba(74,222,128,.2)}
+.info-box.ok h4{color:var(--ok)}
+
 .toasts{position:fixed;bottom:20px;right:20px;z-index:400;display:flex;flex-direction:column;gap:8px;max-width:340px}
 .tst{background:linear-gradient(135deg,var(--bg-3),var(--bg-2));backdrop-filter:blur(20px);border:1px solid var(--border-hi);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-lg);animation:si .3s cubic-bezier(.4,0,.2,1);font-size:12.5px;font-weight:500}
 .tst.ok{border-left:3px solid var(--ok)}
@@ -214,7 +217,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div id="loading">
   <div class="loader"><div class="loader-core">🐒</div></div>
   <p id="loadTxt">Menghubungkan ke cloud...</p>
-  <small>ScriptVault v6.1 · Universal</small>
+  <small>ScriptVault v7.0 · Universal</small>
 </div>
 
 <div class="app" id="app">
@@ -228,9 +231,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     </div>
     <div class="vault">
       <b>🗄️ Main Vault</b>
-      <span>Connected</span>
+      <span id="vaultStatus">Connecting...</span>
       <code id="vId">-</code>
-      <div class="provider">⚡ npoint.io · No API Key · CORS OK</div>
+      <div class="provider" id="providerLabel">⚡ Multi-backend · Auto-fallback</div>
     </div>
     <div class="nav">
       <div class="nav-lbl">Workspace</div>
@@ -238,7 +241,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <div class="nav-i" data-v="scripts" onclick="go('scripts')"><span class="ic">📜</span>Script<span class="bdg" id="nCnt">0</span></div>
       <div class="nav-i" data-v="editor" onclick="go('editor')"><span class="ic">✏️</span>Editor</div>
     </div>
-    <div class="side-ft">v6.1 · Multi-User Ready</div>
+    <div class="side-ft">v7.0 · Multi-User Ready</div>
   </aside>
 
   <main class="main">
@@ -253,19 +256,19 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
     <div class="ct">
       <div class="v on" id="v-dashboard">
-        <div class="info-box">
+        <div class="info-box ok" id="statusBox">
           <h4>🌐 Universal Cloud Storage</h4>
-          ScriptVault pakai <strong>npoint.io</strong> — gratis, tanpa API key, tanpa signup, CORS friendly. Semua pengguna bisa save & akses vault yang sama via URL.
-          <div class="url-box">
+          <span id="statusText">Menghubungkan ke cloud...</span>
+          <div class="url-box" id="urlBox" style="display:none">
             <span id="vUrl">-</span>
-            <button class="btn btn-p" style="flex-shrink:0;padding:5px 12px;font-size:10px" onclick="copyUrl()">📋 Copy</button>
+            <button class="btn btn-p" style="flex-shrink:0;padding:5px 12px;font-size:10px" onclick="copyUrl()">📋 Copy URL</button>
           </div>
         </div>
         <div class="bento">
           <div class="bento-stat"><div class="bento-lbl">Total Script</div><div class="bento-val" id="sTot">0</div><div class="bento-sub">Tersimpan di cloud</div></div>
           <div class="bento-stat"><div class="bento-lbl">Karakter</div><div class="bento-val" id="sChr">0</div><div class="bento-sub">Total ukuran kode</div></div>
           <div class="bento-stat"><div class="bento-lbl">Update Terakhir</div><div class="bento-val" id="sLast" style="font-size:16px">-</div><div class="bento-sub">Waktu lokal</div></div>
-          <div class="bento-stat"><div class="bento-lbl">Status</div><div class="bento-val" style="font-size:16px">● Online</div><div class="bento-sub">npoint.io</div></div>
+          <div class="bento-stat"><div class="bento-lbl">Backend</div><div class="bento-val" id="sBackend" style="font-size:14px">-</div><div class="bento-sub" id="sBackendSub">Detecting...</div></div>
         </div>
         <div class="section">
           <div class="sh"><h3><span class="bar"></span>⚡ Script Terbaru</h3><small>5 terakhir</small></div>
@@ -341,40 +344,223 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <script>
 /* ============================================
-   BACKEND: npoint.io
-   ✅ Gratis tanpa signup
-   ✅ Tanpa API key
-   ✅ CORS enabled (bisa dari domain manapun)
-   ✅ Tidak terikat akun Google
-   ✅ Unlimited bins & requests
-   ✅ Semua user bisa akses vault yang sama
+   MULTI-BACKEND SYSTEM
+   - Primary: JSONBin.io (paling stabil, CORS OK)
+   - Fallback: npoint.io (kalau JSONBin.io gagal)
+   - Auto-detect backend yang bekerja
 ============================================ */
-const API = "https://api.npoint.io";
+const BACKENDS = {
+  jsonbin: {
+    name: 'JSONBin.io',
+    api: 'https://api.jsonbin.io/v3/b',
+    key: '$2a$10$G1wQvXgxfGvzuKP/loOtleElR8x6Pcu.rR2V6gKRGQzsFgLdDn7qq',
+    headers: () => ({
+      'Content-Type': 'application/json',
+      'X-Master-Key': BACKENDS.jsonbin.key
+    }),
+    create: async () => {
+      const r = await fetch(BACKENDS.jsonbin.api, {
+        method: 'POST',
+        headers: BACKENDS.jsonbin.headers(),
+        body: JSON.stringify({
+          scripts: [],
+          _meta: { app: 'ScriptVault', created: new Date().toISOString() }
+        })
+      });
+      if (!r.ok) {
+        const err = await r.text().catch(() => '');
+        if (r.status === 400 && err.includes('limit')) {
+          throw new Error('LIMIT_FULL');
+        }
+        throw new Error('HTTP ' + r.status);
+      }
+      const d = await r.json();
+      return d.metadata.id;
+    },
+    verify: async (id) => {
+      try {
+        const r = await fetch(BACKENDS.jsonbin.api + '/' + id + '/latest', {
+          headers: BACKENDS.jsonbin.headers()
+        });
+        return r.ok;
+      } catch(e) { return false; }
+    },
+    load: async (id) => {
+      const r = await fetch(BACKENDS.jsonbin.api + '/' + id + '/latest', {
+        headers: BACKENDS.jsonbin.headers()
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      return d.record.scripts || [];
+    },
+    save: async (id, scripts) => {
+      const r = await fetch(BACKENDS.jsonbin.api + '/' + id, {
+        method: 'PUT',
+        headers: BACKENDS.jsonbin.headers(),
+        body: JSON.stringify({
+          scripts: scripts,
+          _meta: { app: 'ScriptVault', updated: new Date().toISOString() }
+        })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+    }
+  },
+  npoint: {
+    name: 'npoint.io',
+    api: 'https://api.npoint.io',
+    headers: () => ({ 'Content-Type': 'application/json' }),
+    create: async () => {
+      const r = await fetch(BACKENDS.npoint.api, {
+        method: 'POST',
+        headers: BACKENDS.npoint.headers(),
+        body: JSON.stringify({
+          scripts: [],
+          _meta: { app: 'ScriptVault', created: new Date().toISOString() }
+        })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      if (!d.id) throw new Error('No ID');
+      return d.id;
+    },
+    verify: async (id) => {
+      try {
+        const r = await fetch(BACKENDS.npoint.api + '/' + id);
+        return r.ok;
+      } catch(e) { return false; }
+    },
+    load: async (id) => {
+      const r = await fetch(BACKENDS.npoint.api + '/' + id);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      return d.scripts || [];
+    },
+    save: async (id, scripts) => {
+      const r = await fetch(BACKENDS.npoint.api + '/' + id, {
+        method: 'POST',
+        headers: BACKENDS.npoint.headers(),
+        body: JSON.stringify({
+          scripts: scripts,
+          _meta: { app: 'ScriptVault', updated: new Date().toISOString() }
+        })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+    }
+  }
+};
+
 const TM_URL = "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html#nav=new-user-script+editor";
 
-let VID = null, scripts = [], editId = null, instId = null, lastCopiedCode = '';
+let ACTIVE_BACKEND = null;
+let VID = null;
+let scripts = [];
+let editId = null;
+let instId = null;
+let lastCopiedCode = '';
 
+/* ============================================
+   AUTO-DETECT BACKEND
+   Coba JSONBin.io dulu, kalau gagal coba npoint.io
+============================================ */
+async function detectBackend() {
+  // Coba JSONBin.io
+  try {
+    const testId = await BACKENDS.jsonbin.create();
+    // Hapus test bin (biar tidak penuh)
+    // JSONBin.io tidak punya delete API di free tier, jadi biarkan saja
+    ACTIVE_BACKEND = 'jsonbin';
+    return testId;
+  } catch(e) {
+    console.log('JSONBin.io gagal:', e.message);
+  }
+  
+  // Coba npoint.io
+  try {
+    const testId = await BACKENDS.npoint.create();
+    ACTIVE_BACKEND = 'npoint';
+    return testId;
+  } catch(e) {
+    console.log('npoint.io gagal:', e.message);
+  }
+  
+  throw new Error('Semua backend gagal. Coba lagi nanti.');
+}
+
+async function verifyVault(id) {
+  if (ACTIVE_BACKEND === 'jsonbin') {
+    return await BACKENDS.jsonbin.verify(id);
+  } else {
+    return await BACKENDS.npoint.verify(id);
+  }
+}
+
+async function loadFromCloud() {
+  if (ACTIVE_BACKEND === 'jsonbin') {
+    return await BACKENDS.jsonbin.load(VID);
+  } else {
+    return await BACKENDS.npoint.load(VID);
+  }
+}
+
+async function saveToCloud() {
+  if (ACTIVE_BACKEND === 'jsonbin') {
+    await BACKENDS.jsonbin.save(VID, scripts);
+  } else {
+    await BACKENDS.npoint.save(VID, scripts);
+  }
+}
+
+/* ============================================
+   BOOT SEQUENCE
+============================================ */
 (async()=>{
   const lt = document.getElementById('loadTxt');
   try {
     const p = new URLSearchParams(location.search);
     const u = p.get('v');
-    if (u) {
-      lt.textContent = 'Memverifikasi vault...';
+    const b = p.get('b'); // backend param
+    
+    if (u && b) {
+      // URL sudah ada vault ID + backend
+      ACTIVE_BACKEND = b;
       VID = u;
-      const ok = await verify(VID);
+      lt.textContent = 'Memverifikasi vault...';
+      const ok = await verifyVault(VID);
       if (!ok) {
         lt.textContent = 'Vault tidak ditemukan, membuat baru...';
-        VID = await create();
-        setUrl(VID);
+        VID = await detectBackend();
+        setUrl(VID, ACTIVE_BACKEND);
+      }
+    } else if (u) {
+      // URL ada vault ID tapi tidak ada backend param
+      // Coba JSONBin.io dulu, kalau gagal coba npoint.io
+      VID = u;
+      lt.textContent = 'Mencari backend yang cocok...';
+      
+      ACTIVE_BACKEND = 'jsonbin';
+      let ok = await verifyVault(VID);
+      if (!ok) {
+        ACTIVE_BACKEND = 'npoint';
+        ok = await verifyVault(VID);
+      }
+      
+      if (!ok) {
+        lt.textContent = 'Vault tidak ditemukan, membuat baru...';
+        VID = await detectBackend();
+        setUrl(VID, ACTIVE_BACKEND);
+      } else {
+        setUrl(VID, ACTIVE_BACKEND);
       }
     } else {
-      lt.textContent = 'Membuat vault baru...';
-      VID = await create();
-      setUrl(VID);
+      // Belum ada vault, buat baru
+      lt.textContent = 'Mencari backend terbaik...';
+      VID = await detectBackend();
+      setUrl(VID, ACTIVE_BACKEND);
     }
+    
     lt.textContent = 'Memuat script...';
-    await load();
+    scripts = await loadFromCloud();
+    
     document.getElementById('loading').classList.add('hide');
     document.getElementById('app').classList.add('show');
     init();
@@ -383,91 +569,46 @@ let VID = null, scripts = [], editId = null, instId = null, lastCopiedCode = '';
     console.error(e);
     lt.textContent = '❌ '+e.message;
     lt.style.color = '#f87171';
+    
+    // Tampilkan instruksi jika limit penuh
+    if (e.message === 'LIMIT_FULL') {
+      const instr = document.createElement('div');
+      instr.style.cssText = 'margin-top:20px;padding:16px;background:#242428;border:1px solid #f87171;border-radius:10px;max-width:500px;text-align:left;font-size:12px;line-height:1.6;color:#a8a8b0';
+      instr.innerHTML = `
+        <div style="color:#f87171;font-weight:700;margin-bottom:8px">⚠️ Limit JSONBin.io Penuh</div>
+        Akun JSONBin.io Anda sudah mencapai batas 200 bin. Solusi:<br>
+        1. Buka <a href="https://jsonbin.io" target="_blank" style="color:#60a5fa">jsonbin.io</a> → login → hapus bin lama yang tidak terpakai<br>
+        2. Atau upgrade ke paid plan ($10/bulan)<br>
+        3. Atau tunggu beberapa saat, sistem akan otomatis coba backend lain
+      `;
+      document.getElementById('loading').appendChild(instr);
+    }
   }
 })();
 
-function setUrl(id){
+function setUrl(id, backend){
   const u = new URL(location.href);
-  u.searchParams.set('v',id);
+  u.searchParams.set('v', id);
+  u.searchParams.set('b', backend);
   try{history.replaceState(null,'',u.toString())}catch(e){}
 }
+
 function getUrl(){
   const u = new URL(location.href);
-  u.searchParams.set('v',VID);
-  u.hash='';
+  u.searchParams.set('v', VID);
+  u.searchParams.set('b', ACTIVE_BACKEND);
+  u.hash = '';
   return u.toString();
 }
+
 function copyUrl(){
   navigator.clipboard.writeText(getUrl()).then(()=>toast('🔗 URL vault dicopy','ok'))
-    .catch(()=>{const t=document.createElement('textarea');t.value=getUrl();document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('🔗 URL vault dicopy','ok')});
-}
-
-/* ============================================
-   NPOINT.IO API
-   
-   CREATE: POST https://api.npoint.io/
-     Body: JSON data
-     Response: { "id": "xxx", ...data }
-   
-   READ: GET https://api.npoint.io/{id}
-     Response: JSON data
-   
-   UPDATE: POST https://api.npoint.io/{id}
-     Body: JSON data (replace all)
-     Response: { "id": "xxx", ...data }
-   
-   Catatan: npoint.io pakai POST untuk update (bukan PUT/PATCH)
-============================================ */
-async function create(){
-  const r = await fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      scripts: [],
-      _meta: { app: 'ScriptVault', created: new Date().toISOString() }
-    })
-  });
-  if (!r.ok) {
-    const txt = await r.text().catch(()=>'');
-    throw new Error('Gagal buat vault (HTTP '+r.status+') '+txt);
-  }
-  const d = await r.json();
-  if (!d.id) throw new Error('Response tidak ada ID');
-  return d.id;
-}
-
-async function verify(id){
-  try {
-    const r = await fetch(API + '/' + id, { method: 'GET' });
-    return r.ok;
-  } catch(e) {
-    return false;
-  }
-}
-
-async function load(){
-  const r = await fetch(API + '/' + VID, { method: 'GET' });
-  if (!r.ok) {
-    scripts = [];
-    return;
-  }
-  const d = await r.json();
-  scripts = Array.isArray(d.scripts) ? d.scripts : [];
-}
-
-async function save(){
-  const r = await fetch(API + '/' + VID, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      scripts: scripts,
-      _meta: { app: 'ScriptVault', updated: new Date().toISOString() }
-    })
-  });
-  if (!r.ok) {
-    const txt = await r.text().catch(()=>'');
-    throw new Error('Gagal sync (HTTP '+r.status+') '+txt);
-  }
+    .catch(()=>{
+      const t=document.createElement('textarea');
+      t.value=getUrl();document.body.appendChild(t);t.select();
+      document.execCommand('copy');document.body.removeChild(t);
+      toast('🔗 URL vault dicopy','ok');
+    });
 }
 
 function buildCode(s){
@@ -558,6 +699,17 @@ function init(){
   document.getElementById('vId').textContent = VID;
   document.getElementById('vUrl').textContent = getUrl();
   document.getElementById('nCnt').textContent = scripts.length;
+  
+  // Update status
+  const backendName = BACKENDS[ACTIVE_BACKEND].name;
+  document.getElementById('providerLabel').textContent = '⚡ ' + backendName + ' · Active';
+  document.getElementById('sBackend').textContent = backendName;
+  document.getElementById('sBackendSub').textContent = ACTIVE_BACKEND === 'jsonbin' ? 'CORS OK · Stable' : 'Fallback mode';
+  
+  document.getElementById('statusBox').className = 'info-box ok';
+  document.getElementById('statusText').innerHTML = `✅ <strong>Tersambung ke ${backendName}</strong>. Semua pengguna bisa save & akses vault yang sama via URL di bawah. <strong>Bookmark URL ini!</strong>`;
+  document.getElementById('urlBox').style.display = 'flex';
+  
   renderAll();
   
   const ta = document.getElementById('sCode');
@@ -690,7 +842,7 @@ async function saveS(){
   }
   try{
     toast('Menyimpan ke cloud...','info');
-    await save();
+    await saveToCloud();
     document.getElementById('edTitle').textContent='✏️ '+name;
     document.getElementById('bDel').style.display='inline-flex';
     document.getElementById('nCnt').textContent = scripts.length;
@@ -698,7 +850,11 @@ async function saveS(){
     toast('✅ Tersimpan di cloud','ok');
   }catch(e){
     console.error(e);
-    toast('❌ Gagal: '+e.message,'err');
+    let msg = e.message;
+    if (msg === 'LIMIT_FULL') {
+      msg = 'Limit JSONBin.io penuh (200 bin). Hapus bin lama di dashboard JSONBin.io atau upgrade akun.';
+    }
+    toast('❌ Gagal: '+msg,'err');
   }
 }
 
@@ -706,7 +862,7 @@ async function delS(){
   if(!editId||!confirm('Hapus script ini?'))return;
   scripts = scripts.filter(s=>s.id!==editId);
   try{
-    await save();
+    await saveToCloud();
     toast('🗑️ Dihapus','ok');
     document.getElementById('nCnt').textContent = scripts.length;
     hideEditorNav();
@@ -728,7 +884,7 @@ async function quickDel(id){
   if(!confirm(`Hapus script "${s.name}"?`)) return;
   scripts = scripts.filter(x=>x.id!==id);
   try{
-    await save();
+    await saveToCloud();
     toast('🗑️ Script dihapus','ok');
     document.getElementById('nCnt').textContent = scripts.length;
     if(editId===id){hideEditorNav();newS()}
@@ -744,7 +900,7 @@ function copyCode(){
 }
 
 async function sync(){
-  try{toast('Syncing...','info');await load();renderAll();toast('✅ Sync OK','ok')}catch(e){toast('❌ Gagal: '+e.message,'err')}
+  try{toast('Syncing...','info');scripts = await loadFromCloud();renderAll();toast('✅ Sync OK','ok')}catch(e){toast('❌ Gagal: '+e.message,'err')}
 }
 
 function esc(t){if(!t)return'';return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
