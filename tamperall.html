@@ -140,20 +140,27 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
 .toast-icon{font-size:16px}
 @keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
 
-/* Install Modal */
 .modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
-.modal{background:var(--bg-1);border:1px solid var(--border-hi);border-radius:16px;padding:24px;max-width:500px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.modal{background:var(--bg-1);border:1px solid var(--border-hi);border-radius:16px;padding:24px;max-width:520px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:90vh;overflow-y:auto}
 .modal h3{font-size:18px;margin-bottom:8px;color:var(--text)}
 .modal p{color:var(--text-dim);font-size:13px;margin-bottom:16px;line-height:1.6}
 .modal-steps{background:var(--bg-0);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px}
 .modal-steps ol{padding-left:20px;font-size:12.5px;line-height:1.8;color:var(--text-dim)}
 .modal-steps ol li{margin-bottom:4px}
 .modal-steps ol strong{color:var(--text)}
+.modal-method{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.method-card{background:var(--bg-0);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .2s;text-align:center}
+.method-card:hover{border-color:var(--accent);background:var(--bg-2)}
+.method-card.recommended{border-color:var(--success);background:rgba(107,207,127,.05)}
+.method-card .method-icon{font-size:28px;margin-bottom:6px}
+.method-card .method-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.method-card .method-desc{font-size:11px;color:var(--text-dim);line-height:1.5}
+.method-card .method-badge{display:inline-block;background:var(--success);color:#000;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
 .modal-actions{display:flex;gap:8px;flex-wrap:wrap}
 .modal-actions .btn{flex:1;justify-content:center;padding:10px;min-width:120px}
 
-@media (max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{padding:12px 14px}.content{padding:14px}.search-box{width:140px}}
+@media (max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{padding:12px 14px}.content{padding:14px}.search-box{width:140px}.modal-method{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -194,7 +201,7 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
         <span style="width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 6px var(--success)"></span>
         <span>Cloud Online</span>
       </div>
-      <div style="margin-top:5px;font-size:10px">v3.1 · Tampermonkey Ready</div>
+      <div style="margin-top:5px;font-size:10px">v4.0 · Tampermonkey Direct Install</div>
     </div>
   </aside>
 
@@ -261,7 +268,7 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
         <div class="section-head"><h3>⚙️ Pengaturan</h3></div>
         <div class="settings-grid">
           <div class="setting-item">
-            <div class="setting-info"><h4>🔗 URL Akses Vault</h4><p>Copy URL ini dan buka di PC manapun untuk mengakses vault yang sama.</p></div>
+            <div class="setting-info"><h4>🔗 URL Akses Vault</h4><p>Copy URL ini dan buka di PC manapun untuk mengakses vault yang sama. <strong>Bookmark URL ini!</strong></p></div>
           </div>
           <div style="padding:0 0 4px">
             <div class="url-copy-box"><span id="vaultUrl">-</span><button class="btn btn-primary" style="flex-shrink:0;padding:6px 12px;font-size:11px" onclick="copyVaultUrl()">📋 Copy</button></div>
@@ -270,6 +277,10 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
           <div class="setting-item"><div class="setting-info"><h4>🔑 API Key</h4><p>Hardcoded di HTML</p></div><div class="setting-value" id="dispKey">••••••••</div></div>
           <div class="setting-item"><div class="setting-info"><h4>📦 Total Script</h4><p>Jumlah tersimpan</p></div><div class="setting-value" id="dispTotal">0</div></div>
           <div class="setting-item"><div class="setting-info"><h4>🔄 Sync Manual</h4><p>Reload data dari cloud</p></div><button class="btn btn-ghost" onclick="syncNow()">🔄 Sync</button></div>
+          <div class="setting-item">
+            <div class="setting-info"><h4>🐒 Tampermonkey Extension ID</h4><p>ID extension TM di browser ini (untuk direct install)</p></div>
+            <input type="text" id="tmExtId" value="dhdgffkkebhmkfjojejmpbldmpobfkfo" style="flex:1;padding:8px 10px;background:var(--bg-0);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:monospace;font-size:11px" onchange="saveTMExtId()">
+          </div>
         </div>
       </div>
     </div>
@@ -280,21 +291,27 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
 <div class="modal-overlay" id="installModal">
   <div class="modal">
     <h3>🚀 Install ke Tampermonkey</h3>
-    <p id="installModalDesc">Script akan di-download sebagai file <code>.user.js</code>. Tampermonkey akan otomatis detect dan tampilkan dialog install.</p>
-    <div class="modal-steps">
-      <ol>
-        <li>File <strong>.user.js</strong> akan ter-download otomatis</li>
-        <li>Tampermonkey akan <strong>otomatis detect</strong> file tersebut</li>
-        <li>Dialog install Tampermonkey akan muncul → klik <strong>"Install"</strong></li>
-        <li>Selesai! Script aktif di browser Anda</li>
-      </ol>
+    <p id="installModalDesc">Pilih metode install yang kamu inginkan:</p>
+    
+    <div class="modal-method">
+      <div class="method-card recommended" onclick="selectMethod('direct')">
+        <div class="method-badge">Direkomendasikan</div>
+        <div class="method-icon">⚡</div>
+        <div class="method-title">Direct Open Editor</div>
+        <div class="method-desc">Buka tab Tampermonkey Editor + auto-copy script. Tinggal paste & save.</div>
+      </div>
+      <div class="method-card" onclick="selectMethod('download')">
+        <div class="method-icon">💾</div>
+        <div class="method-title">Download .user.js</div>
+        <div class="method-desc">Download file user.js. Tampermonkey akan auto-detect (jika diaktifkan).</div>
+      </div>
     </div>
-    <div id="installModalNote" style="background:rgba(229,192,123,.08);border:1px solid rgba(229,192,123,.25);border-radius:8px;padding:10px;font-size:11.5px;color:var(--warn);margin-bottom:14px;line-height:1.6">
-      💡 <strong>Catatan:</strong> Jika Tampermonkey tidak otomatis detect, buka Tampermonkey Dashboard → tab Utilities → Import dari file yang sudah di-download.
-    </div>
+
+    <div id="methodDetail" class="modal-steps" style="display:none"></div>
+
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeInstallModal()">Batal</button>
-      <button class="btn btn-install" id="confirmInstallBtn" onclick="confirmInstall()">🚀 Download & Install</button>
+      <button class="btn btn-install" id="confirmInstallBtn" onclick="confirmInstall()" disabled style="opacity:.5">Pilih Metode</button>
     </div>
   </div>
 </div>
@@ -305,11 +322,15 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-0);
 const MASTER_KEY = "$2a$10$G1wQvXgxfGvzuKP/loOtleElR8x6Pcu.rR2V6gKRGQzsFgLdDn7qq";
 const API = "https://api.jsonbin.io/v3/b";
 const VAULT_NAME = "ScriptVault_Main";
+const LS_TM_EXT = "scriptvault_tm_ext_id";
 
 let VAULT_BIN_ID = null;
 let scripts = [];
 let editingId = null;
-let pendingInstallId = null; // script yang sedang di-install
+let pendingInstallId = null;
+let selectedMethod = null;
+let isTempInstall = false;
+let tempScriptData = null;
 
 /* ============================================ BOOT ============================================ */
 (async function boot(){
@@ -381,21 +402,12 @@ async function saveToCloud() {
   if (!res.ok) throw new Error('Gagal sync');
 }
 
-/* ============================================ TAMPERMONKEY INSTALL ============================================ */
+/* ============================================ TAMPERMONKEY INTEGRATION ============================================ */
 
-/**
- * Generate full UserScript code dengan header yang valid.
- * Jika script sudah punya header, gunakan apa adanya.
- * Jika belum, auto-generate dari nama & deskripsi.
- */
 function buildUserScriptCode(s) {
   let code = s.code || '';
-  
-  // Cek apakah sudah ada header UserScript
   const hasHeader = /\/\/\s*==UserScript==/i.test(code);
-  
   if (!hasHeader) {
-    // Auto-generate header
     const safeName = (s.name || 'Unnamed Script').replace(/\*\//g, '* /');
     const safeDesc = (s.desc || '').replace(/\*\//g, '* /');
     const header = 
@@ -413,41 +425,185 @@ function buildUserScriptCode(s) {
 `;
     code = header + code;
   }
-  
   return code;
 }
 
-/**
- * Buka modal konfirmasi install
- */
+function getTMExtId() {
+  return localStorage.getItem(LS_TM_EXT) || 'dhdgffkkebhmkfjojejmpbldmpobfkfo';
+}
+
+function saveTMExtId() {
+  const val = document.getElementById('tmExtId').value.trim();
+  if (val) {
+    localStorage.setItem(LS_TM_EXT, val);
+    toast('Extension ID disimpan', 'success');
+  }
+}
+
 function openInstallModal(scriptId) {
   pendingInstallId = scriptId;
+  isTempInstall = false;
+  selectedMethod = null;
   const s = scripts.find(x => x.id === scriptId);
   if (!s) { toast('Script tidak ditemukan', 'error'); return; }
   
   document.getElementById('installModalDesc').innerHTML = 
-    `Script <strong style="color:var(--text)">${esc(s.name)}</strong> akan di-download sebagai file <code style="background:var(--bg-0);padding:2px 6px;border-radius:4px;color:var(--accent);border:1px solid var(--border)">.user.js</code>. Tampermonkey akan otomatis detect dan tampilkan dialog install.`;
+    `Install script <strong style="color:var(--text)">${esc(s.name)}</strong> ke Tampermonkey:`;
+  document.getElementById('methodDetail').style.display = 'none';
+  document.getElementById('confirmInstallBtn').disabled = true;
+  document.getElementById('confirmInstallBtn').style.opacity = '.5';
+  document.getElementById('confirmInstallBtn').textContent = 'Pilih Metode';
+  
+  // Reset selected state
+  document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
   
   document.getElementById('installModal').classList.add('show');
+}
+
+function installCurrentToTM() {
+  const name = document.getElementById('scriptName').value.trim();
+  const desc = document.getElementById('scriptDesc').value.trim();
+  const code = document.getElementById('scriptCode').value;
+  
+  if (!name) { toast('Isi nama script dulu', 'error'); return; }
+  if (!code) { toast('Script code kosong', 'error'); return; }
+  
+  // Simpan data sementara
+  tempScriptData = { name, desc, code };
+  isTempInstall = true;
+  pendingInstallId = 'temp_' + Date.now();
+  selectedMethod = null;
+  
+  document.getElementById('installModalDesc').innerHTML = 
+    `Install script <strong style="color:var(--text)">${esc(name)}</strong> ke Tampermonkey:`;
+  document.getElementById('methodDetail').style.display = 'none';
+  document.getElementById('confirmInstallBtn').disabled = true;
+  document.getElementById('confirmInstallBtn').style.opacity = '.5';
+  document.getElementById('confirmInstallBtn').textContent = 'Pilih Metode';
+  
+  document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+  
+  document.getElementById('installModal').classList.add('show');
+}
+
+function selectMethod(method) {
+  selectedMethod = method;
+  
+  // Visual feedback
+  document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  
+  const detail = document.getElementById('methodDetail');
+  detail.style.display = 'block';
+  
+  if (method === 'direct') {
+    detail.innerHTML = `
+      <ol>
+        <li>Script akan <strong>auto-copy</strong> ke clipboard</li>
+        <li>Tab <strong>Tampermonkey Editor</strong> akan terbuka otomatis</li>
+        <li>Kamu tinggal <strong>Paste (Ctrl+V)</strong> di editor TM</li>
+        <li>Klik <strong>Save (Ctrl+S)</strong> di Tampermonkey</li>
+        <li>✅ Selesai! Script langsung aktif</li>
+      </ol>
+    `;
+    document.getElementById('confirmInstallBtn').textContent = '⚡ Direct Install';
+  } else {
+    detail.innerHTML = `
+      <ol>
+        <li>File <strong>.user.js</strong> akan ter-download</li>
+        <li>Tampermonkey akan <strong>auto-detect</strong> (jika diaktifkan)</li>
+        <li>Dialog install muncul → klik <strong>Install</strong></li>
+        <li>⚠️ Jika TM tidak detect, import manual via Utilities</li>
+      </ol>
+    `;
+    document.getElementById('confirmInstallBtn').textContent = '💾 Download .user.js';
+  }
+  
+  document.getElementById('confirmInstallBtn').disabled = false;
+  document.getElementById('confirmInstallBtn').style.opacity = '1';
 }
 
 function closeInstallModal() {
   document.getElementById('installModal').classList.remove('show');
   pendingInstallId = null;
+  selectedMethod = null;
+  isTempInstall = false;
+  tempScriptData = null;
+}
+
+function confirmInstall() {
+  if (!selectedMethod) return;
+  
+  let scriptObj;
+  if (isTempInstall && tempScriptData) {
+    scriptObj = tempScriptData;
+  } else {
+    scriptObj = scripts.find(x => x.id === pendingInstallId);
+  }
+  
+  if (!scriptObj) { toast('Script tidak ditemukan', 'error'); closeInstallModal(); return; }
+  
+  const code = buildUserScriptCode(scriptObj);
+  const scriptName = scriptObj.name || 'script';
+  
+  closeInstallModal();
+  
+  if (selectedMethod === 'direct') {
+    installDirect(code, scriptName);
+  } else {
+    installDownload(code, scriptName);
+  }
 }
 
 /**
- * Konfirmasi install — download file .user.js
+ * METHOD 1: Direct Open Tampermonkey Editor + Copy to Clipboard
  */
-function confirmInstall() {
-  if (!pendingInstallId) return;
-  const s = scripts.find(x => x.id === pendingInstallId);
-  if (!s) { toast('Script tidak ditemukan', 'error'); closeInstallModal(); return; }
-  
-  const code = buildUserScriptCode(s);
-  const filename = (s.name || 'script').replace(/[^a-z0-9]/gi, '_') + '.user.js';
-  
-  // Download file .user.js
+function installDirect(code, scriptName) {
+  navigator.clipboard.writeText(code).then(() => {
+    toast('✅ Script di-copy ke clipboard', 'success');
+    
+    // Buka Tampermonkey New Script Editor
+    const extId = getTMExtId();
+    const tmUrl = `chrome-extension://${extId}/options.html#nav=new-user-script+editor`;
+    
+    const newTab = window.open(tmUrl, '_blank');
+    
+    if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+      toast('Popup diblokir! Izinkan popup untuk situs ini', 'error');
+      return;
+    }
+    
+    // Tampilkan instruksi
+    setTimeout(() => {
+      showInstallSuccessBanner(scriptName, 'direct');
+    }, 500);
+    
+  }).catch(() => {
+    // Fallback: textarea copy
+    const ta = document.createElement('textarea');
+    ta.value = code;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      toast('✅ Script di-copy (fallback)', 'success');
+      const extId = getTMExtId();
+      window.open(`chrome-extension://${extId}/options.html#nav=new-user-script+editor`, '_blank');
+      setTimeout(() => showInstallSuccessBanner(scriptName, 'direct'), 500);
+    } catch(e) {
+      toast('Gagal copy script', 'error');
+    }
+    document.body.removeChild(ta);
+  });
+}
+
+/**
+ * METHOD 2: Download .user.js file
+ */
+function installDownload(code, scriptName) {
+  const filename = scriptName.replace(/[^a-z0-9]/gi, '_') + '.user.js';
   const blob = new Blob([code], { type: 'application/javascript' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -457,82 +613,16 @@ function confirmInstall() {
   document.body.appendChild(a);
   a.click();
   
-  // Cleanup
   setTimeout(() => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }, 1000);
   
-  closeInstallModal();
-  
-  // Tampilkan instruksi
-  toast('✅ File .user.js di-download. Lihat dialog Tampermonkey!', 'success');
-  
-  // Tampilkan banner instruksi di dashboard setelah 1 detik
-  setTimeout(() => {
-    showInstallSuccessBanner(s.name);
-  }, 1000);
+  toast('✅ File .user.js di-download', 'success');
+  setTimeout(() => showInstallSuccessBanner(scriptName, 'download'), 800);
 }
 
-/**
- * Install script yang sedang di-edit
- */
-function installCurrentToTM() {
-  const name = document.getElementById('scriptName').value.trim();
-  const desc = document.getElementById('scriptDesc').value.trim();
-  const code = document.getElementById('scriptCode').value;
-  
-  if (!name) { toast('Isi nama script dulu', 'error'); return; }
-  if (!code) { toast('Script code kosong', 'error'); return; }
-  
-  // Buat script object sementara (tidak perlu save ke cloud)
-  const tempScript = {
-    id: 'temp_' + Date.now(),
-    name: name,
-    desc: desc,
-    code: code
-  };
-  
-  // Tambahkan ke array sementara untuk modal
-  const tempIdx = scripts.length;
-  scripts.push(tempScript);
-  pendingInstallId = tempScript.id;
-  
-  document.getElementById('installModalDesc').innerHTML = 
-    `Script <strong style="color:var(--text)">${esc(name)}</strong> akan di-download sebagai file <code style="background:var(--bg-0);padding:2px 6px;border-radius:4px;color:var(--accent);border:1px solid var(--border)">.user.js</code>.`;
-  
-  document.getElementById('installModal').classList.add('show');
-  
-  // Override confirmInstall untuk handle temp script
-  const originalConfirm = window.confirmInstall;
-  window.confirmInstall = function() {
-    const code = buildUserScriptCode(tempScript);
-    const filename = (name).replace(/[^a-z0-9]/gi, '_') + '.user.js';
-    
-    const blob = new Blob([code], { type: 'application/javascript' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
-    
-    closeInstallModal();
-    window.confirmInstall = originalConfirm;
-    
-    // Hapus temp script dari array
-    scripts.splice(tempIdx, 1);
-    
-    toast('✅ File .user.js di-download', 'success');
-    setTimeout(() => showInstallSuccessBanner(name), 1000);
-  };
-}
-
-/**
- * Tampilkan banner sukses install dengan instruksi fallback
- */
-function showInstallSuccessBanner(scriptName) {
+function showInstallSuccessBanner(scriptName, method) {
   const banner = document.createElement('div');
   banner.className = 'info-banner success';
   banner.style.position = 'fixed';
@@ -540,39 +630,46 @@ function showInstallSuccessBanner(scriptName) {
   banner.style.left = '50%';
   banner.style.transform = 'translateX(-50%)';
   banner.style.zIndex = '250';
-  banner.style.maxWidth = '500px';
+  banner.style.maxWidth = '520px';
   banner.style.boxShadow = '0 10px 40px rgba(0,0,0,.5)';
-  banner.innerHTML = `
-    <h4>✅ File <code>${esc(scriptName)}.user.js</code> berhasil di-download!</h4>
-    <div style="margin-top:8px;font-size:12px;line-height:1.7">
-      <strong>Jika dialog Tampermonkey muncul:</strong> Klik "Install" di dialog tersebut.<br>
-      <strong>Jika tidak muncul:</strong> Buka Tampermonkey Dashboard → tab "Utilities" → scroll ke "Import from file" → pilih file yang baru di-download.
-    </div>
-    <div style="margin-top:10px;display:flex;gap:6px">
-      <button class="btn btn-ghost" style="padding:6px 12px;font-size:11px" onclick="openTMDashboard()">🐒 Buka Tampermonkey</button>
-      <button class="btn btn-ghost" style="padding:6px 12px;font-size:11px" onclick="this.parentElement.parentElement.remove()">✕ Tutup</button>
-    </div>
-  `;
-  document.body.appendChild(banner);
   
-  // Auto-hide setelah 15 detik
-  setTimeout(() => { if (banner.parentElement) banner.remove(); }, 15000);
+  if (method === 'direct') {
+    banner.innerHTML = `
+      <h4>✅ Tab Tampermonkey Editor Terbuka!</h4>
+      <div style="margin-top:8px;font-size:12px;line-height:1.7">
+        <strong>Langkah selanjutnya:</strong><br>
+        1. Pindah ke tab Tampermonkey yang baru terbuka<br>
+        2. <strong>Paste script</strong> dengan <kbd style="background:var(--bg-0);padding:2px 6px;border-radius:3px;border:1px solid var(--border)">Ctrl+V</kbd><br>
+        3. Klik tombol <strong>Save</strong> atau tekan <kbd style="background:var(--bg-0);padding:2px 6px;border-radius:3px;border:1px solid var(--border)">Ctrl+S</kbd><br>
+        4. ✅ Script aktif di browser!
+      </div>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-primary" style="padding:6px 12px;font-size:11px" onclick="navigator.clipboard.writeText(\`${codeForBanner(scriptName)}\`).then(()=>toast('Script di-copy ulang','success'))">📋 Copy Ulang</button>
+        <button class="btn btn-ghost" style="padding:6px 12px;font-size:11px" onclick="this.parentElement.parentElement.remove()">✕ Tutup</button>
+      </div>
+    `;
+  } else {
+    banner.innerHTML = `
+      <h4>✅ File <code>${esc(scriptName)}.user.js</code> berhasil di-download!</h4>
+      <div style="margin-top:8px;font-size:12px;line-height:1.7">
+        <strong>Jika dialog Tampermonkey muncul:</strong> Klik "Install".<br>
+        <strong>Jika tidak muncul:</strong> Buka Tampermonkey Dashboard → tab "Utilities" → "Import from file" → pilih file yang baru di-download.
+      </div>
+      <div style="margin-top:10px;display:flex;gap:6px">
+        <button class="btn btn-ghost" style="padding:6px 12px;font-size:11px" onclick="window.open('chrome-extension://${getTMExtId()}/options.html#nav=utilities','_blank')">🐒 Buka Utilities TM</button>
+        <button class="btn btn-ghost" style="padding:6px 12px;font-size:11px" onclick="this.parentElement.parentElement.remove()">✕ Tutup</button>
+      </div>
+    `;
+  }
+  
+  document.body.appendChild(banner);
+  setTimeout(() => { if (banner.parentElement) banner.remove(); }, 20000);
 }
 
-/**
- * Buka Tampermonkey Dashboard di tab baru
- */
-function openTMDashboard() {
-  // URL internal Tampermonkey dashboard
-  const urls = [
-    'chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html', // Chrome
-    'moz-extension://', // Firefox (butuh ID spesifik)
-    'extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html' // Edge
-  ];
-  
-  // Coba buka Chrome extension URL
-  window.open(urls[0], '_blank');
-  toast('Tab Tampermonkey dibuka. Import file .user.js dari tab Utilities.', 'info');
+function codeForBanner(scriptName) {
+  const s = scripts.find(x => x.name === scriptName);
+  if (!s) return '';
+  return buildUserScriptCode(s).replace(/`/g, '\\`').replace(/\$/g, '\\$');
 }
 
 /* ============================================ APP ============================================ */
@@ -582,6 +679,7 @@ function initApp() {
   document.getElementById('dispKey').textContent = MASTER_KEY.substring(0, 12) + '...';
   document.getElementById('vaultUrl').textContent = getVaultUrl();
   document.getElementById('navCount').textContent = scripts.length;
+  document.getElementById('tmExtId').value = getTMExtId();
 
   document.getElementById('urlBanner').innerHTML = `
     <div class="info-banner">
@@ -607,12 +705,10 @@ function initApp() {
     }
   });
   
-  // Close modal on overlay click
   document.getElementById('installModal').addEventListener('click', e => {
     if (e.target.id === 'installModal') closeInstallModal();
   });
   
-  // ESC to close modal
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeInstallModal();
   });
