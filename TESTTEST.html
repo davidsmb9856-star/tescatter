@@ -3,86 +3,546 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🐒 TM Script Manager Pro - Cloud Edition</title>
+<title>🐒 TM Manager Pro - Multi User</title>
 <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
 :root {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --accent: #00d4ff;
-    --accent-hover: #33ddff;
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --secondary: #ec4899;
+    --accent: #06b6d4;
     --success: #10b981;
     --danger: #ef4444;
     --warning: #f59e0b;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --border: rgba(255,255,255,0.1);
-    --shadow: 0 10px 40px rgba(0,0,0,0.3);
+    --bg-dark: #0a0e27;
+    --bg-card: rgba(255, 255, 255, 0.05);
+    --bg-glass: rgba(255, 255, 255, 0.08);
+    --border: rgba(255, 255, 255, 0.1);
+    --text: #f1f5f9;
+    --text-dim: #94a3b8;
+    --glow: 0 0 40px rgba(99, 102, 241, 0.3);
 }
-[data-theme="light"] {
-    --bg-primary: #f8fafc;
-    --bg-secondary: #ffffff;
-    --bg-tertiary: #e2e8f0;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --border: rgba(0,0,0,0.1);
-    --shadow: 0 10px 40px rgba(0,0,0,0.1);
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
+
 body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
-    transition: background 0.3s;
+    position: relative;
 }
-/* Top Bar */
-.topbar {
-    background: var(--bg-secondary);
+
+/* Animated Background */
+.bg-animation {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1040 50%, #0f172a 100%);
+}
+
+.bg-animation::before,
+.bg-animation::after {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.4;
+    animation: float 20s infinite ease-in-out;
+}
+
+.bg-animation::before {
+    background: radial-gradient(circle, #6366f1, transparent);
+    top: -200px;
+    left: -200px;
+}
+
+.bg-animation::after {
+    background: radial-gradient(circle, #ec4899, transparent);
+    bottom: -200px;
+    right: -200px;
+    animation-delay: -10s;
+}
+
+.bg-orb {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.3;
+    background: radial-gradient(circle, #06b6d4, transparent);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: float 25s infinite ease-in-out reverse;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(100px, -50px) scale(1.1); }
+    66% { transform: translate(-50px, 100px) scale(0.9); }
+}
+
+/* Grid pattern */
+.grid-pattern {
+    position: fixed;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Login Screen */
+.login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-container {
+    width: 100%;
+    max-width: 450px;
+}
+
+.login-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: var(--glow);
+    position: relative;
+    overflow: hidden;
+}
+
+.login-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+
+.login-logo {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.logo-icon {
+    font-size: 4em;
+    display: inline-block;
+    animation: bounce 2s infinite;
+    filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.5));
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.login-title {
+    font-size: 1.8em;
+    font-weight: 800;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-top: 10px;
+}
+
+.login-subtitle {
+    color: var(--text-dim);
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.login-tabs {
+    display: flex;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 25px;
+}
+
+.login-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+    color: var(--text-dim);
+}
+
+.login-tab.active {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 14px;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(0,0,0,0.4);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.btn {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    width: 100%;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.6);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+.user-list {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid var(--border);
+}
+
+.user-list-title {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.user-chip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+}
+
+.user-chip:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--primary);
+    transform: translateX(4px);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.user-chip-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-chip-name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.user-chip-meta {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* Main App */
+.app {
+    display: none;
+    min-height: 100vh;
+    animation: fadeIn 0.5s ease;
+}
+
+.app.show { display: flex; }
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+.sidebar-header {
+    padding: 20px;
     border-bottom: 1px solid var(--border);
-    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-logo {
+    font-size: 1.5em;
+    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.5));
+}
+
+.sidebar-title {
+    font-weight: 800;
+    font-size: 1.1em;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.sidebar-subtitle {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.profile-card {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.profile-card:hover { background: rgba(255,255,255,0.03); }
+
+.profile-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+.profile-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background: var(--success);
+    border: 2px solid var(--bg-dark);
+    border-radius: 50%;
+}
+
+.profile-info { flex: 1; min-width: 0; }
+.profile-name { font-weight: 600; font-size: 14px; }
+.profile-status { font-size: 11px; color: var(--success); }
+
+.nav-menu {
+    flex: 1;
+    padding: 15px 10px;
+    overflow-y: auto;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+    color: var(--text-dim);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.nav-item:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.2));
+    color: var(--text);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.nav-icon { font-size: 18px; }
+.nav-badge {
+    margin-left: auto;
+    background: var(--primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.sidebar-footer {
+    padding: 15px;
+    border-top: 1px solid var(--border);
+}
+
+.btn-logout {
+    width: 100%;
+    padding: 10px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--danger);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-logout:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: var(--danger);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.topbar {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 15px 25px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: sticky;
     top: 0;
-    z-index: 100;
-    backdrop-filter: blur(10px);
+    z-index: 50;
 }
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+
+.page-title {
     font-size: 1.3em;
     font-weight: 700;
-    color: var(--accent);
 }
-.logo-icon {
-    font-size: 1.5em;
-    animation: bounce 2s infinite;
-}
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-}
+
 .topbar-actions {
     display: flex;
     gap: 10px;
     align-items: center;
 }
+
 .search-box {
     position: relative;
 }
+
 .search-box input {
-    background: var(--bg-tertiary);
+    background: rgba(0,0,0,0.3);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 8px 15px 8px 35px;
-    color: var(--text-primary);
-    width: 250px;
+    border-radius: 10px;
+    padding: 9px 14px 9px 36px;
+    color: var(--text);
+    width: 260px;
     font-size: 13px;
+    transition: all 0.2s;
 }
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    width: 300px;
+}
+
 .search-box::before {
     content: '🔍';
     position: absolute;
@@ -91,705 +551,732 @@ body {
     transform: translateY(-50%);
     font-size: 12px;
 }
+
 .icon-btn {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
     width: 38px;
     height: 38px;
-    border-radius: 50%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 16px;
     transition: all 0.2s;
+    color: var(--text);
 }
+
 .icon-btn:hover {
-    background: var(--accent);
-    color: #000;
-    transform: scale(1.05);
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-2px);
 }
-/* Layout */
-.layout {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    height: calc(100vh - 63px);
-}
-@media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; }
-    .sidebar { display: none; position: fixed; top: 63px; left: 0; width: 100%; height: calc(100vh - 63px); z-index: 50; }
-    .sidebar.show { display: block; }
-}
-/* Sidebar */
-.sidebar {
-    background: var(--bg-secondary);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-.sidebar-header {
-    padding: 15px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-.sidebar-stats {
-    padding: 12px 15px;
-    background: var(--bg-tertiary);
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    border-bottom: 1px solid var(--border);
-}
-.stat-item {
-    text-align: center;
-}
-.stat-value {
-    font-size: 1.2em;
-    font-weight: 700;
-    color: var(--accent);
-}
-.stat-label {
-    font-size: 10px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.filter-bar {
-    padding: 10px 15px;
-    display: flex;
-    gap: 5px;
-    border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
-}
-.filter-chip {
-    padding: 4px 10px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    font-size: 11px;
-    cursor: pointer;
-    color: var(--text-secondary);
-    transition: all 0.2s;
-}
-.filter-chip.active {
-    background: var(--accent);
-    color: #000;
-    border-color: var(--accent);
-}
-.script-list {
+
+/* Content Area */
+.content-area {
     flex: 1;
     overflow-y: auto;
-    padding: 10px;
+    padding: 25px;
 }
-.script-item {
-    background: var(--bg-tertiary);
+
+/* Dashboard */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 8px;
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, var(--primary), transparent);
+    opacity: 0.1;
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+}
+
+.stat-icon {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 2em;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+
+/* Script Grid */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.section-title {
+    font-size: 1.2em;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.chip {
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
     cursor: pointer;
     transition: all 0.2s;
+    color: var(--text-dim);
+}
+
+.chip:hover { border-color: var(--primary); color: var(--text); }
+.chip.active {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border-color: transparent;
+}
+
+.script-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.script-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.3s;
     position: relative;
+    overflow: hidden;
 }
-.script-item:hover {
-    border-color: var(--accent);
-    transform: translateX(3px);
-}
-.script-item.active {
-    border-color: var(--accent);
-    background: rgba(0, 212, 255, 0.1);
-    box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
-}
-.script-item.pinned::before {
-    content: '📌';
+
+.script-card::before {
+    content: '';
     position: absolute;
-    top: 8px;
-    right: 8px;
-    font-size: 12px;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
 }
-.script-item.disabled {
-    opacity: 0.5;
+
+.script-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
 }
-.script-name {
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 4px;
+
+.script-card:hover::before { transform: scaleX(1); }
+
+.script-card.pinned {
+    border-color: var(--warning);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), transparent);
+}
+
+.script-card.disabled { opacity: 0.5; }
+
+.script-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 10px;
+}
+
+.script-card-title {
+    font-weight: 700;
+    font-size: 15px;
     display: flex;
     align-items: center;
     gap: 6px;
+    flex: 1;
+    min-width: 0;
 }
-.script-desc {
-    font-size: 11px;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
+
+.script-card-title span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.script-meta {
-    display: flex;
-    gap: 8px;
-    font-size: 10px;
-    color: var(--text-secondary);
-    flex-wrap: wrap;
+
+.script-pin {
+    font-size: 14px;
+    flex-shrink: 0;
 }
-.tag {
-    padding: 2px 6px;
-    background: rgba(0, 212, 255, 0.2);
-    color: var(--accent);
-    border-radius: 4px;
-    font-size: 10px;
-}
-.tag.success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
-.tag.warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
-.tag.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-/* Main Content */
-.main {
-    display: flex;
-    flex-direction: column;
+
+.script-card-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
+    min-height: 36px;
 }
-.editor-toolbar {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-    padding: 10px 20px;
+
+.script-card-meta {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
-    align-items: center;
+    margin-bottom: 12px;
 }
-.btn {
-    padding: 8px 14px;
+
+.script-tag {
+    padding: 3px 8px;
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.script-tag.success { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+.script-tag.warning { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+.script-tag.danger { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+
+.script-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.script-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.script-action-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(0,0,0,0.3);
     border: 1px solid var(--border);
     border-radius: 6px;
     cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    transition: all 0.2s;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 5px;
-}
-.btn:hover { transform: translateY(-1px); }
-.btn-primary { background: var(--accent); color: #000; border-color: var(--accent); }
-.btn-primary:hover { background: var(--accent-hover); }
-.btn-success { background: var(--success); color: #fff; border-color: var(--success); }
-.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
-.btn-warning { background: var(--warning); color: #000; border-color: var(--warning); }
-.btn-ghost { background: transparent; }
-.btn-ghost:hover { background: var(--bg-tertiary); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
-.toolbar-divider {
-    width: 1px;
-    height: 24px;
-    background: var(--border);
-    margin: 0 4px;
-}
-.editor-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-}
-.form-group {
-    margin-bottom: 15px;
-}
-.form-group label {
-    display: block;
-    margin-bottom: 6px;
+    justify-content: center;
     font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    transition: all 0.2s;
 }
-.form-group input, .form-group textarea, .form-group select {
-    width: 100%;
-    padding: 10px 12px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text-primary);
+
+.script-action-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.script-action-btn.danger:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--bg-glass);
+    border: 2px dashed var(--border);
+    border-radius: 20px;
+}
+
+.empty-icon {
+    font-size: 4em;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.empty-title {
+    font-size: 1.3em;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.empty-desc {
+    color: var(--text-dim);
     font-size: 14px;
-    font-family: inherit;
-    transition: border-color 0.2s;
+    margin-bottom: 20px;
 }
-.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+
+/* Editor Page */
+.editor-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
 }
+
+.editor-form {
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 25px;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
 }
+
 @media (max-width: 700px) {
     .form-row { grid-template-columns: 1fr; }
+    .sidebar { 
+        position: fixed;
+        left: -280px;
+        transition: left 0.3s;
+        z-index: 100;
+    }
+    .sidebar.show { left: 0; }
+    .search-box input { width: 150px; }
+    .search-box input:focus { width: 200px; }
 }
+
 .code-editor-wrapper {
-    position: relative;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
     background: #0d1117;
 }
+
 .code-editor-header {
     background: #161b22;
-    padding: 8px 12px;
+    padding: 10px 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 11px;
+    font-size: 12px;
     color: #8b949e;
     border-bottom: 1px solid #30363d;
 }
+
 .code-editor {
     width: 100%;
-    min-height: 400px;
+    min-height: 450px;
     padding: 15px;
     background: #0d1117;
     color: #e6edf3;
     border: none;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
     font-size: 13px;
     line-height: 1.6;
     resize: vertical;
     tab-size: 2;
 }
+
 .code-editor:focus { outline: none; }
+
 .editor-footer {
     background: #161b22;
-    padding: 6px 12px;
+    padding: 8px 15px;
     display: flex;
     justify-content: space-between;
     font-size: 11px;
     color: #8b949e;
     border-top: 1px solid #30363d;
 }
+
 /* Modal */
 .modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(5px);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    backdrop-filter: blur(5px);
+    padding: 20px;
 }
-.modal-overlay.show { display: flex; }
+
+.modal-overlay.show { display: flex; animation: fadeIn 0.2s; }
+
 .modal {
-    background: var(--bg-secondary);
+    background: var(--bg-dark);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 25px;
+    border-radius: 20px;
+    padding: 30px;
     max-width: 500px;
-    width: 90%;
+    width: 100%;
     max-height: 85vh;
     overflow-y: auto;
-    box-shadow: var(--shadow);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: modalIn 0.3s;
 }
+
+@keyframes modalIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
 .modal h3 {
-    color: var(--accent);
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    font-size: 1.3em;
 }
+
 .modal-actions {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
     margin-top: 20px;
+    flex-wrap: wrap;
 }
+
+.btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover { background: rgba(255,255,255,0.15); }
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover { background: #dc2626; }
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
 /* Toast */
 .toast-container {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
     right: 20px;
     z-index: 2000;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
+
 .toast {
-    background: var(--bg-secondary);
+    background: var(--bg-dark);
     border: 1px solid var(--border);
-    border-left: 4px solid var(--accent);
-    padding: 12px 18px;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
+    border-left: 4px solid var(--primary);
+    padding: 14px 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     min-width: 280px;
-    animation: slideIn 0.3s ease;
+    animation: toastIn 0.3s;
     display: flex;
     align-items: center;
     gap: 10px;
+    backdrop-filter: blur(10px);
 }
+
 .toast.success { border-left-color: var(--success); }
 .toast.error { border-left-color: var(--danger); }
 .toast.warning { border-left-color: var(--warning); }
-@keyframes slideIn {
+
+@keyframes toastIn {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 50px 20px;
-    color: var(--text-secondary);
-}
-.empty-state-icon {
-    font-size: 4em;
-    margin-bottom: 15px;
-    opacity: 0.3;
-}
+
 /* Loading */
-.loading {
+.loading-spinner {
     display: inline-block;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border: 2px solid var(--border);
-    border-top-color: var(--accent);
+    border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
+
 @keyframes spin { to { transform: rotate(360deg); } }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-/* Security Warning Banner */
-.security-banner {
-    background: linear-gradient(135deg, #dc2626, #991b1b);
-    color: #fff;
-    padding: 10px 20px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 600;
-}
-.security-banner strong { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; }
-/* Template Cards */
-.template-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-    margin-top: 10px;
-}
-.template-card {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.template-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
-}
-.template-card h4 {
-    color: var(--accent);
-    font-size: 13px;
-    margin-bottom: 5px;
-}
-.template-card p {
-    font-size: 11px;
-    color: var(--text-secondary);
-}
-/* Context Menu */
-.context-menu {
-    position: fixed;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 5px;
-    box-shadow: var(--shadow);
-    z-index: 500;
-    min-width: 180px;
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* Mobile menu button */
+.mobile-menu-btn {
     display: none;
 }
-.context-menu.show { display: block; }
-.context-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+
+@media (max-width: 900px) {
+    .mobile-menu-btn { display: flex; }
 }
-.context-item:hover { background: var(--bg-tertiary); }
-.context-divider { height: 1px; background: var(--border); margin: 4px 0; }
-/* Shortcuts */
-.shortcut-list {
-    display: grid;
-    gap: 8px;
-}
-.shortcut-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: var(--bg-tertiary);
-    border-radius: 6px;
-    font-size: 13px;
-}
-.kbd {
-    background: #000;
-    color: #fff;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 11px;
-    border: 1px solid #333;
-}
+
+.hidden { display: none !important; }
+
+/* Avatar colors */
+.avatar-1 { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.avatar-2 { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+.avatar-3 { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+.avatar-4 { background: linear-gradient(135deg, #10b981, #059669); }
+.avatar-5 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.avatar-6 { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.avatar-7 { background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+.avatar-8 { background: linear-gradient(135deg, #14b8a6, #0d9488); }
 </style>
 </head>
 <body>
 
-<!-- Security Warning -->
-<div class="security-banner">
-    ⚠️ PERINGATAN: API Key tertanam di file ini. <strong>JANGAN SHARE FILE INI</strong> ke siapapun! Gunakan hanya secara lokal.
+<div class="bg-animation">
+    <div class="bg-orb"></div>
 </div>
+<div class="grid-pattern"></div>
 
-<!-- Top Bar -->
-<div class="topbar">
-    <div class="logo">
-        <span class="logo-icon">🐒</span>
-        <span>TM Manager <small style="font-size:10px;opacity:0.6">PRO</small></span>
-    </div>
-    <div class="topbar-actions">
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Cari script..." oninput="filterScripts()">
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="logo-icon">🐒</div>
+                <div class="login-title">TM Manager Pro</div>
+                <div class="login-subtitle">Multi-User Cloud Script Manager</div>
+            </div>
+
+            <div class="login-tabs">
+                <div class="login-tab active" onclick="switchTab('login')">🔐 Login</div>
+                <div class="login-tab" onclick="switchTab('register')">✨ Register</div>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="loginUsername" placeholder="Masukkan username" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">PIN (4-6 digit)</label>
+                    <input type="password" class="form-input" id="loginPin" placeholder="••••" maxlength="6" inputmode="numeric">
+                </div>
+                <button class="btn btn-primary" onclick="doLogin()">🚀 Masuk</button>
+
+                <div class="user-list" id="userList"></div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="regUsername" placeholder="Pilih username unik" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Display Name</label>
+                    <input type="text" class="form-input" id="regDisplayName" placeholder="Nama tampilan Anda">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">PIN (4-6 digit)</label>
+                    <input type="password" class="form-input" id="regPin" placeholder="Buat PIN" maxlength="6" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Konfirmasi PIN</label>
+                    <input type="password" class="form-input" id="regPinConfirm" placeholder="Ulangi PIN" maxlength="6" inputmode="numeric">
+                </div>
+                <button class="btn btn-primary" onclick="doRegister()">✨ Daftar Sekarang</button>
+            </div>
         </div>
-        <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar">☰</button>
-        <button class="icon-btn" onclick="toggleTheme()" title="Theme" id="themeBtn">🌙</button>
-        <button class="icon-btn" onclick="showShortcuts()" title="Shortcuts">⌨️</button>
-        <button class="icon-btn" onclick="showSettings()" title="Settings">⚙️</button>
-        <button class="icon-btn" onclick="showAbout()" title="About">ℹ️</button>
     </div>
 </div>
 
-<!-- Main Layout -->
-<div class="layout">
+<!-- MAIN APP -->
+<div class="app" id="mainApp">
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <button class="btn btn-success" style="flex:1" onclick="newScript()">➕ Baru</button>
-            <button class="btn btn-primary" onclick="showTemplates()" title="Templates">📋</button>
-        </div>
-        
-        <div class="sidebar-stats">
-            <div class="stat-item">
-                <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-label">Total</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="statActive">0</div>
-                <div class="stat-label">Aktif</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="statSize">0 KB</div>
-                <div class="stat-label">Ukuran</div>
+            <span class="sidebar-logo">🐒</span>
+            <div>
+                <div class="sidebar-title">TM Manager</div>
+                <div class="sidebar-subtitle">PRO EDITION</div>
             </div>
         </div>
 
-        <div class="filter-bar">
-            <div class="filter-chip active" data-filter="all" onclick="setFilter('all')">Semua</div>
-            <div class="filter-chip" data-filter="active" onclick="setFilter('active')">✅ Aktif</div>
-            <div class="filter-chip" data-filter="disabled" onclick="setFilter('disabled')">⛔ Nonaktif</div>
-            <div class="filter-chip" data-filter="pinned" onclick="setFilter('pinned')">📌 Pinned</div>
+        <div class="profile-card" onclick="showProfile()">
+            <div class="profile-avatar" id="profileAvatar">U</div>
+            <div class="profile-info">
+                <div class="profile-name" id="profileName">User</div>
+                <div class="profile-status">● Online</div>
+            </div>
+            <span style="color:var(--text-dim)">⚙️</span>
         </div>
 
-        <div class="script-list" id="scriptList">
-            <div class="empty-state">
-                <div class="empty-state-icon">📭</div>
-                <p>Belum ada script</p>
+        <nav class="nav-menu">
+            <div class="nav-item active" onclick="navigate('dashboard')" data-page="dashboard">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="navigate('scripts')" data-page="scripts">
+                <span class="nav-icon">📜</span>
+                <span>My Scripts</span>
+                <span class="nav-badge" id="navScriptCount">0</span>
+            </div>
+            <div class="nav-item" onclick="navigate('templates')" data-page="templates">
+                <span class="nav-icon">📋</span>
+                <span>Templates</span>
+            </div>
+            <div class="nav-item" onclick="navigate('settings')" data-page="settings">
+                <span class="nav-icon">⚙️</span>
+                <span>Settings</span>
+            </div>
+            <div class="nav-item" onclick="showAbout()">
+                <span class="nav-icon">ℹ️</span>
+                <span>About</span>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="btn-logout" onclick="doLogout()">
+                <span>🚪</span>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <div class="topbar">
+            <div style="display:flex;align-items:center;gap:12px">
+                <button class="icon-btn mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                <div class="page-title" id="pageTitle">📊 Dashboard</div>
+            </div>
+            <div class="topbar-actions">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Cari script..." oninput="filterScripts()">
+                </div>
+                <button class="icon-btn" onclick="showShortcuts()" title="Shortcuts">⌨️</button>
             </div>
         </div>
-    </div>
 
-    <!-- Main Editor -->
-    <div class="main">
-        <div class="editor-toolbar">
-            <button class="btn btn-success" onclick="saveScript()">💾 Simpan</button>
-            <button class="btn btn-primary" onclick="saveAndTest()">🧪 Test</button>
-            <div class="toolbar-divider"></div>
-            <button class="btn btn-ghost" onclick="copyScript()" title="Copy">📋</button>
-            <button class="btn btn-ghost" onclick="exportScript()" title="Export">📥</button>
-            <button class="btn btn-ghost" onclick="importScript()" title="Import">📤</button>
-            <button class="btn btn-ghost" onclick="shareScript()" title="Share">🔗</button>
-            <div class="toolbar-divider"></div>
-            <button class="btn btn-ghost" onclick="togglePin()" id="pinBtn" title="Pin">📌</button>
-            <button class="btn btn-ghost" onclick="toggleEnabled()" id="enableBtn" title="Enable/Disable">✅</button>
-            <button class="btn btn-ghost" onclick="duplicateScript()" title="Duplicate">📑</button>
-            <button class="btn btn-ghost" onclick="showHistory()" title="History">📜</button>
-            <div class="toolbar-divider"></div>
-            <button class="btn btn-ghost" onclick="backupAll()" title="Backup All">💿</button>
-            <button class="btn btn-ghost" onclick="restoreAll()" title="Restore">♻️</button>
-            <div class="toolbar-divider"></div>
-            <button class="btn btn-danger" onclick="deleteScript()" title="Delete">🗑️</button>
+        <div class="content-area" id="contentArea">
+            <!-- Dynamic content -->
         </div>
+    </main>
+</div>
 
-        <div class="editor-content">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>📝 Nama Script</label>
-                    <input type="text" id="scriptName" placeholder="Contoh: Auto Click Bot">
-                </div>
-                <div class="form-group">
-                    <label>🏷️ Kategori</label>
-                    <select id="scriptCategory">
-                        <option value="general">📦 General</option>
-                        <option value="automation">🤖 Automation</option>
-                        <option value="ui">🎨 UI Enhancement</option>
-                        <option value="scraper">🕷️ Scraper</option>
-                        <option value="game">🎮 Game</option>
-                        <option value="social">💬 Social Media</option>
-                        <option value="shopping">🛒 Shopping</option>
-                        <option value="productivity">⚡ Productivity</option>
-                        <option value="other">📁 Other</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>📄 Deskripsi</label>
-                <input type="text" id="scriptDesc" placeholder="Deskripsi singkat tentang script ini">
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>🌐 Match Pattern</label>
-                    <input type="text" id="scriptMatch" placeholder="https://example.com/*">
-                </div>
-                <div class="form-group">
-                    <label>👤 Author</label>
-                    <input type="text" id="scriptAuthor" placeholder="Nama Anda">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>🔢 Version</label>
-                    <input type="text" id="scriptVersion" placeholder="1.0" value="1.0">
-                </div>
-                <div class="form-group">
-                    <label>🎯 Priority</label>
-                    <select id="scriptPriority">
-                        <option value="normal">Normal</option>
-                        <option value="high">High</option>
-                        <option value="low">Low</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>💻 Script Code</label>
-                <div class="code-editor-wrapper">
-                    <div class="code-editor-header">
-                        <span>📜 JavaScript</span>
-                        <span id="editorStatus">Ready</span>
-                    </div>
-                    <textarea class="code-editor" id="scriptCode" placeholder="// ==UserScript==
-// @name         My Script
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Description here
-// @author       You
-// @match        https://example.com/*
-// @grant        none
-// ==/UserScript==
-
-(function() {
-    'use strict';
-    // Your code here...
-})();"></textarea>
-                    <div class="editor-footer">
-                        <span>Lines: <strong id="lineCount">0</strong> | Chars: <strong id="charCount">0</strong></span>
-                        <span id="lastSaved">Belum disimpan</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>🏷️ Tags (pisahkan dengan koma)</label>
-                <input type="text" id="scriptTags" placeholder="bot, automation, utility">
-            </div>
-        </div>
-    </div>
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal" id="modalContent"></div>
 </div>
 
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Context Menu -->
-<div class="context-menu" id="contextMenu">
-    <div class="context-item" onclick="contextAction('edit')">✏️ Edit</div>
-    <div class="context-item" onclick="contextAction('duplicate')">📑 Duplikat</div>
-    <div class="context-item" onclick="contextAction('pin')">📌 Pin/Unpin</div>
-    <div class="context-item" onclick="contextAction('toggle')">✅ Enable/Disable</div>
-    <div class="context-divider"></div>
-    <div class="context-item" onclick="contextAction('export')">📥 Export</div>
-    <div class="context-item" onclick="contextAction('copy')">📋 Copy Code</div>
-    <div class="context-divider"></div>
-    <div class="context-item" onclick="contextAction('delete')" style="color:var(--danger)">🗑️ Hapus</div>
-</div>
-
-<!-- Modals -->
-<div class="modal-overlay" id="modalOverlay">
-    <div class="modal" id="modalContent"></div>
-</div>
-
-<!-- Hidden file input -->
+<!-- Hidden Inputs -->
 <input type="file" id="fileInput" accept=".js,.txt,.user.js" style="display:none">
 <input type="file" id="backupInput" accept=".json" style="display:none">
 
 <script>
 // ============================================
-// KONFIGURASI - API KEY TERTANAM
+// KONFIGURASI
 // ============================================
 const CONFIG = {
     API_KEY: '$2a$10$G1wQvXgxfGvzuKP/loOtleElR8x6Pcu.rR2V6gKRGQzsFgLdDn7qq',
-    BIN_ID_KEY: 'tm_bin_id_v2',
-    THEME_KEY: 'tm_theme',
+    BIN_ID_KEY: 'tm_bin_id_v3',
+    SESSION_KEY: 'tm_session_v3',
     BASE_URL: 'https://api.jsonbin.io/v3/b'
 };
 
 // ============================================
-// STATE MANAGEMENT
+// STATE
 // ============================================
 let state = {
     binId: localStorage.getItem(CONFIG.BIN_ID_KEY) || '',
-    scripts: [],
-    currentId: null,
+    data: { users: {} },
+    currentUser: null,
+    currentPage: 'dashboard',
+    currentScriptId: null,
     filter: 'all',
-    contextScriptId: null,
-    autoSaveTimer: null,
-    history: []
+    searchQuery: ''
 };
 
 // ============================================
-// INITIALIZATION
+// INIT
 // ============================================
 window.addEventListener('DOMContentLoaded', async () => {
-    loadTheme();
-    setupEditorEvents();
-    setupKeyboardShortcuts();
-    setupContextMenu();
+    // Check session
+    const session = localStorage.getItem(CONFIG.SESSION_KEY);
     
-    if (CONFIG.BIN_ID_KEY && localStorage.getItem(CONFIG.BIN_ID_KEY)) {
-        state.binId = localStorage.getItem(CONFIG.BIN_ID_KEY);
-        await loadScripts();
-    } else {
+    // Init cloud
+    if (!state.binId) {
         await createNewBin();
+    } else {
+        await loadData();
     }
+    
+    // Auto-login if session exists
+    if (session) {
+        try {
+            const s = JSON.parse(session);
+            if (state.data.users[s.username]) {
+                state.currentUser = s.username;
+                showApp();
+                return;
+            }
+        } catch(e) {}
+    }
+    
+    showLogin();
+    renderUserList();
 });
 
 // ============================================
@@ -797,7 +1284,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 // ============================================
 async function createNewBin() {
     try {
-        showToast('Membuat storage baru...', 'info');
+        showToast('Membuat cloud storage...', 'info');
         const res = await fetch(CONFIG.BASE_URL, {
             method: 'POST',
             headers: {
@@ -805,11 +1292,11 @@ async function createNewBin() {
                 'X-Master-Key': CONFIG.API_KEY
             },
             body: JSON.stringify({
-                scripts: [],
+                users: {},
                 metadata: {
                     created: new Date().toISOString(),
-                    version: '2.0',
-                    app: 'TM Manager Pro'
+                    version: '3.0',
+                    app: 'TM Manager Pro Multi-User'
                 }
             })
         });
@@ -818,9 +1305,8 @@ async function createNewBin() {
             const data = await res.json();
             state.binId = data.metadata.id;
             localStorage.setItem(CONFIG.BIN_ID_KEY, state.binId);
-            state.scripts = [];
-            renderScriptList();
-            showToast('✅ Storage cloud berhasil dibuat!', 'success');
+            state.data = { users: {} };
+            showToast('✅ Cloud storage siap!', 'success');
             return true;
         }
         throw new Error('Gagal membuat bin');
@@ -830,7 +1316,7 @@ async function createNewBin() {
     }
 }
 
-async function loadScripts() {
+async function loadData() {
     if (!state.binId) return false;
     try {
         const res = await fetch(`${CONFIG.BASE_URL}/${state.binId}/latest`, {
@@ -839,9 +1325,8 @@ async function loadScripts() {
         
         if (res.ok) {
             const data = await res.json();
-            state.scripts = data.record.scripts || [];
-            renderScriptList();
-            updateStats();
+            state.data = data.record || { users: {} };
+            if (!state.data.users) state.data.users = {};
             return true;
         }
         throw new Error('Gagal load');
@@ -851,7 +1336,7 @@ async function loadScripts() {
     }
 }
 
-async function saveToCloud() {
+async function saveData() {
     if (!state.binId) return false;
     try {
         const res = await fetch(`${CONFIG.BASE_URL}/${state.binId}`, {
@@ -861,18 +1346,16 @@ async function saveToCloud() {
                 'X-Master-Key': CONFIG.API_KEY
             },
             body: JSON.stringify({
-                scripts: state.scripts,
+                users: state.data.users,
                 metadata: {
                     updated: new Date().toISOString(),
-                    version: '2.0',
-                    app: 'TM Manager Pro'
+                    version: '3.0',
+                    app: 'TM Manager Pro Multi-User'
                 }
             })
         });
         
-        if (res.ok) {
-            return true;
-        }
+        if (res.ok) return true;
         throw new Error('Gagal save');
     } catch (e) {
         showToast('❌ Gagal save: ' + e.message, 'error');
@@ -881,80 +1364,782 @@ async function saveToCloud() {
 }
 
 // ============================================
+// AUTH
+// ============================================
+function switchTab(tab) {
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    if (tab === 'login') {
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+    } else {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('registerForm').classList.remove('hidden');
+    }
+}
+
+function hashPin(pin) {
+    // Simple hash (not secure, but enough for client-side)
+    let hash = 0;
+    for (let i = 0; i < pin.length; i++) {
+        const char = pin.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return 'h_' + Math.abs(hash).toString(36);
+}
+
+async function doRegister() {
+    const username = document.getElementById('regUsername').value.trim().toLowerCase();
+    const displayName = document.getElementById('regDisplayName').value.trim();
+    const pin = document.getElementById('regPin').value;
+    const pinConfirm = document.getElementById('regPinConfirm').value;
+    
+    if (!username || username.length < 3) {
+        showToast('❌ Username minimal 3 karakter!', 'error');
+        return;
+    }
+    if (!/^[a-z0-9_]+$/.test(username)) {
+        showToast('❌ Username hanya boleh a-z, 0-9, _', 'error');
+        return;
+    }
+    if (!displayName) {
+        showToast('❌ Display name wajib diisi!', 'error');
+        return;
+    }
+    if (pin.length < 4 || pin.length > 6 || !/^\d+$/.test(pin)) {
+        showToast('❌ PIN harus 4-6 digit angka!', 'error');
+        return;
+    }
+    if (pin !== pinConfirm) {
+        showToast('❌ PIN tidak cocok!', 'error');
+        return;
+    }
+    if (state.data.users[username]) {
+        showToast('❌ Username sudah dipakai!', 'error');
+        return;
+    }
+    
+    // Create user
+    state.data.users[username] = {
+        username: username,
+        displayName: displayName,
+        pinHash: hashPin(pin),
+        avatarColor: (Object.keys(state.data.users).length % 8) + 1,
+        created: new Date().toISOString(),
+        scripts: []
+    };
+    
+    const success = await saveData();
+    if (success) {
+        showToast('✅ Registrasi berhasil! Silakan login.', 'success');
+        state.currentUser = username;
+        localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify({ username }));
+        renderUserList();
+        showApp();
+    }
+}
+
+async function doLogin() {
+    const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+    const pin = document.getElementById('loginPin').value;
+    
+    if (!username || !pin) {
+        showToast('❌ Username dan PIN wajib diisi!', 'error');
+        return;
+    }
+    
+    const user = state.data.users[username];
+    if (!user) {
+        showToast('❌ Username tidak ditemukan!', 'error');
+        return;
+    }
+    
+    if (user.pinHash !== hashPin(pin)) {
+        showToast('❌ PIN salah!', 'error');
+        return;
+    }
+    
+    state.currentUser = username;
+    localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify({ username }));
+    showToast(`👋 Selamat datang, ${user.displayName}!`, 'success');
+    showApp();
+}
+
+function doLogout() {
+    if (!confirm('Yakin ingin logout?')) return;
+    state.currentUser = null;
+    state.currentScriptId = null;
+    localStorage.removeItem(CONFIG.SESSION_KEY);
+    showLogin();
+    renderUserList();
+    showToast('👋 Sampai jumpa!', 'info');
+}
+
+function quickLogin(username) {
+    document.getElementById('loginUsername').value = username;
+    document.getElementById('loginPin').focus();
+}
+
+function renderUserList() {
+    const container = document.getElementById('userList');
+    const users = Object.values(state.data.users);
+    
+    if (users.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="user-list-title">👥 Akun Terdaftar (${users.length})</div>
+        ${users.map(u => `
+            <div class="user-chip" onclick="quickLogin('${u.username}')">
+                <div class="user-avatar avatar-${u.avatarColor}">${u.displayName.charAt(0).toUpperCase()}</div>
+                <div class="user-chip-info">
+                    <div class="user-chip-name">${escapeHtml(u.displayName)}</div>
+                    <div class="user-chip-meta">@${u.username} • ${(u.scripts || []).length} script</div>
+                </div>
+                <span style="color:var(--text-dim)">→</span>
+            </div>
+        `).join('')}
+    `;
+}
+
+// ============================================
+// UI NAVIGATION
+// ============================================
+function showLogin() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainApp').classList.remove('show');
+}
+
+function showApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').classList.add('show');
+    
+    const user = state.data.users[state.currentUser];
+    document.getElementById('profileName').textContent = user.displayName;
+    const avatar = document.getElementById('profileAvatar');
+    avatar.textContent = user.displayName.charAt(0).toUpperCase();
+    avatar.className = `profile-avatar avatar-${user.avatarColor}`;
+    
+    updateNavBadge();
+    navigate('dashboard');
+}
+
+function navigate(page) {
+    state.currentPage = page;
+    state.currentScriptId = null;
+    
+    document.querySelectorAll('.nav-item').forEach(n => {
+        n.classList.toggle('active', n.dataset.page === page);
+    });
+    
+    const titles = {
+        dashboard: '📊 Dashboard',
+        scripts: '📜 My Scripts',
+        templates: '📋 Templates',
+        settings: '⚙️ Settings',
+        editor: '✏️ Script Editor'
+    };
+    document.getElementById('pageTitle').textContent = titles[page] || '📊 Dashboard';
+    
+    // Close mobile sidebar
+    document.getElementById('sidebar').classList.remove('show');
+    
+    renderPage();
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('show');
+}
+
+function updateNavBadge() {
+    const user = state.data.users[state.currentUser];
+    document.getElementById('navScriptCount').textContent = (user.scripts || []).length;
+}
+
+// ============================================
+// PAGE RENDERING
+// ============================================
+function renderPage() {
+    const area = document.getElementById('contentArea');
+    
+    switch(state.currentPage) {
+        case 'dashboard': renderDashboard(area); break;
+        case 'scripts': renderScripts(area); break;
+        case 'templates': renderTemplates(area); break;
+        case 'settings': renderSettings(area); break;
+        case 'editor': renderEditor(area); break;
+    }
+}
+
+function renderDashboard(area) {
+    const user = state.data.users[state.currentUser];
+    const scripts = user.scripts || [];
+    const totalSize = scripts.reduce((sum, s) => sum + (s.code || '').length, 0);
+    const activeCount = scripts.filter(s => s.enabled).length;
+    const pinnedCount = scripts.filter(s => s.pinned).length;
+    
+    const recent = [...scripts].sort((a, b) => 
+        new Date(b.updated) - new Date(a.updated)
+    ).slice(0, 5);
+    
+    area.innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📜</div>
+                <div class="stat-value">${scripts.length}</div>
+                <div class="stat-label">Total Scripts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value">${activeCount}</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📌</div>
+                <div class="stat-value">${pinnedCount}</div>
+                <div class="stat-label">Pinned</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💾</div>
+                <div class="stat-value">${formatSize(totalSize)}</div>
+                <div class="stat-label">Total Size</div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <div class="section-title">⚡ Quick Actions</div>
+        </div>
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))">
+            <div class="stat-card" style="cursor:pointer" onclick="newScript()">
+                <div class="stat-icon">➕</div>
+                <div style="font-weight:600;margin-top:5px">New Script</div>
+            </div>
+            <div class="stat-card" style="cursor:pointer" onclick="importScript()">
+                <div class="stat-icon">📤</div>
+                <div style="font-weight:600;margin-top:5px">Import</div>
+            </div>
+            <div class="stat-card" style="cursor:pointer" onclick="backupAll()">
+                <div class="stat-icon">💿</div>
+                <div style="font-weight:600;margin-top:5px">Backup</div>
+            </div>
+            <div class="stat-card" style="cursor:pointer" onclick="navigate('templates')">
+                <div class="stat-icon">📋</div>
+                <div style="font-weight:600;margin-top:5px">Templates</div>
+            </div>
+        </div>
+
+        <div class="section-header" style="margin-top:30px">
+            <div class="section-title">🕐 Recent Scripts</div>
+            <button class="btn btn-secondary" style="padding:8px 14px;font-size:12px" onclick="navigate('scripts')">
+                Lihat Semua →
+            </button>
+        </div>
+        ${recent.length === 0 ? `
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <div class="empty-title">Belum ada script</div>
+                <div class="empty-desc">Mulai buat script pertamamu!</div>
+                <button class="btn btn-primary" style="width:auto;padding:10px 20px" onclick="newScript()">➕ Buat Script</button>
+            </div>
+        ` : `
+            <div class="script-grid">
+                ${recent.map(s => renderScriptCard(s)).join('')}
+            </div>
+        `}
+    `;
+}
+
+function renderScripts(area) {
+    const user = state.data.users[state.currentUser];
+    let scripts = user.scripts || [];
+    
+    // Apply filter
+    if (state.filter === 'active') scripts = scripts.filter(s => s.enabled);
+    else if (state.filter === 'disabled') scripts = scripts.filter(s => !s.enabled);
+    else if (state.filter === 'pinned') scripts = scripts.filter(s => s.pinned);
+    
+    // Apply search
+    if (state.searchQuery) {
+        const q = state.searchQuery.toLowerCase();
+        scripts = scripts.filter(s => 
+            s.name.toLowerCase().includes(q) ||
+            (s.desc || '').toLowerCase().includes(q) ||
+            (s.tags || []).some(t => t.toLowerCase().includes(q))
+        );
+    }
+    
+    // Sort: pinned first, then by updated
+    scripts.sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return new Date(b.updated) - new Date(a.updated);
+    });
+    
+    area.innerHTML = `
+        <div class="section-header">
+            <div class="section-title">
+                📜 My Scripts
+                <span class="script-tag">${scripts.length}</span>
+            </div>
+            <div class="filter-chips">
+                <div class="chip ${state.filter==='all'?'active':''}" onclick="setFilter('all')">Semua</div>
+                <div class="chip ${state.filter==='active'?'active':''}" onclick="setFilter('active')">✅ Aktif</div>
+                <div class="chip ${state.filter==='disabled'?'active':''}" onclick="setFilter('disabled')">⛔ Nonaktif</div>
+                <div class="chip ${state.filter==='pinned'?'active':''}" onclick="setFilter('pinned')">📌 Pinned</div>
+            </div>
+        </div>
+
+        ${scripts.length === 0 ? `
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <div class="empty-title">${state.searchQuery || state.filter !== 'all' ? 'Tidak ada hasil' : 'Belum ada script'}</div>
+                <div class="empty-desc">${state.searchQuery || state.filter !== 'all' ? 'Coba kata kunci lain' : 'Klik tombol di bawah untuk mulai!'}</div>
+                ${!state.searchQuery && state.filter === 'all' ? `
+                    <button class="btn btn-primary" style="width:auto;padding:10px 20px" onclick="newScript()">➕ Buat Script Pertama</button>
+                ` : ''}
+            </div>
+        ` : `
+            <div class="script-grid">
+                ${scripts.map(s => renderScriptCard(s)).join('')}
+            </div>
+        `}
+    `;
+}
+
+function renderScriptCard(script) {
+    const categoryIcons = {
+        general: '📦', automation: '🤖', ui: '🎨', scraper: '🕷️',
+        game: '🎮', social: '💬', shopping: '🛒', productivity: '⚡', other: '📁'
+    };
+    const icon = categoryIcons[script.category] || '📦';
+    
+    return `
+        <div class="script-card ${script.pinned ? 'pinned' : ''} ${!script.enabled ? 'disabled' : ''}" 
+             onclick="editScript('${script.id}')">
+            <div class="script-card-header">
+                <div class="script-card-title">
+                    <span>${icon}</span>
+                    <span>${escapeHtml(script.name)}</span>
+                </div>
+                ${script.pinned ? '<span class="script-pin">📌</span>' : ''}
+            </div>
+            <div class="script-card-desc">${escapeHtml(script.desc || 'No description')}</div>
+            <div class="script-card-meta">
+                <span class="script-tag">v${script.version || '1.0'}</span>
+                ${script.category && script.category !== 'general' ? 
+                    `<span class="script-tag success">${script.category}</span>` : ''}
+                ${!script.enabled ? '<span class="script-tag danger">disabled</span>' : ''}
+            </div>
+            <div class="script-card-footer">
+                <span>${formatSize((script.code || '').length)} • ${timeAgo(script.updated)}</span>
+                <div class="script-actions">
+                    <button class="script-action-btn" onclick="event.stopPropagation();togglePinScript('${script.id}')" title="Pin">📌</button>
+                    <button class="script-action-btn" onclick="event.stopPropagation();toggleEnabledScript('${script.id}')" title="Enable/Disable">
+                        ${script.enabled ? '✅' : '⛔'}
+                    </button>
+                    <button class="script-action-btn" onclick="event.stopPropagation();duplicateScript('${script.id}')" title="Duplicate">📑</button>
+                    <button class="script-action-btn" onclick="event.stopPropagation();exportSingle('${script.id}')" title="Export">📥</button>
+                    <button class="script-action-btn danger" onclick="event.stopPropagation();deleteScriptById('${script.id}')" title="Delete">🗑️</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderTemplates(area) {
+    const templates = [
+        { name: '🤖 Auto Clicker', cat: 'automation', desc: 'Auto click element pada interval tertentu', code: `// ==UserScript==
+// @name         Auto Clicker
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Auto click specific elements
+// @match        *://*/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    const selector = '.button-class';
+    const interval = 1000;
+    setInterval(() => {
+        document.querySelectorAll(selector).forEach(el => el.click());
+    }, interval);
+})();` },
+        { name: '🎨 UI Enhancer', cat: 'ui', desc: 'Modifikasi tampilan website dengan CSS custom', code: `// ==UserScript==
+// @name         UI Enhancer
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Enhance website UI
+// @match        *://*/*
+// @grant        GM_addStyle
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    GM_addStyle(\`
+        body { font-family: 'Segoe UI', sans-serif !important; }
+    \`);
+})();` },
+        { name: '🕷️ Data Scraper', cat: 'scraper', desc: 'Ambil data dari halaman web', code: `// ==UserScript==
+// @name         Data Scraper
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Scrape data from page
+// @match        *://*/*
+// @grant        GM_setClipboard
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    const data = [];
+    document.querySelectorAll('.item').forEach(item => {
+        data.push({
+            title: item.querySelector('.title')?.textContent.trim(),
+            link: item.querySelector('a')?.href
+        });
+    });
+    console.log('Scraped:', data);
+    GM_setClipboard(JSON.stringify(data, null, 2));
+})();` },
+        { name: '🔔 Notification', cat: 'general', desc: 'Tampilkan notifikasi custom', code: `// ==UserScript==
+// @name         Custom Notifications
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Show custom notifications
+// @match        *://*/*
+// @grant        GM_notification
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    GM_notification({
+        title: 'Hello!',
+        text: 'Custom notification',
+        timeout: 5000
+    });
+})();` },
+        { name: '🔐 Popup Bypass', cat: 'automation', desc: 'Hapus popup/overlay mengganggu', code: `// ==UserScript==
+// @name         Popup Bypass
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Remove annoying popups
+// @match        *://*/*
+// @grant        none
+// @run-at       document-start
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    const remove = () => {
+        document.querySelectorAll('[class*="popup"],[class*="modal"],[class*="overlay"]')
+            .forEach(el => el.remove());
+        document.body.style.overflow = 'auto';
+    };
+    new MutationObserver(remove).observe(document.body, {childList:true,subtree:true});
+    remove();
+})();` },
+        { name: '⌨️ Keyboard Shortcut', cat: 'productivity', desc: 'Tambahkan keyboard shortcut custom', code: `// ==UserScript==
+// @name         Keyboard Shortcuts
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Add custom keyboard shortcuts
+// @match        *://*/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key === 'H') {
+            e.preventDefault();
+            alert('Shortcut triggered!');
+        }
+    });
+})();` },
+        { name: '🌓 Dark Mode', cat: 'ui', desc: 'Paksa dark mode di semua situs', code: `// ==UserScript==
+// @name         Force Dark Mode
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Force dark mode everywhere
+// @match        *://*/*
+// @grant        GM_addStyle
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    GM_addStyle(\`
+        html { filter: invert(0.88) hue-rotate(180deg) !important; }
+        img, video, picture { filter: invert(1) hue-rotate(180deg) !important; }
+    \`);
+})();` },
+        { name: '📊 Page Monitor', cat: 'automation', desc: 'Monitor perubahan pada halaman', code: `// ==UserScript==
+// @name         Page Monitor
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Monitor page changes
+// @match        *://*/*
+// @grant        GM_notification
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    let lastContent = document.body.innerText;
+    setInterval(() => {
+        const current = document.body.innerText;
+        if (current !== lastContent) {
+            GM_notification({title:'Page Changed',text:'Konten halaman berubah!'});
+            lastContent = current;
+        }
+    }, 5000);
+})();` }
+    ];
+    
+    area.innerHTML = `
+        <div class="section-header">
+            <div class="section-title">📋 Script Templates</div>
+        </div>
+        <p style="color:var(--text-dim);margin-bottom:20px;font-size:14px">
+            Pilih template untuk memulai script baru dengan cepat
+        </p>
+        <div class="script-grid">
+            ${templates.map((t, i) => `
+                <div class="script-card" onclick='useTemplate(${JSON.stringify(t).replace(/'/g, "\\'")})'>
+                    <div class="script-card-header">
+                        <div class="script-card-title"><span>${t.name}</span></div>
+                    </div>
+                    <div class="script-card-desc">${t.desc}</div>
+                    <div class="script-card-meta">
+                        <span class="script-tag success">${t.cat}</span>
+                    </div>
+                    <div class="script-card-footer">
+                        <span>Click to use →</span>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function useTemplate(t) {
+    newScript();
+    document.getElementById('scriptName').value = t.name.replace(/^[^\w]+/, '');
+    document.getElementById('scriptDesc').value = t.desc;
+    document.getElementById('scriptCode').value = t.code;
+    document.getElementById('scriptCategory').value = t.cat;
+    updateEditorStats();
+    navigate('editor');
+    showToast('📋 Template dimuat!', 'success');
+}
+
+function renderSettings(area) {
+    const user = state.data.users[state.currentUser];
+    
+    area.innerHTML = `
+        <div class="editor-form">
+            <h3 style="margin-bottom:20px">👤 Profile Settings</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" value="${user.username}" readonly style="opacity:0.6">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Display Name</label>
+                    <input type="text" class="form-input" id="settingsDisplayName" value="${escapeHtml(user.displayName)}">
+                </div>
+            </div>
+            <button class="btn btn-primary" style="width:auto;padding:10px 20px" onclick="updateProfile()">💾 Update Profile</button>
+        </div>
+
+        <div class="editor-form" style="margin-top:20px">
+            <h3 style="margin-bottom:20px">🔐 Change PIN</h3>
+            <div class="form-group">
+                <label class="form-label">PIN Lama</label>
+                <input type="password" class="form-input" id="oldPin" maxlength="6" inputmode="numeric">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">PIN Baru</label>
+                    <input type="password" class="form-input" id="newPin" maxlength="6" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Konfirmasi PIN Baru</label>
+                    <input type="password" class="form-input" id="newPinConfirm" maxlength="6" inputmode="numeric">
+                </div>
+            </div>
+            <button class="btn btn-primary" style="width:auto;padding:10px 20px" onclick="changePin()">🔐 Change PIN</button>
+        </div>
+
+        <div class="editor-form" style="margin-top:20px">
+            <h3 style="margin-bottom:20px">💾 Data Management</h3>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn btn-success" style="padding:10px 20px" onclick="backupAll()">💿 Backup All Scripts</button>
+                <button class="btn btn-secondary" style="padding:10px 20px" onclick="restoreAll()">♻️ Restore from Backup</button>
+                <button class="btn btn-danger" style="padding:10px 20px" onclick="deleteAllMyScripts()">🗑️ Delete All My Scripts</button>
+            </div>
+        </div>
+
+        <div class="editor-form" style="margin-top:20px">
+            <h3 style="margin-bottom:20px">☁️ Cloud Info</h3>
+            <div class="form-group">
+                <label class="form-label">Bin ID</label>
+                <input type="text" class="form-input" value="${state.binId}" readonly style="opacity:0.6;font-family:monospace;font-size:12px">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Total Users</label>
+                <input type="text" class="form-input" value="${Object.keys(state.data.users).length}" readonly style="opacity:0.6">
+            </div>
+        </div>
+    `;
+}
+
+function renderEditor(area) {
+    const user = state.data.users[state.currentUser];
+    let script = null;
+    
+    if (state.currentScriptId) {
+        script = (user.scripts || []).find(s => s.id === state.currentScriptId);
+    }
+    
+    area.innerHTML = `
+        <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+            <button class="btn btn-secondary" onclick="navigate('scripts')">← Back</button>
+            <button class="btn btn-success" onclick="saveScript()">💾 Save</button>
+            <button class="btn btn-primary" onclick="copyScript()">📋 Copy Code</button>
+            <button class="btn btn-secondary" onclick="exportCurrent()">📥 Export</button>
+            ${script ? `
+                <button class="btn btn-secondary" onclick="togglePinScript('${script.id}')">
+                    ${script.pinned ? '📌 Unpin' : '📍 Pin'}
+                </button>
+                <button class="btn btn-secondary" onclick="toggleEnabledScript('${script.id}')">
+                    ${script.enabled ? '✅ Disable' : '⛔ Enable'}
+                </button>
+            ` : ''}
+        </div>
+
+        <div class="editor-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">📝 Nama Script</label>
+                    <input type="text" class="form-input" id="scriptName" value="${script ? escapeHtml(script.name) : ''}" placeholder="Contoh: Auto Click Bot">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">🏷️ Kategori</label>
+                    <select class="form-input" id="scriptCategory">
+                        <option value="general" ${script?.category==='general'?'selected':''}>📦 General</option>
+                        <option value="automation" ${script?.category==='automation'?'selected':''}>🤖 Automation</option>
+                        <option value="ui" ${script?.category==='ui'?'selected':''}>🎨 UI Enhancement</option>
+                        <option value="scraper" ${script?.category==='scraper'?'selected':''}>🕷️ Scraper</option>
+                        <option value="game" ${script?.category==='game'?'selected':''}>🎮 Game</option>
+                        <option value="social" ${script?.category==='social'?'selected':''}>💬 Social Media</option>
+                        <option value="shopping" ${script?.category==='shopping'?'selected':''}>🛒 Shopping</option>
+                        <option value="productivity" ${script?.category==='productivity'?'selected':''}>⚡ Productivity</option>
+                        <option value="other" ${script?.category==='other'?'selected':''}>📁 Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">📄 Deskripsi</label>
+                <input type="text" class="form-input" id="scriptDesc" value="${script ? escapeHtml(script.desc || '') : ''}" placeholder="Deskripsi singkat">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">🌐 Match Pattern</label>
+                    <input type="text" class="form-input" id="scriptMatch" value="${script ? escapeHtml(script.match || '') : ''}" placeholder="https://example.com/*">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">👤 Author</label>
+                    <input type="text" class="form-input" id="scriptAuthor" value="${script ? escapeHtml(script.author || '') : ''}" placeholder="Nama Anda">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">🔢 Version</label>
+                    <input type="text" class="form-input" id="scriptVersion" value="${script?.version || '1.0'}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">🏷️ Tags (pisah koma)</label>
+                    <input type="text" class="form-input" id="scriptTags" value="${script ? (script.tags || []).join(', ') : ''}" placeholder="bot, automation">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">💻 Script Code</label>
+                <div class="code-editor-wrapper">
+                    <div class="code-editor-header">
+                        <span>📜 JavaScript</span>
+                        <span id="editorStatus">Ready</span>
+                    </div>
+                    <textarea class="code-editor" id="scriptCode" placeholder="// ==UserScript==
+// @name         My Script
+// @version      1.0
+// @description  Description
+// @match        https://example.com/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    // Your code here...
+})();">${script ? escapeHtml(script.code || '') : ''}</textarea>
+                    <div class="editor-footer">
+                        <span>Lines: <strong id="lineCount">0</strong> | Chars: <strong id="charCount">0</strong></span>
+                        <span id="lastSaved">${script ? 'Last: ' + timeAgo(script.updated) : 'New script'}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    setupEditorEvents();
+    updateEditorStats();
+}
+
+// ============================================
 // SCRIPT OPERATIONS
 // ============================================
 function newScript() {
-    state.currentId = null;
-    document.getElementById('scriptName').value = '';
-    document.getElementById('scriptDesc').value = '';
-    document.getElementById('scriptCode').value = '';
-    document.getElementById('scriptMatch').value = '';
-    document.getElementById('scriptAuthor').value = '';
-    document.getElementById('scriptVersion').value = '1.0';
-    document.getElementById('scriptCategory').value = 'general';
-    document.getElementById('scriptPriority').value = 'normal';
-    document.getElementById('scriptTags').value = '';
-    updateEditorStats();
-    updatePinButton();
-    updateEnableButton();
-    renderScriptList();
-    showToast('📝 Mode script baru', 'info');
+    state.currentScriptId = null;
+    navigate('editor');
 }
 
-function loadScript(id) {
-    const script = state.scripts.find(s => s.id === id);
-    if (!script) return;
-    
-    state.currentId = id;
-    document.getElementById('scriptName').value = script.name || '';
-    document.getElementById('scriptDesc').value = script.desc || '';
-    document.getElementById('scriptCode').value = script.code || '';
-    document.getElementById('scriptMatch').value = script.match || '';
-    document.getElementById('scriptAuthor').value = script.author || '';
-    document.getElementById('scriptVersion').value = script.version || '1.0';
-    document.getElementById('scriptCategory').value = script.category || 'general';
-    document.getElementById('scriptPriority').value = script.priority || 'normal';
-    document.getElementById('scriptTags').value = (script.tags || []).join(', ');
-    
-    updateEditorStats();
-    updatePinButton();
-    updateEnableButton();
-    renderScriptList();
-    
-    document.getElementById('lastSaved').textContent = 
-        'Terakhir: ' + new Date(script.updated).toLocaleString('id-ID');
+function editScript(id) {
+    state.currentScriptId = id;
+    navigate('editor');
 }
 
 async function saveScript() {
     const name = document.getElementById('scriptName').value.trim();
     const code = document.getElementById('scriptCode').value;
     
-    if (!name) {
-        showToast('❌ Nama script wajib diisi!', 'error');
-        return false;
-    }
-    if (!code.trim()) {
-        showToast('❌ Code tidak boleh kosong!', 'error');
-        return false;
-    }
+    if (!name) { showToast('❌ Nama wajib diisi!', 'error'); return; }
+    if (!code.trim()) { showToast('❌ Code tidak boleh kosong!', 'error'); return; }
+    
+    const user = state.data.users[state.currentUser];
+    if (!user.scripts) user.scripts = [];
     
     const scriptData = {
-        name: name,
+        name,
         desc: document.getElementById('scriptDesc').value.trim(),
-        code: code,
+        code,
         match: document.getElementById('scriptMatch').value.trim(),
         author: document.getElementById('scriptAuthor').value.trim(),
-        version: document.getElementById('scriptVersion').value.trim(),
+        version: document.getElementById('scriptVersion').value.trim() || '1.0',
         category: document.getElementById('scriptCategory').value,
-        priority: document.getElementById('scriptPriority').value,
         tags: document.getElementById('scriptTags').value.split(',').map(t => t.trim()).filter(t => t),
         updated: new Date().toISOString()
     };
     
-    if (state.currentId) {
-        const idx = state.scripts.findIndex(s => s.id === state.currentId);
+    if (state.currentScriptId) {
+        const idx = user.scripts.findIndex(s => s.id === state.currentScriptId);
         if (idx !== -1) {
-            state.scripts[idx] = { ...state.scripts[idx], ...scriptData };
+            user.scripts[idx] = { ...user.scripts[idx], ...scriptData };
         }
     } else {
         const newScript = {
@@ -964,47 +2149,40 @@ async function saveScript() {
             enabled: true,
             ...scriptData
         };
-        state.scripts.push(newScript);
-        state.currentId = newScript.id;
+        user.scripts.push(newScript);
+        state.currentScriptId = newScript.id;
     }
     
-    const success = await saveToCloud();
+    const success = await saveData();
     if (success) {
-        renderScriptList();
-        updateStats();
-        showToast('✅ Berhasil disimpan ke cloud!', 'success');
-        document.getElementById('lastSaved').textContent = 
-            'Tersimpan: ' + new Date().toLocaleTimeString('id-ID');
-        return true;
-    }
-    return false;
-}
-
-async function deleteScript() {
-    if (!state.currentId) {
-        showToast('❌ Pilih script dulu!', 'error');
-        return;
-    }
-    
-    const script = state.scripts.find(s => s.id === state.currentId);
-    if (!confirm(`Hapus script "${script.name}"?`)) return;
-    
-    state.scripts = state.scripts.filter(s => s.id !== state.currentId);
-    const success = await saveToCloud();
-    if (success) {
-        newScript();
-        updateStats();
-        showToast('🗑️ Script dihapus', 'success');
+        updateNavBadge();
+        showToast('✅ Berhasil disimpan!', 'success');
+        document.getElementById('lastSaved').textContent = 'Saved: just now';
     }
 }
 
-async function duplicateScript() {
-    if (!state.currentId) {
-        showToast('❌ Pilih script dulu!', 'error');
-        return;
-    }
+async function deleteScriptById(id) {
+    const user = state.data.users[state.currentUser];
+    const script = user.scripts.find(s => s.id === id);
+    if (!script) return;
     
-    const original = state.scripts.find(s => s.id === state.currentId);
+    if (!confirm(`Hapus "${script.name}"?`)) return;
+    
+    user.scripts = user.scripts.filter(s => s.id !== id);
+    const success = await saveData();
+    if (success) {
+        if (state.currentScriptId === id) state.currentScriptId = null;
+        updateNavBadge();
+        renderPage();
+        showToast('🗑️ Script dihapus!', 'success');
+    }
+}
+
+async function duplicateScript(id) {
+    const user = state.data.users[state.currentUser];
+    const original = user.scripts.find(s => s.id === id);
+    if (!original) return;
+    
     const copy = {
         ...JSON.parse(JSON.stringify(original)),
         id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
@@ -1012,87 +2190,67 @@ async function duplicateScript() {
         created: new Date().toISOString(),
         updated: new Date().toISOString()
     };
-    state.scripts.push(copy);
+    user.scripts.push(copy);
     
-    const success = await saveToCloud();
+    const success = await saveData();
     if (success) {
-        loadScript(copy.id);
-        updateStats();
-        showToast('📑 Script diduplikat', 'success');
+        updateNavBadge();
+        renderPage();
+        showToast('📑 Script diduplikat!', 'success');
     }
 }
 
-async function togglePin() {
-    if (!state.currentId) return;
-    const script = state.scripts.find(s => s.id === state.currentId);
+async function togglePinScript(id) {
+    const user = state.data.users[state.currentUser];
+    const script = user.scripts.find(s => s.id === id);
     if (!script) return;
     script.pinned = !script.pinned;
     script.updated = new Date().toISOString();
     
-    const success = await saveToCloud();
+    const success = await saveData();
     if (success) {
-        renderScriptList();
-        updatePinButton();
+        renderPage();
         showToast(script.pinned ? '📌 Pinned!' : '📌 Unpinned', 'success');
     }
 }
 
-async function toggleEnabled() {
-    if (!state.currentId) return;
-    const script = state.scripts.find(s => s.id === state.currentId);
+async function toggleEnabledScript(id) {
+    const user = state.data.users[state.currentUser];
+    const script = user.scripts.find(s => s.id === id);
     if (!script) return;
     script.enabled = !script.enabled;
     script.updated = new Date().toISOString();
     
-    const success = await saveToCloud();
+    const success = await saveData();
     if (success) {
-        renderScriptList();
-        updateEnableButton();
-        updateStats();
-        showToast(script.enabled ? '✅ Diaktifkan' : '⛔ Dinonaktifkan', 'success');
+        updateNavBadge();
+        renderPage();
+        showToast(script.enabled ? '✅ Enabled' : '⛔ Disabled', 'success');
     }
 }
 
-// ============================================
-// CLIPBOARD & EXPORT
-// ============================================
-function copyScript() {
-    const code = document.getElementById('scriptCode').value;
-    if (!code) {
-        showToast('❌ Tidak ada code!', 'error');
-        return;
-    }
-    navigator.clipboard.writeText(code).then(() => {
-        showToast('📋 Code dicopy!', 'success');
-    });
-}
-
-function exportScript() {
-    if (!state.currentId) {
-        // Export current editor content
-        const code = document.getElementById('scriptCode').value;
-        const name = document.getElementById('scriptName').value || 'script';
-        if (!code) {
-            showToast('❌ Tidak ada code!', 'error');
-            return;
-        }
-        downloadFile(code, name.replace(/[^a-z0-9]/gi, '_') + '.user.js');
-        return;
-    }
-    
-    const script = state.scripts.find(s => s.id === state.currentId);
+function exportSingle(id) {
+    const user = state.data.users[state.currentUser];
+    const script = user.scripts.find(s => s.id === id);
+    if (!script) return;
     downloadFile(script.code, script.name.replace(/[^a-z0-9]/gi, '_') + '.user.js');
     showToast('📥 Script di-export!', 'success');
 }
 
-function downloadFile(content, filename) {
-    const blob = new Blob([content], { type: 'text/javascript' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+function exportCurrent() {
+    const code = document.getElementById('scriptCode').value;
+    const name = document.getElementById('scriptName').value || 'script';
+    if (!code) { showToast('❌ Tidak ada code!', 'error'); return; }
+    downloadFile(code, name.replace(/[^a-z0-9]/gi, '_') + '.user.js');
+    showToast('📥 Exported!', 'success');
+}
+
+function copyScript() {
+    const code = document.getElementById('scriptCode')?.value;
+    if (!code) { showToast('❌ Tidak ada code!', 'error'); return; }
+    navigator.clipboard.writeText(code).then(() => {
+        showToast('📋 Code dicopy!', 'success');
+    });
 }
 
 function importScript() {
@@ -1103,23 +2261,19 @@ function importScript() {
         const reader = new FileReader();
         reader.onload = (ev) => {
             const code = ev.target.result;
-            document.getElementById('scriptCode').value = code;
-            
-            // Auto-detect metadata
-            const nameMatch = code.match(/@name\s+(.+)/);
-            const descMatch = code.match(/@description\s+(.+)/);
-            const matchMatch = code.match(/@match\s+(.+)/);
-            const authorMatch = code.match(/@author\s+(.+)/);
-            const versionMatch = code.match(/@version\s+(.+)/);
-            
-            if (nameMatch) document.getElementById('scriptName').value = nameMatch[1].trim();
-            if (descMatch) document.getElementById('scriptDesc').value = descMatch[1].trim();
-            if (matchMatch) document.getElementById('scriptMatch').value = matchMatch[1].trim();
-            if (authorMatch) document.getElementById('scriptAuthor').value = authorMatch[1].trim();
-            if (versionMatch) document.getElementById('scriptVersion').value = versionMatch[1].trim();
-            
-            updateEditorStats();
-            showToast('📤 File di-import!', 'success');
+            state.currentScriptId = null;
+            navigate('editor');
+            setTimeout(() => {
+                document.getElementById('scriptCode').value = code;
+                const nameMatch = code.match(/@name\s+(.+)/);
+                const descMatch = code.match(/@description\s+(.+)/);
+                const matchMatch = code.match(/@match\s+(.+)/);
+                if (nameMatch) document.getElementById('scriptName').value = nameMatch[1].trim();
+                if (descMatch) document.getElementById('scriptDesc').value = descMatch[1].trim();
+                if (matchMatch) document.getElementById('scriptMatch').value = matchMatch[1].trim();
+                updateEditorStats();
+                showToast('📤 File di-import!', 'success');
+            }, 100);
         };
         reader.readAsText(file);
         input.value = '';
@@ -1127,48 +2281,65 @@ function importScript() {
     input.click();
 }
 
-function shareScript() {
-    const code = document.getElementById('scriptCode').value;
-    if (!code) {
-        showToast('❌ Tidak ada code!', 'error');
-        return;
-    }
+// ============================================
+// PROFILE & SETTINGS
+// ============================================
+async function updateProfile() {
+    const displayName = document.getElementById('settingsDisplayName').value.trim();
+    if (!displayName) { showToast('❌ Display name wajib!', 'error'); return; }
     
-    // Create data URL
-    const blob = new Blob([code], { type: 'text/javascript' });
-    const url = URL.createObjectURL(blob);
-    
-    if (navigator.share) {
-        navigator.share({
-            title: document.getElementById('scriptName').value || 'Tampermonkey Script',
-            text: document.getElementById('scriptDesc').value || '',
-            url: url
-        }).catch(() => {});
-    } else {
-        navigator.clipboard.writeText(code);
-        showToast('🔗 Code dicopy untuk share!', 'success');
+    state.data.users[state.currentUser].displayName = displayName;
+    const success = await saveData();
+    if (success) {
+        showApp();
+        showToast('✅ Profile updated!', 'success');
     }
 }
 
-// ============================================
-// BACKUP & RESTORE
-// ============================================
+async function changePin() {
+    const oldPin = document.getElementById('oldPin').value;
+    const newPin = document.getElementById('newPin').value;
+    const confirm = document.getElementById('newPinConfirm').value;
+    
+    const user = state.data.users[state.currentUser];
+    if (user.pinHash !== hashPin(oldPin)) {
+        showToast('❌ PIN lama salah!', 'error'); return;
+    }
+    if (newPin.length < 4 || newPin.length > 6 || !/^\d+$/.test(newPin)) {
+        showToast('❌ PIN baru harus 4-6 digit!', 'error'); return;
+    }
+    if (newPin !== confirm) {
+        showToast('❌ Konfirmasi tidak cocok!', 'error'); return;
+    }
+    
+    user.pinHash = hashPin(newPin);
+    const success = await saveData();
+    if (success) {
+        document.getElementById('oldPin').value = '';
+        document.getElementById('newPin').value = '';
+        document.getElementById('newPinConfirm').value = '';
+        showToast('✅ PIN berhasil diubah!', 'success');
+    }
+}
+
 async function backupAll() {
-    if (state.scripts.length === 0) {
-        showToast('❌ Tidak ada script untuk di-backup', 'error');
-        return;
+    const user = state.data.users[state.currentUser];
+    const scripts = user.scripts || [];
+    if (scripts.length === 0) {
+        showToast('❌ Tidak ada script!', 'error'); return;
     }
     
     const backup = {
-        version: '2.0',
+        version: '3.0',
+        user: state.currentUser,
         exported: new Date().toISOString(),
-        count: state.scripts.length,
-        scripts: state.scripts
+        count: scripts.length,
+        scripts: scripts
     };
     
-    const filename = `tm_backup_${new Date().toISOString().split('T')[0]}.json`;
-    downloadFile(JSON.stringify(backup, null, 2), filename);
-    showToast(`💿 Backup ${state.scripts.length} script!`, 'success');
+    downloadFile(JSON.stringify(backup, null, 2), 
+        `tm_backup_${state.currentUser}_${new Date().toISOString().split('T')[0]}.json`);
+    showToast(`💿 ${scripts.length} script di-backup!`, 'success');
 }
 
 function restoreAll() {
@@ -1176,10 +2347,8 @@ function restoreAll() {
     input.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        
-        if (!confirm('⚠️ Restore akan MENGGANTI semua script saat ini. Lanjutkan?')) {
-            input.value = '';
-            return;
+        if (!confirm('⚠️ Restore akan MENGGANTI semua script Anda. Lanjutkan?')) {
+            input.value = ''; return;
         }
         
         const reader = new FileReader();
@@ -1187,15 +2356,13 @@ function restoreAll() {
             try {
                 const backup = JSON.parse(ev.target.result);
                 if (!backup.scripts || !Array.isArray(backup.scripts)) {
-                    throw new Error('Format backup tidak valid');
+                    throw new Error('Format invalid');
                 }
-                
-                state.scripts = backup.scripts;
-                const success = await saveToCloud();
+                state.data.users[state.currentUser].scripts = backup.scripts;
+                const success = await saveData();
                 if (success) {
-                    renderScriptList();
-                    updateStats();
-                    newScript();
+                    updateNavBadge();
+                    renderPage();
                     showToast(`♻️ ${backup.scripts.length} script direstore!`, 'success');
                 }
             } catch (err) {
@@ -1208,398 +2375,86 @@ function restoreAll() {
     input.click();
 }
 
-// ============================================
-// TEMPLATES
-// ============================================
-function showTemplates() {
-    const templates = [
-        {
-            name: '🤖 Auto Clicker',
-            desc: 'Script auto click element',
-            code: `// ==UserScript==
-// @name         Auto Clicker
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Auto click specific elements
-// @author       You
-// @match        *://*/*
-// @grant        none
-// ==/UserScript==
-
-(function() {
-    'use strict';
+async function deleteAllMyScripts() {
+    if (!confirm('🚨 HAPUS SEMUA SCRIPT ANDA? Tidak bisa dibatalkan!')) return;
+    if (!confirm('Yakin 100%?')) return;
     
-    const selector = '.button-class'; // Ganti dengan selector target
-    const interval = 1000; // ms
-    
-    setInterval(() => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(el => el.click());
-    }, interval);
-    
-    console.log('Auto Clicker started');
-})();`
-        },
-        {
-            name: '🎨 UI Enhancer',
-            desc: 'Modifikasi tampilan website',
-            code: `// ==UserScript==
-// @name         UI Enhancer
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Enhance website UI
-// @author       You
-// @match        *://*/*
-// @grant        GM_addStyle
-// ==/UserScript==
-
-(function() {
-    'use strict';
-    
-    GM_addStyle(\`
-        body {
-            font-family: 'Segoe UI', sans-serif !important;
-        }
-        /* Custom styles here */
-    \`);
-    
-    console.log('UI Enhanced');
-})();`
-        },
-        {
-            name: '🕷️ Data Scraper',
-            desc: 'Ambil data dari halaman',
-            code: `// ==UserScript==
-// @name         Data Scraper
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Scrape data from page
-// @author       You
-// @match        *://*/*
-// @grant        GM_setClipboard
-// ==/UserScript==
-
-(function() {
-    'use strict';
-    
-    const data = [];
-    document.querySelectorAll('.item').forEach(item => {
-        data.push({
-            title: item.querySelector('.title')?.textContent.trim(),
-            link: item.querySelector('a')?.href
-        });
-    });
-    
-    console.log('Scraped:', data);
-    GM_setClipboard(JSON.stringify(data, null, 2));
-})();`
-        },
-        {
-            name: '⏰ Scheduler',
-            desc: 'Jalankan script pada waktu tertentu',
-            code: `// ==UserScript==
-// @name         Task Scheduler
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Run tasks on schedule
-// @author       You
-// @match        *://*/*
-// @grant        none
-// ==/UserScript==
-
-(function() {
-    'use strict';
-    
-    const schedule = [
-        { time: '09:00', action: () => console.log('Morning task') },
-        { time: '12:00', action: () => console.log('Noon task') },
-        { time: '17:00', action: () => console.log('Evening task') }
-    ];
-    
-    setInterval(() => {
-        const now = new Date();
-        const time = now.toTimeString().slice(0, 5);
-        schedule.forEach(task => {
-            if (task.time === time) task.action();
-        });
-    }, 60000);
-})();`
-        },
-        {
-            name: '🔔 Notification',
-            desc: 'Tampilkan notifikasi custom',
-            code: `// ==UserScript==
-// @name         Custom Notifications
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Show custom notifications
-// @author       You
-// @match        *://*/*
-// @grant        GM_notification
-// ==/UserScript==
-
-(function() {
-    'use strict';
-    
-    GM_notification({
-        title: 'Hello!',
-        text: 'This is a custom notification',
-        timeout: 5000,
-        onclick: () => console.log('Clicked')
-    });
-})();`
-        },
-        {
-            name: '🔐 Bypass Blocker',
-            desc: 'Bypass popup/overlay blocker',
-            code: `// ==UserScript==
-// @name         Popup Blocker Bypass
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Remove annoying popups
-// @author       You
-// @match        *://*/*
-// @grant        none
-// @run-at       document-start
-// ==/UserScript==
-
-(function() {
-    'use strict';
-    
-    const removeOverlays = () => {
-        document.querySelectorAll('[class*="popup"], [class*="modal"], [class*="overlay"]')
-            .forEach(el => el.remove());
-        document.body.style.overflow = 'auto';
-    };
-    
-    const observer = new MutationObserver(removeOverlays);
-    observer.observe(document.body, { childList: true, subtree: true });
-    
-    removeOverlays();
-})();`
-        }
-    ];
-    
-    const html = `
-        <h3>📋 Template Script</h3>
-        <p style="color:var(--text-secondary);font-size:13px;margin-bottom:15px">
-            Pilih template untuk memulai script baru
-        </p>
-        <div class="template-grid">
-            ${templates.map((t, i) => `
-                <div class="template-card" onclick='useTemplate(${i})'>
-                    <h4>${t.name}</h4>
-                    <p>${t.desc}</p>
-                </div>
-            `).join('')}
-        </div>
-        <div class="modal-actions">
-            <button class="btn btn-ghost" onclick="closeModal()">Tutup</button>
-        </div>
-    `;
-    
-    window._templates = templates;
-    showModal(html);
-}
-
-function useTemplate(index) {
-    const t = window._templates[index];
-    newScript();
-    document.getElementById('scriptName').value = t.name.replace(/^[^\w]+/, '');
-    document.getElementById('scriptDesc').value = t.desc;
-    document.getElementById('scriptCode').value = t.code;
-    updateEditorStats();
-    closeModal();
-    showToast('📋 Template dimuat!', 'success');
-}
-
-// ============================================
-// HISTORY
-// ============================================
-function showHistory() {
-    if (!state.currentId) {
-        showToast('❌ Pilih script dulu!', 'error');
-        return;
-    }
-    
-    const script = state.scripts.find(s => s.id === state.currentId);
-    const history = script.history || [];
-    
-    const html = `
-        <h3>📜 Riwayat Perubahan</h3>
-        ${history.length === 0 ? 
-            '<p style="color:var(--text-secondary)">Belum ada riwayat</p>' :
-            `<div style="max-height:400px;overflow-y:auto">
-                ${history.map((h, i) => `
-                    <div style="padding:10px;background:var(--bg-tertiary);border-radius:6px;margin-bottom:8px">
-                        <div style="font-size:12px;color:var(--accent)">${new Date(h.date).toLocaleString('id-ID')}</div>
-                        <div style="font-size:11px;color:var(--text-secondary);margin-top:4px">
-                            ${h.code.length} chars | ${h.code.split('\n').length} lines
-                        </div>
-                        <button class="btn btn-ghost" style="margin-top:5px;font-size:11px" onclick="restoreVersion(${i})">
-                            ♻️ Restore versi ini
-                        </button>
-                    </div>
-                `).join('')}
-            </div>`
-        }
-        <div class="modal-actions">
-            <button class="btn btn-ghost" onclick="closeModal()">Tutup</button>
-        </div>
-    `;
-    
-    showModal(html);
-}
-
-async function restoreVersion(index) {
-    const script = state.scripts.find(s => s.id === state.currentId);
-    if (!script || !script.history[index]) return;
-    
-    if (!confirm('Restore versi ini? Code saat ini akan ditambahkan ke history.')) return;
-    
-    // Save current to history
-    if (!script.history) script.history = [];
-    script.history.unshift({
-        date: new Date().toISOString(),
-        code: script.code
-    });
-    if (script.history.length > 20) script.history = script.history.slice(0, 20);
-    
-    script.code = script.history[index].code;
-    script.updated = new Date().toISOString();
-    
-    const success = await saveToCloud();
+    state.data.users[state.currentUser].scripts = [];
+    const success = await saveData();
     if (success) {
-        loadScript(state.currentId);
-        closeModal();
-        showToast('♻️ Versi direstore!', 'success');
+        updateNavBadge();
+        renderPage();
+        showToast('🗑️ Semua script dihapus!', 'success');
     }
 }
 
 // ============================================
 // UI HELPERS
 // ============================================
-function renderScriptList() {
-    const container = document.getElementById('scriptList');
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    
-    let filtered = state.scripts.filter(s => {
-        if (state.filter === 'active' && !s.enabled) return false;
-        if (state.filter === 'disabled' && s.enabled) return false;
-        if (state.filter === 'pinned' && !s.pinned) return false;
-        if (search && !s.name.toLowerCase().includes(search) && 
-            !(s.desc || '').toLowerCase().includes(search) &&
-            !(s.tags || []).some(t => t.toLowerCase().includes(search))) {
-            return false;
-        }
-        return true;
-    });
-    
-    // Sort: pinned first, then by updated
-    filtered.sort((a, b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
-        return new Date(b.updated) - new Date(a.updated);
-    });
-    
-    if (filtered.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">${state.scripts.length === 0 ? '📭' : '🔍'}</div>
-                <p>${state.scripts.length === 0 ? 'Belum ada script' : 'Tidak ada hasil'}</p>
-            </div>
-        `;
-        return;
-    }
-    
-    const categoryIcons = {
-        general: '📦', automation: '🤖', ui: '🎨', scraper: '🕷️',
-        game: '🎮', social: '💬', shopping: '🛒', productivity: '⚡', other: '📁'
-    };
-    
-    container.innerHTML = filtered.map(s => `
-        <div class="script-item ${s.id === state.currentId ? 'active' : ''} ${s.pinned ? 'pinned' : ''} ${!s.enabled ? 'disabled' : ''}" 
-             onclick="loadScript('${s.id}')"
-             oncontextmenu="showContextMenu(event, '${s.id}')">
-            <div class="script-name">
-                <span>${categoryIcons[s.category] || '📦'}</span>
-                <span>${escapeHtml(s.name)}</span>
-                ${!s.enabled ? '<span style="font-size:10px">⛔</span>' : ''}
-            </div>
-            <div class="script-desc">${escapeHtml(s.desc || 'No description')}</div>
-            <div class="script-meta">
-                <span class="tag">v${s.version || '1.0'}</span>
-                ${s.match ? `<span class="tag success">${escapeHtml(s.match.substring(0, 20))}${s.match.length > 20 ? '...' : ''}</span>` : ''}
-                <span>${formatSize(s.code.length)}</span>
-                <span>${timeAgo(s.updated)}</span>
-            </div>
-        </div>
-    `).join('');
-}
-
-function updateStats() {
-    document.getElementById('statTotal').textContent = state.scripts.length;
-    document.getElementById('statActive').textContent = state.scripts.filter(s => s.enabled).length;
-    const totalSize = state.scripts.reduce((sum, s) => sum + (s.code || '').length, 0);
-    document.getElementById('statSize').textContent = formatSize(totalSize);
-}
-
-function updateEditorStats() {
-    const code = document.getElementById('scriptCode').value;
-    document.getElementById('charCount').textContent = code.length;
-    document.getElementById('lineCount').textContent = code ? code.split('\n').length : 0;
-}
-
-function updatePinButton() {
-    const btn = document.getElementById('pinBtn');
-    if (!state.currentId) {
-        btn.style.opacity = '0.4';
-        return;
-    }
-    const script = state.scripts.find(s => s.id === state.currentId);
-    btn.textContent = script?.pinned ? '📌' : '📍';
-    btn.style.opacity = '1';
-}
-
-function updateEnableButton() {
-    const btn = document.getElementById('enableBtn');
-    if (!state.currentId) {
-        btn.style.opacity = '0.4';
-        return;
-    }
-    const script = state.scripts.find(s => s.id === state.currentId);
-    btn.textContent = script?.enabled ? '✅' : '⛔';
-    btn.style.opacity = '1';
-}
-
 function filterScripts() {
-    renderScriptList();
+    state.searchQuery = document.getElementById('searchInput').value;
+    if (state.currentPage !== 'scripts') navigate('scripts');
+    else renderScripts(document.getElementById('contentArea'));
 }
 
 function setFilter(filter) {
     state.filter = filter;
-    document.querySelectorAll('.filter-chip').forEach(c => {
-        c.classList.toggle('active', c.dataset.filter === filter);
-    });
-    renderScriptList();
+    renderScripts(document.getElementById('contentArea'));
 }
 
-function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('show');
+function showProfile() {
+    navigate('settings');
 }
 
-function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme');
-    const newTheme = current === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem(CONFIG.THEME_KEY, newTheme);
-    document.getElementById('themeBtn').textContent = newTheme === 'light' ? '☀️' : '🌙';
+function showAbout() {
+    const html = `
+        <h3>ℹ️ Tentang</h3>
+        <div style="text-align:center;padding:20px">
+            <div style="font-size:4em;margin-bottom:10px">🐒</div>
+            <h2 style="background:linear-gradient(135deg,#6366f1,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">TM Manager Pro</h2>
+            <p style="color:var(--text-dim);margin:10px 0">Version 3.0 - Multi-User Cloud Edition</p>
+            <div style="background:rgba(0,0,0,0.3);padding:15px;border-radius:12px;margin-top:15px;text-align:left;font-size:13px;line-height:1.8">
+                ✅ Multi-user support<br>
+                ✅ Cloud storage (JSONBin.io)<br>
+                ✅ Modern glassmorphism UI<br>
+                ✅ Animated background<br>
+                ✅ Script categories & tags<br>
+                ✅ Pin & enable/disable<br>
+                ✅ Search & filter<br>
+                ✅ 8 Templates<br>
+                ✅ Backup & restore<br>
+                ✅ PIN-based authentication
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="closeModal()">OK</button>
+        </div>
+    `;
+    showModal(html);
 }
 
-function loadTheme() {
-    const theme = localStorage.getItem(CONFIG.THEME_KEY) || 'dark';
-    document.documentElement.setAttribute('data-theme', theme);
-    document.getElementById('themeBtn').textContent = theme === 'light' ? '☀️' : '🌙';
+function showShortcuts() {
+    const html = `
+        <h3>⌨️ Keyboard Shortcuts</h3>
+        <div style="display:grid;gap:8px">
+            ${[
+                ['Ctrl + S', 'Save script'],
+                ['Ctrl + N', 'New script'],
+                ['Ctrl + K', 'Focus search'],
+                ['Ctrl + B', 'Backup all'],
+                ['Esc', 'Close modal']
+            ].map(([k, d]) => `
+                <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(0,0,0,0.3);border-radius:8px">
+                    <span>${d}</span>
+                    <code style="background:#000;padding:3px 10px;border-radius:4px;font-family:monospace">${k}</code>
+                </div>
+            `).join('')}
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="closeModal()">OK</button>
+        </div>
+    `;
+    showModal(html);
 }
 
 // ============================================
@@ -1619,9 +2474,10 @@ function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-    toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
+    toast.innerHTML = `<span style="font-size:18px">${icons[type]}</span><span>${message}</span>`;
     container.appendChild(toast);
     setTimeout(() => {
+        toast.style.transition = 'all 0.3s';
         toast.style.opacity = '0';
         toast.style.transform = 'translateX(100%)';
         setTimeout(() => toast.remove(), 300);
@@ -1629,210 +2485,18 @@ function showToast(message, type = 'info') {
 }
 
 // ============================================
-// CONTEXT MENU
-// ============================================
-function setupContextMenu() {
-    document.addEventListener('click', () => {
-        document.getElementById('contextMenu').classList.remove('show');
-    });
-    
-    document.getElementById('modalOverlay').addEventListener('click', (e) => {
-        if (e.target.id === 'modalOverlay') closeModal();
-    });
-}
-
-function showContextMenu(e, id) {
-    e.preventDefault();
-    e.stopPropagation();
-    state.contextScriptId = id;
-    const menu = document.getElementById('contextMenu');
-    menu.style.left = e.pageX + 'px';
-    menu.style.top = e.pageY + 'px';
-    menu.classList.add('show');
-}
-
-async function contextAction(action) {
-    const id = state.contextScriptId;
-    if (!id) return;
-    
-    loadScript(id);
-    
-    switch(action) {
-        case 'edit': break;
-        case 'duplicate': await duplicateScript(); break;
-        case 'pin': await togglePin(); break;
-        case 'toggle': await toggleEnabled(); break;
-        case 'export': exportScript(); break;
-        case 'copy': copyScript(); break;
-        case 'delete': await deleteScript(); break;
-    }
-}
-
-// ============================================
-// KEYBOARD SHORTCUTS
-// ============================================
-function setupKeyboardShortcuts() {
-    document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey || e.metaKey) {
-            switch(e.key) {
-                case 's':
-                    e.preventDefault();
-                    saveScript();
-                    break;
-                case 'n':
-                    e.preventDefault();
-                    newScript();
-                    break;
-                case 'k':
-                    e.preventDefault();
-                    document.getElementById('searchInput').focus();
-                    break;
-                case 'b':
-                    e.preventDefault();
-                    backupAll();
-                    break;
-            }
-        }
-        if (e.key === 'Escape') {
-            closeModal();
-            document.getElementById('contextMenu').classList.remove('show');
-        }
-    });
-}
-
-function showShortcuts() {
-    const shortcuts = [
-        { keys: 'Ctrl + S', desc: 'Simpan script' },
-        { keys: 'Ctrl + N', desc: 'Script baru' },
-        { keys: 'Ctrl + K', desc: 'Fokus ke search' },
-        { keys: 'Ctrl + B', desc: 'Backup semua' },
-        { keys: 'Esc', desc: 'Tutup modal' },
-        { keys: 'Tab', desc: 'Indent code (di editor)' }
-    ];
-    
-    const html = `
-        <h3>⌨️ Keyboard Shortcuts</h3>
-        <div class="shortcut-list">
-            ${shortcuts.map(s => `
-                <div class="shortcut-item">
-                    <span>${s.desc}</span>
-                    <span class="kbd">${s.keys}</span>
-                </div>
-            `).join('')}
-        </div>
-        <div class="modal-actions">
-            <button class="btn btn-primary" onclick="closeModal()">Mengerti</button>
-        </div>
-    `;
-    showModal(html);
-}
-
-// ============================================
-// SETTINGS
-// ============================================
-function showSettings() {
-    const html = `
-        <h3>⚙️ Settings</h3>
-        <div class="form-group">
-            <label>Bin ID (Cloud Storage)</label>
-            <input type="text" value="${state.binId}" readonly style="opacity:0.7">
-            <small style="color:var(--text-secondary);font-size:11px">ID storage cloud Anda</small>
-        </div>
-        <div class="form-group">
-            <label>Total Script</label>
-            <input type="text" value="${state.scripts.length}" readonly style="opacity:0.7">
-        </div>
-        <div class="form-group">
-            <label>API Key</label>
-            <input type="password" value="${CONFIG.API_KEY}" readonly style="opacity:0.7;font-family:monospace;font-size:11px">
-            <small style="color:var(--danger);font-size:11px">⚠️ Key tertanam di file HTML</small>
-        </div>
-        <div style="background:var(--bg-tertiary);padding:12px;border-radius:8px;margin-top:15px">
-            <strong style="color:var(--warning)">⚠️ Zona Berbahaya</strong>
-            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn btn-warning" onclick="resetStorage()">🔄 Reset Storage</button>
-                <button class="btn btn-danger" onclick="deleteAllScripts()">🗑️ Hapus Semua</button>
-            </div>
-        </div>
-        <div class="modal-actions">
-            <button class="btn btn-primary" onclick="closeModal()">Tutup</button>
-        </div>
-    `;
-    showModal(html);
-}
-
-async function resetStorage() {
-    if (!confirm('⚠️ Reset akan membuat storage BARU. Script lama tetap ada di bin lama. Lanjutkan?')) return;
-    localStorage.removeItem(CONFIG.BIN_ID_KEY);
-    location.reload();
-}
-
-async function deleteAllScripts() {
-    if (!confirm('🚨 HAPUS SEMUA SCRIPT? Tindakan ini tidak bisa dibatalkan!')) return;
-    if (!confirm('Yakin 100%? Ketik "YA" di prompt berikutnya untuk konfirmasi')) return;
-    
-    state.scripts = [];
-    const success = await saveToCloud();
-    if (success) {
-        newScript();
-        updateStats();
-        closeModal();
-        showToast('🗑️ Semua script dihapus!', 'success');
-    }
-}
-
-function showAbout() {
-    const html = `
-        <h3>ℹ️ Tentang</h3>
-        <div style="text-align:center;padding:20px">
-            <div style="font-size:4em;margin-bottom:10px">🐒</div>
-            <h2 style="color:var(--accent)">TM Manager Pro</h2>
-            <p style="color:var(--text-secondary);margin:10px 0">Version 2.0 - Cloud Edition</p>
-            <div style="background:var(--bg-tertiary);padding:15px;border-radius:8px;margin-top:15px;text-align:left">
-                <p style="font-size:13px;line-height:1.8">
-                    ✅ Cloud storage via JSONBin.io<br>
-                    ✅ Multi-script management<br>
-                    ✅ Categories & tags<br>
-                    ✅ Pin, enable/disable<br>
-                    ✅ Search & filter<br>
-                    ✅ Templates<br>
-                    ✅ Version history<br>
-                    ✅ Backup & restore<br>
-                    ✅ Dark/Light theme<br>
-                    ✅ Keyboard shortcuts<br>
-                    ✅ Context menu<br>
-                    ✅ Auto-detect metadata
-                </p>
-            </div>
-            <p style="margin-top:15px;font-size:11px;color:var(--text-secondary)">
-                © 2026 - Made with ❤️
-            </p>
-        </div>
-        <div class="modal-actions">
-            <button class="btn btn-primary" onclick="closeModal()">OK</button>
-        </div>
-    `;
-    showModal(html);
-}
-
-// ============================================
 // EDITOR EVENTS
 // ============================================
 function setupEditorEvents() {
     const editor = document.getElementById('scriptCode');
+    if (!editor) return;
     
     editor.addEventListener('input', () => {
         updateEditorStats();
-        document.getElementById('editorStatus').textContent = 'Editing...';
-        
-        // Auto-save draft
-        clearTimeout(state.autoSaveTimer);
-        state.autoSaveTimer = setTimeout(() => {
-            document.getElementById('editorStatus').textContent = 'Draft saved locally';
-        }, 1000);
+        const status = document.getElementById('editorStatus');
+        if (status) status.textContent = 'Editing...';
     });
     
-    // Tab support
     editor.addEventListener('keydown', (e) => {
         if (e.key === 'Tab') {
             e.preventDefault();
@@ -1845,16 +2509,56 @@ function setupEditorEvents() {
     });
 }
 
-async function saveAndTest() {
-    const success = await saveScript();
-    if (success) {
-        showToast('🧪 Buka Tampermonkey untuk test script!', 'info');
-    }
+function updateEditorStats() {
+    const editor = document.getElementById('scriptCode');
+    if (!editor) return;
+    const code = editor.value;
+    const lineCount = document.getElementById('lineCount');
+    const charCount = document.getElementById('charCount');
+    if (lineCount) lineCount.textContent = code ? code.split('\n').length : 0;
+    if (charCount) charCount.textContent = code.length;
 }
+
+// ============================================
+// KEYBOARD SHORTCUTS
+// ============================================
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+            case 's':
+                e.preventDefault();
+                if (state.currentPage === 'editor') saveScript();
+                break;
+            case 'n':
+                e.preventDefault();
+                newScript();
+                break;
+            case 'k':
+                e.preventDefault();
+                document.getElementById('searchInput')?.focus();
+                break;
+            case 'b':
+                e.preventDefault();
+                backupAll();
+                break;
+        }
+    }
+    if (e.key === 'Escape') closeModal();
+});
 
 // ============================================
 // UTILITIES
 // ============================================
+function downloadFile(content, filename) {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text || '';
@@ -1870,10 +2574,10 @@ function formatSize(bytes) {
 function timeAgo(date) {
     if (!date) return '';
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-    if (seconds < 60) return 'baru saja';
-    if (seconds < 3600) return Math.floor(seconds / 60) + 'm lalu';
-    if (seconds < 86400) return Math.floor(seconds / 3600) + 'j lalu';
-    if (seconds < 604800) return Math.floor(seconds / 86400) + 'h lalu';
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+    if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+    if (seconds < 604800) return Math.floor(seconds / 86400) + 'd ago';
     return new Date(date).toLocaleDateString('id-ID');
 }
 </script>
