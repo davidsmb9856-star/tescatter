@@ -6,24 +6,23 @@
 <title>🐒 ScriptVault — Cloud Tampermonkey Manager</title>
 <style>
 :root{
-  --bg-0:#05060a;
-  --bg-1:#0a0d18;
-  --bg-2:#111524;
-  --glass:rgba(255,255,255,0.04);
-  --glass-2:rgba(255,255,255,0.07);
+  --bg-0:#1a1a1a;
+  --bg-1:#222222;
+  --bg-2:#2a2a2a;
+  --bg-3:#333333;
+  --glass:rgba(255,255,255,0.03);
+  --glass-2:rgba(255,255,255,0.06);
   --border:rgba(255,255,255,0.08);
-  --border-hi:rgba(255,255,255,0.18);
-  --text:#e8ecf5;
-  --text-dim:#8891a8;
-  --text-mute:#5a6278;
-  --neon-1:#00e5ff;
-  --neon-2:#b14bff;
-  --neon-3:#ff3ea5;
-  --neon-4:#7cff6b;
-  --danger:#ff4d6d;
-  --warn:#ffb547;
-  --grad-main:linear-gradient(135deg,#00e5ff 0%,#b14bff 50%,#ff3ea5 100%);
-  --grad-card:linear-gradient(135deg,rgba(0,229,255,0.08),rgba(177,75,255,0.08));
+  --border-hi:rgba(255,255,255,0.15);
+  --text:#e8e8e8;
+  --text-dim:#9a9a9a;
+  --text-mute:#6a6a6a;
+  --accent:#6b8afd;
+  --accent-2:#8b7cfd;
+  --success:#6bcf7f;
+  --danger:#e06c75;
+  --warn:#e5c07b;
+  --grad-main:linear-gradient(135deg,#6b8afd 0%,#8b7cfd 100%);
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -33,165 +32,115 @@ body{
   background:var(--bg-0);
   color:var(--text);
   overflow:hidden;
-  position:relative;
 }
 
-/* Animated Background */
-.bg-mesh{
-  position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
-}
-.bg-mesh::before,.bg-mesh::after{
-  content:'';position:absolute;border-radius:50%;filter:blur(120px);opacity:.35;
-  animation:float 20s ease-in-out infinite;
-}
-.bg-mesh::before{
-  width:600px;height:600px;background:#00e5ff;top:-200px;left:-200px;
-}
-.bg-mesh::after{
-  width:700px;height:700px;background:#b14bff;bottom:-250px;right:-250px;
-  animation-delay:-10s;
-}
-.bg-orb{
-  position:absolute;width:500px;height:500px;border-radius:50%;
-  background:#ff3ea5;filter:blur(140px);opacity:.25;
-  top:40%;left:40%;animation:float 25s ease-in-out infinite -5s;
-}
-@keyframes float{
-  0%,100%{transform:translate(0,0) scale(1)}
-  33%{transform:translate(80px,-60px) scale(1.1)}
-  66%{transform:translate(-60px,80px) scale(.95)}
-}
+/* Subtle background */
 .bg-grid{
   position:fixed;inset:0;z-index:0;pointer-events:none;
   background-image:
-    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);
   background-size:40px 40px;
-  mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%);
 }
 
 /* Layout */
 .app{
   position:relative;z-index:1;display:grid;
-  grid-template-columns:280px 1fr;
+  grid-template-columns:260px 1fr;
   height:100vh;
 }
 
 /* Sidebar */
 .sidebar{
-  background:linear-gradient(180deg,rgba(10,13,24,.85),rgba(5,6,10,.95));
-  backdrop-filter:blur(20px);
+  background:var(--bg-1);
   border-right:1px solid var(--border);
   display:flex;flex-direction:column;
-  padding:20px 16px;
+  padding:20px 14px;
   overflow-y:auto;
 }
 .logo{
-  display:flex;align-items:center;gap:12px;padding:8px 10px 20px;
-  border-bottom:1px solid var(--border);margin-bottom:20px;
+  display:flex;align-items:center;gap:11px;padding:6px 10px 18px;
+  border-bottom:1px solid var(--border);margin-bottom:18px;
 }
 .logo-icon{
-  width:42px;height:42px;border-radius:12px;
+  width:38px;height:38px;border-radius:10px;
   background:var(--grad-main);
-  display:grid;place-items:center;font-size:22px;
-  box-shadow:0 0 20px rgba(177,75,255,.4);
-  position:relative;
-}
-.logo-icon::after{
-  content:'';position:absolute;inset:-2px;border-radius:14px;
-  background:var(--grad-main);z-index:-1;filter:blur(8px);opacity:.6;
+  display:grid;place-items:center;font-size:20px;
+  box-shadow:0 4px 12px rgba(107,138,253,.25);
 }
 .logo-text h1{
-  font-size:16px;font-weight:800;letter-spacing:-.3px;
-  background:var(--grad-main);-webkit-background-clip:text;background-clip:text;color:transparent;
+  font-size:15px;font-weight:800;letter-spacing:-.3px;color:var(--text);
 }
 .logo-text p{font-size:10px;color:var(--text-mute);letter-spacing:2px;text-transform:uppercase}
 
-.owner-card{
-  background:var(--glass);border:1px solid var(--border);
-  border-radius:14px;padding:14px;margin-bottom:18px;
-  position:relative;overflow:hidden;
+.vault-card{
+  background:var(--bg-2);border:1px solid var(--border);
+  border-radius:12px;padding:12px;margin-bottom:18px;
 }
-.owner-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:var(--grad-main);
+.vault-head{display:flex;align-items:center;gap:10px}
+.vault-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--bg-3);display:grid;place-items:center;
+  font-size:18px;border:1px solid var(--border);
 }
-.owner-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.owner-avatar{
-  width:40px;height:40px;border-radius:50%;
-  background:var(--grad-main);display:grid;place-items:center;
-  font-weight:700;font-size:16px;color:#fff;
-  text-shadow:0 1px 2px rgba(0,0,0,.3);
+.vault-info{flex:1;min-width:0}
+.vault-name{font-weight:700;font-size:13px}
+.vault-status{font-size:10px;color:var(--success);display:flex;align-items:center;gap:4px}
+.vault-status::before{
+  content:'';width:6px;height:6px;border-radius:50%;background:var(--success);
+  box-shadow:0 0 6px var(--success);
 }
-.owner-info{flex:1;min-width:0}
-.owner-name{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.owner-role{font-size:10px;color:var(--neon-1);text-transform:uppercase;letter-spacing:1.5px}
-.owner-switch{
-  width:100%;padding:8px;background:var(--glass-2);border:1px solid var(--border);
-  border-radius:8px;color:var(--text-dim);font-size:11px;cursor:pointer;
-  transition:all .2s;font-weight:600;
-}
-.owner-switch:hover{color:var(--text);border-color:var(--border-hi);background:rgba(255,255,255,.08)}
 
-.nav{display:flex;flex-direction:column;gap:4px;margin-bottom:18px}
+.nav{display:flex;flex-direction:column;gap:3px;margin-bottom:18px}
 .nav-label{
   font-size:10px;color:var(--text-mute);text-transform:uppercase;
   letter-spacing:2px;padding:8px 12px;font-weight:700;
 }
 .nav-item{
-  display:flex;align-items:center;gap:12px;padding:10px 12px;
-  border-radius:10px;cursor:pointer;color:var(--text-dim);
-  font-size:13px;font-weight:500;transition:all .2s;
+  display:flex;align-items:center;gap:11px;padding:9px 12px;
+  border-radius:9px;cursor:pointer;color:var(--text-dim);
+  font-size:13px;font-weight:500;transition:all .15s;
   position:relative;
 }
-.nav-item:hover{background:var(--glass);color:var(--text)}
+.nav-item:hover{background:var(--bg-2);color:var(--text)}
 .nav-item.active{
-  background:linear-gradient(90deg,rgba(0,229,255,.12),rgba(177,75,255,.06));
-  color:var(--text);
+  background:var(--bg-2);color:var(--text);
 }
 .nav-item.active::before{
   content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;
   background:var(--grad-main);border-radius:0 3px 3px 0;
-  box-shadow:0 0 10px var(--neon-1);
 }
-.nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-icon{font-size:15px;width:18px;text-align:center}
 .nav-badge{
-  margin-left:auto;background:var(--grad-main);color:#fff;
+  margin-left:auto;background:var(--bg-3);color:var(--text-dim);
   font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;
+  border:1px solid var(--border);
 }
 
 .sidebar-footer{
-  margin-top:auto;padding-top:16px;border-top:1px solid var(--border);
+  margin-top:auto;padding-top:14px;border-top:1px solid var(--border);
   font-size:11px;color:var(--text-mute);
 }
-.status-dot{
-  display:inline-block;width:8px;height:8px;border-radius:50%;
-  background:var(--neon-4);box-shadow:0 0 8px var(--neon-4);
-  margin-right:6px;animation:pulse 2s infinite;
-}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* Main */
 .main{
   display:flex;flex-direction:column;overflow:hidden;
+  background:var(--bg-0);
 }
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:16px 28px;border-bottom:1px solid var(--border);
-  background:rgba(10,13,24,.5);backdrop-filter:blur(20px);
+  padding:14px 24px;border-bottom:1px solid var(--border);
+  background:var(--bg-1);
 }
-.topbar h2{font-size:20px;font-weight:700;letter-spacing:-.3px}
-.topbar h2 span{
-  background:var(--grad-main);-webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.topbar-actions{display:flex;gap:10px;align-items:center}
+.topbar h2{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
 .search-box{
   display:flex;align-items:center;gap:8px;
-  background:var(--glass);border:1px solid var(--border);
-  border-radius:10px;padding:8px 14px;width:260px;
-  transition:all .2s;
+  background:var(--bg-2);border:1px solid var(--border);
+  border-radius:9px;padding:7px 12px;width:240px;
+  transition:all .15s;
 }
-.search-box:focus-within{border-color:var(--neon-1);box-shadow:0 0 0 3px rgba(0,229,255,.1)}
+.search-box:focus-within{border-color:var(--accent)}
 .search-box input{
   background:none;border:none;outline:none;color:var(--text);
   flex:1;font-size:13px;
@@ -199,102 +148,85 @@ body{
 .search-box input::placeholder{color:var(--text-mute)}
 
 .btn{
-  padding:9px 16px;border:none;border-radius:10px;cursor:pointer;
-  font-size:13px;font-weight:600;transition:all .2s;
-  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 14px;border:none;border-radius:9px;cursor:pointer;
+  font-size:12.5px;font-weight:600;transition:all .15s;
+  display:inline-flex;align-items:center;gap:6px;
   font-family:inherit;
 }
 .btn-primary{
   background:var(--grad-main);color:#fff;
-  box-shadow:0 4px 14px rgba(177,75,255,.35);
+  box-shadow:0 2px 8px rgba(107,138,253,.3);
 }
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(177,75,255,.5)}
+.btn-primary:hover{filter:brightness(1.1)}
 .btn-ghost{
-  background:var(--glass);color:var(--text);border:1px solid var(--border);
+  background:var(--bg-2);color:var(--text);border:1px solid var(--border);
 }
-.btn-ghost:hover{background:var(--glass-2);border-color:var(--border-hi)}
-.btn-danger{background:rgba(255,77,109,.15);color:var(--danger);border:1px solid rgba(255,77,109,.3)}
-.btn-danger:hover{background:rgba(255,77,109,.25)}
+.btn-ghost:hover{background:var(--bg-3);border-color:var(--border-hi)}
+.btn-danger{background:rgba(224,108,117,.12);color:var(--danger);border:1px solid rgba(224,108,117,.25)}
+.btn-danger:hover{background:rgba(224,108,117,.2)}
 .btn-icon{
-  width:36px;height:36px;padding:0;display:grid;place-items:center;
-  background:var(--glass);border:1px solid var(--border);border-radius:10px;
-  color:var(--text-dim);cursor:pointer;transition:all .2s;
+  width:34px;height:34px;padding:0;display:grid;place-items:center;
+  background:var(--bg-2);border:1px solid var(--border);border-radius:9px;
+  color:var(--text-dim);cursor:pointer;transition:all .15s;
 }
 .btn-icon:hover{color:var(--text);border-color:var(--border-hi)}
 
 /* Content */
 .content{
-  flex:1;overflow-y:auto;padding:24px 28px;
+  flex:1;overflow-y:auto;padding:22px 24px;
 }
 .content::-webkit-scrollbar{width:8px}
 .content::-webkit-scrollbar-track{background:transparent}
-.content::-webkit-scrollbar-thumb{background:var(--glass-2);border-radius:4px}
-.content::-webkit-scrollbar-thumb:hover{background:var(--border-hi)}
+.content::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:4px}
 
 /* Views */
-.view{display:none;animation:fadeIn .3s ease}
+.view{display:none;animation:fadeIn .25s ease}
 .view.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* Stats */
 .stats-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:16px;margin-bottom:24px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;margin-bottom:22px;
 }
 .stat-card{
-  background:var(--glass);border:1px solid var(--border);
-  border-radius:16px;padding:18px;position:relative;overflow:hidden;
-  transition:all .3s;
+  background:var(--bg-1);border:1px solid var(--border);
+  border-radius:12px;padding:16px;transition:all .2s;
 }
-.stat-card:hover{border-color:var(--border-hi);transform:translateY(-2px)}
-.stat-card::before{
-  content:'';position:absolute;top:0;right:0;width:100px;height:100px;
-  border-radius:50%;filter:blur(40px);opacity:.2;
-}
-.stat-card:nth-child(1)::before{background:var(--neon-1)}
-.stat-card:nth-child(2)::before{background:var(--neon-2)}
-.stat-card:nth-child(3)::before{background:var(--neon-3)}
-.stat-card:nth-child(4)::before{background:var(--neon-4)}
-.stat-label{font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
-.stat-value{font-size:28px;font-weight:800;margin-top:6px;letter-spacing:-.5px}
-.stat-sub{font-size:11px;color:var(--text-dim);margin-top:4px}
+.stat-card:hover{border-color:var(--border-hi)}
+.stat-label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
+.stat-value{font-size:26px;font-weight:800;margin-top:5px;letter-spacing:-.5px}
+.stat-sub{font-size:11px;color:var(--text-dim);margin-top:3px}
 
 /* Section header */
 .section-head{
   display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:16px;
+  margin-bottom:14px;
 }
-.section-head h3{font-size:16px;font-weight:700}
+.section-head h3{font-size:15px;font-weight:700}
 .section-head .hint{font-size:12px;color:var(--text-mute)}
 
 /* Script Grid */
 .script-grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-  gap:14px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:12px;
 }
 .script-card{
-  background:var(--glass);border:1px solid var(--border);
-  border-radius:14px;padding:16px;cursor:pointer;
-  transition:all .25s;position:relative;overflow:hidden;
-}
-.script-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:var(--grad-main);transform:scaleX(0);transform-origin:left;
-  transition:transform .3s;
+  background:var(--bg-1);border:1px solid var(--border);
+  border-radius:12px;padding:14px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden;
 }
 .script-card:hover{
-  border-color:var(--border-hi);transform:translateY(-3px);
-  box-shadow:0 10px 30px rgba(0,0,0,.4);
+  border-color:var(--border-hi);background:var(--bg-2);
 }
-.script-card:hover::before{transform:scaleX(1)}
-.script-card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.script-card-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
 .script-icon{
-  width:38px;height:38px;border-radius:10px;flex-shrink:0;
-  background:var(--grad-card);border:1px solid var(--border);
-  display:grid;place-items:center;font-size:18px;
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  background:var(--bg-2);border:1px solid var(--border);
+  display:grid;place-items:center;font-size:16px;
 }
 .script-title{
-  font-weight:700;font-size:14px;margin-bottom:3px;
+  font-weight:700;font-size:13.5px;margin-bottom:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .script-desc{
@@ -303,58 +235,55 @@ body{
   overflow:hidden;line-height:1.5;min-height:36px;
 }
 .script-meta{
-  display:flex;gap:12px;font-size:11px;color:var(--text-mute);
-  margin-top:10px;padding-top:10px;border-top:1px solid var(--border);
+  display:flex;gap:10px;font-size:11px;color:var(--text-mute);
+  margin-top:8px;padding-top:8px;border-top:1px solid var(--border);
 }
 .script-meta span{display:flex;align-items:center;gap:4px}
 .script-actions{
-  display:flex;gap:6px;margin-top:10px;
+  display:flex;gap:5px;margin-top:8px;
 }
-.script-actions .btn{padding:6px 10px;font-size:11px;flex:1;justify-content:center}
+.script-actions .btn{padding:5px 9px;font-size:11px;flex:1;justify-content:center}
 
 .empty-state{
-  text-align:center;padding:60px 20px;
-  background:var(--glass);border:1px dashed var(--border);
-  border-radius:16px;
+  text-align:center;padding:50px 20px;
+  background:var(--bg-1);border:1px dashed var(--border);
+  border-radius:12px;
 }
 .empty-icon{
-  width:80px;height:80px;margin:0 auto 16px;border-radius:20px;
-  background:var(--grad-card);display:grid;place-items:center;
-  font-size:36px;border:1px solid var(--border);
+  width:70px;height:70px;margin:0 auto 14px;border-radius:18px;
+  background:var(--bg-2);display:grid;place-items:center;
+  font-size:32px;border:1px solid var(--border);
 }
-.empty-state h4{font-size:16px;margin-bottom:6px}
-.empty-state p{color:var(--text-dim);font-size:13px;margin-bottom:16px}
+.empty-state h4{font-size:15px;margin-bottom:5px}
+.empty-state p{color:var(--text-dim);font-size:12.5px;margin-bottom:14px}
 
 /* Editor */
-.editor-wrap{
-  display:grid;grid-template-columns:1fr;gap:16px;
-}
 .editor-card{
-  background:var(--glass);border:1px solid var(--border);
-  border-radius:16px;padding:20px;
+  background:var(--bg-1);border:1px solid var(--border);
+  border-radius:12px;padding:18px;
 }
 .editor-toolbar{
   display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:16px;flex-wrap:wrap;gap:10px;
+  margin-bottom:14px;flex-wrap:wrap;gap:10px;
 }
-.editor-toolbar h3{font-size:16px;font-weight:700}
-.editor-toolbar .tools{display:flex;gap:8px;flex-wrap:wrap}
+.editor-toolbar h3{font-size:15px;font-weight:700}
+.editor-toolbar .tools{display:flex;gap:7px;flex-wrap:wrap}
 
-.field{margin-bottom:14px}
+.field{margin-bottom:12px}
 .field label{
-  display:block;font-size:11px;color:var(--text-dim);
+  display:block;font-size:10.5px;color:var(--text-dim);
   text-transform:uppercase;letter-spacing:1.5px;font-weight:700;
-  margin-bottom:6px;
+  margin-bottom:5px;
 }
 .field input,.field textarea{
-  width:100%;padding:11px 14px;
-  background:rgba(0,0,0,.3);border:1px solid var(--border);
-  border-radius:10px;color:var(--text);font-size:13px;
-  font-family:inherit;transition:all .2s;
+  width:100%;padding:10px 12px;
+  background:var(--bg-0);border:1px solid var(--border);
+  border-radius:9px;color:var(--text);font-size:13px;
+  font-family:inherit;transition:all .15s;
 }
 .field input:focus,.field textarea:focus{
-  outline:none;border-color:var(--neon-1);
-  box-shadow:0 0 0 3px rgba(0,229,255,.1);
+  outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(107,138,253,.12);
 }
 .field textarea{
   min-height:420px;resize:vertical;
@@ -364,138 +293,62 @@ body{
 }
 .field-hint{
   display:flex;justify-content:space-between;
-  font-size:11px;color:var(--text-mute);margin-top:6px;
+  font-size:11px;color:var(--text-mute);margin-top:5px;
 }
 
-/* Modal */
-.modal-overlay{
-  position:fixed;inset:0;z-index:100;
-  background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
-  display:none;align-items:center;justify-content:center;
-  padding:20px;animation:fadeIn .2s;
+/* Settings */
+.settings-grid{display:grid;gap:12px}
+.setting-item{
+  background:var(--bg-1);border:1px solid var(--border);
+  border-radius:11px;padding:14px;
+  display:flex;justify-content:space-between;align-items:center;gap:14px;
 }
-.modal-overlay.show{display:flex}
-.modal{
-  background:linear-gradient(180deg,var(--bg-2),var(--bg-1));
-  border:1px solid var(--border-hi);border-radius:20px;
-  padding:28px;max-width:440px;width:100%;
-  box-shadow:0 20px 60px rgba(0,0,0,.6);
-  position:relative;
+.setting-info h4{font-size:13.5px;margin-bottom:2px}
+.setting-info p{font-size:11.5px;color:var(--text-dim)}
+.setting-value{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  color:var(--accent);background:rgba(107,138,253,.08);
+  padding:5px 9px;border-radius:6px;
+  max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  border:1px solid rgba(107,138,253,.2);
 }
-.modal::before{
-  content:'';position:absolute;inset:-1px;border-radius:20px;
-  background:var(--grad-main);z-index:-1;opacity:.3;filter:blur(20px);
-}
-.modal h3{
-  font-size:20px;margin-bottom:8px;
-  background:var(--grad-main);-webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.modal p{color:var(--text-dim);font-size:13px;margin-bottom:20px;line-height:1.6}
-.modal .field{margin-bottom:16px}
-.modal-actions{display:flex;gap:10px;margin-top:20px}
-.modal-actions .btn{flex:1;justify-content:center;padding:11px}
 
 /* Toast */
 .toast-wrap{
-  position:fixed;bottom:24px;right:24px;z-index:200;
-  display:flex;flex-direction:column;gap:10px;
+  position:fixed;bottom:20px;right:20px;z-index:200;
+  display:flex;flex-direction:column;gap:8px;
 }
 .toast{
-  background:linear-gradient(135deg,var(--bg-2),var(--bg-1));
-  border:1px solid var(--border-hi);border-radius:12px;
-  padding:12px 18px;min-width:260px;
-  display:flex;align-items:center;gap:10px;
-  box-shadow:0 10px 30px rgba(0,0,0,.5);
-  animation:slideIn .3s cubic-bezier(.2,.8,.2,1);
-  font-size:13px;font-weight:500;
+  background:var(--bg-2);
+  border:1px solid var(--border-hi);border-radius:10px;
+  padding:10px 16px;min-width:240px;
+  display:flex;align-items:center;gap:9px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  animation:slideIn .25s cubic-bezier(.2,.8,.2,1);
+  font-size:12.5px;font-weight:500;
 }
-.toast.success{border-left:3px solid var(--neon-4)}
+.toast.success{border-left:3px solid var(--success)}
 .toast.error{border-left:3px solid var(--danger)}
-.toast.info{border-left:3px solid var(--neon-1)}
+.toast.info{border-left:3px solid var(--accent)}
 .toast.warn{border-left:3px solid var(--warn)}
-.toast-icon{font-size:18px}
+.toast-icon{font-size:16px}
 @keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
-
-/* Setup Screen */
-.setup-screen{
-  position:fixed;inset:0;z-index:50;
-  background:var(--bg-0);
-  display:flex;align-items:center;justify-content:center;
-  padding:20px;
-}
-.setup-card{
-  max-width:460px;width:100%;
-  background:linear-gradient(180deg,rgba(17,21,36,.9),rgba(10,13,24,.95));
-  border:1px solid var(--border-hi);border-radius:24px;
-  padding:36px;text-align:center;position:relative;overflow:hidden;
-}
-.setup-card::before{
-  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-  background:conic-gradient(from 0deg,transparent,var(--neon-1),transparent,var(--neon-2),transparent);
-  animation:rotate 8s linear infinite;opacity:.1;
-}
-@keyframes rotate{to{transform:rotate(360deg)}}
-.setup-card > *{position:relative;z-index:1}
-.setup-logo{
-  width:80px;height:80px;margin:0 auto 20px;border-radius:24px;
-  background:var(--grad-main);display:grid;place-items:center;font-size:40px;
-  box-shadow:0 0 40px rgba(177,75,255,.5);
-}
-.setup-card h2{
-  font-size:26px;margin-bottom:8px;letter-spacing:-.5px;
-  background:var(--grad-main);-webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.setup-card .sub{color:var(--text-dim);font-size:13px;margin-bottom:28px}
-.setup-card .field{text-align:left}
-.setup-card .btn{width:100%;justify-content:center;padding:13px;font-size:14px;margin-top:8px}
-
-/* Settings */
-.settings-grid{display:grid;gap:14px}
-.setting-item{
-  background:var(--glass);border:1px solid var(--border);
-  border-radius:12px;padding:16px;
-  display:flex;justify-content:space-between;align-items:center;gap:16px;
-}
-.setting-info h4{font-size:14px;margin-bottom:3px}
-.setting-info p{font-size:12px;color:var(--text-dim)}
-.setting-value{
-  font-family:'JetBrains Mono',monospace;font-size:11px;
-  color:var(--neon-1);background:rgba(0,229,255,.08);
-  padding:6px 10px;border-radius:6px;
-  max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
 
 @media (max-width:900px){
   .app{grid-template-columns:1fr}
   .sidebar{display:none}
-  .topbar{padding:14px 16px}
-  .content{padding:16px}
-  .search-box{width:160px}
+  .topbar{padding:12px 14px}
+  .content{padding:14px}
+  .search-box{width:140px}
 }
 </style>
 </head>
 <body>
 
-<div class="bg-mesh"><div class="bg-orb"></div></div>
 <div class="bg-grid"></div>
 
-<!-- SETUP SCREEN -->
-<div class="setup-screen" id="setupScreen">
-  <div class="setup-card">
-    <div class="setup-logo">🐒</div>
-    <h2>ScriptVault</h2>
-    <p class="sub">Masukkan nama pemilik untuk mengakses vault pribadi Anda.<br>Data tersimpan aman di cloud — tanpa password.</p>
-    <div class="field">
-      <label>Nama Pemilik</label>
-      <input type="text" id="ownerInput" placeholder="contoh: andi, budi, myaccount" maxlength="24" autocomplete="off">
-      <div class="field-hint"><span>Minimal 3 karakter, huruf/angka saja</span><span id="nameCount">0/24</span></div>
-    </div>
-    <button class="btn btn-primary" onclick="enterVault()">🚀 Masuk ke Vault</button>
-  </div>
-</div>
-
 <!-- APP -->
-<div class="app" id="app" style="display:none">
+<div class="app">
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="logo">
@@ -506,15 +359,14 @@ body{
       </div>
     </div>
 
-    <div class="owner-card">
-      <div class="owner-head">
-        <div class="owner-avatar" id="ownerAvatar">?</div>
-        <div class="owner-info">
-          <div class="owner-name" id="ownerName">-</div>
-          <div class="owner-role">● Owner</div>
+    <div class="vault-card">
+      <div class="vault-head">
+        <div class="vault-icon">🗄️</div>
+        <div class="vault-info">
+          <div class="vault-name">Main Vault</div>
+          <div class="vault-status">Connected</div>
         </div>
       </div>
-      <button class="owner-switch" onclick="switchOwner()">⇄ Ganti Pemilik</button>
     </div>
 
     <div class="nav">
@@ -523,7 +375,7 @@ body{
         <span class="nav-icon">📊</span>Dashboard
       </div>
       <div class="nav-item" data-view="scripts" onclick="switchView('scripts')">
-        <span class="nav-icon">📜</span>Script Saya
+        <span class="nav-icon">📜</span>Script
         <span class="nav-badge" id="navCount">0</span>
       </div>
       <div class="nav-item" data-view="editor" onclick="switchView('editor');newScript()">
@@ -535,15 +387,18 @@ body{
     </div>
 
     <div class="sidebar-footer">
-      <div><span class="status-dot"></span>Terhubung ke Cloud</div>
-      <div style="margin-top:6px;font-size:10px">v2.0 · JSONBin.io</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 6px var(--success)"></span>
+        <span>Cloud Online</span>
+      </div>
+      <div style="margin-top:5px;font-size:10px">v2.1 · JSONBin.io</div>
     </div>
   </aside>
 
   <!-- Main -->
   <main class="main">
     <div class="topbar">
-      <h2 id="viewTitle">📊 <span>Dashboard</span></h2>
+      <h2 id="viewTitle">📊 Dashboard</h2>
       <div class="topbar-actions">
         <div class="search-box">
           <span>🔍</span>
@@ -570,19 +425,19 @@ body{
           </div>
           <div class="stat-card">
             <div class="stat-label">Terakhir Update</div>
-            <div class="stat-value" id="statLast" style="font-size:16px">-</div>
+            <div class="stat-value" id="statLast" style="font-size:14px">-</div>
             <div class="stat-sub">Waktu lokal</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Status Cloud</div>
-            <div class="stat-value" style="color:var(--neon-4);font-size:18px">● Online</div>
+            <div class="stat-value" style="color:var(--success);font-size:16px">● Online</div>
             <div class="stat-sub">JSONBin.io</div>
           </div>
         </div>
 
         <div class="section-head">
           <h3>⚡ Script Terbaru</h3>
-          <span class="hint" id="recentHint">5 script terakhir</span>
+          <span class="hint">5 script terakhir</span>
         </div>
         <div id="recentList"></div>
       </div>
@@ -602,8 +457,6 @@ body{
           <div class="editor-toolbar">
             <h3 id="editorTitle">✏️ Script Baru</h3>
             <div class="tools">
-              <button class="btn btn-ghost" onclick="importScript()">📤 Import</button>
-              <button class="btn btn-ghost" onclick="exportScript()">📥 Export</button>
               <button class="btn btn-ghost" onclick="copyScript()">📋 Copy</button>
               <button class="btn btn-danger" onclick="deleteScript()" id="btnDelete" style="display:none">🗑️ Hapus</button>
               <button class="btn btn-primary" onclick="saveScript()">💾 Simpan</button>
@@ -655,38 +508,31 @@ body{
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <h4>📦 Master Bin ID</h4>
-              <p>Bin utama untuk mapping pemilik</p>
+              <h4>🗄️ Vault Bin ID</h4>
+              <p>ID bin penyimpanan utama</p>
             </div>
-            <div class="setting-value" id="dispMaster">Loading...</div>
+            <div class="setting-value" id="dispBin">Loading...</div>
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <h4>👤 Pemilik Saat Ini</h4>
-              <p>Nama vault yang sedang aktif</p>
+              <h4>📦 Total Script</h4>
+              <p>Jumlah script tersimpan</p>
             </div>
-            <div class="setting-value" id="dispOwner">-</div>
-          </div>
-          <div class="setting-item">
-            <div class="setting-info">
-              <h4>🗄️ Personal Bin ID</h4>
-              <p>Bin pribadi pemilik ini</p>
-            </div>
-            <div class="setting-value" id="dispPersonal">-</div>
+            <div class="setting-value" id="dispTotal">0</div>
           </div>
           <div class="setting-item">
             <div class="setting-info">
               <h4>🔄 Sync Otomatis</h4>
               <p>Setiap perubahan langsung ke cloud</p>
             </div>
-            <div class="setting-value" style="color:var(--neon-4)">● Aktif</div>
+            <div class="setting-value" style="color:var(--success)">● Aktif</div>
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <h4>🚪 Keluar</h4>
-              <p>Kembali ke layar pilih pemilik</p>
+              <h4>🔄 Sync Manual</h4>
+              <p>Reload data dari cloud</p>
             </div>
-            <button class="btn btn-danger" onclick="switchOwner()">Ganti Pemilik</button>
+            <button class="btn btn-ghost" onclick="syncNow()">🔄 Sync Sekarang</button>
           </div>
         </div>
       </div>
@@ -697,87 +543,42 @@ body{
 <!-- Toast Container -->
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- Hidden file input -->
-<input type="file" id="fileInput" accept=".js,.txt,.user.js" style="display:none">
-
 <script>
 /* ============================================
-   CONFIG — Hardcoded API Key
+   CONFIG
 ============================================ */
 const MASTER_KEY = "$2a$10$G1wQvXgxfGvzuKP/loOtleElR8x6Pcu.rR2V6gKRGQzsFgLdDn7qq";
 const API_BASE = "https://api.jsonbin.io/v3/b";
-const MASTER_BIN_NAME = "ScriptVault_MasterIndex";
+const VAULT_BIN_NAME = "ScriptVault_Main";
 
 /* ============================================
    STATE
 ============================================ */
-let MASTER_BIN_ID = null;   // bin yang berisi mapping owner -> personalBinId
-let OWNER_BIN_ID = null;    // bin pribadi pemilik saat ini
-let currentOwner = null;
+let VAULT_BIN_ID = null;
 let scripts = [];
 let editingId = null;
 
 /* ============================================
-   ENTRY — Setup Screen
+   INIT — Auto load vault
 ============================================ */
-const ownerInput = document.getElementById('ownerInput');
-const nameCount = document.getElementById('nameCount');
-ownerInput.addEventListener('input', () => {
-  ownerInput.value = ownerInput.value.toLowerCase().replace(/[^a-z0-9_]/g,'');
-  nameCount.textContent = ownerInput.value.length + '/24';
-});
-ownerInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') enterVault();
-});
-
-async function enterVault(){
-  const name = ownerInput.value.trim();
-  if (name.length < 3){ toast('Nama minimal 3 karakter','error'); return; }
-  
-  toast('Menghubungkan ke cloud...','info');
-  
+(async function init(){
   try {
-    // 1. Ensure master bin exists
-    if (!MASTER_BIN_ID){
-      MASTER_BIN_ID = await ensureMasterBin();
-    }
-    
-    // 2. Load master index
-    const index = await loadMasterIndex();
-    
-    // 3. Get or create personal bin for this owner
-    if (!index.owners[name]){
-      toast('Membuat vault baru untuk '+name+'...','info');
-      const newBinId = await createPersonalBin(name);
-      index.owners[name] = { binId: newBinId, created: new Date().toISOString() };
-      await saveMasterIndex(index);
-      OWNER_BIN_ID = newBinId;
-    } else {
-      OWNER_BIN_ID = index.owners[name].binId;
-    }
-    
-    currentOwner = name;
-    
-    // 4. Load scripts
+    toast('Menghubungkan ke cloud...','info');
+    VAULT_BIN_ID = await ensureVaultBin();
     await loadScripts();
-    
-    // 5. Show app
-    document.getElementById('setupScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'grid';
     initApp();
-    
-    toast('Selamat datang, '+name+'!','success');
+    toast('Vault siap digunakan','success');
   } catch(err){
     console.error(err);
-    toast('Gagal masuk: '+err.message,'error');
+    toast('Gagal connect: '+err.message,'error');
   }
-}
+})();
 
 /* ============================================
-   MASTER BIN (index of all owners)
+   VAULT BIN (single shared vault)
 ============================================ */
-async function ensureMasterBin(){
-  // Try to find existing master bin by listing bins
+async function ensureVaultBin(){
+  // Try find existing vault bin
   try {
     const res = await fetch(API_BASE+'?limit=100', {
       headers:{ 'X-Master-Key': MASTER_KEY }
@@ -785,56 +586,21 @@ async function ensureMasterBin(){
     if (res.ok){
       const data = await res.json();
       const bins = data.record || [];
-      const found = bins.find(b => b.metadata && b.metadata.name === MASTER_BIN_NAME);
+      const found = bins.find(b => b.metadata && b.metadata.name === VAULT_BIN_NAME);
       if (found) return found.metadata.id;
     }
   } catch(e){}
   
-  // Create new master bin
+  // Create new vault bin
   const res = await fetch(API_BASE, {
     method:'POST',
     headers:{ 'Content-Type':'application/json', 'X-Master-Key': MASTER_KEY },
     body: JSON.stringify({
-      metadata:{ name: MASTER_BIN_NAME, type:'master-index', created: new Date().toISOString() },
-      owners: {}
-    })
-  });
-  if (!res.ok) throw new Error('Gagal buat master bin');
-  const data = await res.json();
-  return data.metadata.id;
-}
-
-async function loadMasterIndex(){
-  const res = await fetch(API_BASE+'/'+MASTER_BIN_ID+'/latest', {
-    headers:{ 'X-Master-Key': MASTER_KEY }
-  });
-  if (!res.ok) return { owners:{} };
-  const data = await res.json();
-  return { owners: data.record.owners || {} };
-}
-
-async function saveMasterIndex(index){
-  const res = await fetch(API_BASE+'/'+MASTER_BIN_ID, {
-    method:'PUT',
-    headers:{ 'Content-Type':'application/json', 'X-Master-Key': MASTER_KEY },
-    body: JSON.stringify({
-      metadata:{ name: MASTER_BIN_NAME, type:'master-index', updated: new Date().toISOString() },
-      owners: index.owners
-    })
-  });
-  if (!res.ok) throw new Error('Gagal simpan index');
-}
-
-async function createPersonalBin(ownerName){
-  const res = await fetch(API_BASE, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', 'X-Master-Key': MASTER_KEY },
-    body: JSON.stringify({
-      metadata:{ name:'ScriptVault_'+ownerName, owner: ownerName, created: new Date().toISOString() },
+      metadata:{ name: VAULT_BIN_NAME, type:'main-vault', created: new Date().toISOString() },
       scripts: []
     })
   });
-  if (!res.ok) throw new Error('Gagal buat vault pribadi');
+  if (!res.ok) throw new Error('Gagal buat vault');
   const data = await res.json();
   return data.metadata.id;
 }
@@ -843,7 +609,7 @@ async function createPersonalBin(ownerName){
    SCRIPTS CRUD
 ============================================ */
 async function loadScripts(){
-  const res = await fetch(API_BASE+'/'+OWNER_BIN_ID+'/latest', {
+  const res = await fetch(API_BASE+'/'+VAULT_BIN_ID+'/latest', {
     headers:{ 'X-Master-Key': MASTER_KEY }
   });
   if (!res.ok){ scripts = []; return; }
@@ -852,11 +618,11 @@ async function loadScripts(){
 }
 
 async function saveScriptsToCloud(){
-  const res = await fetch(API_BASE+'/'+OWNER_BIN_ID, {
+  const res = await fetch(API_BASE+'/'+VAULT_BIN_ID, {
     method:'PUT',
     headers:{ 'Content-Type':'application/json', 'X-Master-Key': MASTER_KEY },
     body: JSON.stringify({
-      metadata:{ name:'ScriptVault_'+currentOwner, owner:currentOwner, updated: new Date().toISOString() },
+      metadata:{ name: VAULT_BIN_NAME, type:'main-vault', updated: new Date().toISOString() },
       scripts: scripts
     })
   });
@@ -867,15 +633,10 @@ async function saveScriptsToCloud(){
    APP INIT
 ============================================ */
 function initApp(){
-  // Owner info
-  document.getElementById('ownerName').textContent = currentOwner;
-  document.getElementById('ownerAvatar').textContent = currentOwner.charAt(0).toUpperCase();
-  document.getElementById('dispOwner').textContent = currentOwner;
   document.getElementById('dispKey').textContent = MASTER_KEY.substring(0,10)+'...'+MASTER_KEY.substring(MASTER_KEY.length-6);
-  document.getElementById('dispMaster').textContent = MASTER_BIN_ID;
-  document.getElementById('dispPersonal').textContent = OWNER_BIN_ID;
-  
+  document.getElementById('dispBin').textContent = VAULT_BIN_ID;
   document.getElementById('navCount').textContent = scripts.length;
+  document.getElementById('dispTotal').textContent = scripts.length;
   
   renderAll();
   
@@ -891,8 +652,6 @@ function initApp(){
       t.selectionStart = t.selectionEnd = s+2;
     }
   });
-  
-  document.getElementById('fileInput').addEventListener('change', handleImport);
 }
 
 function renderAll(){
@@ -902,6 +661,7 @@ function renderAll(){
 
 function renderDashboard(){
   document.getElementById('statTotal').textContent = scripts.length;
+  document.getElementById('dispTotal').textContent = scripts.length;
   const totalChars = scripts.reduce((a,s)=>a+(s.code? s.code.length:0),0);
   document.getElementById('statChars').textContent = totalChars.toLocaleString('id-ID');
   
@@ -912,7 +672,7 @@ function renderDashboard(){
   const recent = sorted.slice(0,5);
   const container = document.getElementById('recentList');
   if (recent.length === 0){
-    container.innerHTML = emptyHTML('Belum ada script','Klik "Script Baru" untuk membuat script pertama Anda');
+    container.innerHTML = emptyHTML('Belum ada script','Klik "Script Baru" untuk membuat script pertama');
   } else {
     container.innerHTML = '<div class="script-grid">'+recent.map(scriptCardHTML).join('')+'</div>';
   }
@@ -928,7 +688,7 @@ function renderScripts(){
   const container = document.getElementById('scriptsList');
   if (filtered.length === 0){
     container.innerHTML = emptyHTML(
-      q ? 'Tidak ditemukan' : 'Vault masih kosong',
+      q ? 'Tidak ditemukan' : 'Vault kosong',
       q ? 'Coba kata kunci lain' : 'Klik "Script Baru" untuk memulai'
     );
   } else {
@@ -1006,12 +766,12 @@ function switchView(name){
   if (nav) nav.classList.add('active');
   
   const titles = {
-    dashboard:'📊 <span>Dashboard</span>',
-    scripts:'📜 <span>Script Saya</span>',
-    editor:'✏️ <span>Editor</span>',
-    settings:'⚙️ <span>Pengaturan</span>'
+    dashboard:'📊 Dashboard',
+    scripts:'📜 Script',
+    editor:'✏️ Editor',
+    settings:'⚙️ Pengaturan'
   };
-  document.getElementById('viewTitle').innerHTML = titles[name];
+  document.getElementById('viewTitle').textContent = titles[name];
   
   if (name==='dashboard') renderDashboard();
   if (name==='scripts') renderScripts();
@@ -1080,8 +840,9 @@ async function saveScript(){
     document.getElementById('editorTitle').textContent = '✏️ Edit: '+name;
     document.getElementById('btnDelete').style.display = 'inline-flex';
     document.getElementById('navCount').textContent = scripts.length;
+    document.getElementById('dispTotal').textContent = scripts.length;
     renderAll();
-    toast('✅ Berhasil disimpan!','success');
+    toast('✅ Berhasil disimpan','success');
   } catch(err){
     toast('Gagal simpan: '+err.message,'error');
   }
@@ -1096,6 +857,7 @@ async function deleteScript(){
     await saveScriptsToCloud();
     toast('Script dihapus','success');
     document.getElementById('navCount').textContent = scripts.length;
+    document.getElementById('dispTotal').textContent = scripts.length;
     newScript();
     renderAll();
     switchView('scripts');
@@ -1119,6 +881,7 @@ async function duplicateScript(id){
   try {
     await saveScriptsToCloud();
     document.getElementById('navCount').textContent = scripts.length;
+    document.getElementById('dispTotal').textContent = scripts.length;
     renderAll();
     toast('Script diduplikat','success');
   } catch(err){
@@ -1130,68 +893,16 @@ function quickCopy(id){
   const s = scripts.find(x=>x.id===id);
   if (!s) return;
   navigator.clipboard.writeText(s.code||'').then(()=>{
-    toast('Script disalin ke clipboard','success');
+    toast('Script disalin','success');
   });
 }
 
 function copyScript(){
   const code = document.getElementById('scriptCode').value;
-  if (!code){ toast('Tidak ada script untuk dicopy','error'); return; }
-  navigator.clipboard.writeText(code).then(()=>{
-    toast('Script disalin ke clipboard','success');
-  });
-}
-
-function exportScript(){
-  const code = document.getElementById('scriptCode').value;
-  const name = document.getElementById('scriptName').value || 'script';
   if (!code){ toast('Tidak ada script','error'); return; }
-  const blob = new Blob([code],{type:'text/javascript'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name.replace(/[^a-z0-9]/gi,'_')+'.user.js';
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('Script di-export','success');
-}
-
-function importScript(){
-  document.getElementById('fileInput').click();
-}
-
-function handleImport(e){
-  const f = e.target.files[0];
-  if (!f) return;
-  const r = new FileReader();
-  r.onload = ev => {
-    const code = ev.target.result;
-    document.getElementById('scriptCode').value = code;
-    const nm = code.match(/@name\s+(.+)/);
-    const ds = code.match(/@description\s+(.+)/);
-    if (nm) document.getElementById('scriptName').value = nm[1].trim();
-    if (ds) document.getElementById('scriptDesc').value = ds[1].trim();
-    updateCodeStats();
-    toast('File di-import','success');
-  };
-  r.readAsText(f);
-  e.target.value = '';
-}
-
-/* ============================================
-   OWNER SWITCH
-============================================ */
-function switchOwner(){
-  if (!confirm('Keluar dari vault saat ini?')) return;
-  currentOwner = null;
-  OWNER_BIN_ID = null;
-  scripts = [];
-  editingId = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('setupScreen').style.display = 'flex';
-  document.getElementById('ownerInput').value = '';
-  nameCount.textContent = '0/24';
-  document.getElementById('ownerInput').focus();
+  navigator.clipboard.writeText(code).then(()=>{
+    toast('Script disalin','success');
+  });
 }
 
 async function syncNow(){
@@ -1232,15 +943,10 @@ function toast(msg, type='info'){
   el.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${escapeHtml(msg)}</span>`;
   wrap.appendChild(el);
   setTimeout(()=>{
-    el.style.animation = 'slideIn .3s reverse';
-    setTimeout(()=>el.remove(),300);
-  },3000);
+    el.style.animation = 'slideIn .25s reverse';
+    setTimeout(()=>el.remove(),250);
+  },2800);
 }
-
-// Focus input on load
-window.addEventListener('load', ()=>{
-  document.getElementById('ownerInput').focus();
-});
 </script>
 </body>
 </html>
