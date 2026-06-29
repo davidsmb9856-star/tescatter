@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🐒 ScriptVault — Universal Cloud</title>
+<title>🐒 ScriptVault — Firebase Cloud</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -261,8 +261,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <div id="loading">
   <div class="loader"><div class="loader-core">🐒</div></div>
-  <p id="loadTxt">Menghubungkan ke cloud...</p>
-  <small>ScriptVault v8.0</small>
+  <p id="loadTxt">Menghubungkan ke Firebase...</p>
+  <small>ScriptVault v9.0 · Firebase</small>
 </div>
 
 <div class="app" id="app">
@@ -271,14 +271,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <div class="logo-ic">🐒</div>
       <div>
         <h1>ScriptVault</h1>
-        <small>Universal Cloud</small>
+        <small>Firebase Cloud</small>
       </div>
     </div>
     <div class="vault">
       <b>🗄️ Main Vault</b>
       <span id="vaultStatus">Connecting...</span>
       <code id="vId">-</code>
-      <div class="provider" id="providerLabel">⚡ Multi-backend · Auto-fallback</div>
+      <div class="provider" id="providerLabel">🔥 Firebase Realtime DB</div>
       <button class="url-btn" onclick="copyUrl()">🔗 Copy URL Vault</button>
     </div>
     <div class="nav">
@@ -287,7 +287,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <div class="nav-i" data-v="scripts" onclick="go('scripts')"><span class="ic">📜</span>Script<span class="bdg" id="nCnt">0</span></div>
       <div class="nav-i" data-v="editor" onclick="go('editor')"><span class="ic">✏️</span>Editor</div>
     </div>
-    <div class="side-ft">v8.0 · PIN Protected</div>
+    <div class="side-ft">v9.0 · PIN Protected</div>
   </aside>
 
   <main class="main">
@@ -307,7 +307,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
             <div class="bento-stat"><div class="bento-lbl">Total Script</div><div class="bento-val" id="sTot">0</div><div class="bento-sub">Tersimpan di cloud</div></div>
             <div class="bento-stat"><div class="bento-lbl">Karakter</div><div class="bento-val" id="sChr">0</div><div class="bento-sub">Total ukuran kode</div></div>
             <div class="bento-stat"><div class="bento-lbl">Update Terakhir</div><div class="bento-val" id="sLast" style="font-size:16px">-</div><div class="bento-sub">Waktu lokal</div></div>
-            <div class="bento-stat"><div class="bento-lbl">Backend</div><div class="bento-val" id="sBackend" style="font-size:14px">-</div><div class="bento-sub" id="sBackendSub">Detecting...</div></div>
+            <div class="bento-stat"><div class="bento-lbl">Backend</div><div class="bento-val" id="sBackend" style="font-size:14px">Firebase</div><div class="bento-sub" id="sBackendSub">Realtime Database</div></div>
           </div>
           <div class="section">
             <div class="sh"><h3><span class="bar"></span>⚡ Script Terbaru</h3><small>5 terakhir</small></div>
@@ -378,114 +378,91 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <div class="toasts" id="toasts"></div>
 
+<!-- Firebase SDK (compat version for simplicity) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script>
 /* ============================================
+   FIREBASE CONFIG (Hardcoded)
+============================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBExdIerKUOoOPZ9fOODSF4ZPJIUNci1bo",
+  authDomain: "script-vault-e9e0c.firebaseapp.com",
+  databaseURL: "https://script-vault-e9e0c-default-rtdb.firebaseio.com",
+  projectId: "script-vault-e9e0c",
+  storageBucket: "script-vault-e9e0c.firebasestorage.app",
+  messagingSenderId: "531469123845",
+  appId: "1:531469123845:web:ee5f26c2e7e62e9a9d776c"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ============================================
    PIN CONFIG
-   PIN untuk konfirmasi hapus script
 ============================================ */
 const DELETE_PIN = "0113";
-
 const TM_URL = "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html#nav=new-user-script+editor";
 
-const BACKENDS = {
-  jsonbin: {
-    name: 'JSONBin.io',
-    api: 'https://api.jsonbin.io/v3/b',
-    key: '$2a$10$G1wQvXgxfGvzuKP/loOtleElR8x6Pcu.rR2V6gKRGQzsFgLdDn7qq',
-    headers: () => ({
-      'Content-Type': 'application/json',
-      'X-Master-Key': BACKENDS.jsonbin.key
-    }),
-    create: async () => {
-      const r = await fetch(BACKENDS.jsonbin.api, {
-        method: 'POST',
-        headers: BACKENDS.jsonbin.headers(),
-        body: JSON.stringify({
-          scripts: [],
-          _meta: { app: 'ScriptVault', created: new Date().toISOString() }
-        })
-      });
-      if (!r.ok) {
-        const err = await r.text().catch(() => '');
-        if (r.status === 400 && err.includes('limit')) throw new Error('LIMIT_FULL');
-        throw new Error('HTTP ' + r.status);
+/* ============================================
+   FIREBASE OPERATIONS (replaces BACKENDS)
+============================================ */
+const FIREBASE = {
+  name: 'Firebase Realtime DB',
+  
+  create: async () => {
+    // Generate new vault ID
+    const vaultId = 'vault_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+    const vaultRef = db.ref('vaults/' + vaultId);
+    await vaultRef.set({
+      scripts: [],
+      _meta: { 
+        app: 'ScriptVault', 
+        created: new Date().toISOString(),
+        backend: 'firebase'
       }
-      const d = await r.json();
-      return d.metadata.id;
-    },
-    verify: async (id) => {
-      try {
-        const r = await fetch(BACKENDS.jsonbin.api + '/' + id + '/latest', { headers: BACKENDS.jsonbin.headers() });
-        return r.ok;
-      } catch(e) { return false; }
-    },
-    load: async (id) => {
-      const r = await fetch(BACKENDS.jsonbin.api + '/' + id + '/latest', { headers: BACKENDS.jsonbin.headers() });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const d = await r.json();
-      return d.record.scripts || [];
-    },
-    save: async (id, scripts) => {
-      const r = await fetch(BACKENDS.jsonbin.api + '/' + id, {
-        method: 'PUT',
-        headers: BACKENDS.jsonbin.headers(),
-        body: JSON.stringify({
-          scripts: scripts,
-          _meta: { app: 'ScriptVault', updated: new Date().toISOString() }
-        })
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+    });
+    return vaultId;
+  },
+  
+  verify: async (vaultId) => {
+    try {
+      const snap = await db.ref('vaults/' + vaultId).once('value');
+      return snap.exists();
+    } catch(e) {
+      console.error('Verify error:', e);
+      return false;
     }
   },
-  npoint: {
-    name: 'npoint.io',
-    api: 'https://api.npoint.io',
-    headers: () => ({ 'Content-Type': 'application/json' }),
-    create: async () => {
-      const r = await fetch(BACKENDS.npoint.api, {
-        method: 'POST',
-        headers: BACKENDS.npoint.headers(),
-        body: JSON.stringify({
-          scripts: [],
-          _meta: { app: 'ScriptVault', created: new Date().toISOString() }
-        })
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const d = await r.json();
-      if (!d.id) throw new Error('No ID');
-      return d.id;
-    },
-    verify: async (id) => {
-      try {
-        const r = await fetch(BACKENDS.npoint.api + '/' + id);
-        return r.ok;
-      } catch(e) { return false; }
-    },
-    load: async (id) => {
-      const r = await fetch(BACKENDS.npoint.api + '/' + id);
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const d = await r.json();
-      return d.scripts || [];
-    },
-    save: async (id, scripts) => {
-      const r = await fetch(BACKENDS.npoint.api + '/' + id, {
-        method: 'POST',
-        headers: BACKENDS.npoint.headers(),
-        body: JSON.stringify({
-          scripts: scripts,
-          _meta: { app: 'ScriptVault', updated: new Date().toISOString() }
-        })
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-    }
+  
+  load: async (vaultId) => {
+    const snap = await db.ref('vaults/' + vaultId + '/scripts').once('value');
+    const val = snap.val();
+    // Convert object to array if needed (Firebase stores as object)
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    // If it's an object with numeric keys, convert to array
+    return Object.values(val);
+  },
+  
+  save: async (vaultId, scripts) => {
+    await db.ref('vaults/' + vaultId).update({
+      scripts: scripts,
+      _meta: { 
+        app: 'ScriptVault',
+        updated: new Date().toISOString(),
+        backend: 'firebase'
+      }
+    });
   }
 };
 
-let ACTIVE_BACKEND = null;
 let VID = null;
 let scripts = [];
 let editId = null;
-let pendingDeleteId = null; // ID script yang akan dihapus setelah PIN benar
+let pendingDeleteId = null;
 
 /* ============================================
    PIN SYSTEM
@@ -527,7 +504,6 @@ function verifyPin(){
     return;
   }
   
-  // PIN benar → eksekusi hapus
   errEl.textContent = '';
   executeDelete(pendingDeleteId);
 }
@@ -536,7 +512,7 @@ async function executeDelete(id){
   closePin();
   scripts = scripts.filter(s=>s.id!==id);
   try{
-    await BACKENDS[ACTIVE_BACKEND].save(VID, scripts);
+    await FIREBASE.save(VID, scripts);
     toast('🗑️ Script dihapus','ok');
     document.getElementById('nCnt').textContent = scripts.length;
     if(editId===id){
@@ -640,39 +616,20 @@ function fallbackCopy(text){
   try {
     const p = new URLSearchParams(location.search);
     const u = p.get('v');
-    const b = p.get('b');
     
-    if (u && b && BACKENDS[b]) {
-      ACTIVE_BACKEND = b;
+    if (u) {
       VID = u;
       lt.textContent = 'Memverifikasi vault...';
-      const ok = await BACKENDS[b].verify(VID);
-      if (!ok) throw new Error('Vault tidak ditemukan di ' + BACKENDS[b].name);
-    } else if (u) {
-      VID = u;
-      lt.textContent = 'Mencari backend yang cocok...';
-      ACTIVE_BACKEND = 'jsonbin';
-      let ok = await BACKENDS.jsonbin.verify(VID);
-      if (!ok) {
-        ACTIVE_BACKEND = 'npoint';
-        ok = await BACKENDS.npoint.verify(VID);
-      }
-      if (!ok) throw new Error('Vault tidak ditemukan di semua backend');
-      setUrl(VID, ACTIVE_BACKEND);
+      const ok = await FIREBASE.verify(VID);
+      if (!ok) throw new Error('Vault tidak ditemukan');
     } else {
       lt.textContent = 'Membuat vault baru...';
-      try {
-        ACTIVE_BACKEND = 'jsonbin';
-        VID = await BACKENDS.jsonbin.create();
-      } catch(e) {
-        ACTIVE_BACKEND = 'npoint';
-        VID = await BACKENDS.npoint.create();
-      }
-      setUrl(VID, ACTIVE_BACKEND);
+      VID = await FIREBASE.create();
+      setUrl(VID);
     }
     
     lt.textContent = 'Memuat script...';
-    scripts = await BACKENDS[ACTIVE_BACKEND].load(VID);
+    scripts = await FIREBASE.load(VID);
     
     document.getElementById('loading').classList.add('hide');
     document.getElementById('app').classList.add('show');
@@ -686,19 +643,11 @@ function fallbackCopy(text){
     const instr = document.createElement('div');
     instr.style.cssText = 'margin-top:20px;padding:16px;background:#242428;border:1px solid #f87171;border-radius:10px;max-width:500px;text-align:left;font-size:12px;line-height:1.6;color:#a8a8b0';
     
-    if (e.message === 'LIMIT_FULL') {
-      instr.innerHTML = `
-        <div style="color:#f87171;font-weight:700;margin-bottom:8px">⚠️ Limit JSONBin.io Penuh</div>
-        Akun JSONBin.io sudah mencapai batas 200 bin. Solusi:<br>
-        1. Buka <a href="https://jsonbin.io" target="_blank" style="color:#60a5fa">jsonbin.io</a> → login → hapus bin lama<br>
-        2. Atau upgrade ke paid plan<br>
-        3. Atau hapus parameter <code style="background:#1a1a1a;padding:2px 6px;border-radius:4px">?v=</code> dari URL untuk buat vault baru
-      `;
-    } else if (e.message.includes('tidak ditemukan')) {
+    if (e.message.includes('tidak ditemukan')) {
       instr.innerHTML = `
         <div style="color:#f87171;font-weight:700;margin-bottom:8px">⚠️ Vault Tidak Ditemukan</div>
         Vault ID di URL tidak valid atau sudah dihapus. Solusi:<br>
-        1. Hapus parameter <code style="background:#1a1a1a;padding:2px 6px;border-radius:4px">?v=xxx&b=xxx</code> dari URL<br>
+        1. Hapus parameter <code style="background:#1a1a1a;padding:2px 6px;border-radius:4px">?v=xxx</code> dari URL<br>
         2. Refresh halaman untuk buat vault baru<br>
         3. Bookmark URL baru yang muncul
       `;
@@ -713,17 +662,18 @@ function fallbackCopy(text){
   }
 })();
 
-function setUrl(id, backend){
+function setUrl(id){
   const u = new URL(location.href);
   u.searchParams.set('v', id);
-  u.searchParams.set('b', backend);
+  // Remove old 'b' parameter if exists
+  u.searchParams.delete('b');
   try{history.replaceState(null,'',u.toString())}catch(e){}
 }
 
 function getUrl(){
   const u = new URL(location.href);
   u.searchParams.set('v', VID);
-  u.searchParams.set('b', ACTIVE_BACKEND);
+  u.searchParams.delete('b');
   u.hash = '';
   return u.toString();
 }
@@ -752,10 +702,9 @@ function init(){
   document.getElementById('vId').textContent = VID;
   document.getElementById('nCnt').textContent = scripts.length;
   
-  const backendName = BACKENDS[ACTIVE_BACKEND].name;
-  document.getElementById('providerLabel').textContent = '⚡ ' + backendName + ' · Active';
-  document.getElementById('sBackend').textContent = backendName;
-  document.getElementById('sBackendSub').textContent = ACTIVE_BACKEND === 'jsonbin' ? 'CORS OK · Stable' : 'Fallback mode';
+  document.getElementById('providerLabel').textContent = '🔥 Firebase Realtime DB · Active';
+  document.getElementById('sBackend').textContent = 'Firebase';
+  document.getElementById('sBackendSub').textContent = 'Realtime Database';
   document.getElementById('vaultStatus').textContent = 'Connected';
   
   renderAll();
@@ -767,7 +716,6 @@ function init(){
     if(e.key==='Tab'){e.preventDefault();const t=e.target,s=t.selectionStart,en=t.selectionEnd;t.value=t.value.substring(0,s)+'  '+t.value.substring(en);t.selectionStart=t.selectionEnd=s+2}
   });
   
-  // PIN modal events
   const pinInput = document.getElementById('pinInput');
   pinInput.addEventListener('keydown', e=>{
     if(e.key==='Enter') verifyPin();
@@ -896,25 +844,19 @@ async function saveS(){
     editId = ns.id;
   }
   try{
-    toast('Menyimpan ke cloud...','info');
-    await BACKENDS[ACTIVE_BACKEND].save(VID, scripts);
+    toast('Menyimpan ke Firebase...','info');
+    await FIREBASE.save(VID, scripts);
     document.getElementById('edTitle').textContent='✏️ '+name;
     document.getElementById('bDel').style.display='inline-flex';
     document.getElementById('nCnt').textContent = scripts.length;
     renderAll();
-    toast('✅ Tersimpan di cloud','ok');
+    toast('✅ Tersimpan di Firebase','ok');
   }catch(e){
     console.error(e);
-    let msg = e.message;
-    if (msg === 'LIMIT_FULL') msg = 'Limit JSONBin.io penuh. Hapus bin lama di dashboard JSONBin.io.';
-    toast('❌ Gagal: '+msg,'err');
+    toast('❌ Gagal: '+e.message,'err');
   }
 }
 
-/* ============================================
-   DELETE WITH PIN
-   Tombol Hapus di editor → minta PIN dulu
-============================================ */
 async function delS(){
   if(!editId){toast('Tidak ada script yang dipilih','err');return}
   const s = scripts.find(x=>x.id===editId);
@@ -922,10 +864,6 @@ async function delS(){
   requestPin(editId, s.name);
 }
 
-/* ============================================
-   QUICK DELETE WITH PIN
-   Tombol Hapus di card → minta PIN dulu
-============================================ */
 function quickDel(id){
   const s = scripts.find(x=>x.id===id);
   if(!s) return;
@@ -949,8 +887,8 @@ function copyCode(){
 
 async function sync(){
   try{
-    toast('Syncing...','info');
-    scripts = await BACKENDS[ACTIVE_BACKEND].load(VID);
+    toast('Syncing dari Firebase...','info');
+    scripts = await FIREBASE.load(VID);
     renderAll();
     toast('✅ Sync OK','ok');
   }catch(e){toast('❌ Gagal: '+e.message,'err')}
