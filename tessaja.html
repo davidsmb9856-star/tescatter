@@ -3,297 +3,264 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📦 TM Script Vault - Cloud Storage</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<title>TamperVault - Cloud Script Manager</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-  :root {
-    --bg-dark: #1a1a1a;
-    --bg-card: #2a2a2a;
-    --bg-hover: #333;
-    --bg-input: #1f1f1f;
-    --border: #3a3a3a;
-    --text: #e5e5e5;
-    --text-dim: #999;
-    --accent: #6366f1;
-    --accent-hover: #818cf8;
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-  }
   body {
-    background: var(--bg-dark);
-    color: var(--text);
+    background: #1a1a1a;
+    color: #e0e0e0;
     min-height: 100vh;
-    display: flex;
+    overflow-x: hidden;
   }
-  /* Sidebar */
-  .sidebar {
-    width: 260px;
-    background: #141414;
-    border-right: 1px solid var(--border);
-    padding: 20px 0;
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    padding: 15px 25px;
     display: flex;
-    flex-direction: column;
-    position: fixed;
-    height: 100vh;
-    overflow-y: auto;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #3a3a3a;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
   .logo {
-    padding: 0 20px 20px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 15px;
-  }
-  .logo h1 {
-    font-size: 20px;
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    font-size: 22px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #4fc3f7, #81c784);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     display: flex;
     align-items: center;
     gap: 10px;
   }
-  .logo p { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
-  .menu { padding: 0 10px; flex: 1; }
-  .menu-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: var(--text-dim);
-    transition: all 0.2s;
-    margin-bottom: 4px;
-    font-size: 14px;
-  }
-  .menu-item:hover { background: var(--bg-hover); color: var(--text); }
-  .menu-item.active {
-    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2));
-    color: var(--accent-hover);
-    border-left: 3px solid var(--accent);
-  }
-  .menu-item i { width: 18px; text-align: center; }
-  .sidebar-footer {
-    padding: 15px 20px;
-    border-top: 1px solid var(--border);
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-  .status-dot {
-    display: inline-block;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--danger);
-    margin-right: 6px;
-  }
-  .status-dot.online { background: var(--success); box-shadow: 0 0 8px var(--success); }
-
-  /* Main */
-  .main {
-    margin-left: 260px;
-    flex: 1;
-    padding: 30px;
-    width: calc(100% - 260px);
-  }
-  .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-    gap: 15px;
-  }
-  .topbar h2 { font-size: 26px; }
-  .topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .logo::before { content: "🛡️"; -webkit-text-fill-color: initial; }
+  .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
   .btn {
-    padding: 10px 18px;
+    padding: 8px 16px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
+    transition: all 0.2s;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-    color: white;
+    gap: 6px;
   }
-  .btn-primary { background: linear-gradient(135deg, var(--accent), #a855f7); }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
-  .btn-secondary { background: var(--bg-card); border: 1px solid var(--border); }
-  .btn-secondary:hover { background: var(--bg-hover); }
-  .btn-danger { background: var(--danger); }
-  .btn-success { background: var(--success); }
-  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-primary { background: #4fc3f7; color: #1a1a1a; }
+  .btn-primary:hover { background: #29b6f6; transform: translateY(-1px); }
+  .btn-success { background: #81c784; color: #1a1a1a; }
+  .btn-success:hover { background: #66bb6a; }
+  .btn-warning { background: #ffb74d; color: #1a1a1a; }
+  .btn-warning:hover { background: #ffa726; }
+  .btn-danger { background: #e57373; color: #1a1a1a; }
+  .btn-danger:hover { background: #ef5350; }
+  .btn-secondary { background: #424242; color: #e0e0e0; }
+  .btn-secondary:hover { background: #555; }
+  .btn-ghost { background: transparent; color: #4fc3f7; border: 1px solid #4fc3f7; }
+  .btn-ghost:hover { background: #4fc3f7; color: #1a1a1a; }
 
-  /* Search */
-  .search-box {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 18px;
+  /* LAYOUT */
+  .container {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: calc(100vh - 65px);
+  }
+  aside {
+    background: #222;
+    padding: 20px 0;
+    border-right: 1px solid #333;
+  }
+  .menu-item {
+    padding: 12px 25px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 20px;
-  }
-  .search-box input {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text);
-    flex: 1;
     font-size: 14px;
   }
-  .search-box i { color: var(--text-dim); }
+  .menu-item:hover { background: #2a2a2a; border-left-color: #4fc3f7; }
+  .menu-item.active { background: #2a2a2a; border-left-color: #4fc3f7; color: #4fc3f7; }
+  .menu-icon { font-size: 18px; }
 
-  /* Stats */
-  .stats {
+  main { padding: 25px; overflow-x: auto; }
+  .page { display: none; animation: fadeIn 0.3s; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .page-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* CARDS */
+  .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
     margin-bottom: 25px;
   }
   .stat-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px;
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #4fc3f7;
+    transition: transform 0.2s;
   }
-  .stat-card .label { color: var(--text-dim); font-size: 12px; margin-bottom: 6px; }
-  .stat-card .value { font-size: 24px; font-weight: 700; }
-  .stat-card i { float: right; font-size: 22px; color: var(--accent); opacity: 0.6; }
+  .stat-card:hover { transform: translateY(-3px); }
+  .stat-card.green { border-left-color: #81c784; }
+  .stat-card.orange { border-left-color: #ffb74d; }
+  .stat-card.purple { border-left-color: #ba68c8; }
+  .stat-label { color: #999; font-size: 13px; margin-bottom: 5px; }
+  .stat-value { font-size: 28px; font-weight: bold; color: #fff; }
 
-  /* Script list */
-  .script-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 15px;
-  }
-  .script-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px;
-    transition: all 0.2s;
-    position: relative;
-  }
-  .script-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  }
-  .script-card h3 {
-    font-size: 16px;
-    margin-bottom: 6px;
+  /* SEARCH */
+  .search-bar {
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
     display: flex;
-    align-items: center;
-    gap: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
   }
-  .script-card .desc {
-    color: var(--text-dim);
-    font-size: 13px;
-    margin-bottom: 12px;
-    min-height: 36px;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+  .search-bar input {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 15px;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 14px;
   }
-  .script-meta {
+  .search-bar input:focus { outline: none; border-color: #4fc3f7; }
+
+  /* SCRIPT LIST */
+  .script-list { display: flex; flex-direction: column; gap: 12px; }
+  .script-card {
+    background: #2a2a2a;
+    padding: 18px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    transition: all 0.2s;
+  }
+  .script-card:hover { border-color: #4fc3f7; box-shadow: 0 4px 15px rgba(79,195,247,0.1); }
+  .script-header {
     display: flex;
     justify-content: space-between;
-    font-size: 11px;
-    color: var(--text-dim);
+    align-items: flex-start;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .script-title { font-size: 17px; font-weight: 600; color: #fff; }
+  .script-desc { color: #aaa; font-size: 13px; margin-bottom: 10px; }
+  .script-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    color: #888;
     margin-bottom: 12px;
     flex-wrap: wrap;
-    gap: 6px;
   }
-  .script-meta span { display: inline-flex; align-items: center; gap: 4px; }
-  .tag {
-    display: inline-block;
-    background: rgba(99,102,241,0.15);
-    color: var(--accent-hover);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 10px;
-    margin-right: 4px;
-    margin-bottom: 4px;
-  }
-  .script-actions {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
+  .script-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .script-code {
+    background: #1a1a1a;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    max-height: 150px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: #b0bec5;
+    border: 1px solid #333;
+    margin-top: 10px;
   }
 
-  /* Modal */
+  /* MODAL */
   .modal-overlay {
     display: none;
     position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(4px);
-    z-index: 100;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
     justify-content: center;
     align-items: center;
     padding: 20px;
   }
   .modal-overlay.active { display: flex; }
   .modal {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
+    background: #2a2a2a;
+    border-radius: 12px;
     padding: 25px;
+    max-width: 800px;
     width: 100%;
-    max-width: 700px;
     max-height: 90vh;
     overflow-y: auto;
+    border: 1px solid #444;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
   }
-  .modal h3 {
+  .modal-title {
+    font-size: 20px;
     margin-bottom: 20px;
+    color: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  .modal h3 .close {
+  .close-btn {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 24px;
     cursor: pointer;
-    color: var(--text-dim);
-    font-size: 20px;
   }
+  .close-btn:hover { color: #fff; }
   .form-group { margin-bottom: 15px; }
   .form-group label {
     display: block;
     margin-bottom: 6px;
+    color: #bbb;
     font-size: 13px;
-    color: var(--text-dim);
+    font-weight: 500;
   }
   .form-group input, .form-group textarea, .form-group select {
     width: 100%;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 8px;
     padding: 10px 12px;
-    color: var(--text);
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #e0e0e0;
     font-size: 14px;
-    outline: none;
     font-family: inherit;
   }
-  .form-group input:focus, .form-group textarea:focus {
-    border-color: var(--accent);
-  }
   .form-group textarea {
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: 'Consolas', monospace;
+    min-height: 300px;
     resize: vertical;
-    min-height: 200px;
+    line-height: 1.5;
   }
-  .form-group textarea.code-area { min-height: 350px; font-size: 13px; line-height: 1.5; }
+  .form-group input:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: #4fc3f7;
+  }
   .char-count {
     text-align: right;
-    font-size: 11px;
-    color: var(--text-dim);
+    font-size: 12px;
+    color: #888;
     margin-top: 4px;
   }
   .modal-actions {
@@ -301,722 +268,667 @@
     gap: 10px;
     justify-content: flex-end;
     margin-top: 20px;
+    flex-wrap: wrap;
   }
 
-  /* View modal */
-  .view-code {
-    background: #0d0d0d;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 15px;
-    font-family: 'Consolas', monospace;
-    font-size: 13px;
-    max-height: 400px;
-    overflow: auto;
-    white-space: pre-wrap;
-    word-break: break-all;
-    color: #d4d4d4;
-    line-height: 1.5;
-  }
-
-  /* Toast */
-  .toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 200;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  /* TOAST */
   .toast {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--accent);
-    padding: 12px 18px;
-    border-radius: 8px;
-    min-width: 250px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    animation: slideIn 0.3s ease;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: #2a2a2a;
+    padding: 12px 20px;
+    border-radius: 6px;
+    border-left: 4px solid #4fc3f7;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 2000;
+    transform: translateX(400px);
+    transition: transform 0.3s;
+    max-width: 350px;
   }
-  .toast.success { border-left-color: var(--success); }
-  .toast.error { border-left-color: var(--danger); }
-  .toast.warning { border-left-color: var(--warning); }
-  @keyframes slideIn {
-    from { transform: translateX(400px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
+  .toast.show { transform: translateX(0); }
+  .toast.success { border-left-color: #81c784; }
+  .toast.error { border-left-color: #e57373; }
+  .toast.warning { border-left-color: #ffb74d; }
 
-  /* Setup */
-  .setup-box {
-    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1));
-    border: 1px solid var(--accent);
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 20px;
-  }
-  .setup-box h3 { margin-bottom: 12px; color: var(--accent-hover); }
-  .setup-box ol { margin-left: 20px; margin-bottom: 15px; line-height: 1.8; font-size: 14px; }
-  .setup-box a { color: var(--accent-hover); }
-  .setup-box code {
-    background: var(--bg-input);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 12px;
-  }
-
-  /* Empty state */
-  .empty {
+  /* EMPTY STATE */
+  .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: var(--text-dim);
+    color: #777;
   }
-  .empty i { font-size: 60px; margin-bottom: 15px; opacity: 0.3; }
-  .empty h3 { margin-bottom: 8px; color: var(--text); }
+  .empty-state-icon { font-size: 64px; margin-bottom: 15px; }
+  .empty-state h3 { color: #bbb; margin-bottom: 10px; }
 
-  /* Loading */
-  .loader {
+  /* STATUS */
+  .status-badge {
     display: inline-block;
-    width: 16px; height: 16px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .status-connected { background: rgba(129,199,132,0.2); color: #81c784; }
+  .status-disconnected { background: rgba(229,115,115,0.2); color: #e57373; }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: var(--bg-dark); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+  /* LOADING */
+  .loader {
+    border: 3px solid #333;
+    border-top: 3px solid #4fc3f7;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+  }
+  @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
 
-  /* Responsive */
+  .info-box {
+    background: rgba(79,195,247,0.1);
+    border-left: 3px solid #4fc3f7;
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .info-box a { color: #4fc3f7; }
+
+  .tag {
+    display: inline-block;
+    background: #333;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    color: #aaa;
+    margin-right: 5px;
+  }
+
   @media (max-width: 768px) {
-    .sidebar { width: 70px; }
-    .sidebar .logo h1 span, .sidebar .logo p, .menu-item span, .sidebar-footer { display: none; }
-    .menu-item { justify-content: center; padding: 12px; }
-    .main { margin-left: 70px; width: calc(100% - 70px); padding: 15px; }
+    .container { grid-template-columns: 1fr; }
+    aside { display: flex; overflow-x: auto; padding: 10px; }
+    .menu-item { white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; }
+    .menu-item.active { border-left: none; border-bottom-color: #4fc3f7; }
   }
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <div class="logo">
-    <h1><i class="fas fa-vault"></i> <span>TM Vault</span></h1>
-    <p>Cloud Script Storage</p>
+<header>
+  <div class="logo">TamperVault</div>
+  <div class="header-actions">
+    <span id="connectionStatus" class="status-badge status-disconnected">⚫ Offline</span>
+    <button class="btn btn-ghost" onclick="openModal('setupModal')">⚙️ Setup</button>
+    <button class="btn btn-primary" onclick="openModal('scriptModal'); resetScriptForm()">➕ Script Baru</button>
   </div>
-  <nav class="menu">
-    <div class="menu-item active" data-page="dashboard"><i class="fas fa-home"></i><span>Dashboard</span></div>
-    <div class="menu-item" data-page="scripts"><i class="fas fa-code"></i><span>Semua Script</span></div>
-    <div class="menu-item" data-page="add"><i class="fas fa-plus-circle"></i><span>Tambah Script</span></div>
-    <div class="menu-item" data-page="backup"><i class="fas fa-cloud-arrow-up"></i><span>Backup / Restore</span></div>
-    <div class="menu-item" data-page="settings"><i class="fas fa-gear"></i><span>Pengaturan</span></div>
-    <div class="menu-item" data-page="help"><i class="fas fa-circle-question"></i><span>Bantuan</span></div>
-  </nav>
-  <div class="sidebar-footer">
-    <span class="status-dot" id="statusDot"></span>
-    <span id="statusText">Belum terhubung</span>
-  </div>
-</aside>
+</header>
 
-<!-- MAIN -->
-<main class="main">
+<div class="container">
+  <aside>
+    <div class="menu-item active" onclick="showPage('dashboard', this)">
+      <span class="menu-icon">📊</span> Dashboard
+    </div>
+    <div class="menu-item" onclick="showPage('scripts', this)">
+      <span class="menu-icon">📜</span> Semua Script
+    </div>
+    <div class="menu-item" onclick="openModal('scriptModal'); resetScriptForm()">
+      <span class="menu-icon">➕</span> Tambah Script
+    </div>
+    <div class="menu-item" onclick="showPage('share', this)">
+      <span class="menu-icon">🔗</span> Berbagi
+    </div>
+    <div class="menu-item" onclick="showPage('settings', this)">
+      <span class="menu-icon">⚙️</span> Pengaturan
+    </div>
+    <div class="menu-item" onclick="showPage('about', this)">
+      <span class="menu-icon">ℹ️</span> Tentang
+    </div>
+  </aside>
 
-  <!-- PAGE: DASHBOARD -->
-  <section id="page-dashboard" class="page">
-    <div class="topbar">
-      <h2><i class="fas fa-home"></i> Dashboard</h2>
-      <div class="topbar-actions">
-        <button class="btn btn-secondary" onclick="loadScripts()"><i class="fas fa-sync"></i> Refresh</button>
-        <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Script Baru</button>
+  <main>
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="page active">
+      <div class="page-title">📊 Dashboard</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Script</div>
+          <div class="stat-value" id="statTotal">0</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Total Karakter</div>
+          <div class="stat-value" id="statChars">0</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">Total Baris</div>
+          <div class="stat-value" id="statLines">0</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Terakhir Update</div>
+          <div class="stat-value" id="statLast" style="font-size:16px;">-</div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        💡 <strong>Selamat datang!</strong> TamperVault adalah tempat menyimpan script Tampermonkey/Greasemonkey tanpa batas di cloud. 
+        Klik <strong>⚙️ Setup</strong> untuk menghubungkan ke JSONBin.io (gratis), lalu mulai simpan script Anda.
+      </div>
+
+      <h3 style="margin-bottom:15px; color:#fff;">📌 Script Terbaru</h3>
+      <div id="recentScripts" class="script-list"></div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <div id="scripts" class="page">
+      <div class="page-title">
+        📜 Semua Script
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-success" onclick="exportData()">💾 Export JSON</button>
+          <button class="btn btn-warning" onclick="document.getElementById('importFile').click()">📥 Import</button>
+          <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+        </div>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="🔍 Cari script berdasarkan nama, deskripsi, atau kode..." oninput="renderScripts()">
+        <select id="sortSelect" onchange="renderScripts()" style="padding:10px; background:#1a1a1a; border:1px solid #444; border-radius:6px; color:#e0e0e0;">
+          <option value="newest">Terbaru</option>
+          <option value="oldest">Terlama</option>
+          <option value="name">Nama A-Z</option>
+          <option value="size">Ukuran Terbesar</option>
+        </select>
+      </div>
+      <div id="scriptList" class="script-list"></div>
+    </div>
+
+    <!-- SHARE -->
+    <div id="share" class="page">
+      <div class="page-title">🔗 Berbagi dengan Pengguna Lain</div>
+      <div class="info-box">
+        Untuk berbagi script dengan pengguna lain, cukup berikan <strong>Bin ID</strong> dan <strong>Master Key</strong> Anda. 
+        Mereka bisa memasukkannya di menu <strong>⚙️ Setup</strong> untuk mengakses data yang sama.
+      </div>
+      <div style="background:#2a2a2a; padding:20px; border-radius:8px; margin-bottom:15px;">
+        <div class="form-group">
+          <label>Bin ID Anda:</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="shareBinId" readonly>
+            <button class="btn btn-primary" onclick="copyText(document.getElementById('shareBinId').value)">📋 Copy</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Master Key (rahasia, hanya bagikan ke orang terpercaya):</label>
+          <div style="display:flex; gap:8px;">
+            <input type="password" id="shareMasterKey" readonly>
+            <button class="btn btn-secondary" onclick="toggleKeyVisibility()">👁️</button>
+            <button class="btn btn-primary" onclick="copyText(document.getElementById('shareMasterKey').value)">📋 Copy</button>
+          </div>
+        </div>
+        <button class="btn btn-success" onclick="copyShareInfo()">📋 Copy Semua Info Berbagi</button>
       </div>
     </div>
 
-    <div id="setupAlert" class="setup-box" style="display:none;">
-      <h3><i class="fas fa-key"></i> Setup JSONBin API (Sekali Saja)</h3>
-      <ol>
-        <li>Buka <a href="https://jsonbin.io/signup" target="_blank">jsonbin.io/signup</a> dan daftar gratis (bisa pakai Google).</li>
-        <li>Setelah login, buka <a href="https://jsonbin.io/api-access" target="_blank">Dashboard → API Access</a>.</li>
-        <li>Copy <code>X-Master-Key</code> (format: <code>$2a$10$xxxxx</code>).</li>
-        <li>Paste di bawah ini, lalu klik <b>Simpan & Hubungkan</b>.</li>
-      </ol>
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <input type="text" id="apiKeyInput" placeholder="$2a$10$xxxxxxxxxxxxxxxxxxxxxx" style="flex:1; min-width:250px; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:10px; color:var(--text);">
-        <button class="btn btn-primary" onclick="saveApiKey()"><i class="fas fa-plug"></i> Simpan & Hubungkan</button>
+    <!-- SETTINGS -->
+    <div id="settings" class="page">
+      <div class="page-title">⚙️ Pengaturan</div>
+      <div style="background:#2a2a2a; padding:20px; border-radius:8px; margin-bottom:15px;">
+        <h3 style="margin-bottom:15px; color:#fff;">🗑️ Hapus Semua Data</h3>
+        <p style="color:#aaa; margin-bottom:15px; font-size:13px;">⚠️ Peringatan: Aksi ini tidak dapat dibatalkan!</p>
+        <button class="btn btn-danger" onclick="clearAllData()">🗑️ Hapus Semua Script</button>
       </div>
-      <p style="margin-top:10px; font-size:12px; color:var(--text-dim);">
-        <i class="fas fa-info-circle"></i> API key hanya disimpan di browser Anda (sessionStorage). Data script tersimpan aman di cloud JSONBin.
-      </p>
-    </div>
-
-    <div class="stats">
-      <div class="stat-card"><i class="fas fa-code"></i><div class="label">Total Script</div><div class="value" id="statTotal">0</div></div>
-      <div class="stat-card"><i class="fas fa-weight-hanging"></i><div class="label">Total Karakter</div><div class="value" id="statChars">0</div></div>
-      <div class="stat-card"><i class="fas fa-calendar-plus"></i><div class="label">Ditambahkan Hari Ini</div><div class="value" id="statToday">0</div></div>
-      <div class="stat-card"><i class="fas fa-clock"></i><div class="label">Update Terakhir</div><div class="value" id="statLast" style="font-size:14px;">-</div></div>
-    </div>
-
-    <div class="search-box">
-      <i class="fas fa-search"></i>
-      <input type="text" id="searchInput" placeholder="Cari script berdasarkan judul, deskripsi, atau tag..." oninput="renderScripts()">
-    </div>
-
-    <div id="scriptList" class="script-grid"></div>
-  </section>
-
-  <!-- PAGE: SCRIPTS -->
-  <section id="page-scripts" class="page" style="display:none;">
-    <div class="topbar">
-      <h2><i class="fas fa-code"></i> Semua Script</h2>
-    </div>
-    <div class="search-box">
-      <i class="fas fa-search"></i>
-      <input type="text" id="searchInput2" placeholder="Cari..." oninput="document.getElementById('searchInput').value=this.value; renderScripts();">
-    </div>
-    <div id="scriptList2" class="script-grid"></div>
-  </section>
-
-  <!-- PAGE: ADD -->
-  <section id="page-add" class="page" style="display:none;">
-    <div class="topbar"><h2><i class="fas fa-plus-circle"></i> Tambah Script Baru</h2></div>
-    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px;">
-      <div class="form-group">
-        <label>Judul Script *</label>
-        <input type="text" id="quickTitle" placeholder="Contoh: Auto Click Bot">
-      </div>
-      <div class="form-group">
-        <label>Deskripsi</label>
-        <input type="text" id="quickDesc" placeholder="Deskripsi singkat script">
-      </div>
-      <div class="form-group">
-        <label>Versi</label>
-        <input type="text" id="quickVersion" placeholder="1.0.0" value="1.0.0">
-      </div>
-      <div class="form-group">
-        <label>Author</label>
-        <input type="text" id="quickAuthor" placeholder="Nama Anda">
-      </div>
-      <div class="form-group">
-        <label>Tags (pisahkan dengan koma)</label>
-        <input type="text" id="quickTags" placeholder="bot, auto, game">
-      </div>
-      <div class="form-group">
-        <label>Kode Script * <span style="color:var(--text-dim);">(Tidak ada limit karakter)</span></label>
-        <textarea class="code-area" id="quickCode" placeholder="// Paste script Tampermonkey Anda di sini...&#10;// ==UserScript==&#10;// @name         My Script&#10;// @namespace    http://tampermonkey.net/&#10;// @version      1.0&#10;// ==/UserScript==&#10;&#10;(function() {&#10;    'use strict';&#10;    // Your code here...&#10;})();"></textarea>
-        <div class="char-count"><span id="quickCharCount">0</span> karakter | <span id="quickLineCount">0</span> baris</div>
-      </div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn btn-primary" onclick="quickSave()"><i class="fas fa-save"></i> Simpan ke Cloud</button>
-        <button class="btn btn-secondary" onclick="clearQuickForm()"><i class="fas fa-eraser"></i> Reset</button>
+      <div style="background:#2a2a2a; padding:20px; border-radius:8px;">
+        <h3 style="margin-bottom:15px; color:#fff;">🔄 Sinkronisasi</h3>
+        <button class="btn btn-primary" onclick="loadData()">🔄 Reload dari Cloud</button>
       </div>
     </div>
-  </section>
 
-  <!-- PAGE: BACKUP -->
-  <section id="page-backup" class="page" style="display:none;">
-    <div class="topbar"><h2><i class="fas fa-cloud-arrow-up"></i> Backup & Restore</h2></div>
-    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:15px;">
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px;">
-        <h3 style="margin-bottom:10px;"><i class="fas fa-download"></i> Export / Download</h3>
-        <p style="color:var(--text-dim); font-size:13px; margin-bottom:15px;">Download semua script sebagai file JSON untuk backup lokal.</p>
-        <button class="btn btn-primary" onclick="exportData()"><i class="fas fa-file-arrow-down"></i> Export JSON</button>
-      </div>
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px;">
-        <h3 style="margin-bottom:10px;"><i class="fas fa-upload"></i> Import / Restore</h3>
-        <p style="color:var(--text-dim); font-size:13px; margin-bottom:15px;">Upload file JSON backup. Data lama akan digabung.</p>
-        <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
-        <button class="btn btn-success" onclick="document.getElementById('importFile').click()"><i class="fas fa-file-arrow-up"></i> Import JSON</button>
-      </div>
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px;">
-        <h3 style="margin-bottom:10px;"><i class="fas fa-file-code"></i> Export Semua sebagai .user.js</h3>
-        <p style="color:var(--text-dim); font-size:13px; margin-bottom:15px;">Download setiap script sebagai file .user.js terpisah (dalam ZIP).</p>
-        <button class="btn btn-secondary" onclick="exportAllUserJs()"><i class="fas fa-file-export"></i> Export .user.js</button>
-      </div>
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px;">
-        <h3 style="margin-bottom:10px;"><i class="fas fa-trash"></i> Hapus Semua</h3>
-        <p style="color:var(--text-dim); font-size:13px; margin-bottom:15px;">Hapus semua script dari cloud. Tindakan ini tidak dapat dibatalkan!</p>
-        <button class="btn btn-danger" onclick="deleteAll()"><i class="fas fa-trash"></i> Hapus Semua</button>
+    <!-- ABOUT -->
+    <div id="about" class="page">
+      <div class="page-title">ℹ️ Tentang TamperVault</div>
+      <div style="background:#2a2a2a; padding:25px; border-radius:8px; line-height:1.8;">
+        <h3 style="color:#4fc3f7; margin-bottom:10px;">🛡️ TamperVault v1.0</h3>
+        <p style="margin-bottom:15px;">Penyimpan script Tampermonkey/Greasemonkey berbasis cloud tanpa batas ukuran.</p>
+        <h4 style="color:#81c784; margin:15px 0 8px;">✨ Fitur:</h4>
+        <ul style="margin-left:20px; color:#ccc;">
+          <li>✅ Penyimpanan cloud (JSONBin.io) - bukan Google Sheet, bukan storage PC</li>
+          <li>✅ Tanpa batas ukuran script</li>
+          <li>✅ Bisa diakses dari mana saja oleh semua pengguna</li>
+          <li>✅ Berbagi script dengan pengguna lain via Bin ID</li>
+          <li>✅ Export/Import JSON</li>
+          <li>✅ Pencarian & filter script</li>
+          <li>✅ Dark mode modern</li>
+        </ul>
+        <h4 style="color:#ffb74d; margin:15px 0 8px;">📖 Cara Pakai:</h4>
+        <ol style="margin-left:20px; color:#ccc;">
+          <li>Daftar gratis di <a href="https://jsonbin.io" target="_blank" style="color:#4fc3f7;">jsonbin.io</a></li>
+          <li>Ambil <strong>Master Key</strong> dari dashboard</li>
+          <li>Klik <strong>⚙️ Setup</strong> di aplikasi ini, masukkan Master Key</li>
+          <li>Mulai simpan script!</li>
+        </ol>
       </div>
     </div>
-  </section>
+  </main>
+</div>
 
-  <!-- PAGE: SETTINGS -->
-  <section id="page-settings" class="page" style="display:none;">
-    <div class="topbar"><h2><i class="fas fa-gear"></i> Pengaturan</h2></div>
-    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px; max-width:600px;">
-      <div class="form-group">
-        <label>X-Master-Key (JSONBin)</label>
-        <input type="password" id="settingsApiKey" placeholder="$2a$10$...">
-      </div>
-      <div class="form-group">
-        <label>Bin ID (otomatis dibuat)</label>
-        <input type="text" id="settingsBinId" readonly style="opacity:0.7;">
-      </div>
-      <div class="form-group">
-        <label>Default Author</label>
-        <input type="text" id="settingsAuthor" placeholder="Nama default untuk script baru">
-      </div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Simpan</button>
-        <button class="btn btn-danger" onclick="disconnect()"><i class="fas fa-unlink"></i> Putuskan & Reset</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- PAGE: HELP -->
-  <section id="page-help" class="page" style="display:none;">
-    <div class="topbar"><h2><i class="fas fa-circle-question"></i> Bantuan</h2></div>
-    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px; line-height:1.8;">
-      <h3 style="margin-bottom:10px;">📦 Apa itu TM Script Vault?</h3>
-      <p style="color:var(--text-dim); margin-bottom:20px;">Aplikasi web untuk menyimpan script Tampermonkey/Greasemonkey Anda di cloud (JSONBin.io). Bukan Google Sheet, bukan localStorage PC. Semua pengguna bisa akses dari perangkat manapun.</p>
-
-      <h3 style="margin-bottom:10px;">🚀 Cara Mulai</h3>
-      <ol style="margin-left:20px; color:var(--text-dim); margin-bottom:20px;">
-        <li>Daftar gratis di <a href="https://jsonbin.io" target="_blank" style="color:var(--accent-hover);">jsonbin.io</a></li>
-        <li>Copy <b>X-Master-Key</b> dari dashboard</li>
-        <li>Paste di halaman Dashboard, klik "Simpan & Hubungkan"</li>
-        <li>Mulai simpan script Anda!</li>
-      </ol>
-
-      <h3 style="margin-bottom:10px;">✨ Fitur</h3>
-      <ul style="margin-left:20px; color:var(--text-dim); margin-bottom:20px;">
-        <li>✅ Simpan script tanpa limit karakter</li>
-        <li>✅ Cloud storage (JSONBin) - akses dari mana saja</li>
-        <li>✅ Search & filter script</li>
-        <li>✅ Tag & versi script</li>
-        <li>✅ Copy / Download sebagai .user.js</li>
-        <li>✅ Backup & Restore JSON</li>
-        <li>✅ Dark grey modern UI</li>
-      </ul>
-
-      <h3 style="margin-bottom:10px;">🔒 Privasi</h3>
-      <p style="color:var(--text-dim);">API key Anda hanya disimpan di <b>sessionStorage</b> browser (hilang saat tab ditutup, kecuali Anda centang "Ingat Saya"). Data script tersimpan privat di akun JSONBin Anda.</p>
-    </div>
-  </section>
-
-</main>
-
-<!-- MODAL: EDIT -->
-<div class="modal-overlay" id="editModal">
+<!-- SETUP MODAL -->
+<div class="modal-overlay" id="setupModal">
   <div class="modal">
-    <h3><span><i class="fas fa-edit"></i> Edit Script</span><span class="close" onclick="closeModal('editModal')">&times;</span></h3>
-    <input type="hidden" id="editId">
-    <div class="form-group"><label>Judul</label><input type="text" id="editTitle"></div>
-    <div class="form-group"><label>Deskripsi</label><input type="text" id="editDesc"></div>
-    <div class="form-group"><label>Versi</label><input type="text" id="editVersion"></div>
-    <div class="form-group"><label>Author</label><input type="text" id="editAuthor"></div>
-    <div class="form-group"><label>Tags (pisah koma)</label><input type="text" id="editTags"></div>
+    <div class="modal-title">
+      ⚙️ Setup JSONBin.io
+      <button class="close-btn" onclick="closeModal('setupModal')">×</button>
+    </div>
+    <div class="info-box">
+      📝 <strong>Panduan Setup:</strong><br>
+      1. Buka <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> dan daftar gratis<br>
+      2. Login, lalu copy <strong>X-Master-Key</strong> dari dashboard<br>
+      3. Paste di bawah ini. Bin ID akan dibuat otomatis.<br>
+      4. Untuk mengakses bin orang lain, isi juga Bin ID mereka.
+    </div>
     <div class="form-group">
-      <label>Kode Script</label>
-      <textarea class="code-area" id="editCode"></textarea>
-      <div class="char-count"><span id="editCharCount">0</span> karakter</div>
+      <label>X-Master-Key (wajib):</label>
+      <input type="text" id="setupMasterKey" placeholder="$2a$10$xxxxxxxxxxxx...">
+    </div>
+    <div class="form-group">
+      <label>Bin ID (kosongkan untuk buat baru):</label>
+      <input type="text" id="setupBinId" placeholder="Kosongkan untuk auto-create">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('editModal')">Batal</button>
-      <button class="btn btn-primary" onclick="saveEdit()"><i class="fas fa-save"></i> Simpan</button>
+      <button class="btn btn-secondary" onclick="closeModal('setupModal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveSetup()">💾 Simpan & Hubungkan</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: VIEW -->
+<!-- SCRIPT MODAL -->
+<div class="modal-overlay" id="scriptModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="scriptModalTitle">➕ Tambah Script Baru</span>
+      <button class="close-btn" onclick="closeModal('scriptModal')">×</button>
+    </div>
+    <input type="hidden" id="scriptId">
+    <div class="form-group">
+      <label>Nama Script *</label>
+      <input type="text" id="scriptName" placeholder="Contoh: Auto Like Facebook">
+    </div>
+    <div class="form-group">
+      <label>Deskripsi</label>
+      <input type="text" id="scriptDesc" placeholder="Deskripsi singkat tentang script">
+    </div>
+    <div class="form-group">
+      <label>Tag/Kategori (pisahkan dengan koma)</label>
+      <input type="text" id="scriptTags" placeholder="facebook, auto, bot">
+    </div>
+    <div class="form-group">
+      <label>Kode Script * <span style="color:#888;">(tanpa batas ukuran)</span></label>
+      <textarea id="scriptCode" placeholder="// ==UserScript==&#10;// @name         My Script&#10;// @namespace    http://tampermonkey.net/&#10;// @version      1.0&#10;// @description  try to take over the world!&#10;// @author       You&#10;// @match        *://*/*&#10;// @grant        none&#10;// ==/UserScript==&#10;&#10;(function() {&#10;    'use strict';&#10;    // Your code here...&#10;})();"></textarea>
+      <div class="char-count"><span id="codeCharCount">0</span> karakter | <span id="codeLineCount">0</span> baris</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('scriptModal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveScript()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
 <div class="modal-overlay" id="viewModal">
-  <div class="modal" style="max-width:900px;">
-    <h3><span id="viewTitle"><i class="fas fa-eye"></i> Lihat Script</span><span class="close" onclick="closeModal('viewModal')">&times;</span></h3>
-    <div id="viewMeta" style="margin-bottom:15px; color:var(--text-dim); font-size:13px;"></div>
-    <div class="view-code" id="viewCode"></div>
+  <div class="modal">
+    <div class="modal-title">
+      <span id="viewTitle">📜 Detail Script</span>
+      <button class="close-btn" onclick="closeModal('viewModal')">×</button>
+    </div>
+    <div id="viewContent"></div>
     <div class="modal-actions">
+      <button class="btn btn-primary" onclick="copyCurrentScript()">📋 Copy Script</button>
       <button class="btn btn-secondary" onclick="closeModal('viewModal')">Tutup</button>
-      <button class="btn btn-success" onclick="copyViewCode()"><i class="fas fa-copy"></i> Copy</button>
-      <button class="btn btn-primary" onclick="downloadViewCode()"><i class="fas fa-download"></i> Download .user.js</button>
     </div>
   </div>
 </div>
 
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-/* ==================== STATE ==================== */
-let API_KEY = sessionStorage.getItem('tm_api_key') || '';
-let BIN_ID = sessionStorage.getItem('tm_bin_id') || '';
+// ============ STATE ============
+let CONFIG = {
+  masterKey: '',
+  binId: ''
+};
 let SCRIPTS = [];
-let currentViewCode = '';
+let currentViewScript = null;
 
-const BIN_NAME = 'TM_Script_Vault_Data';
 const API_BASE = 'https://api.jsonbin.io/v3/b';
 
-/* ==================== INIT ==================== */
+// ============ INIT ============
 window.addEventListener('DOMContentLoaded', () => {
-  updateStatus();
-  if (API_KEY) {
-    document.getElementById('setupAlert').style.display = 'none';
-    if (BIN_ID) loadScripts();
-    else createBin();
-  } else {
-    document.getElementById('setupAlert').style.display = 'block';
+  loadConfig();
+  if (CONFIG.masterKey) {
+    if (CONFIG.binId) {
+      loadData();
+    } else {
+      createBin();
+    }
   }
-  // Load default author
-  const defAuthor = sessionStorage.getItem('tm_default_author') || '';
-  document.getElementById('quickAuthor').value = defAuthor;
-
-  // Char counter for quick form
-  document.getElementById('quickCode').addEventListener('input', updateQuickCount);
-  document.getElementById('editCode').addEventListener('input', updateEditCount);
-
-  // Menu navigation
-  document.querySelectorAll('.menu-item').forEach(item => {
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
-      const page = item.dataset.page;
-      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-      document.getElementById('page-' + page).style.display = 'block';
-      if (page === 'scripts') renderScripts('scriptList2');
-      if (page === 'settings') loadSettings();
-    });
-  });
+  setupCodeCounter();
 });
 
-/* ==================== API KEY ==================== */
-async function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key) { toast('API key wajib diisi!', 'error'); return; }
-  if (!key.startsWith('$2a$')) { toast('Format API key tidak valid (harus dimulai $2a$)', 'error'); return; }
-  API_KEY = key;
-  sessionStorage.setItem('tm_api_key', key);
-  toast('API key tersimpan. Menghubungkan...', 'success');
-  document.getElementById('setupAlert').style.display = 'none';
-  updateStatus();
-  // Check existing bin or create new
-  await findOrCreateBin();
+// ============ CONFIG ============
+function loadConfig() {
+  const saved = sessionStorage.getItem('tampervault_config');
+  if (saved) {
+    try { CONFIG = JSON.parse(saved); } catch(e) {}
+  }
+  updateConnectionStatus();
 }
 
-async function findOrCreateBin() {
-  try {
-    toast('Mencari bin yang ada...', 'warning');
-    const res = await fetch(`${API_BASE}?name=${encodeURIComponent(BIN_NAME)}`, {
-      headers: { 'X-Master-Key': API_KEY }
-    });
-    const data = await res.json();
-    if (data.record && data.record.length > 0) {
-      BIN_ID = data.record[0].metadata.id;
-      sessionStorage.setItem('tm_bin_id', BIN_ID);
-      toast('Bin ditemukan! Memuat data...', 'success');
-      await loadScripts();
-    } else {
-      await createBin();
-    }
-  } catch (e) {
-    console.error(e);
-    await createBin();
+function saveConfig() {
+  sessionStorage.setItem('tampervault_config', JSON.stringify(CONFIG));
+  updateConnectionStatus();
+}
+
+function updateConnectionStatus() {
+  const el = document.getElementById('connectionStatus');
+  if (CONFIG.masterKey && CONFIG.binId) {
+    el.className = 'status-badge status-connected';
+    el.textContent = '🟢 Online';
+  } else {
+    el.className = 'status-badge status-disconnected';
+    el.textContent = '⚫ Offline';
   }
 }
 
+// ============ SETUP ============
+function saveSetup() {
+  const mk = document.getElementById('setupMasterKey').value.trim();
+  const bid = document.getElementById('setupBinId').value.trim();
+  if (!mk) {
+    showToast('Master Key wajib diisi!', 'error');
+    return;
+  }
+  CONFIG.masterKey = mk;
+  CONFIG.binId = bid;
+  saveConfig();
+  closeModal('setupModal');
+  if (bid) {
+    loadData();
+  } else {
+    createBin();
+  }
+}
+
+// ============ JSONBIN API ============
 async function createBin() {
+  showToast('Membuat bin baru...', 'warning');
   try {
-    toast('Membuat bin baru di cloud...', 'warning');
     const res = await fetch(API_BASE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': API_KEY,
-        'X-Bin-Name': BIN_NAME,
-        'X-Bin-Private': 'true'
+        'X-Master-Key': CONFIG.masterKey,
+        'X-Bin-Name': 'TamperVault_' + Date.now(),
+        'X-Bin-Private': 'false'
       },
-      body: JSON.stringify({ scripts: [] })
+      body: JSON.stringify({ scripts: [], meta: { created: new Date().toISOString() } })
     });
     const data = await res.json();
     if (data.metadata && data.metadata.id) {
-      BIN_ID = data.metadata.id;
-      sessionStorage.setItem('tm_bin_id', BIN_ID);
+      CONFIG.binId = data.metadata.id;
+      saveConfig();
       SCRIPTS = [];
-      toast('Bin berhasil dibuat! Siap digunakan.', 'success');
-      renderScripts();
-      updateStats();
+      showToast('✅ Bin berhasil dibuat!', 'success');
+      renderAll();
     } else {
-      toast('Gagal membuat bin: ' + (data.message || 'Unknown'), 'error');
+      showToast('❌ Gagal membuat bin: ' + (data.message || 'Unknown error'), 'error');
     }
   } catch (e) {
-    toast('Error: ' + e.message, 'error');
+    showToast('❌ Error: ' + e.message, 'error');
   }
 }
 
-/* ==================== LOAD / SAVE ==================== */
-async function loadScripts() {
-  if (!API_KEY || !BIN_ID) { toast('Setup API key dulu!', 'error'); return; }
+async function loadData() {
+  if (!CONFIG.masterKey || !CONFIG.binId) {
+    showToast('⚠️ Setup dulu di menu ⚙️ Setup', 'warning');
+    return;
+  }
   try {
-    const res = await fetch(`${API_BASE}/${BIN_ID}/latest`, {
-      headers: { 'X-Master-Key': API_KEY }
+    const res = await fetch(API_BASE + '/' + CONFIG.binId + '/latest', {
+      headers: { 'X-Master-Key': CONFIG.masterKey }
     });
     const data = await res.json();
-    SCRIPTS = (data.record && data.record.scripts) || [];
-    renderScripts();
-    renderScripts('scriptList2');
-    updateStats();
-    toast('Data berhasil dimuat (' + SCRIPTS.length + ' script)', 'success');
+    if (data.record && Array.isArray(data.record.scripts)) {
+      SCRIPTS = data.record.scripts;
+      showToast('✅ Data berhasil dimuat (' + SCRIPTS.length + ' script)', 'success');
+    } else if (data.record) {
+      SCRIPTS = [];
+    } else {
+      showToast('❌ Gagal memuat: ' + (data.message || 'Bin tidak ditemukan'), 'error');
+    }
+    renderAll();
   } catch (e) {
-    toast('Gagal memuat: ' + e.message, 'error');
+    showToast('❌ Error: ' + e.message, 'error');
   }
 }
 
-async function saveToCloud() {
-  if (!API_KEY || !BIN_ID) { toast('Setup dulu!', 'error'); return false; }
+async function saveData() {
+  if (!CONFIG.masterKey || !CONFIG.binId) {
+    showToast('⚠️ Setup dulu!', 'warning');
+    return false;
+  }
   try {
-    const res = await fetch(`${API_BASE}/${BIN_ID}`, {
+    const res = await fetch(API_BASE + '/' + CONFIG.binId, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': API_KEY
+        'X-Master-Key': CONFIG.masterKey
       },
-      body: JSON.stringify({ scripts: SCRIPTS })
+      body: JSON.stringify({ scripts: SCRIPTS, meta: { updated: new Date().toISOString() } })
     });
     const data = await res.json();
-    if (data.metadata) {
-      updateStats();
+    if (data.record) {
       return true;
+    } else {
+      showToast('❌ Gagal simpan: ' + (data.message || ''), 'error');
+      return false;
     }
-    toast('Gagal simpan: ' + (data.message || ''), 'error');
-    return false;
   } catch (e) {
-    toast('Error simpan: ' + e.message, 'error');
+    showToast('❌ Error: ' + e.message, 'error');
     return false;
   }
 }
 
-/* ==================== QUICK ADD ==================== */
-function updateQuickCount() {
-  const v = document.getElementById('quickCode').value;
-  document.getElementById('quickCharCount').textContent = v.length.toLocaleString();
-  document.getElementById('quickLineCount').textContent = v.split('\n').length;
-}
-function updateEditCount() {
-  document.getElementById('editCharCount').textContent = document.getElementById('editCode').value.length.toLocaleString();
+// ============ SCRIPT CRUD ============
+function resetScriptForm() {
+  document.getElementById('scriptId').value = '';
+  document.getElementById('scriptName').value = '';
+  document.getElementById('scriptDesc').value = '';
+  document.getElementById('scriptTags').value = '';
+  document.getElementById('scriptCode').value = '';
+  document.getElementById('scriptModalTitle').textContent = '➕ Tambah Script Baru';
+  updateCodeCount();
 }
 
-async function quickSave() {
-  const title = document.getElementById('quickTitle').value.trim();
-  const code = document.getElementById('quickCode').value;
-  if (!title) { toast('Judul wajib diisi!', 'error'); return; }
-  if (!code) { toast('Kode script wajib diisi!', 'error'); return; }
-  if (!API_KEY) { toast('Setup API key dulu!', 'error'); return; }
+function editScript(id) {
+  const s = SCRIPTS.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('scriptId').value = s.id;
+  document.getElementById('scriptName').value = s.name;
+  document.getElementById('scriptDesc').value = s.desc || '';
+  document.getElementById('scriptTags').value = (s.tags || []).join(', ');
+  document.getElementById('scriptCode').value = s.code;
+  document.getElementById('scriptModalTitle').textContent = '✏️ Edit Script';
+  updateCodeCount();
+  openModal('scriptModal');
+}
 
-  const script = {
-    id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-    title: title,
-    description: document.getElementById('quickDesc').value.trim(),
-    version: document.getElementById('quickVersion').value.trim() || '1.0.0',
-    author: document.getElementById('quickAuthor').value.trim() || 'Anonim',
-    tags: document.getElementById('quickTags').value.split(',').map(t => t.trim()).filter(t => t),
-    code: code,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-  SCRIPTS.unshift(script);
-  toast('Menyimpan ke cloud...', 'warning');
-  const ok = await saveToCloud();
-  if (ok) {
-    toast('Script berhasil disimpan! ✓', 'success');
-    clearQuickForm();
-    renderScripts();
-    renderScripts('scriptList2');
+async function saveScript() {
+  const id = document.getElementById('scriptId').value;
+  const name = document.getElementById('scriptName').value.trim();
+  const desc = document.getElementById('scriptDesc').value.trim();
+  const tags = document.getElementById('scriptTags').value.split(',').map(t => t.trim()).filter(t => t);
+  const code = document.getElementById('scriptCode').value;
+
+  if (!name) { showToast('Nama script wajib diisi!', 'error'); return; }
+  if (!code) { showToast('Kode script wajib diisi!', 'error'); return; }
+
+  const now = new Date().toISOString();
+  if (id) {
+    const idx = SCRIPTS.findIndex(x => x.id === id);
+    if (idx >= 0) {
+      SCRIPTS[idx] = { ...SCRIPTS[idx], name, desc, tags, code, updated: now };
+    }
   } else {
-    SCRIPTS.shift();
+    SCRIPTS.push({
+      id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      name, desc, tags, code,
+      created: now,
+      updated: now
+    });
+  }
+
+  showToast('⏳ Menyimpan ke cloud...', 'warning');
+  const ok = await saveData();
+  if (ok) {
+    showToast('✅ Script berhasil disimpan!', 'success');
+    closeModal('scriptModal');
+    renderAll();
   }
 }
 
-function clearQuickForm() {
-  document.getElementById('quickTitle').value = '';
-  document.getElementById('quickDesc').value = '';
-  document.getElementById('quickVersion').value = '1.0.0';
-  document.getElementById('quickTags').value = '';
-  document.getElementById('quickCode').value = '';
-  updateQuickCount();
+async function deleteScript(id) {
+  if (!confirm('Yakin ingin menghapus script ini?')) return;
+  SCRIPTS = SCRIPTS.filter(x => x.id !== id);
+  showToast('⏳ Menghapus...', 'warning');
+  const ok = await saveData();
+  if (ok) {
+    showToast('✅ Script dihapus', 'success');
+    renderAll();
+  }
 }
 
-/* ==================== RENDER ==================== */
-function renderScripts(targetId = 'scriptList') {
-  const container = document.getElementById(targetId);
-  if (!container) return;
-  const search = (document.getElementById('searchInput').value || '').toLowerCase();
-  const filtered = SCRIPTS.filter(s =>
-    s.title.toLowerCase().includes(search) ||
-    (s.description || '').toLowerCase().includes(search) ||
-    (s.tags || []).some(t => t.toLowerCase().includes(search)) ||
-    (s.author || '').toLowerCase().includes(search)
-  );
-
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty" style="grid-column:1/-1;"><i class="fas fa-inbox"></i><h3>${SCRIPTS.length === 0 ? 'Belum ada script' : 'Tidak ditemukan'}</h3><p>${SCRIPTS.length === 0 ? 'Klik "Script Baru" untuk mulai menyimpan.' : 'Coba kata kunci lain.'}</p></div>`;
-    return;
-  }
-
-  container.innerHTML = filtered.map(s => `
-    <div class="script-card">
-      <h3><i class="fas fa-scroll" style="color:var(--accent);"></i> ${escapeHtml(s.title)}</h3>
-      <div class="desc">${escapeHtml(s.description || 'Tanpa deskripsi')}</div>
-      <div class="script-meta">
-        <span><i class="fas fa-code-branch"></i> v${escapeHtml(s.version || '1.0')}</span>
-        <span><i class="fas fa-user"></i> ${escapeHtml(s.author || 'Anonim')}</span>
-        <span><i class="fas fa-weight-hanging"></i> ${(s.code || '').length.toLocaleString()} char</span>
-      </div>
-      <div style="margin-bottom:10px;">
-        ${(s.tags || []).map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}
-      </div>
-      <div class="script-meta" style="margin-bottom:0;">
-        <span><i class="fas fa-calendar"></i> ${formatDate(s.createdAt)}</span>
-      </div>
-      <div class="script-actions">
-        <button class="btn btn-sm btn-secondary" onclick="viewScript('${s.id}')"><i class="fas fa-eye"></i> Lihat</button>
-        <button class="btn btn-sm btn-secondary" onclick="copyScript('${s.id}')"><i class="fas fa-copy"></i> Copy</button>
-        <button class="btn btn-sm btn-primary" onclick="downloadScript('${s.id}')"><i class="fas fa-download"></i></button>
-        <button class="btn btn-sm btn-secondary" onclick="openEditModal('${s.id}')"><i class="fas fa-edit"></i></button>
-        <button class="btn btn-sm btn-danger" onclick="deleteScript('${s.id}')"><i class="fas fa-trash"></i></button>
-      </div>
+function viewScript(id) {
+  const s = SCRIPTS.find(x => x.id === id);
+  if (!s) return;
+  currentViewScript = s;
+  document.getElementById('viewTitle').textContent = '📜 ' + s.name;
+  document.getElementById('viewContent').innerHTML = `
+    <div style="margin-bottom:15px;">
+      <div style="color:#888; font-size:12px; margin-bottom:5px;">Deskripsi:</div>
+      <div style="color:#ccc;">${escapeHtml(s.desc || '-')}</div>
     </div>
-  `).join('');
+    <div style="margin-bottom:15px;">
+      ${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+    </div>
+    <div style="margin-bottom:10px; color:#888; font-size:12px;">
+      📅 Dibuat: ${formatDate(s.created)} | ✏️ Update: ${formatDate(s.updated)} | 📏 ${s.code.length.toLocaleString()} karakter
+    </div>
+    <div class="script-code" style="max-height:400px;">${escapeHtml(s.code)}</div>
+  `;
+  openModal('viewModal');
 }
 
-function updateStats() {
+function copyCurrentScript() {
+  if (currentViewScript) {
+    copyText(currentViewScript.code);
+  }
+}
+
+// ============ RENDER ============
+function renderAll() {
+  renderDashboard();
+  renderScripts();
+  renderRecent();
+  renderShare();
+}
+
+function renderDashboard() {
   document.getElementById('statTotal').textContent = SCRIPTS.length;
-  const totalChars = SCRIPTS.reduce((a, s) => a + (s.code || '').length, 0);
+  const totalChars = SCRIPTS.reduce((a, s) => a + s.code.length, 0);
   document.getElementById('statChars').textContent = totalChars.toLocaleString();
-  const today = new Date().toDateString();
-  const todayCount = SCRIPTS.filter(s => new Date(s.createdAt).toDateString() === today).length;
-  document.getElementById('statToday').textContent = todayCount;
+  const totalLines = SCRIPTS.reduce((a, s) => a + s.code.split('\n').length, 0);
+  document.getElementById('statLines').textContent = totalLines.toLocaleString();
   if (SCRIPTS.length > 0) {
-    const latest = SCRIPTS.reduce((a, s) => new Date(s.updatedAt) > new Date(a.updatedAt) ? s : a);
-    document.getElementById('statLast').textContent = formatDate(latest.updatedAt);
+    const last = SCRIPTS.reduce((a, s) => s.updated > a.updated ? s : a, SCRIPTS[0]);
+    document.getElementById('statLast').textContent = formatDate(last.updated);
   } else {
     document.getElementById('statLast').textContent = '-';
   }
 }
 
-/* ==================== CRUD ==================== */
-function viewScript(id) {
-  const s = SCRIPTS.find(x => x.id === id);
-  if (!s) return;
-  currentViewCode = s.code;
-  document.getElementById('viewTitle').innerHTML = `<i class="fas fa-eye"></i> ${escapeHtml(s.title)}`;
-  document.getElementById('viewMeta').innerHTML = `
-    <b>Versi:</b> ${escapeHtml(s.version)} | <b>Author:</b> ${escapeHtml(s.author)} |
-    <b>Karakter:</b> ${(s.code || '').length.toLocaleString()} | <b>Update:</b> ${formatDate(s.updatedAt)}
-    <br><b>Deskripsi:</b> ${escapeHtml(s.description || '-')}
-    <br>${(s.tags || []).map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}
+function renderRecent() {
+  const recent = [...SCRIPTS].sort((a, b) => b.updated.localeCompare(a.updated)).slice(0, 3);
+  const el = document.getElementById('recentScripts');
+  if (recent.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><h3>Belum ada script</h3><p>Klik "➕ Script Baru" untuk mulai</p></div>`;
+    return;
+  }
+  el.innerHTML = recent.map(s => renderScriptCard(s)).join('');
+}
+
+function renderScripts() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const sort = document.getElementById('sortSelect').value;
+  let list = SCRIPTS.filter(s =>
+    s.name.toLowerCase().includes(search) ||
+    (s.desc || '').toLowerCase().includes(search) ||
+    s.code.toLowerCase().includes(search) ||
+    (s.tags || []).some(t => t.toLowerCase().includes(search))
+  );
+  if (sort === 'newest') list.sort((a, b) => b.updated.localeCompare(a.updated));
+  else if (sort === 'oldest') list.sort((a, b) => a.updated.localeCompare(b.updated));
+  else if (sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name));
+  else if (sort === 'size') list.sort((a, b) => b.code.length - a.code.length);
+
+  const el = document.getElementById('scriptList');
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><h3>Tidak ada script</h3><p>${SCRIPTS.length === 0 ? 'Mulai tambahkan script pertama Anda' : 'Coba kata kunci lain'}</p></div>`;
+    return;
+  }
+  el.innerHTML = list.map(s => renderScriptCard(s)).join('');
+}
+
+function renderScriptCard(s) {
+  const preview = s.code.substring(0, 200).replace(/</g, '&lt;');
+  return `
+    <div class="script-card">
+      <div class="script-header">
+        <div class="script-title">${escapeHtml(s.name)}</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="viewScript('${s.id}')">👁️ Lihat</button>
+          <button class="btn btn-success" onclick="copyText(SCRIPTS.find(x=>x.id==='${s.id}').code)">📋 Copy</button>
+          <button class="btn btn-warning" onclick="editScript('${s.id}')">✏️ Edit</button>
+          <button class="btn btn-danger" onclick="deleteScript('${s.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="script-desc">${escapeHtml(s.desc || 'Tidak ada deskripsi')}</div>
+      <div class="script-meta">
+        <span>📅 ${formatDate(s.updated)}</span>
+        <span>📏 ${s.code.length.toLocaleString()} karakter</span>
+        <span>📄 ${s.code.split('\n').length} baris</span>
+      </div>
+      ${(s.tags || []).length > 0 ? '<div>' + s.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('') + '</div>' : ''}
+      <div class="script-code">${preview}${s.code.length > 200 ? '...' : ''}</div>
+    </div>
   `;
-  document.getElementById('viewCode').textContent = s.code;
-  document.getElementById('viewModal').classList.add('active');
 }
 
-function copyViewCode() {
-  navigator.clipboard.writeText(currentViewCode).then(() => toast('Kode berhasil dicopy!', 'success'));
+function renderShare() {
+  document.getElementById('shareBinId').value = CONFIG.binId || '(belum ada - setup dulu)';
+  document.getElementById('shareMasterKey').value = CONFIG.masterKey || '';
 }
 
-function downloadViewCode() {
-  const s = SCRIPTS.find(x => x.code === currentViewCode);
-  if (s) downloadAsFile(s.title + '.user.js', s.code);
-}
-
-function copyScript(id) {
-  const s = SCRIPTS.find(x => x.id === id);
-  if (!s) return;
-  navigator.clipboard.writeText(s.code).then(() => toast('Script dicopy ke clipboard!', 'success'));
-}
-
-function downloadScript(id) {
-  const s = SCRIPTS.find(x => x.id === id);
-  if (!s) return;
-  downloadAsFile(sanitizeFilename(s.title) + '.user.js', s.code);
-  toast('File .user.js didownload!', 'success');
-}
-
-function openEditModal(id) {
-  const s = SCRIPTS.find(x => x.id === id);
-  if (!s) return;
-  document.getElementById('editId').value = s.id;
-  document.getElementById('editTitle').value = s.title;
-  document.getElementById('editDesc').value = s.description || '';
-  document.getElementById('editVersion').value = s.version || '1.0.0';
-  document.getElementById('editAuthor').value = s.author || '';
-  document.getElementById('editTags').value = (s.tags || []).join(', ');
-  document.getElementById('editCode').value = s.code;
-  updateEditCount();
-  document.getElementById('editModal').classList.add('active');
-}
-
-function openAddModal() {
-  document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-  document.querySelector('[data-page="add"]').classList.add('active');
-  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-  document.getElementById('page-add').style.display = 'block';
-  document.getElementById('quickTitle').focus();
-}
-
-async function saveEdit() {
-  const id = document.getElementById('editId').value;
-  const idx = SCRIPTS.findIndex(s => s.id === id);
-  if (idx < 0) return;
-  SCRIPTS[idx] = {
-    ...SCRIPTS[idx],
-    title: document.getElementById('editTitle').value.trim(),
-    description: document.getElementById('editDesc').value.trim(),
-    version: document.getElementById('editVersion').value.trim(),
-    author: document.getElementById('editAuthor').value.trim(),
-    tags: document.getElementById('editTags').value.split(',').map(t => t.trim()).filter(t => t),
-    code: document.getElementById('editCode').value,
-    updatedAt: new Date().toISOString()
-  };
-  toast('Menyimpan perubahan...', 'warning');
-  const ok = await saveToCloud();
-  if (ok) {
-    toast('Script berhasil diupdate! ✓', 'success');
-    closeModal('editModal');
-    renderScripts();
-    renderScripts('scriptList2');
-  }
-}
-
-async function deleteScript(id) {
-  if (!confirm('Yakin hapus script ini?')) return;
-  SCRIPTS = SCRIPTS.filter(s => s.id !== id);
-  toast('Menghapus dari cloud...', 'warning');
-  const ok = await saveToCloud();
-  if (ok) {
-    toast('Script dihapus!', 'success');
-    renderScripts();
-    renderScripts('scriptList2');
-  } else {
-    await loadScripts();
-  }
-}
-
-async function deleteAll() {
-  if (!confirm('HAPUS SEMUA SCRIPT? Tindakan ini tidak dapat dibatalkan!')) return;
-  if (!confirm('Benar-benar yakin? Ketik OK untuk konfirmasi.')) return;
-  SCRIPTS = [];
-  const ok = await saveToCloud();
-  if (ok) {
-    toast('Semua script dihapus!', 'success');
-    renderScripts();
-    renderScripts('scriptList2');
-  }
-}
-
-/* ==================== BACKUP ==================== */
+// ============ EXPORT/IMPORT ============
 function exportData() {
-  if (SCRIPTS.length === 0) { toast('Tidak ada data untuk di-export!', 'warning'); return; }
-  const data = {
-    version: '1.0',
-    exportedAt: new Date().toISOString(),
-    totalScripts: SCRIPTS.length,
-    scripts: SCRIPTS
-  };
-  downloadAsFile('tm_vault_backup_' + Date.now() + '.json', JSON.stringify(data, null, 2));
-  toast('Backup JSON didownload!', 'success');
+  if (SCRIPTS.length === 0) {
+    showToast('Tidak ada data untuk di-export', 'warning');
+    return;
+  }
+  const data = JSON.stringify({ scripts: SCRIPTS, exported: new Date().toISOString() }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tampervault_backup_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Backup berhasil di-download', 'success');
 }
 
 async function importData(event) {
@@ -1026,138 +938,117 @@ async function importData(event) {
   reader.onload = async (e) => {
     try {
       const data = JSON.parse(e.target.result);
-      const newScripts = data.scripts || [];
-      if (!Array.isArray(newScripts)) throw new Error('Format tidak valid');
-      if (!confirm(`Import ${newScripts.length} script? Data lama akan digabung.`)) return;
-      // Merge, avoid duplicates by id
-      const existingIds = new Set(SCRIPTS.map(s => s.id));
-      let added = 0;
-      newScripts.forEach(s => {
-        if (!existingIds.has(s.id)) {
-          SCRIPTS.push(s);
-          added++;
+      if (data.scripts && Array.isArray(data.scripts)) {
+        if (confirm(`Import ${data.scripts.length} script? Data saat ini akan digabung.`)) {
+          const existingIds = new Set(SCRIPTS.map(s => s.id));
+          let added = 0;
+          data.scripts.forEach(s => {
+            if (!existingIds.has(s.id)) {
+              SCRIPTS.push(s);
+              added++;
+            }
+          });
+          const ok = await saveData();
+          if (ok) {
+            showToast(`✅ ${added} script baru diimport`, 'success');
+            renderAll();
+          }
         }
-      });
-      toast(`Mengupload ${added} script baru...`, 'warning');
-      const ok = await saveToCloud();
-      if (ok) {
-        toast(`${added} script berhasil diimport! ✓`, 'success');
-        renderScripts();
-        renderScripts('scriptList2');
+      } else {
+        showToast('❌ Format file tidak valid', 'error');
       }
     } catch (err) {
-      toast('File tidak valid: ' + err.message, 'error');
+      showToast('❌ Gagal membaca file: ' + err.message, 'error');
     }
   };
   reader.readAsText(file);
   event.target.value = '';
 }
 
-function exportAllUserJs() {
-  if (SCRIPTS.length === 0) { toast('Tidak ada script!', 'warning'); return; }
-  // Download satu per satu (browser akan prompt multiple download)
-  if (!confirm(`Download ${SCRIPTS.length} file .user.js?`)) return;
-  SCRIPTS.forEach((s, i) => {
-    setTimeout(() => {
-      downloadAsFile(sanitizeFilename(s.title) + '.user.js', s.code);
-    }, i * 300);
-  });
-  toast('Downloading ' + SCRIPTS.length + ' file...', 'success');
-}
-
-/* ==================== SETTINGS ==================== */
-function loadSettings() {
-  document.getElementById('settingsApiKey').value = API_KEY;
-  document.getElementById('settingsBinId').value = BIN_ID || '(belum ada)';
-  document.getElementById('settingsAuthor').value = sessionStorage.getItem('tm_default_author') || '';
-}
-
-function saveSettings() {
-  const newKey = document.getElementById('settingsApiKey').value.trim();
-  const author = document.getElementById('settingsAuthor').value.trim();
-  if (newKey && newKey !== API_KEY) {
-    API_KEY = newKey;
-    sessionStorage.setItem('tm_api_key', newKey);
-    BIN_ID = '';
-    sessionStorage.removeItem('tm_bin_id');
-    toast('API key diubah. Mencari bin...', 'warning');
-    findOrCreateBin();
-  }
-  sessionStorage.setItem('tm_default_author', author);
-  document.getElementById('quickAuthor').value = author;
-  toast('Pengaturan disimpan!', 'success');
-}
-
-function disconnect() {
-  if (!confirm('Putuskan koneksi & hapus API key dari browser?')) return;
-  sessionStorage.removeItem('tm_api_key');
-  sessionStorage.removeItem('tm_bin_id');
-  API_KEY = '';
-  BIN_ID = '';
+async function clearAllData() {
+  if (!confirm('⚠️ Yakin hapus SEMUA script? Aksi ini tidak bisa dibatalkan!')) return;
+  if (!confirm('Konfirmasi sekali lagi: HAPUS SEMUA?')) return;
   SCRIPTS = [];
-  location.reload();
+  const ok = await saveData();
+  if (ok) {
+    showToast('✅ Semua data dihapus', 'success');
+    renderAll();
+  }
 }
 
-/* ==================== UTILS ==================== */
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-function toast(msg, type = 'info') {
-  const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
-  const t = document.createElement('div');
-  t.className = 'toast ' + type;
-  t.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${msg}</span>`;
-  document.getElementById('toastContainer').appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+// ============ UI HELPERS ============
+function showPage(pageId, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  if (el) el.classList.add('active');
 }
 
-function escapeHtml(s) {
-  if (!s) return '';
-  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
 }
 
-function sanitizeFilename(s) {
-  return (s || 'script').replace(/[^a-z0-9_\-\s]/gi, '').replace(/\s+/g, '_').substring(0, 60);
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function copyText(text) {
+  if (!text) { showToast('Tidak ada yang bisa di-copy', 'warning'); return; }
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('✅ Berhasil di-copy!', 'success');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✅ Berhasil di-copy!', 'success');
+  });
+}
+
+function copyShareInfo() {
+  const info = `🛡️ TamperVault Share Info\n\nBin ID: ${CONFIG.binId}\nMaster Key: ${CONFIG.masterKey}\n\nPaste di menu ⚙️ Setup untuk akses data yang sama.`;
+  copyText(info);
+}
+
+function toggleKeyVisibility() {
+  const el = document.getElementById('shareMasterKey');
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+function setupCodeCounter() {
+  const ta = document.getElementById('scriptCode');
+  ta.addEventListener('input', updateCodeCount);
+}
+function updateCodeCount() {
+  const v = document.getElementById('scriptCode').value;
+  document.getElementById('codeCharCount').textContent = v.length.toLocaleString();
+  document.getElementById('codeLineCount').textContent = v.split('\n').length;
 }
 
 function formatDate(iso) {
   if (!iso) return '-';
   const d = new Date(iso);
-  const now = new Date();
-  const diff = (now - d) / 1000;
-  if (diff < 60) return 'Baru saja';
-  if (diff < 3600) return Math.floor(diff / 60) + ' menit lalu';
-  if (diff < 86400) return Math.floor(diff / 3600) + ' jam lalu';
-  if (diff < 604800) return Math.floor(diff / 86400) + ' hari lalu';
-  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+  return d.toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-function downloadAsFile(filename, content) {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-}
-
-function updateStatus() {
-  const dot = document.getElementById('statusDot');
-  const txt = document.getElementById('statusText');
-  if (API_KEY && BIN_ID) {
-    dot.classList.add('online');
-    txt.textContent = 'Terhubung ke Cloud';
-  } else if (API_KEY) {
-    dot.classList.remove('online');
-    txt.textContent = 'Menghubungkan...';
-  } else {
-    dot.classList.remove('online');
-    txt.textContent = 'Belum terhubung';
-  }
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // Close modal on overlay click
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', (e) => {
+    if (e.target === o) o.classList.remove('active');
+  });
 });
 </script>
 </body>
