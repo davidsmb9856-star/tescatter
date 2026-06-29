@@ -51,15 +51,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 .vault code{display:block;margin-top:8px;color:var(--text-3);font-size:9px;font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vault .provider{font-size:9px;color:var(--info);margin-top:4px;display:flex;align-items:center;gap:4px;font-weight:600}
-.vault .url-btn{
-  margin-top:10px;width:100%;padding:7px 10px;
-  background:var(--glass-2);border:1px solid var(--border-hi);
-  border-radius:8px;color:var(--text-2);font-size:10px;font-weight:600;
-  cursor:pointer;transition:all .2s;
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  font-family:inherit;
-}
-.vault .url-btn:hover{background:var(--glass-3);color:var(--text);border-color:var(--border-max)}
 
 .nav{display:flex;flex-direction:column;gap:2px;flex:1}
 .nav-lbl{font-size:9px;color:var(--text-4);text-transform:uppercase;letter-spacing:2.5px;padding:12px 12px 8px;font-weight:800;display:flex;align-items:center;gap:8px}
@@ -178,6 +169,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .f textarea{min-height:440px;resize:vertical;font-family:'JetBrains Mono','Fira Code',Consolas,monospace;font-size:12.5px;line-height:1.65;tab-size:2}
 .f-h{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-3);margin-top:6px;font-weight:500}
 
+.url-box{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--info);word-break:break-all;display:flex;gap:8px;align-items:flex-start;margin-top:10px}
+.url-box span{flex:1;user-select:all;line-height:1.5}
+
+.info-box{background:linear-gradient(135deg,rgba(96,165,250,.06),rgba(59,130,246,.02));border:1px solid rgba(96,165,250,.2);border-radius:12px;padding:14px;margin-bottom:16px;font-size:12px;line-height:1.6;color:var(--text-2)}
+.info-box h4{color:var(--info);font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.info-box.ok{background:linear-gradient(135deg,rgba(74,222,128,.06),rgba(34,197,94,.02));border-color:rgba(74,222,128,.2)}
+.info-box.ok h4{color:var(--ok)}
+
 .toasts{position:fixed;bottom:20px;right:20px;z-index:400;display:flex;flex-direction:column;gap:8px;max-width:340px}
 .tst{background:linear-gradient(135deg,var(--bg-3),var(--bg-2));backdrop-filter:blur(20px);border:1px solid var(--border-hi);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-lg);animation:si .3s cubic-bezier(.4,0,.2,1);font-size:12.5px;font-weight:500}
 .tst.ok{border-left:3px solid var(--ok)}
@@ -202,7 +201,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div id="loading">
   <div class="loader"><div class="loader-core">🐒</div></div>
   <p id="loadTxt">Menghubungkan ke cloud...</p>
-  <small>ScriptVault v7.3</small>
+  <small>ScriptVault v7.2</small>
 </div>
 
 <div class="app" id="app">
@@ -219,7 +218,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <span id="vaultStatus">Connecting...</span>
       <code id="vId">-</code>
       <div class="provider" id="providerLabel">⚡ Multi-backend · Auto-fallback</div>
-      <button class="url-btn" onclick="copyUrl()">🔗 Copy URL Vault</button>
     </div>
     <div class="nav">
       <div class="nav-lbl">Workspace</div>
@@ -227,7 +225,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <div class="nav-i" data-v="scripts" onclick="go('scripts')"><span class="ic">📜</span>Script<span class="bdg" id="nCnt">0</span></div>
       <div class="nav-i" data-v="editor" onclick="go('editor')"><span class="ic">✏️</span>Editor</div>
     </div>
-    <div class="side-ft">v7.3 · Clean UI</div>
+    <div class="side-ft">v7.2 · Direct TM Launch</div>
   </aside>
 
   <main class="main">
@@ -243,6 +241,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="ct">
       <div class="v on" id="v-dashboard">
         <div class="container">
+          <div class="info-box ok" id="statusBox">
+            <h4>🌐 Universal Cloud Storage</h4>
+            <span id="statusText">Menghubungkan ke cloud...</span>
+            <div class="url-box" id="urlBox" style="display:none">
+              <span id="vUrl">-</span>
+              <button class="btn btn-p" style="flex-shrink:0;padding:5px 12px;font-size:10px" onclick="copyUrl()">📋 Copy URL</button>
+            </div>
+          </div>
           <div class="bento">
             <div class="bento-stat"><div class="bento-lbl">Total Script</div><div class="bento-val" id="sTot">0</div><div class="bento-sub">Tersimpan di cloud</div></div>
             <div class="bento-stat"><div class="bento-lbl">Karakter</div><div class="bento-val" id="sChr">0</div><div class="bento-sub">Total ukuran kode</div></div>
@@ -404,7 +410,13 @@ let ACTIVE_BACKEND = null;
 let VID = null;
 let scripts = [];
 let editId = null;
+let pendingTmCode = null; // code yang akan di-copy saat user klik tombol TM
 
+/* ============================================
+   DIRECT TM LAUNCH
+   Tombol <a> langsung buka Tampermonkey Editor
+   + auto-copy script ke clipboard
+============================================ */
 function buildCode(s){
   let c = s.code||'';
   if(!/\/\/\s*==UserScript==/i.test(c)){
@@ -425,23 +437,34 @@ function buildCode(s){
   return c;
 }
 
+/**
+ * Handler untuk tombol "🐒 Buka TM" di card script
+ * Karena ini <a> element, browser akan buka URL setelah handler selesai
+ * Kita copy script ke clipboard dulu, lalu biarkan <a> buka TM
+ */
 function openTMFromCard(event, scriptId){
   const s = scripts.find(x=>x.id===scriptId);
   if(!s){
     event.preventDefault();
     toast('Script tidak ditemukan','err');
-    return false;
+    return;
   }
   const code = buildCode(s);
+  pendingTmCode = code;
+  
+  // Copy ke clipboard
   navigator.clipboard.writeText(code).then(()=>{
     toast('✅ Script "'+s.name+'" di-copy · Tab TM terbuka','ok');
   }).catch(()=>{
     fallbackCopy(code);
     toast('✅ Script di-copy · Tab TM terbuka','ok');
   });
-  return true;
+  // Biarkan <a> buka TM URL secara natural (user gesture)
 }
 
+/**
+ * Handler untuk tombol "🐒 Buka TM" di editor toolbar
+ */
 function openTMFromEditor(event){
   event.preventDefault();
   const name = document.getElementById('sName').value.trim();
@@ -453,9 +476,11 @@ function openTMFromEditor(event){
   
   const temp = {name,desc,code};
   const built = buildCode(temp);
+  pendingTmCode = built;
   
   navigator.clipboard.writeText(built).then(()=>{
     toast('✅ Script di-copy · Membuka Tampermonkey...','ok');
+    // Buka TM via <a> click (user gesture)
     const a = document.createElement('a');
     a.href = TM_URL;
     a.target = '_blank';
@@ -485,6 +510,9 @@ function fallbackCopy(text){
   document.body.removeChild(t);
 }
 
+/* ============================================
+   BOOT SEQUENCE
+============================================ */
 (async()=>{
   const lt = document.getElementById('loadTxt');
   try {
@@ -600,13 +628,17 @@ function newScriptFromTop(){showEditorNav();newS();go('editor')}
 
 function init(){
   document.getElementById('vId').textContent = VID;
+  document.getElementById('vUrl').textContent = getUrl();
   document.getElementById('nCnt').textContent = scripts.length;
   
   const backendName = BACKENDS[ACTIVE_BACKEND].name;
   document.getElementById('providerLabel').textContent = '⚡ ' + backendName + ' · Active';
   document.getElementById('sBackend').textContent = backendName;
   document.getElementById('sBackendSub').textContent = ACTIVE_BACKEND === 'jsonbin' ? 'CORS OK · Stable' : 'Fallback mode';
-  document.getElementById('vaultStatus').textContent = 'Connected';
+  
+  document.getElementById('statusBox').className = 'info-box ok';
+  document.getElementById('statusText').innerHTML = `✅ <strong>Tersambung ke ${backendName}</strong>. Semua pengguna bisa save & akses vault yang sama via URL di bawah. <strong>Bookmark URL ini!</strong>`;
+  document.getElementById('urlBox').style.display = 'flex';
   
   renderAll();
   
@@ -616,6 +648,8 @@ function init(){
     if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveS()}
     if(e.key==='Tab'){e.preventDefault();const t=e.target,s=t.selectionStart,en=t.selectionEnd;t.value=t.value.substring(0,s)+'  '+t.value.substring(en);t.selectionStart=t.selectionEnd=s+2}
   });
+  
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM()});
 }
 
 function renderAll(){renderDash();renderList()}
@@ -644,6 +678,9 @@ function renderList(){
 }
 
 function cardH(s){
+  // Tombol "🐒 Buka TM" sekarang <a> element dengan href TM_URL
+  // Saat diklik → handler openTMFromCard akan copy script ke clipboard
+  // Lalu <a> akan buka TM URL secara natural (user gesture)
   return `<div class="card" onclick="editS('${s.id}')">
     <div class="card-h">
       <div class="card-ic">${icon(s.name)}</div>
@@ -800,6 +837,8 @@ async function sync(){
     toast('✅ Sync OK','ok');
   }catch(e){toast('❌ Gagal: '+e.message,'err')}
 }
+
+function closeM(){/* no modal anymore */}
 
 function esc(t){if(!t)return'';return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function ago(d){if(!d)return'-';const s=(Date.now()-new Date(d).getTime())/1000;if(s<60)return'baru saja';if(s<3600)return Math.floor(s/60)+'m lalu';if(s<86400)return Math.floor(s/3600)+'j lalu';if(s<2592000)return Math.floor(s/86400)+'h lalu';return new Date(d).toLocaleDateString('id-ID')}
