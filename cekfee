@@ -1,0 +1,711 @@
+// ==UserScript==
+// @name         Mutasi Saldo Net Total TF FEE -1.500
+// @namespace    https://chatgpt.com/
+// @version      10.0
+// @description  Hitung otomatis NET biaya: TF FEE credit -1.500 dikurangi REFUND FEE debit +1.500 dari seluruh data mutasi-saldo.
+// @match        *://*/*
+// @grant        none
+// @run-at       document-start
+// ==/UserScript==
+
+(function () {
+  "use strict";
+
+  const TARGET_FEE = 1500;
+  const ONLY_PAGE_CONTAINS = "mutasi-saldo";
+
+  let feeRows = [];
+  let refundRows = [];
+  let seenFee = new Set();
+  let seenRefund = new Set();
+  let alreadyStarted = false;
+  let isRunning = false;
+  let internalFetch = 0;
+  let apiRead = 0;
+  let statusText = "Menunggu data mutasi-saldo...";
+  let progressText = "-";
+
+  const isMutasiSaldoPage = () => location.href.toLowerCase().includes(ONLY_PAGE_CONTAINS);
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const cleanText = (value) => String(value ?? "").replace(/\s+/g, " ").trim();
+  const formatIDR = (number) => Number(number || 0).toLocaleString("en-US");
+
+  const parseMoney = (value) => {
+    if (typeof value === "number") return Math.round(value);
+
+    let text = String(value ?? "").trim();
+    if (!text || text === "-") return null;
+
+    const isMinus = /^\s*-/.test(text);
+    text = text.replace(/[^\d.,-]/g, "").replace(/-/g, "");
+    if (!text) return null;
+
+    let number;
+    if (/[.,]\d{1,2}$/.test(text) && !/[.,]\d{3}([.,]|$)/.test(text)) {
+      number = parseFloat(text.replace(/,/g, "."));
+    } else {
+      number = Number(text.replace(/[.,]/g, ""));
+    }
+
+    if (!Number.isFinite(number)) return null;
+    number = Math.round(number);
+    return isMinus ? -number : number;
+  };
+
+  const getAllValues = (data, result = []) => {
+    if (data === null || data === undefined) return result;
+
+    if (typeof data === "object") {
+      if (Array.isArray(data)) {
+        data.forEach((item) => getAllValues(item, result));
+      } else {
+        Object.values(data).forEach((item) => getAllValues(item, result));
+      }
+    } else {
+      result.push(data);
+    }
+
+    return result;
+  };
+
+  const rowText = (row) => getAllValues(row).map(cleanText).join(" ");
+
+  const findArrays = (data, result = []) => {
+    if (!data) return result;
+
+    if (Array.isArray(data)) {
+      if (data.length && data.some((item) => item && typeof item === "object")) result.push(data);
+      data.forEach((item) => findArrays(item, result));
+      return result;
+    }
+
+    if (typeof data === "object") Object.values(data).forEach((value) => findArrays(value, result));
+    return result;
+  };
+
+  const findField = (row, patterns) => {
+    if (!row) return "";
+
+    // Format export CSV biasanya: ID, DATE CREATED, NOTE, CREDIT, DEBIT, BALANCE
+    if (Array.isArray(row)) {
+      const label = patterns.map((p) => String(p)).join(" ");
+      if (/note|remark|description|keterangan|memo|desc/i.test(label)) return row[2] ?? "";
+      if (/credit|kredit|amount_credit|credit_amount|cr/i.test(label)) return row[3] ?? "";
+      if (/debit|amount_debit|debit_amount|db/i.test(label)) return row[4] ?? "";
+      if (/balance|saldo/i.test(label)) return row[5] ?? "";
+      if (/id|uuid|trx|order|reference|ref/i.test(label)) return row[0] ?? "";
+      return "";
+    }
+
+    const matches = [];
+
+    const walk = (obj) => {
+      if (!obj || typeof obj !== "object" || Array.isArray(obj)) return;
+
+      for (const [key, value] of Object.entries(obj)) {
+        const lower = String(key).toLowerCase();
+
+        if (patterns.some((pattern) => pattern.test(lower))) {
+          if (value === null || value === undefined || typeof value !== "object") {
+            matches.push(value);
+          }
+        }
+
+        if (value && typeof value === "object") walk(value);
+      }
+    };
+
+    walk(row);
+    return matches.length ? matches[0] : "";
+  };
+
+  const getNote = (row) => {
+    const note = findField(row, [
+      /^(note|remark|remarks|description|desc|keterangan|memo|berita)$/i,
+      /note/i,
+      /remark/i,
+      /description/i,
+      /keterangan/i
+    ]);
+
+    return cleanText(note || rowText(row));
+  };
+
+  const getCredit = (row) => {
+    return parseMoney(findField(row, [
+      /^(credit|kredit|cr)$/i,
+      /credit_amount/i,
+      /amount_credit/i,
+      /creditamount/i,
+      /kredit_amount/i
+    ]));
+  };
+
+  const getDebit = (row) => {
+    return parseMoney(findField(row, [
+      /^(debit|db)$/i,
+      /debit_amount/i,
+      /amount_debit/i,
+      /debitamount/i
+    ]));
+  };
+
+  const getBalance = (row) => {
+    return cleanText(findField(row, [/^(balance|saldo)$/i, /balance/i, /saldo/i]));
+  };
+
+  const getDateText = (row) => {
+    const direct = findField(row, [/date/i, /created/i, /time/i]);
+    const text = cleanText(direct || rowText(row));
+    const match = text.match(/\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2}:\d{2})?|\d{2}-\d{2}-\d{4}(?:\s+\d{2}:\d{2}:\d{2})?/);
+    return match ? match[0] : "";
+  };
+
+  const getId = (row) => {
+    return cleanText(findField(row, [
+      /^(id|_id|uuid)$/i,
+      /transaction.?id/i,
+      /trx.?id/i,
+      /order.?id/i,
+      /^ref$/i,
+      /reference/i
+    ]));
+  };
+
+  const isTfFeeCreditMinusRow = (row) => {
+    const note = getNote(row);
+    const allText = rowText(row);
+    const credit = getCredit(row);
+    const debit = getDebit(row);
+
+    // Ini yang dihitung: hanya NOTE TF FEE asli + posisi CREDIT -1.500.
+    if (!/\bTF\s*FEE\b/i.test(note)) return false;
+    if (/REFUND/i.test(note) || /REFUND/i.test(allText)) return false;
+
+    return credit === -TARGET_FEE && (debit === 0 || debit === null);
+  };
+
+  const isRefundFeeDebitPlusRow = (row) => {
+    const note = getNote(row);
+    const credit = getCredit(row);
+    const debit = getDebit(row);
+
+    // Ini bukan dihitung sebagai fee, tapi pengurang NET biaya.
+    // Contoh: REFUND FEE: 1,500 di posisi DEBIT +1.500.
+    if (!/REFUND/i.test(note)) return false;
+    if (!/FEE/i.test(note) && debit !== TARGET_FEE) return false;
+
+    return debit === TARGET_FEE && (credit === 0 || credit === null);
+  };
+
+  const rowKey = (row) => {
+    const id = getId(row);
+    if (id) return `id:${id}`;
+
+    return [getDateText(row), getNote(row), getCredit(row), getDebit(row), getBalance(row)].join("|");
+  };
+
+  const addRowsFromJson = (json) => {
+    const arrays = findArrays(json);
+    let addFee = 0;
+    let addRefund = 0;
+
+    for (const arr of arrays) {
+      for (const row of arr) {
+        if (!row || typeof row !== "object") continue;
+
+        const key = rowKey(row);
+
+        if (isTfFeeCreditMinusRow(row) && !seenFee.has(key)) {
+          seenFee.add(key);
+          feeRows.push(row);
+          addFee++;
+        }
+
+        if (isRefundFeeDebitPlusRow(row) && !seenRefund.has(key)) {
+          seenRefund.add(key);
+          refundRows.push(row);
+          addRefund++;
+        }
+      }
+    }
+
+    if (addFee || addRefund) {
+      statusText = `Tambah fee ${addFee}, refund ${addRefund}`;
+      updatePanel();
+    }
+  };
+
+  const getPageInfoFromScreen = () => {
+    try {
+      const text = cleanText(document.body.innerText);
+      const match = text.match(/(\d+)\s*[–-]\s*(\d+)\s*of\s*(\d+)/i);
+      if (!match) return { start: 0, end: 0, total: 0, pageSize: 0 };
+      const start = Number(match[1]);
+      const end = Number(match[2]);
+      const total = Number(match[3]);
+      return { start, end, total, pageSize: end - start + 1 };
+    } catch {
+      return { start: 0, end: 0, total: 0, pageSize: 0 };
+    }
+  };
+
+  const detectTotal = (data) => {
+    let total = 0;
+    const goodKeys = /(total|count|records|filtered|rows)/i;
+    const badKeys = /(amount|nominal|balance|saldo|sum|price|fee|biaya|total_amount|total_nominal)/i;
+
+    const walk = (obj) => {
+      if (!obj || typeof obj !== "object") return;
+      if (Array.isArray(obj)) return obj.forEach(walk);
+
+      for (const [key, value] of Object.entries(obj)) {
+        if (typeof value === "number" && goodKeys.test(key) && !badKeys.test(key) && value > total && value < 1000000) {
+          total = value;
+        }
+        walk(value);
+      }
+    };
+
+    walk(data);
+    return Math.max(total, getPageInfoFromScreen().total || 0);
+  };
+
+  const detectRowCount = (data) => {
+    let max = 0;
+    for (const arr of findArrays(data)) if (arr.length > max) max = arr.length;
+    return max;
+  };
+
+  const isRelevantDashboardResponse = (json) => {
+    if (!isMutasiSaldoPage()) return false;
+    const arrays = findArrays(json);
+    if (!arrays.length) return false;
+
+    const sampleRows = [];
+    for (const arr of arrays.slice(0, 6)) sampleRows.push(...arr.slice(0, 30));
+    const sample = sampleRows.map(rowText).join(" ");
+
+    return /\bTF\s*FEE\b|REFUND/i.test(sample) || (detectTotal(json) > 0 && /\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4}/.test(sample));
+  };
+
+  const safeHeaders = (headers = {}) => {
+    const result = {};
+    for (const [key, value] of Object.entries(headers)) {
+      const lower = key.toLowerCase();
+      if (["host", "cookie", "content-length", "connection", "accept-encoding", "origin", "referer"].includes(lower)) continue;
+      result[key] = value;
+    }
+    return result;
+  };
+
+  const getMetaFromFetch = (input, init = {}) => {
+    let url = "";
+    let method = "GET";
+    let headers = {};
+    let body = init.body || null;
+
+    if (typeof input === "string") {
+      url = input;
+    } else if (input && input.url) {
+      url = input.url;
+      method = input.method || method;
+      try { input.headers.forEach((value, key) => { headers[key] = value; }); } catch {}
+    }
+
+    method = init.method || method;
+    if (init.headers) {
+      try { new Headers(init.headers).forEach((value, key) => { headers[key] = value; }); } catch {}
+    }
+
+    return { url, method, headers, body };
+  };
+
+  const readPageFromMeta = (meta) => {
+    try {
+      const u = new URL(meta.url, location.href);
+      for (const key of ["page", "pageNo", "pageNumber", "current", "currentPage"]) {
+        if (u.searchParams.has(key)) return Number(u.searchParams.get(key));
+      }
+    } catch {}
+
+    if (typeof meta.body === "string") {
+      try {
+        const body = JSON.parse(meta.body);
+        const search = (obj) => {
+          if (!obj || typeof obj !== "object") return null;
+          if (Array.isArray(obj)) {
+            for (const item of obj) {
+              const found = search(item);
+              if (found !== null) return found;
+            }
+            return null;
+          }
+          for (const [key, value] of Object.entries(obj)) {
+            const lower = key.toLowerCase();
+            if (["page", "pageno", "pagenumber", "current", "currentpage"].includes(lower) && typeof value === "number") return value;
+            const found = search(value);
+            if (found !== null) return found;
+          }
+          return null;
+        };
+        return search(body);
+      } catch {}
+    }
+
+    return null;
+  };
+
+  const getPageBase = (meta, pageSize) => {
+    const pageValue = readPageFromMeta(meta);
+    if (pageValue === 0) return 0;
+
+    const screen = getPageInfoFromScreen();
+    if (screen.start && pageSize && pageValue !== null) {
+      const index0 = Math.floor((screen.start - 1) / pageSize);
+      const index1 = index0 + 1;
+      if (pageValue === index0) return 0;
+      if (pageValue === index1) return 1;
+    }
+    return 1;
+  };
+
+  const patchUrl = (url, pageValue, pageSize, offset) => {
+    const u = new URL(url, location.href);
+    const pageKeys = ["page", "pageNo", "pageNumber", "current", "currentPage"];
+    const sizeKeys = ["limit", "pageSize", "page_size", "perPage", "per_page", "size", "take", "rowsPerPage"];
+    const offsetKeys = ["offset", "skip", "start"];
+
+    let hasPage = false;
+    let hasSize = false;
+    let hasOffset = false;
+
+    pageKeys.forEach((key) => { if (u.searchParams.has(key)) { u.searchParams.set(key, String(pageValue)); hasPage = true; } });
+    sizeKeys.forEach((key) => { if (u.searchParams.has(key)) { u.searchParams.set(key, String(pageSize)); hasSize = true; } });
+    offsetKeys.forEach((key) => { if (u.searchParams.has(key)) { u.searchParams.set(key, String(offset)); hasOffset = true; } });
+
+    if (!hasSize) u.searchParams.set("limit", String(pageSize));
+    if (!hasPage && !hasOffset) u.searchParams.set("page", String(pageValue));
+    return u.toString();
+  };
+
+  const patchJsonPagination = (obj, pageValue, pageSize, offset) => {
+    if (!obj || typeof obj !== "object") return obj;
+    if (Array.isArray(obj)) {
+      obj.forEach((item) => patchJsonPagination(item, pageValue, pageSize, offset));
+      return obj;
+    }
+    for (const key of Object.keys(obj)) {
+      const lower = key.toLowerCase();
+      if (["page", "pageno", "pagenumber", "current", "currentpage"].includes(lower)) obj[key] = pageValue;
+      if (["limit", "pagesize", "page_size", "perpage", "per_page", "size", "take", "rowsperpage"].includes(lower)) obj[key] = pageSize;
+      if (["offset", "skip", "start"].includes(lower)) obj[key] = offset;
+      patchJsonPagination(obj[key], pageValue, pageSize, offset);
+    }
+    return obj;
+  };
+
+  const patchBody = (body, pageValue, pageSize, offset) => {
+    if (!body || typeof body !== "string") return body;
+    try {
+      const json = JSON.parse(body);
+      return JSON.stringify(patchJsonPagination(json, pageValue, pageSize, offset));
+    } catch {}
+    try {
+      const params = new URLSearchParams(body);
+      for (const key of ["page", "pageNo", "pageNumber", "current", "currentPage"]) if (params.has(key)) params.set(key, String(pageValue));
+      for (const key of ["limit", "pageSize", "page_size", "perPage", "per_page", "size", "take", "rowsPerPage"]) if (params.has(key)) params.set(key, String(pageSize));
+      for (const key of ["offset", "skip", "start"]) if (params.has(key)) params.set(key, String(offset));
+      return params.toString();
+    } catch {}
+    return body;
+  };
+
+  const buildRequest = (meta, pageIndex, pageSize, pageBase) => {
+    const pageValue = pageBase === 0 ? pageIndex : pageIndex + 1;
+    const offset = pageIndex * pageSize;
+    const method = String(meta.method || "GET").toUpperCase();
+    return {
+      url: patchUrl(meta.url, pageValue, pageSize, offset),
+      init: {
+        method,
+        credentials: "include",
+        headers: safeHeaders(meta.headers || {}),
+        body: method === "GET" ? undefined : patchBody(meta.body, pageValue, pageSize, offset)
+      }
+    };
+  };
+
+  const fetchJson = async (request) => {
+    internalFetch++;
+    try {
+      const response = await fetch(request.url, request.init);
+      const text = await response.text();
+      try { return JSON.parse(text); } catch { return null; }
+    } finally {
+      internalFetch--;
+    }
+  };
+
+  const autoLoadAllPages = async (meta, firstJson) => {
+    if (!isMutasiSaldoPage() || isRunning) return;
+    isRunning = true;
+
+    feeRows = [];
+    refundRows = [];
+    seenFee = new Set();
+    seenRefund = new Set();
+
+    addRowsFromJson(firstJson);
+
+    const totalRecords = detectTotal(firstJson);
+    const firstPageRows = detectRowCount(firstJson);
+    const screenInfo = getPageInfoFromScreen();
+    let pageSize = firstPageRows || screenInfo.pageSize || 500;
+    if (pageSize < 20) pageSize = 500;
+
+    const pageBase = getPageBase(meta, pageSize);
+    const totalPages = totalRecords ? Math.ceil(totalRecords / pageSize) : 50;
+
+    statusText = "Ambil semua mutasi di background...";
+    progressText = `0 / ${totalRecords || "?"}`;
+    updatePanel();
+
+    const bigLimit = totalRecords && totalRecords > pageSize ? Math.min(Math.max(totalRecords, 5000), 100000) : 10000;
+    const bigRequest = buildRequest(meta, 0, bigLimit, pageBase);
+    const bigJson = await fetchJson(bigRequest);
+
+    if (bigJson) {
+      apiRead++;
+      addRowsFromJson(bigJson);
+      if (totalRecords && detectRowCount(bigJson) >= totalRecords) {
+        statusText = "SELESAI";
+        progressText = `${totalRecords} / ${totalRecords}`;
+        updatePanel();
+        isRunning = false;
+        return;
+      }
+    }
+
+    for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+      if (!isMutasiSaldoPage()) break;
+      const request = buildRequest(meta, pageIndex, pageSize, pageBase);
+      statusText = "Hitung semua page background...";
+      progressText = `${Math.min((pageIndex + 1) * pageSize, totalRecords || 0)} / ${totalRecords || "?"}`;
+      updatePanel();
+
+      const json = await fetchJson(request);
+      if (json) {
+        apiRead++;
+        addRowsFromJson(json);
+      }
+      await sleep(100);
+    }
+
+    statusText = "SELESAI";
+    progressText = "Semua data selesai";
+    updatePanel();
+
+    console.log("==================================");
+    console.log("NET TOTAL TF FEE -1.500");
+    console.log("TF FEE credit -1.500:", feeRows.length, "=", formatIDR(feeRows.length * TARGET_FEE));
+    console.log("REFUND FEE debit +1.500:", refundRows.length, "=", formatIDR(refundRows.length * TARGET_FEE));
+    console.log("NET:", formatIDR((feeRows.length - refundRows.length) * TARGET_FEE));
+    console.log("Fee rows:", feeRows);
+    console.log("Refund rows:", refundRows);
+    console.log("==================================");
+
+    isRunning = false;
+  };
+
+  const handleJsonResponse = async (meta, json) => {
+    if (!isMutasiSaldoPage() || !json || alreadyStarted || !isRelevantDashboardResponse(json)) return;
+    alreadyStarted = true;
+    apiRead++;
+    statusText = "Mutasi saldo terdeteksi...";
+    updatePanel();
+    await autoLoadAllPages(meta, json);
+  };
+
+  const patchFetch = () => {
+    const originalFetch = window.fetch;
+    window.fetch = async function (...args) {
+      const meta = getMetaFromFetch(args[0], args[1] || {});
+      const response = await originalFetch.apply(this, args);
+      if (internalFetch === 0) {
+        try {
+          const clone = response.clone();
+          clone.text().then((text) => {
+            try { handleJsonResponse(meta, JSON.parse(text)); } catch {}
+          }).catch(() => {});
+        } catch {}
+      }
+      return response;
+    };
+  };
+
+  const patchXHR = () => {
+    const originalOpen = XMLHttpRequest.prototype.open;
+    const originalSend = XMLHttpRequest.prototype.send;
+    const originalSetHeader = XMLHttpRequest.prototype.setRequestHeader;
+
+    XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+      this.__tfFeeMeta = { url, method, headers: {}, body: null };
+      return originalOpen.call(this, method, url, ...rest);
+    };
+
+    XMLHttpRequest.prototype.setRequestHeader = function (key, value) {
+      if (this.__tfFeeMeta) this.__tfFeeMeta.headers[key] = value;
+      return originalSetHeader.call(this, key, value);
+    };
+
+    XMLHttpRequest.prototype.send = function (body) {
+      if (this.__tfFeeMeta) this.__tfFeeMeta.body = body;
+      this.addEventListener("load", function () {
+        try { handleJsonResponse(this.__tfFeeMeta, JSON.parse(this.responseText)); } catch {}
+      });
+      return originalSend.apply(this, arguments);
+    };
+  };
+
+  const updatePanel = () => {
+    const feeCount = feeRows.length;
+    const refundCount = refundRows.length;
+    const gross = feeCount * TARGET_FEE;
+    const refund = refundCount * TARGET_FEE;
+    const net = gross - refund;
+
+    const set = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = text;
+    };
+
+    set("tf-fee-status", statusText);
+    set("tf-fee-progress", progressText);
+    set("tf-fee-api", formatIDR(apiRead));
+    set("tf-fee-count", formatIDR(feeCount));
+    set("tf-refund-count", formatIDR(refundCount));
+    set("tf-fee-gross", "Rp " + formatIDR(gross));
+    set("tf-refund-total", "Rp " + formatIDR(refund));
+    set("tf-fee-total", "Rp " + formatIDR(net));
+  };
+
+  const resetCounter = () => {
+    feeRows = [];
+    refundRows = [];
+    seenFee = new Set();
+    seenRefund = new Set();
+    alreadyStarted = false;
+    isRunning = false;
+    apiRead = 0;
+    statusText = "Reset. Refresh halaman mutasi-saldo.";
+    progressText = "-";
+    updatePanel();
+  };
+
+  const removePanelIfWrongPage = () => {
+    if (isMutasiSaldoPage()) return;
+    const panel = document.getElementById("tf-fee-panel");
+    if (panel) panel.remove();
+  };
+
+  const makeDraggable = (panel, handle) => {
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+
+    handle.addEventListener("mousedown", (event) => {
+      dragging = true;
+      startX = event.clientX;
+      startY = event.clientY;
+      startLeft = panel.offsetLeft;
+      startTop = panel.offsetTop;
+      document.body.style.userSelect = "none";
+    });
+
+    document.addEventListener("mousemove", (event) => {
+      if (!dragging) return;
+      panel.style.left = startLeft + event.clientX - startX + "px";
+      panel.style.top = startTop + event.clientY - startY + "px";
+      panel.style.right = "auto";
+      panel.style.bottom = "auto";
+    });
+
+    document.addEventListener("mouseup", () => {
+      dragging = false;
+      document.body.style.userSelect = "";
+    });
+  };
+
+  const createPanel = () => {
+    if (!isMutasiSaldoPage()) {
+      removePanelIfWrongPage();
+      return;
+    }
+    if (document.getElementById("tf-fee-panel")) return;
+
+    const panel = document.createElement("div");
+    panel.id = "tf-fee-panel";
+    panel.innerHTML = `
+      <div id="tf-fee-drag" style="font-size:14px;font-weight:900;margin-bottom:8px;color:#ffffff;cursor:move;">
+        NET TOTAL TF FEE -1.500
+      </div>
+
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;"><span>Status</span><b id="tf-fee-status">Menunggu data mutasi-saldo...</b></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;"><span>Progress</span><b id="tf-fee-progress">-</b></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;"><span>API</span><b id="tf-fee-api">0</b></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;"><span>TF FEE credit -1.500</span><b id="tf-fee-count">0</b></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;"><span>REFUND debit +1.500</span><b id="tf-refund-count">0</b></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;"><span>Gross Fee</span><b id="tf-fee-gross">Rp 0</b></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;"><span>Minus Refund</span><b id="tf-refund-total">Rp 0</b></div>
+
+      <div style="margin-top:10px;padding:11px;border-radius:8px;background:#000;color:#00ff88;font-size:23px;font-weight:900;text-align:center;">
+        <span id="tf-fee-total">Rp 0</span>
+      </div>
+
+      <div style="font-size:11px;margin-top:8px;color:#cbd5e1;line-height:1.4;">
+        Rumus: <b>TF FEE posisi CREDIT -1.500</b> dikurangi <b>REFUND FEE posisi DEBIT +1.500</b>. Refund tidak dihitung sebagai fee.
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button id="tf-fee-reset" style="flex:1;padding:8px;border:0;border-radius:7px;background:#ef4444;color:white;font-weight:900;cursor:pointer;">Reset</button>
+        <button id="tf-fee-refresh" style="flex:1;padding:8px;border:0;border-radius:7px;background:#22c55e;color:white;font-weight:900;cursor:pointer;">Refresh</button>
+      </div>
+    `;
+
+    panel.style.position = "fixed";
+    panel.style.right = "20px";
+    panel.style.top = "90px";
+    panel.style.width = "365px";
+    panel.style.zIndex = "999999";
+    panel.style.background = "#1f2937";
+    panel.style.color = "#e5e7eb";
+    panel.style.border = "2px solid #00ff88";
+    panel.style.borderRadius = "14px";
+    panel.style.padding = "14px";
+    panel.style.fontSize = "13px";
+    panel.style.boxShadow = "0 10px 30px rgba(0,0,0,.45)";
+    panel.style.fontFamily = "Arial, sans-serif";
+
+    document.body.appendChild(panel);
+    document.getElementById("tf-fee-reset").addEventListener("click", resetCounter);
+    document.getElementById("tf-fee-refresh").addEventListener("click", () => location.reload());
+    makeDraggable(panel, document.getElementById("tf-fee-drag"));
+    updatePanel();
+  };
+
+  patchFetch();
+  patchXHR();
+
+  window.addEventListener("DOMContentLoaded", () => createPanel());
+  setInterval(() => {
+    if (isMutasiSaldoPage()) {
+      createPanel();
+      updatePanel();
+    } else {
+      removePanelIfWrongPage();
+    }
+  }, 1500);
+})();
