@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tampermonkey Script Cloud Manager</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --bg-tertiary: #2d2d30;
+    --bg-hover: #3e3e42;
+    --border: #3e3e42;
+    --text-primary: #d4d4d4;
+    --text-secondary: #969696;
+    --accent: #0078d4;
+    --accent-hover: #1084de;
+    --success: #4ec9b0;
+    --danger: #f48771;
+    --warning: #dcdcaa;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  /* HEADER */
+  .header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .logo {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-icon { font-size: 22px; }
+  .toolbar {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+  .btn {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--bg-hover); border-color: var(--accent); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-danger:hover { background: var(--danger); border-color: var(--danger); color: white; }
+  .btn-success:hover { background: var(--success); border-color: var(--success); color: #1e1e1e; }
+  .status-bar {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    padding: 4px 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  /* MAIN LAYOUT */
+  .main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  .sidebar {
+    width: 300px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .sidebar-header {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .search-box {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    width: 100%;
+  }
+  .search-box:focus { outline: none; border-color: var(--accent); }
+  .script-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px;
+  }
+  .script-item {
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .script-item:hover { background: var(--bg-hover); }
+  .script-item.active {
+    background: var(--bg-tertiary);
+    border-color: var(--accent);
+  }
+  .script-name {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .script-meta {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+  }
+  .editor-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .editor-tabs {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .tab-name {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .tab-status {
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  #editor { flex: 1; }
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    min-width: 400px;
+    max-width: 600px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .modal h2 {
+    margin-bottom: 16px;
+    color: var(--accent);
+    font-size: 18px;
+  }
+  .modal p { margin-bottom: 12px; line-height: 1.5; font-size: 14px; }
+  .modal-input {
+    width: 100%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .modal-input:focus { outline: none; border-color: var(--accent); }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+  .info-box {
+    background: var(--bg-tertiary);
+    border-left: 3px solid var(--accent);
+    padding: 10px 12px;
+    margin: 12px 0;
+    font-size: 13px;
+    border-radius: 4px;
+  }
+  .info-box code {
+    background: var(--bg-primary);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    word-break: break-all;
+  }
+  /* TOAST */
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 4px;
+    min-width: 250px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    animation: slideIn 0.3s;
+    font-size: 13px;
+  }
+  .toast.success { border-left-color: var(--success); }
+  .toast.error { border-left-color: var(--danger); }
+  .toast.warning { border-left-color: var(--warning); }
+  @keyframes slideIn {
+    from { transform: translateX(400px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+  }
+  .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+  /* LOADING */
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg-primary); }
+  ::-webkit-scrollbar-thumb { background: var(--bg-hover); border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .sidebar { width: 220px; }
+    .btn span.label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <span class="logo-icon">📜</span>
+    <span>TM Cloud Manager</span>
+  </div>
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="newScript()">➕ <span class="label">Baru</span></button>
+    <button class="btn" onclick="saveCurrent()">💾 <span class="label">Simpan</span></button>
+    <button class="btn" onclick="copyScript()">📋 <span class="label">Copy</span></button>
+    <button class="btn" onclick="downloadScript()">⬇️ <span class="label">Download</span></button>
+    <button class="btn" onclick="renameCurrent()">✏️ <span class="label">Rename</span></button>
+    <button class="btn btn-danger" onclick="deleteCurrent()">🗑️ <span class="label">Hapus</span></button>
+    <button class="btn" onclick="refreshList()">🔄 <span class="label">Refresh</span></button>
+    <button class="btn" onclick="exportAll()">📦 <span class="label">Export</span></button>
+    <button class="btn" onclick="document.getElementById('importFile').click()">📥 <span class="label">Import</span></button>
+    <input type="file" id="importFile" style="display:none" accept=".json" onchange="importAll(event)">
+    <button class="btn" onclick="showSetup()">⚙️ <span class="label">Setup</span></button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <input type="text" class="search-box" placeholder="🔍 Cari script..." oninput="filterScripts(this.value)">
+      <div style="font-size:11px;color:var(--text-secondary);">
+        Total: <span id="scriptCount">0</span> script
+      </div>
+    </div>
+    <div class="script-list" id="scriptList">
+      <div class="empty-state">
+        <div class="empty-state-icon">📂</div>
+        <div>Belum ada script</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="editor-container">
+    <div class="editor-tabs">
+      <span class="tab-name" id="tabName">Belum ada script dipilih</span>
+      <span class="tab-status" id="tabStatus"></span>
+    </div>
+    <div id="editor"></div>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div>
+    <span id="statusLeft">💾 Cloud: npoint.io</span>
+  </div>
+  <div>
+    <span id="statusRight">Index ID: <span id="indexIdDisplay">belum diset</span></span>
+  </div>
+</div>
+
+<!-- SETUP MODAL -->
+<div class="modal-overlay" id="setupModal">
+  <div class="modal">
+    <h2>⚙️ Setup Cloud Storage</h2>
+    <p>Aplikasi ini menyimpan semua script di <b>npoint.io</b> (cloud JSON gratis, tanpa API key).</p>
+    <div class="info-box">
+      <b>Cara Kerja:</b><br>
+      • Klik tombol di bawah untuk membuat <b>Index Bin</b> baru di cloud<br>
+      • ID Index akan otomatis tersimpan di <b>URL browser</b> (bukan di PC)<br>
+      • <b>Bookmark URL ini</b> agar bisa akses kembali<br>
+      • Setiap script disimpan di bin terpisah (tanpa limit ukuran)
+    </div>
+    <div id="setupInfo"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('setupModal')">Tutup</button>
+      <button class="btn btn-danger" onclick="resetSetup()">🗑️ Reset Index</button>
+      <button class="btn btn-primary" onclick="createIndex()">🚀 Buat Index Baru</button>
+    </div>
+  </div>
+</div>
+
+<!-- RENAME MODAL -->
+<div class="modal-overlay" id="renameModal">
+  <div class="modal">
+    <h2>✏️ Rename Script</h2>
+    <input type="text" class="modal-input" id="renameInput" placeholder="Nama script baru...">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('renameModal')">Batal</button>
+      <button class="btn btn-primary" onclick="confirmRename()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h2 id="confirmTitle">Konfirmasi</h2>
+    <p id="confirmMessage"></p>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('confirmModal')">Batal</button>
+      <button class="btn btn-danger" id="confirmBtn">Ya, Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MONACO EDITOR -->
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+<script>
+/* ============================================================
+   TAMPERMONKEY CLOUD MANAGER
+   Storage: npoint.io (cloud JSON, no API key, no localStorage)
+   Config disimpan di URL hash (bisa di-bookmark)
+============================================================ */
+
+const API_BASE = 'https://api.npoint.io';
+let editor = null;
+let indexId = null;
+let scripts = []; // [{id, name, date, size}]
+let currentScriptId = null;
+let currentContent = '';
+let isDirty = false;
+let allScriptsData = {}; // cache content: {id: {name, content, date}}
+
+/* ---------- TOAST ---------- */
+function toast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+/* ---------- MODAL ---------- */
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function confirmDialog(title, message) {
+  return new Promise(resolve => {
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMessage').textContent = message;
+    const btn = document.getElementById('confirmBtn');
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.onclick = () => { closeModal('confirmModal'); resolve(true); };
+    showModal('confirmModal');
+    const origClose = window.closeModal;
+    const closeHandler = (e) => {
+      if (e.target.id === 'confirmModal' || e.target.classList.contains('btn')) {
+        setTimeout(() => { resolve(false); document.removeEventListener('click', closeHandler); }, 10);
+      }
+    };
+    // simpler: resolve false on cancel
+    const cancelBtn = document.querySelector('#confirmModal .btn:not(.btn-danger)');
+    const c2 = cancelBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(c2, cancelBtn);
+    c2.onclick = () => { closeModal('confirmModal'); resolve(false); };
+  });
+}
+
+/* ---------- URL HASH CONFIG ---------- */
+function getIndexFromHash() {
+  const hash = window.location.hash.replace('#', '');
+  const params = new URLSearchParams(hash);
+  return params.get('idx');
+}
+function setIndexToHash(id) {
+  window.location.hash = 'idx=' + id;
+}
+
+/* ---------- API CALLS ---------- */
+async function apiCall(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  if (method === 'DELETE') return null;
+  return await res.json();
+}
+
+/* ---------- INDEX MANAGEMENT ---------- */
+async function createIndex() {
+  try {
+    toast('Membuat index bin...', 'info');
+    const data = await apiCall('POST', '/', { scripts: [], version: '1.0', created: new Date().toISOString() });
+    indexId = data.id;
+    setIndexToHash(indexId);
+    scripts = [];
+    document.getElementById('indexIdDisplay').textContent = indexId;
+    toast('✅ Index berhasil dibuat! Bookmark URL ini.', 'success');
+    closeModal('setupModal');
+    renderList();
+  } catch (e) {
+    toast('❌ Gagal membuat index: ' + e.message, 'error');
+  }
+}
+
+async function loadIndex() {
+  if (!indexId) return;
+  try {
+    const data = await apiCall('GET', '/' + indexId);
+    scripts = data.scripts || [];
+    document.getElementById('indexIdDisplay').textContent = indexId;
+    renderList();
+  } catch (e) {
+    toast('❌ Gagal load index: ' + e.message, 'error');
+  }
+}
+
+async function saveIndex() {
+  if (!indexId) return;
+  try {
+    await apiCall('POST', '/' + indexId, { scripts, version: '1.0', updated: new Date().toISOString() });
+  } catch (e) {
+    toast('❌ Gagal simpan index: ' + e.message, 'error');
+  }
+}
+
+/* ---------- SCRIPT OPERATIONS ---------- */
+async function saveScriptToCloud(id, name, content) {
+  const payload = { name, content, date: new Date().toISOString(), size: content.length };
+  if (id) {
+    await apiCall('POST', '/' + id, payload);
+  } else {
+    const res = await apiCall('POST', '/', payload);
+    return res.id;
+  }
+  return id;
+}
+
+async function loadScriptContent(id) {
+  const data = await apiCall('GET', '/' + id);
+  return data;
+}
+
+/* ---------- UI ACTIONS ---------- */
+async function newScript() {
+  if (!indexId) { showSetup(); return; }
+  if (isDirty) {
+    const ok = await confirmDialog('Simpan perubahan?', 'Script saat ini belum disimpan. Simpan dulu?');
+    if (ok) await saveCurrent();
+  }
+  const name = 'Script Baru ' + new Date().toLocaleString('id-ID');
+  const template = `// ==UserScript==
+// @name         ${name}
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Deskripsi script di sini
+// @author       You
+// @match        *://*/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    // Kode script Anda di sini
+    console.log('Script berjalan!');
+})();
+`;
+  currentScriptId = null;
+  currentContent = template;
+  isDirty = true;
+  editor.setValue(template);
+  document.getElementById('tabName').textContent = '📝 ' + name + ' (baru)';
+  document.getElementById('tabStatus').textContent = '• Belum disimpan';
+  renderList();
+}
+
+async function saveCurrent() {
+  if (!indexId) { showSetup(); return; }
+  const content = editor.getValue();
+  const nameMatch = content.match(/@name\s+(.+)/i);
+  let name = nameMatch ? nameMatch[1].trim() : 'Script ' + (scripts.length + 1);
+  
+  try {
+    document.getElementById('tabStatus').innerHTML = '<span class="spinner"></span> Menyimpan...';
+    if (!currentScriptId) {
+      const newId = await saveScriptToCloud(null, name, content);
+      currentScriptId = newId;
+      scripts.push({ id: newId, name, date: new Date().toISOString(), size: content.length });
+    } else {
+      await saveScriptToCloud(currentScriptId, name, content);
+      const idx = scripts.findIndex(s => s.id === currentScriptId);
+      if (idx >= 0) {
+        scripts[idx].name = name;
+        scripts[idx].date = new Date().toISOString();
+        scripts[idx].size = content.length;
+      }
+    }
+    await saveIndex();
+    isDirty = false;
+    currentContent = content;
+    document.getElementById('tabName').textContent = '📝 ' + name;
+    document.getElementById('tabStatus').textContent = '✓ Tersimpan';
+    toast('✅ Script tersimpan ke cloud', 'success');
+    renderList();
+  } catch (e) {
+    toast('❌ Gagal simpan: ' + e.message, 'error');
+    document.getElementById('tabStatus').textContent = '✗ Gagal simpan';
+  }
+}
+
+async function loadScript(id) {
+  if (isDirty && currentScriptId) {
+    const ok = await confirmDialog('Simpan perubahan?', 'Script saat ini belum disimpan. Simpan dulu?');
+    if (ok) await saveCurrent();
+  }
+  try {
+    toast('Memuat script...', 'info');
+    const data = await loadScriptContent(id);
+    currentScriptId = id;
+    currentContent = data.content || '';
+    isDirty = false;
+    editor.setValue(currentContent);
+    document.getElementById('tabName').textContent = '📝 ' + data.name;
+    document.getElementById('tabStatus').textContent = '✓ Dimuat • ' + formatSize(data.size || currentContent.length);
+    renderList();
+  } catch (e) {
+    toast('❌ Gagal load: ' + e.message, 'error');
+  }
+}
+
+async function copyScript() {
+  const content = editor.getValue();
+  try {
+    await navigator.clipboard.writeText(content);
+    toast('📋 Script dicopy ke clipboard', 'success');
+  } catch (e) {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = content;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('📋 Script dicopy', 'success');
+  }
+}
+
+function downloadScript() {
+  const content = editor.getValue();
+  const name = (document.getElementById('tabName').textContent || 'script').replace(/[^\w\s-]/g, '').trim() || 'script';
+  const blob = new Blob([content], { type: 'text/javascript' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name + '.user.js';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('⬇️ Script didownload', 'success');
+}
+
+function renameCurrent() {
+  if (!currentScriptId) { toast('⚠️ Pilih script dulu', 'warning'); return; }
+  const item = scripts.find(s => s.id === currentScriptId);
+  document.getElementById('renameInput').value = item ? item.name : '';
+  showModal('renameModal');
+  setTimeout(() => document.getElementById('renameInput').focus(), 100);
+}
+
+async function confirmRename() {
+  const newName = document.getElementById('renameInput').value.trim();
+  if (!newName) { toast('⚠️ Nama tidak boleh kosong', 'warning'); return; }
+  const idx = scripts.findIndex(s => s.id === currentScriptId);
+  if (idx >= 0) {
+    scripts[idx].name = newName;
+    await saveIndex();
+    document.getElementById('tabName').textContent = '📝 ' + newName;
+    toast('✅ Script di-rename', 'success');
+    renderList();
+  }
+  closeModal('renameModal');
+}
+
+async function deleteCurrent() {
+  if (!currentScriptId) { toast('⚠️ Pilih script dulu', 'warning'); return; }
+  const item = scripts.find(s => s.id === currentScriptId);
+  const ok = await confirmDialog('Hapus script?', `Yakin hapus "${item?.name}"? Tindakan ini tidak bisa dibatalkan.`);
+  if (!ok) return;
+  try {
+    await apiCall('DELETE', '/' + currentScriptId);
+    scripts = scripts.filter(s => s.id !== currentScriptId);
+    await saveIndex();
+    currentScriptId = null;
+    editor.setValue('// Script dihapus. Klik "Baru" untuk membuat script baru.');
+    document.getElementById('tabName').textContent = 'Tidak ada script';
+    document.getElementById('tabStatus').textContent = '';
+    toast('🗑️ Script dihapus', 'success');
+    renderList();
+  } catch (e) {
+    toast('❌ Gagal hapus: ' + e.message, 'error');
+  }
+}
+
+async function refreshList() {
+  if (!indexId) { showSetup(); return; }
+  toast('🔄 Refresh...', 'info');
+  await loadIndex();
+  toast('✅ List diperbarui', 'success');
+}
+
+/* ---------- EXPORT / IMPORT ---------- */
+async function exportAll() {
+  if (!indexId || scripts.length === 0) { toast('⚠️ Tidak ada script', 'warning'); return; }
+  try {
+    toast('📦 Mengumpulkan data...', 'info');
+    const allData = { version: '1.0', exported: new Date().toISOString(), scripts: [] };
+    for (const s of scripts) {
+      const data = await loadScriptContent(s.id);
+      allData.scripts.push(data);
+    }
+    const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tampermonkey-backup-' + Date.now() + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('✅ Backup didownload', 'success');
+  } catch (e) {
+    toast('❌ Gagal export: ' + e.message, 'error');
+  }
+}
+
+async function importAll(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!indexId) { toast('⚠️ Setup index dulu', 'warning'); showSetup(); return; }
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!data.scripts || !Array.isArray(data.scripts)) throw new Error('Format tidak valid');
+    const ok = await confirmDialog('Import script?', `Import ${data.scripts.length} script? Script lama tetap ada.`);
+    if (!ok) { event.target.value = ''; return; }
+    toast('📥 Mengimport...', 'info');
+    for (const s of data.scripts) {
+      const newId = await saveScriptToCloud(null, s.name, s.content);
+      scripts.push({ id: newId, name: s.name, date: s.date || new Date().toISOString(), size: (s.content || '').length });
+    }
+    await saveIndex();
+    renderList();
+    toast('✅ Import berhasil', 'success');
+  } catch (e) {
+    toast('❌ Gagal import: ' + e.message, 'error');
+  }
+  event.target.value = '';
+}
+
+/* ---------- SETUP ---------- */
+function showSetup() {
+  const info = document.getElementById('setupInfo');
+  if (indexId) {
+    info.innerHTML = `
+      <div class="info-box">
+        <b>✅ Index sudah aktif</b><br>
+        Index ID: <code>${indexId}</code><br>
+        Jumlah script: <b>${scripts.length}</b><br><br>
+        <b>URL Bookmark:</b><br>
+        <code>${window.location.href}</code>
+      </div>
+    `;
+  } else {
+    info.innerHTML = `
+      <div class="info-box" style="border-left-color:var(--warning)">
+        <b>⚠️ Index belum dibuat</b><br>
+        Klik "Buat Index Baru" untuk memulai.
+      </div>
+    `;
+  }
+  showModal('setupModal');
+}
+
+async function resetSetup() {
+  const ok = await confirmDialog('Reset index?', 'Index lama akan ditinggalkan (script di cloud tidak terhapus). Buat index baru?');
+  if (!ok) return;
+  window.location.hash = '';
+  indexId = null;
+  scripts = [];
+  document.getElementById('indexIdDisplay').textContent = 'belum diset';
+  renderList();
+  toast('🔄 Index direset', 'success');
+  closeModal('setupModal');
+}
+
+/* ---------- RENDER LIST ---------- */
+let filterText = '';
+function filterScripts(val) {
+  filterText = val.toLowerCase();
+  renderList();
+}
+
+function renderList() {
+  const list = document.getElementById('scriptList');
+  const filtered = scripts.filter(s => s.name.toLowerCase().includes(filterText));
+  document.getElementById('scriptCount').textContent = scripts.length;
+  
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📂</div><div>${scripts.length === 0 ? 'Belum ada script' : 'Tidak ditemukan'}</div></div>`;
+    return;
+  }
+  
+  list.innerHTML = filtered.map(s => `
+    <div class="script-item ${s.id === currentScriptId ? 'active' : ''}" onclick="loadScript('${s.id}')">
+      <div class="script-name">📄 ${escapeHtml(s.name)}</div>
+      <div class="script-meta">
+        <span>${formatDate(s.date)}</span>
+        <span>${formatSize(s.size || 0)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ---------- UTILS ---------- */
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+}
+function formatDate(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: '2-digit' });
+}
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------- INIT ---------- */
+window.addEventListener('hashchange', () => {
+  const newId = getIndexFromHash();
+  if (newId && newId !== indexId) {
+    indexId = newId;
+    loadIndex();
+  }
+});
+
+window.addEventListener('beforeunload', (e) => {
+  if (isDirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
+require(['vs/editor/editor.main'], function () {
+  monaco.editor.defineTheme('tm-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [],
+    colors: {
+      'editor.background': '#1e1e1e',
+      'editor.lineHighlightBackground': '#2a2a2a'
+    }
+  });
+  
+  editor = monaco.editor.create(document.getElementById('editor'), {
+    value: '// 🚀 Selamat Datang di Tampermonkey Cloud Manager!\n// \n// 📌 LANGKAH PERTAMA:\n// 1. Klik tombol ⚙️ [Setup] di toolbar\n// 2. Klik "Buat Index Baru"\n// 3. BOOKMARK URL browser Anda (penting!)\n// 4. Klik ➕ [Baru] untuk membuat script\n// 5. Edit script, lalu klik 💾 [Simpan]\n// \n// 💾 Semua script tersimpan di CLOUD (npoint.io)\n// 📱 Bisa diakses dari device manapun dengan URL yang sama\n// ♾️ Tanpa limit ukuran script\n// \n// ==UserScript==\n// @name         Welcome Script\n// @version      1.0\n// ==/UserScript==\n\n(function() {\n    \'use strict\';\n    console.log(\'Hello from cloud!\');\n})();\n',
+    language: 'javascript',
+    theme: 'tm-dark',
+    automaticLayout: true,
+    fontSize: 14,
+    minimap: { enabled: true },
+    wordWrap: 'on',
+    lineNumbers: 'on',
+    scrollBeyondLastLine: false,
+    renderWhitespace: 'selection',
+    tabSize: 2
+  });
+  
+  editor.onDidChangeModelContent(() => {
+    if (!isDirty) {
+      isDirty = true;
+      document.getElementById('tabStatus').textContent = '• Belum tersimpan';
+    }
+  });
+  
+  // Ctrl+S to save
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => saveCurrent());
+  
+  // Init
+  indexId = getIndexFromHash();
+  if (indexId) {
+    loadIndex();
+  } else {
+    setTimeout(() => showSetup(), 500);
+  }
+});
+</script>
+</body>
+</html>
