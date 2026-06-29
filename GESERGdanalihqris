@@ -1,0 +1,1786 @@
+// ==UserScript==
+// @name         ALIH QRIS & GESER G
+// @namespace    https://tampermonkey.net/
+// @version      3.6.0-ui
+// @description  Banklist: geser g joni binsar
+// @match        https://agwl2.idnpaito.com/agen_depolimit.php
+// @grant        none
+// ==/UserScript==
+(function () {
+  "use strict";
+
+  // ---------------- CONFIG ----------------
+  const TARGET_QRIS_NAME = "ALIHKAN KE QRIS";
+  const CLEAR_NUMBER = "";
+
+  const QRIS_BANK_OPTIONS = ["DANA", "BNI", "BRI", "BCA"];
+  const DEFAULT_SELECTED = [];
+
+  const BANK_ALIAS = {
+    MYBCA: "BCA",
+    BCA: "BCA",
+    MYBNI: "BNI",
+    BNI: "BNI",
+    MYBRI: "BRI",
+    BRI: "BRI",
+    MYDANA: "DANA",
+    DANA: "DANA",
+    OVO: "OVO",
+    MYOVO: "OVO",
+  };
+
+  const SET_OPTIONS = [
+    { label: "SET DANA", bank: "DANA", mode: "dana_rule" },
+    { label: "SET BNI",  bank: "BNI",  mode: "round_robin" },
+    { label: "SET BRI",  bank: "BRI",  mode: "round_robin" },
+  ];
+
+  // ---------------- helpers ----------------
+  const norm = (s) => (s ?? "").toString().trim().toUpperCase();
+  const normName = (s) => norm(s).replace(/\s+/g, " ").trim();
+
+  function resolveBankName(rawBank) {
+    const b = norm(rawBank);
+    return BANK_ALIAS[b] ? BANK_ALIAS[b] : b;
+  }
+
+  function escapeRegExp(str) {
+    return (str ?? "").toString().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function setNativeValue(el, value) {
+    if (!el) return;
+    const tag = el.tagName?.toLowerCase();
+    if (tag !== "input" && tag !== "textarea") return;
+
+    const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), "value")?.set;
+    if (setter) setter.call(el, value);
+    else el.value = value;
+
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function getLS(key, fallback) {
+    try {
+      const v = localStorage.getItem(key);
+      return v === null ? fallback : JSON.parse(v);
+    } catch {
+      return fallback;
+    }
+  }
+
+  function setLS(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function clamp(n, min, max) {
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function setValueStyle() {
+    return `
+      width:100%;
+      box-sizing:border-box;
+      height:32px;
+      line-height:32px;
+      padding:0 11px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      outline:none;
+      background: rgba(10,16,28,.68);
+      color: rgba(236,244,255,.92);
+      font-size:11.2px;
+      letter-spacing:.15px;
+      transition: border-color .14s ease, background .14s ease, box-shadow .14s ease, transform .14s ease;
+    `;
+  }
+
+  // ---------------- table helpers ----------------
+  function getRowFieldsByBankInput(tr, bankSetOrSingle) {
+    const inputs = tr.querySelectorAll("input, textarea");
+    if (!inputs.length) return null;
+
+    let bankInput = null;
+    let bankCell = null;
+
+    for (const el of inputs) {
+      const v = norm(el.value);
+      if (bankSetOrSingle instanceof Set) {
+        if (bankSetOrSingle.has(v)) {
+          bankInput = el;
+          bankCell = el.closest("td, th");
+          break;
+        }
+      } else {
+        if (v === bankSetOrSingle) {
+          bankInput = el;
+          bankCell = el.closest("td, th");
+          break;
+        }
+      }
+    }
+    if (!bankInput || !bankCell) return null;
+
+    const tdName = bankCell.nextElementSibling;
+    const tdNumber = tdName?.nextElementSibling;
+
+    const nameField = tdName?.querySelector("input, textarea") || null;
+    const numberField = tdNumber?.querySelector("input, textarea") || null;
+
+    return { bankInput, nameField, numberField };
+  }
+
+  function getRowsForBank(bankNameRaw) {
+    const target = norm(resolveBankName(bankNameRaw));
+    const rows = Array.from(document.querySelectorAll("tr"));
+    const out = [];
+    for (const tr of rows) {
+      const fields = getRowFieldsByBankInput(tr, target);
+      if (!fields) continue;
+      if (!fields.nameField && !fields.numberField) continue;
+      out.push(fields);
+    }
+    return out;
+  }
+
+  // ---------------- Feature 1: Alihkan Qris ----------------
+  function alihkanQris(selectedBanks) {
+    const resolved = (selectedBanks || []).map(resolveBankName).map(norm);
+    const bankSet = new Set(resolved);
+    const rows = document.querySelectorAll("tr");
+
+    let matchedRows = 0;
+    let updatedName = 0;
+    let clearedNumber = 0;
+
+    rows.forEach((tr) => {
+      const fields = getRowFieldsByBankInput(tr, bankSet);
+      if (!fields) return;
+
+      const { nameField, numberField } = fields;
+      let rowTouched = false;
+
+      if (nameField) {
+        const before = nameField.value;
+        setNativeValue(nameField, TARGET_QRIS_NAME);
+        if (before !== TARGET_QRIS_NAME) {
+          updatedName++;
+          rowTouched = true;
+        }
+      }
+
+      if (numberField) {
+        const before = numberField.value;
+        setNativeValue(numberField, CLEAR_NUMBER);
+        if (before !== CLEAR_NUMBER) {
+          clearedNumber++;
+          rowTouched = true;
+        }
+      }
+
+      if (rowTouched) matchedRows++;
+    });
+
+    updateStatus(`QRIS: Row diubah ${matchedRows} | Nama→QRIS ${updatedName} | No dikosongkan ${clearedNumber}`);
+  }
+
+  // ---------------- Feature 2: Auto Isi List Bank ----------------
+  function parseAccountLine(line) {
+    let s = (line ?? "").trim();
+    if (!s) return null;
+
+    if (s.includes("/")) s = s.split("/").slice(1).join("/").trim();
+
+    const m = s.match(/(\d{6,})\s*$/);
+    if (!m) return null;
+
+    const number = m[1];
+    let name = s.slice(0, m.index).trim();
+    name = name.replace(/[-–—]+$/g, "").trim();
+    if (!name) return null;
+
+    return { name, number };
+  }
+
+  // ---------------- Database Rekening Geser ----------------
+  function parseNameNumberLine(line) {
+    let s = (line ?? "").toString().replace(/\u00A0/g, " ").trim();
+    if (!s) return null;
+
+    const tabParts = s.split(/\t+/).map(x => x.trim()).filter(Boolean);
+    if (tabParts.length >= 2) {
+      const maybeNumber = (tabParts[tabParts.length - 1] || "").replace(/[^\d]/g, "");
+      const name = tabParts.slice(0, -1).join(" ").trim();
+      if (name && maybeNumber.length >= 6) {
+        return { name, number: maybeNumber };
+      }
+    }
+
+    const m = s.match(/(.+?)\s+(\d[\d\s.\-]{5,})\s*$/);
+    if (!m) return null;
+
+    const name = (m[1] || "").trim();
+    const number = (m[2] || "").replace(/[^\d]/g, "");
+    if (!name || number.length < 6) return null;
+
+    return { name, number };
+  }
+
+  function parseNameNumberDatabase(rawText) {
+    const lines = (rawText || "").split(/\r?\n/);
+    const map = new Map();
+    const entries = [];
+    const invalidLines = [];
+
+    for (const line of lines) {
+      const raw = (line ?? "").trim();
+      if (!raw) continue;
+
+      const parsed = parseNameNumberLine(raw);
+      if (!parsed) {
+        invalidLines.push(raw);
+        continue;
+      }
+
+      const key = normName(parsed.name);
+      map.set(key, parsed.number);
+      entries.push({ ...parsed, key });
+    }
+
+    return { map, entries, invalidLines };
+  }
+
+  function getNumberFromDatabaseByName(name, rawText) {
+    const db = parseNameNumberDatabase(rawText);
+    const key = normName(name);
+    return {
+      number: db.map.get(key) || "",
+      total: db.entries.length,
+      invalid: db.invalidLines.length
+    };
+  }
+
+  // ---------------- NEW: parser Set Gate yang bisa ambil nomor dari database ----------------
+  function extractSetGateNameFromLine(line, expectedBank) {
+    let s = (line ?? "").toString().trim();
+    if (!s) return "";
+
+    const direct = parseAccountLine(s);
+    if (direct?.name) return direct.name.trim();
+
+    if (s.includes("/")) {
+      const afterSlash = s.split("/").slice(1).join("/").trim();
+      if (afterSlash) return afterSlash.replace(/^G\d+\s*/i, "").trim();
+    }
+
+    const bankResolved = resolveBankName(expectedBank || "");
+    if (bankResolved) {
+      const bankEsc = escapeRegExp(bankResolved);
+      s = s.replace(new RegExp("^\\s*" + bankEsc + "\\s*(G\\d+)?\\s*", "i"), "").trim();
+    }
+
+    s = s.replace(/^G\d+\s*/i, "").trim();
+    return s;
+  }
+
+  function parseSetGateLine(line, { allowDbNumber = false, dbRawText = "", expectedBank = "" } = {}) {
+    const raw = (line ?? "").trim();
+    if (!raw) return null;
+
+    const direct = parseAccountLine(raw);
+    if (direct) {
+      return { name: direct.name, number: direct.number, source: "direct" };
+    }
+
+    if (!allowDbNumber) return null;
+
+    const name = extractSetGateNameFromLine(raw, expectedBank);
+    if (!name) return null;
+
+    const lookup = getNumberFromDatabaseByName(name, dbRawText || "");
+    if (!lookup.number) {
+      return { name, number: "", source: "db_missing", missingDb: true };
+    }
+
+    return { name, number: lookup.number, source: "database" };
+  }
+
+  function parseSetGateAccounts(rawText, { allowDbNumber = false, dbRawText = "", expectedBank = "" } = {}) {
+    const lines = (rawText || "").split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+    const accounts = [];
+    const invalidLines = [];
+    const missingDb = [];
+    let fromDbCount = 0;
+
+    for (const line of lines) {
+      const acc = parseSetGateLine(line, { allowDbNumber, dbRawText, expectedBank });
+
+      if (!acc) {
+        invalidLines.push(line);
+        continue;
+      }
+
+      if (!acc.number) {
+        missingDb.push(acc.name || line);
+        continue;
+      }
+
+      if (acc.source === "database") fromDbCount++;
+      accounts.push({ name: acc.name, number: acc.number });
+    }
+
+    return { accounts, invalidLines, missingDb, fromDbCount, totalLines: lines.length };
+  }
+
+  // SET DANA
+  function buildCountsDanaRule(accounts, totalRows) {
+    const n = accounts.length;
+    if (totalRows <= 0 || n <= 0) return [];
+    if (n === 1) return [totalRows];
+
+    if (n === 14) {
+      const base = [1,1,1,1,1,1,2,2,2,2,2,2,2,2];
+      const sumBase = 22;
+
+      if (totalRows === sumBase) return base;
+
+      const counts = base.slice();
+
+      if (totalRows < sumBase) {
+        let needReduce = sumBase - totalRows;
+        for (let i = counts.length - 1; i >= 0 && needReduce > 0; i--) {
+          while (counts[i] > 0 && needReduce > 0) {
+            counts[i]--;
+            needReduce--;
+          }
+        }
+        return counts;
+      }
+
+      let extra = totalRows - sumBase;
+      for (let i = counts.length - 1; i >= 0 && extra > 0; i--) {
+        counts[i]++;
+        extra--;
+        if (i === 0 && extra > 0) i = counts.length;
+      }
+      return counts;
+    }
+
+    const counts = new Array(n).fill(0);
+    counts[0] = Math.min(1, totalRows);
+
+    let remaining = totalRows - counts[0];
+    if (remaining <= 0) return counts;
+
+    const slots = n - 1;
+    const base = Math.floor(remaining / slots);
+    let extra = remaining % slots;
+
+    for (let i = 1; i < n; i++) counts[i] = base;
+
+    for (let i = 2; i < n && extra > 0; i++, extra--) counts[i] += 1;
+    if (extra > 0) counts[1] += extra;
+
+    return counts;
+  }
+
+  function buildSequenceDanaRule(accounts, totalRows) {
+    const n = accounts.length;
+    const counts = buildCountsDanaRule(accounts, totalRows);
+    const remain = counts.slice();
+    const seq = [];
+
+    if (remain[0] > 0) {
+      seq.push(accounts[0]);
+      remain[0]--;
+    }
+
+    while (seq.length < totalRows) {
+      let progressed = false;
+      for (let i = 1; i < n && seq.length < totalRows; i++) {
+        if (remain[i] > 0) {
+          seq.push(accounts[i]);
+          remain[i]--;
+          progressed = true;
+        }
+      }
+      if (!progressed) break;
+    }
+    return { seq, counts };
+  }
+
+  function buildSequenceRoundRobin(accounts, totalRows) {
+    const n = accounts.length;
+    const seq = [];
+    if (n === 0 || totalRows <= 0) return { seq, counts: [] };
+
+    const counts = new Array(n).fill(0);
+    for (let i = 0; i < totalRows; i++) {
+      const idx = i % n;
+      seq.push(accounts[idx]);
+      counts[idx]++;
+    }
+    return { seq, counts };
+  }
+
+  function autoIsiListBank({ bankName, rawText, setMode, dbRawText = "" }) {
+    const rows = getRowsForBank(bankName);
+    const totalRows = rows.length;
+    const bankResolved = resolveBankName(bankName);
+
+    if (totalRows <= 0) return updateStatus(`AutoIsi: Tidak ada baris ${bankResolved} di halaman ini.`);
+
+    const allowDbNumber = setMode !== "dana_rule";
+    const parsedSet = parseSetGateAccounts(rawText || "", {
+      allowDbNumber,
+      dbRawText,
+      expectedBank: bankResolved
+    });
+
+    if (!parsedSet.accounts.length) {
+      if (parsedSet.missingDb.length) {
+        const preview = parsedSet.missingDb.slice(0, 3).join(", ");
+        return updateStatus(`AutoIsi: nomor rekening tidak ditemukan di Data Rekening Geser untuk ${preview}${parsedSet.missingDb.length > 3 ? " dll" : ""}`);
+      }
+      return updateStatus("AutoIsi: Data tidak valid. Pastikan tiap baris ada NAMA + NOMOR, atau untuk BNI/BRI gunakan nama yang ada di Data Rekening Geser.");
+    }
+
+    if (parsedSet.invalidLines.length) {
+      const preview = parsedSet.invalidLines.slice(0, 2).join(" | ");
+      return updateStatus(`AutoIsi: Ada format yang tidak valid: ${preview}${parsedSet.invalidLines.length > 2 ? " ..." : ""}`);
+    }
+
+    if (parsedSet.missingDb.length) {
+      const preview = parsedSet.missingDb.slice(0, 3).join(", ");
+      return updateStatus(`AutoIsi: nomor rekening tidak ditemukan di Data Rekening Geser untuk ${preview}${parsedSet.missingDb.length > 3 ? " dll" : ""}`);
+    }
+
+    const accounts = parsedSet.accounts;
+
+    const built = (setMode === "round_robin")
+      ? buildSequenceRoundRobin(accounts, totalRows)
+      : buildSequenceDanaRule(accounts, totalRows);
+
+    if (built.seq.length !== totalRows) {
+      return updateStatus(`AutoIsi: Gagal susun urutan. seq=${built.seq.length}, row=${totalRows}`);
+    }
+
+    let changed = 0;
+    for (let i = 0; i < totalRows; i++) {
+      const { nameField, numberField } = rows[i];
+      const acc = built.seq[i];
+
+      if (nameField) {
+        const before = nameField.value;
+        setNativeValue(nameField, acc.name);
+        if (before !== acc.name) changed++;
+      }
+      if (numberField) {
+        const before = numberField.value;
+        setNativeValue(numberField, acc.number);
+        if (before !== acc.number) changed++;
+      }
+    }
+
+    const infoCounts = (built.counts || []).map((c, idx) => `G${idx + 1}:${c}`).join(" ");
+    const label = setMode === "round_robin"
+      ? (bankResolved === "BNI" ? "SET BNI" : (bankResolved === "BRI" ? "SET BRI" : "SET"))
+      : "SET DANA";
+
+    const extraInfo = parsedSet.fromDbCount > 0 ? ` | No DB ${parsedSet.fromDbCount}` : "";
+    updateStatus(`AutoIsi ${bankResolved}: ${totalRows} baris | ${label} | Field berubah ${changed}${extraInfo} | ${infoCounts}`);
+  }
+
+  // ---------------- Feature 3: Geser Gatebank ----------------
+  function splitByFlexibleArrow(raw) {
+    const s = (raw ?? "").trim();
+    if (!s) return null;
+
+    if (s.includes("→")) {
+      const parts = s.split("→");
+      if (parts.length >= 2) return [parts[0], parts.slice(1).join("→")];
+    }
+
+    {
+      const m = s.match(/\s+\bke\b\s+/i);
+      if (m && m.index != null) {
+        const left = s.slice(0, m.index).trim();
+        const right = s.slice(m.index + m[0].length).trim();
+        if (left && right) return [left, right];
+      }
+    }
+
+    {
+      const re = /\s*(?:-+|=+)?\s*(?:>{1,}|-{1,}>|={1,}>|->|=>)\s*(?:-+|=+)?\s*/;
+      const m = re.exec(s);
+      if (m && m.index >= 0) {
+        const left = s.slice(0, m.index).trim();
+        const right = s.slice(m.index + m[0].length).trim();
+        if (left && right) return [left, right];
+      }
+    }
+
+    {
+      const idx = s.toLowerCase().indexOf(" to ");
+      if (idx > -1) {
+        const left = s.slice(0, idx).trim();
+        const right = s.slice(idx + 4).trim();
+        if (left && right) return [left, right];
+      }
+    }
+
+    return null;
+  }
+
+  function parseSide(side) {
+    let s = (side ?? "").trim();
+    if (!s) return null;
+
+    const bank = (s.split(/\s+/)[0] || "").trim();
+    if (!bank) return null;
+
+    let number = "";
+    let lastMatch = null;
+    const re = /\d{6,}/g;
+    for (const m of s.matchAll(re)) lastMatch = m;
+
+    let withoutNum = s;
+    if (lastMatch) {
+      number = lastMatch[0];
+      withoutNum = s.slice(0, lastMatch.index).trim();
+    }
+
+    let namePart = withoutNum;
+    if (withoutNum.includes("/")) {
+      namePart = withoutNum.split("/").slice(1).join("/").trim();
+    } else {
+      const bankEsc = escapeRegExp(bank);
+      namePart = withoutNum.replace(new RegExp("^" + bankEsc + "\\s*(G\\d+)?\\s*", "i"), "").trim();
+    }
+
+    namePart = namePart.replace(/^G\d+\s*/i, "").trim();
+    if (!namePart) return null;
+
+    return { bank, name: namePart, number };
+  }
+
+  function parseGeserSimpleLine(text) {
+    const raw = (text ?? "").trim();
+    const parts = splitByFlexibleArrow(raw);
+    if (!parts) return null;
+
+    const L = parseSide(parts[0]);
+    const R = parseSide(parts[1]);
+    if (!L || !R) return null;
+
+    return {
+      bankTarget: resolveBankName(L.bank),
+      oldName: L.name,
+      oldNumber: L.number || "",
+      newName: R.name,
+      newNumber: R.number || ""
+    };
+  }
+
+  function geserSimple({ mappingText, newNumber, dbRawText }) {
+    const parsed = parseGeserSimpleLine(mappingText);
+    if (!parsed) return updateStatus("Geser: format salah. Contoh: BNI G7 / Ani >> BNI G4 / Bibit");
+
+    const bankTarget = norm(parsed.bankTarget);
+    const oldNameN = normName(parsed.oldName);
+    const oldNum = (parsed.oldNumber || "").trim();
+    const newName = parsed.newName.trim();
+
+    const manualNewNumber = (newNumber ?? "").trim();
+    const rightSideNumber = (parsed.newNumber ?? "").trim();
+    const dbLookup = getNumberFromDatabaseByName(newName, dbRawText || "");
+    const dbNumber = dbLookup.number || "";
+
+    let newNumberStr = "";
+    if (manualNewNumber) newNumberStr = manualNewNumber;
+    else if (rightSideNumber) newNumberStr = rightSideNumber;
+    else if (dbNumber) newNumberStr = dbNumber;
+
+    const rows = getRowsForBank(bankTarget);
+    if (!rows.length) return updateStatus(`Geser: baris bank ${bankTarget} tidak ditemukan.`);
+
+    let matchedRows = 0;
+
+    for (const r of rows) {
+      const curName = normName(r.nameField?.value);
+      const curNum = (r.numberField?.value ?? "").toString().trim();
+
+      if (curName !== oldNameN) continue;
+      if (oldNum && curNum !== oldNum) continue;
+
+      matchedRows++;
+
+      if (r.nameField) setNativeValue(r.nameField, newName);
+      if (r.numberField && newNumberStr) setNativeValue(r.numberField, newNumberStr);
+    }
+
+    if (!matchedRows) {
+      updateStatus("Data geser tidak ditemukan.");
+      return;
+    }
+
+    if (newNumberStr) {
+      updateStatus(`Total ${matchedRows}G nama rekening dan nomor rekening digeser`);
+    } else {
+      updateStatus(`Total ${matchedRows}G nama rekening digeser`);
+    }
+  }
+
+  // ---------------- UI ----------------
+  let statusEl = null;
+  function updateStatus(msg) {
+    if (statusEl) statusEl.textContent = msg;
+  }
+
+  function animateOpen(el) {
+    if (!el) return;
+    el.style.display = "block";
+    el.style.overflow = "hidden";
+    el.style.willChange = "max-height, opacity, transform";
+    const h = Math.max(1, el.scrollHeight);
+
+    el.style.maxHeight = "0px";
+    el.style.opacity = "0";
+    el.style.transform = "translateY(-2px)";
+
+    el.animate(
+      [
+        { maxHeight: "0px", opacity: 0, transform: "translateY(-2px)" },
+        { maxHeight: h + "px", opacity: 1, transform: "translateY(0px)" }
+      ],
+      { duration: 190, easing: "cubic-bezier(.2,.85,.2,1)" }
+    ).onfinish = () => {
+      el.style.maxHeight = "";
+      el.style.opacity = "";
+      el.style.transform = "";
+      el.style.overflow = "";
+      el.style.willChange = "";
+    };
+  }
+
+  function animateClose(el, onDone) {
+    if (!el) return;
+    el.style.overflow = "hidden";
+    el.style.willChange = "max-height, opacity, transform";
+    const h = Math.max(1, el.scrollHeight);
+
+    el.style.maxHeight = h + "px";
+    el.style.opacity = "1";
+    el.style.transform = "translateY(0px)";
+
+    el.animate(
+      [
+        { maxHeight: h + "px", opacity: 1, transform: "translateY(0px)" },
+        { maxHeight: "0px", opacity: 0, transform: "translateY(-2px)" }
+      ],
+      { duration: 170, easing: "cubic-bezier(.2,.85,.2,1)" }
+    ).onfinish = () => {
+      el.style.display = "none";
+      el.style.maxHeight = "";
+      el.style.opacity = "";
+      el.style.transform = "";
+      el.style.overflow = "";
+      el.style.willChange = "";
+      if (typeof onDone === "function") onDone();
+    };
+  }
+
+  function createCustomDropdown({ items, value, onChange }) {
+    const wrap = document.createElement("div");
+    wrap.className = "tm-dd";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tm-dd-btn";
+    btn.setAttribute("aria-haspopup", "listbox");
+    btn.setAttribute("aria-expanded", "false");
+
+    const label = document.createElement("span");
+    label.className = "tm-dd-label";
+    label.textContent = value || (items[0] ?? "");
+
+    const chev = document.createElement("span");
+    chev.className = "tm-dd-chev";
+    chev.innerHTML = "▾";
+
+    btn.appendChild(label);
+    btn.appendChild(chev);
+
+    const menu = document.createElement("div");
+    menu.className = "tm-dd-menu";
+    menu.setAttribute("role", "listbox");
+
+    const state = { open: false, value: label.textContent };
+
+    function setValue(v, silent = false) {
+      state.value = v;
+      label.textContent = v;
+
+      Array.from(menu.querySelectorAll(".tm-dd-item")).forEach((it) => {
+        it.classList.toggle("selected", it.dataset.value === v);
+      });
+
+      if (!silent && typeof onChange === "function") onChange(v);
+    }
+
+    items.forEach((it) => {
+      const item = document.createElement("div");
+      item.className = "tm-dd-item";
+      item.dataset.value = it;
+
+      const l = document.createElement("span");
+      l.className = "tm-dd-item-text";
+      l.textContent = it;
+
+      const mark = document.createElement("span");
+      mark.className = "tm-dd-item-mark";
+      mark.textContent = "✓";
+
+      item.appendChild(l);
+      item.appendChild(mark);
+
+      item.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+      });
+
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setValue(it);
+        close();
+      });
+
+      menu.appendChild(item);
+    });
+
+    function open() {
+      if (state.open) return;
+      state.open = true;
+      wrap.classList.add("open");
+      btn.setAttribute("aria-expanded", "true");
+    }
+
+    function close() {
+      if (!state.open) return;
+      state.open = false;
+      wrap.classList.remove("open");
+      btn.setAttribute("aria-expanded", "false");
+    }
+
+    function toggle() {
+      state.open ? close() : open();
+    }
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggle();
+    });
+
+    document.addEventListener("mousedown", (e) => {
+      if (!state.open) return;
+      const t = e.target;
+      if (!(t instanceof Node)) return;
+      if (!wrap.contains(t)) close();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (!state.open) return;
+      if (e.key === "Escape") close();
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+
+    setValue(state.value, true);
+
+    return {
+      el: wrap,
+      getValue: () => state.value,
+      setValue: (v) => setValue(v),
+      close,
+      open
+    };
+  }
+
+  function injectCSS() {
+    if (document.getElementById("tm-banklist-css")) return;
+
+    const style = document.createElement("style");
+    style.id = "tm-banklist-css";
+    style.textContent = `
+      :root{
+        --tm-panel: rgba(8, 12, 22, .94);
+        --tm-stroke: rgba(255,255,255,.10);
+        --tm-text: rgba(236,244,255,.93);
+        --tm-shadow: 0 18px 55px rgba(0,0,0,.62);
+        --tm-radius: 16px;
+      }
+
+      #tm-banklist-panel{
+        position:fixed;
+        z-index:999999;
+        width:290px;
+        border-radius: var(--tm-radius);
+        border:1px solid var(--tm-stroke);
+        background: var(--tm-panel);
+        box-shadow: var(--tm-shadow);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        overflow:hidden;
+        color: var(--tm-text);
+        font: 11px/1.35 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        user-select:none;
+        transform: translateZ(0);
+        animation: tmPop .18s cubic-bezier(.2,.85,.2,1);
+        color-scheme: dark;
+      }
+      @keyframes tmPop{
+        from{ opacity:0; transform: translateY(10px) scale(.985); }
+        to{ opacity:1; transform: translateY(0) scale(1); }
+      }
+
+      @media (prefers-reduced-motion: reduce){
+        #tm-banklist-panel{ animation:none; }
+        *{ transition:none !important; animation:none !important; }
+      }
+
+      #tm-banklist-panel *{ box-sizing:border-box; }
+
+      #tm-banklist-panel .tm-hdr{
+        display:flex; align-items:center; justify-content:space-between; gap:8px;
+        padding:9px 10px;
+        cursor:move;
+        border-bottom:1px solid rgba(255,255,255,.07);
+        background: rgba(255,255,255,.03);
+      }
+      #tm-banklist-panel .tm-title{
+        display:flex; align-items:center; gap:8px;
+        font-weight:900;
+        letter-spacing:.25px;
+        font-size:12px;
+        color: var(--tm-text);
+      }
+      #tm-banklist-panel .tm-dot{
+        width:10px; height:10px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,.14);
+        background: rgba(90,170,255,.18);
+        box-shadow: 0 0 0 3px rgba(90,170,255,.06);
+      }
+      #tm-banklist-panel .tm-icbtn{
+        border:1px solid rgba(255,255,255,.10);
+        background: rgba(255,255,255,.04);
+        color: var(--tm-text);
+        width:30px; height:24px;
+        border-radius:10px;
+        cursor:pointer;
+        font-weight:900;
+        transition: transform .12s ease, background .12s ease, border-color .12s ease, box-shadow .12s ease;
+        overflow:hidden;
+      }
+      #tm-banklist-panel .tm-icbtn:hover{
+        transform: translateY(-1px);
+        background: rgba(255,255,255,.06);
+        border-color: rgba(255,255,255,.16);
+        box-shadow: 0 0 0 3px rgba(90,170,255,.08);
+      }
+      #tm-banklist-panel .tm-icbtn:active{ transform: translateY(0) scale(.98); }
+
+      #tm-banklist-body{ padding:10px; }
+
+      #tm-banklist-panel input[type="checkbox"]{
+        accent-color: rgba(120,190,255,.95);
+        transform: translateY(1px);
+      }
+      #tm-banklist-panel .tm-pills{
+        display:flex; gap:8px; flex-wrap:wrap;
+        padding:0 0 8px;
+      }
+      #tm-banklist-panel .tm-pill{
+        display:flex; align-items:center; gap:7px;
+        padding:6px 9px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,.10);
+        background: rgba(255,255,255,.035);
+        cursor:pointer;
+        transition: transform .12s ease, background .12s ease, border-color .12s ease, box-shadow .12s ease;
+      }
+      #tm-banklist-panel .tm-pill:hover{
+        transform: translateY(-1px);
+        background: rgba(255,255,255,.055);
+        border-color: rgba(255,255,255,.15);
+      }
+      #tm-banklist-panel .tm-pill:active{ transform: translateY(0) scale(.99); }
+      #tm-banklist-panel .tm-pill:has(input:checked){
+        border-color: rgba(90,170,255,.32);
+        box-shadow: 0 0 0 3px rgba(90,170,255,.09);
+        background: rgba(90,170,255,.08);
+      }
+
+      #tm-banklist-panel .tm-card{
+        border:1px solid rgba(255,255,255,.09);
+        background: rgba(255,255,255,.03);
+        border-radius:14px;
+        padding:9px;
+        margin-top:9px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      }
+
+      #tm-banklist-panel .tm-sec-hdr{
+        display:flex; align-items:center; justify-content:space-between;
+        gap:10px; cursor:pointer; user-select:none;
+        margin-bottom:8px;
+      }
+      #tm-banklist-panel .tm-sec-hdr .t{
+        font-weight:900;
+        letter-spacing:.25px;
+        color: rgba(236,244,255,.88);
+      }
+      #tm-banklist-panel .tm-sec-hdr .b{
+        border:1px solid rgba(255,255,255,.10);
+        background: rgba(255,255,255,.04);
+        color: var(--tm-text);
+        width:30px; height:24px;
+        border-radius:10px;
+        cursor:pointer;
+        font-weight:900;
+        transition: transform .12s ease, background .12s ease, border-color .12s ease, box-shadow .12s ease;
+      }
+      #tm-banklist-panel .tm-sec-hdr .b:hover{
+        transform: translateY(-1px);
+        background: rgba(255,255,255,.06);
+        border-color: rgba(255,255,255,.16);
+        box-shadow: 0 0 0 3px rgba(90,170,255,.08);
+      }
+      #tm-banklist-panel .tm-sec-hdr .b:active{ transform: translateY(0) scale(.98); }
+
+      #tm-banklist-panel .tm-dd{
+        position:relative;
+        margin-bottom:8px;
+        user-select:none;
+      }
+      #tm-banklist-panel .tm-dd-btn{
+        ${setValueStyle()}
+        padding:0 34px 0 11px;
+        cursor:pointer;
+        text-align:left;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+      }
+      #tm-banklist-panel .tm-dd-btn:hover{
+        transform: translateY(-1px);
+        border-color: rgba(90,170,255,.22);
+        box-shadow: 0 0 0 3px rgba(90,170,255,.10);
+      }
+      #tm-banklist-panel .tm-dd.open .tm-dd-btn{
+        border-color: rgba(90,170,255,.40);
+        box-shadow: 0 0 0 3px rgba(90,170,255,.14);
+        transform: translateY(0);
+      }
+      #tm-banklist-panel .tm-dd-label{
+        color: rgba(236,244,255,.92);
+        font-weight:800;
+        letter-spacing:.2px;
+      }
+      #tm-banklist-panel .tm-dd-chev{
+        width:22px; height:22px;
+        display:grid;
+        place-items:center;
+        border-radius:10px;
+        border:1px solid rgba(255,255,255,.10);
+        background: rgba(255,255,255,.04);
+        color: rgba(236,244,255,.86);
+        transition: transform .18s ease, background .18s ease, border-color .18s ease;
+        flex:0 0 auto;
+      }
+      #tm-banklist-panel .tm-dd.open .tm-dd-chev{
+        transform: rotate(180deg);
+        background: rgba(90,170,255,.10);
+        border-color: rgba(90,170,255,.22);
+      }
+      #tm-banklist-panel .tm-dd-menu{
+        position:absolute;
+        left:0; right:0;
+        top: calc(100% + 8px);
+        z-index:9999999;
+        padding:6px;
+        border-radius:14px;
+        border:1px solid rgba(255,255,255,.12);
+        background: rgba(8, 12, 22, .98);
+        box-shadow: 0 18px 45px rgba(0,0,0,.55);
+        max-height:210px;
+        overflow:auto;
+        opacity:0;
+        transform: translateY(-6px) scale(.99);
+        pointer-events:none;
+        transition: opacity .14s ease, transform .14s ease;
+      }
+      #tm-banklist-panel .tm-dd.open .tm-dd-menu{
+        opacity:1;
+        transform: translateY(0) scale(1);
+        pointer-events:auto;
+      }
+      #tm-banklist-panel .tm-dd-item{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        padding:9px 10px;
+        border-radius:12px;
+        border:1px solid transparent;
+        cursor:pointer;
+        transition: background .12s ease, border-color .12s ease, transform .12s ease;
+        color: rgba(236,244,255,.90);
+        font-weight:800;
+        letter-spacing:.15px;
+      }
+      #tm-banklist-panel .tm-dd-item:hover{
+        background: rgba(255,255,255,.06);
+        transform: translateY(-1px);
+      }
+      #tm-banklist-panel .tm-dd-item:active{ transform: translateY(0) scale(.99); }
+      #tm-banklist-panel .tm-dd-item.selected{
+        background: rgba(90,170,255,.16);
+        border-color: rgba(90,170,255,.22);
+        box-shadow: inset 0 0 0 1px rgba(90,170,255,.08);
+      }
+      #tm-banklist-panel .tm-dd-item-mark{
+        opacity:0;
+        color: rgba(236,244,255,.92);
+        font-weight:900;
+      }
+      #tm-banklist-panel .tm-dd-item.selected .tm-dd-item-mark{ opacity:1; }
+
+      #tm-banklist-panel .tm-dd-menu,
+      #tm-banklist-panel textarea,
+      #tm-banklist-panel .tm-db-table-wrap{
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,.18) rgba(255,255,255,.04);
+      }
+      #tm-banklist-panel .tm-dd-menu::-webkit-scrollbar,
+      #tm-banklist-panel textarea::-webkit-scrollbar,
+      #tm-banklist-panel .tm-db-table-wrap::-webkit-scrollbar{ width:8px; height:8px; }
+      #tm-banklist-panel .tm-dd-menu::-webkit-scrollbar-track,
+      #tm-banklist-panel textarea::-webkit-scrollbar-track,
+      #tm-banklist-panel .tm-db-table-wrap::-webkit-scrollbar-track{ background: rgba(255,255,255,.04); border-radius: 10px; }
+      #tm-banklist-panel .tm-dd-menu::-webkit-scrollbar-thumb,
+      #tm-banklist-panel textarea::-webkit-scrollbar-thumb,
+      #tm-banklist-panel .tm-db-table-wrap::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.16); border-radius: 10px; }
+      #tm-banklist-panel .tm-dd-menu::-webkit-scrollbar-thumb:hover,
+      #tm-banklist-panel textarea::-webkit-scrollbar-thumb:hover,
+      #tm-banklist-panel .tm-db-table-wrap::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,.24); }
+
+      #tm-banklist-panel textarea{
+        width:100%;
+        height:72px;
+        box-sizing:border-box;
+        padding:9px 11px;
+        border-radius:14px;
+        border:1px solid rgba(90,170,255,.22);
+        outline:none;
+        background: rgba(10,16,28,.68);
+        color: rgba(236,244,255,.92);
+        resize:vertical;
+        user-select:text;
+        transition: border-color .14s ease, box-shadow .14s ease;
+      }
+      #tm-banklist-panel input[type="text"]:focus,
+      #tm-banklist-panel textarea:focus{
+        border-color: rgba(90,170,255,.40) !important;
+        box-shadow: 0 0 0 3px rgba(90,170,255,.14) !important;
+      }
+
+      #tm-banklist-panel input[type="text"]{
+        ${setValueStyle()}
+        user-select:text;
+      }
+
+      #tm-banklist-panel button.tm-btn{
+        width:100%;
+        border:1px solid rgba(255,255,255,.10);
+        background: rgba(255,255,255,.05);
+        color: var(--tm-text);
+        font-weight:900;
+        padding:10px 10px;
+        border-radius:12px;
+        cursor:pointer;
+        transition: transform .12s ease, filter .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+        position:relative;
+        overflow:hidden;
+      }
+      #tm-banklist-panel button.tm-btn:hover{
+        transform: translateY(-1px);
+        border-color: rgba(255,255,255,.16);
+        box-shadow: 0 0 0 3px rgba(90,170,255,.08);
+        background: rgba(255,255,255,.065);
+      }
+      #tm-banklist-panel button.tm-btn:active{
+        transform: translateY(0) scale(.985);
+        filter: brightness(.99);
+      }
+      #tm-banklist-panel button.tm-btn::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        background: radial-gradient(circle at var(--rx,50%) var(--ry,50%), rgba(255,255,255,.22), transparent 45%);
+        opacity:0;
+        transition: opacity .22s ease;
+        pointer-events:none;
+      }
+      #tm-banklist-panel button.tm-btn:active::after{ opacity:1; }
+
+      #tm-banklist-panel button.tm-btn.qris{
+        border-color: rgba(60,215,200,.26);
+        box-shadow: inset 0 0 0 1px rgba(60,215,200,.08);
+      }
+      #tm-banklist-panel button.tm-btn.set{
+        border-color: rgba(245,183,70,.26);
+        box-shadow: inset 0 0 0 1px rgba(245,183,70,.08);
+      }
+      #tm-banklist-panel button.tm-btn.geser{
+        border-color: rgba(90,170,255,.30);
+        box-shadow: inset 0 0 0 1px rgba(90,170,255,.10);
+      }
+
+      #tm-banklist-panel .tm-btn-row{
+        display:flex;
+        gap:8px;
+        margin-top:8px;
+      }
+      #tm-banklist-panel .tm-btn-row .tm-btn{
+        width:auto;
+        flex:1 1 0;
+      }
+
+      #tm-banklist-panel .tm-db-table-wrap{
+        max-height: 150px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        border: 1px solid rgba(90,170,255,.24) !important;
+        border-radius: 14px !important;
+        background: rgba(9,14,26,.96) !important;
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,.04),
+          0 0 0 1px rgba(0,0,0,.12) !important;
+        padding: 0 !important;
+      }
+
+      #tm-banklist-panel .tm-db-table{
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        border-collapse: collapse !important;
+        table-layout: fixed !important;
+        background: transparent !important;
+        color: rgba(236,244,255,.92) !important;
+        font: 10.5px/1.2 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif !important;
+      }
+
+      #tm-banklist-panel .tm-db-table,
+      #tm-banklist-panel .tm-db-table tbody,
+      #tm-banklist-panel .tm-db-table tr{
+        width: 100% !important;
+        background: transparent !important;
+      }
+
+      #tm-banklist-panel .tm-db-table td{
+        background: rgba(12,18,34,.96) !important;
+        color: rgba(236,244,255,.92) !important;
+        border: 1px solid rgba(255,255,255,.10) !important;
+        padding: 6px 8px !important;
+        vertical-align: middle !important;
+        box-shadow: none !important;
+      }
+
+      #tm-banklist-panel .tm-db-table tr:nth-child(even) td{
+        background: rgba(16,24,42,.96) !important;
+      }
+
+      #tm-banklist-panel .tm-db-table td:first-child{
+        width: 60% !important;
+        text-align: center !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+        font-weight: 700 !important;
+      }
+
+      #tm-banklist-panel .tm-db-table td:last-child{
+        width: 40% !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 10px !important;
+        letter-spacing: 0 !important;
+        font-weight: 700 !important;
+      }
+
+      #tm-banklist-panel .tm-db-empty{
+        padding: 12px !important;
+        color: rgba(220,235,255,.58) !important;
+        text-align: center !important;
+        background: transparent !important;
+      }
+
+      #tm-banklist-panel .tm-status{
+        margin:10px;
+        margin-top:9px;
+        padding:9px 10px;
+        border-radius:14px;
+        border:1px dashed rgba(255,255,255,.16);
+        background: rgba(255,255,255,.03);
+        color: rgba(220,235,255,.72);
+        min-height:16px;
+        user-select:text;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function createPanel() {
+    if (document.getElementById("tm-banklist-panel")) return;
+    injectCSS();
+
+    let dbTa = null;
+
+    const savedPos = getLS("tm_banklist_pos", { top: 12, right: 12, left: null });
+    const savedMin = getLS("tm_banklist_min", false);
+
+    const panel = document.createElement("div");
+    panel.id = "tm-banklist-panel";
+
+    panel.style.top = `${savedPos.top ?? 12}px`;
+    if (typeof savedPos.left === "number") {
+      panel.style.left = `${savedPos.left}px`;
+      panel.style.right = "auto";
+    } else {
+      panel.style.right = `${savedPos.right ?? 12}px`;
+      panel.style.left = "auto";
+    }
+
+    const header = document.createElement("div");
+    header.className = "tm-hdr";
+
+    const title = document.createElement("div");
+    title.className = "tm-title";
+
+    const dot = document.createElement("div");
+    dot.className = "tm-dot";
+
+    const titleText = document.createElement("span");
+    titleText.textContent = "Banklist";
+
+    title.appendChild(dot);
+    title.appendChild(titleText);
+
+    const minBtn = document.createElement("button");
+    minBtn.type = "button";
+    minBtn.className = "tm-icbtn";
+    minBtn.textContent = savedMin ? "▢" : "—";
+    minBtn.title = savedMin ? "Maximize" : "Minimize";
+
+    header.appendChild(title);
+    header.appendChild(minBtn);
+    panel.appendChild(header);
+
+    const body = document.createElement("div");
+    body.id = "tm-banklist-body";
+    body.style.display = savedMin ? "none" : "block";
+    panel.appendChild(body);
+
+    // QRIS
+    const savedSelected = getLS("tm_qris_selected_banks_v5", DEFAULT_SELECTED);
+    const selectedSet = new Set(savedSelected.map(norm));
+
+    const chkWrap = document.createElement("div");
+    chkWrap.className = "tm-pills";
+
+    QRIS_BANK_OPTIONS.forEach((b) => {
+      const label = document.createElement("label");
+      label.className = "tm-pill";
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = selectedSet.has(norm(b));
+      cb.dataset.bank = b;
+      cb.addEventListener("change", () => {
+        const chosen = Array.from(panel.querySelectorAll('input[type="checkbox"][data-bank]'))
+          .filter((x) => x.checked)
+          .map((x) => x.dataset.bank);
+        setLS("tm_qris_selected_banks_v5", chosen);
+      });
+
+      const span = document.createElement("span");
+      span.textContent = b;
+
+      label.appendChild(cb);
+      label.appendChild(span);
+      chkWrap.appendChild(label);
+    });
+
+    body.appendChild(chkWrap);
+
+    const btnQris = document.createElement("button");
+    btnQris.className = "tm-btn qris";
+    btnQris.textContent = "Alih QRIS";
+    btnQris.addEventListener("click", () => {
+      const chosen = Array.from(panel.querySelectorAll('input[type="checkbox"][data-bank]'))
+        .filter((x) => x.checked)
+        .map((x) => x.dataset.bank);
+      if (!chosen.length) return updateStatus("QRIS: centang minimal 1 bank.");
+
+      alihkanQris(chosen);
+
+      Array.from(panel.querySelectorAll('input[type="checkbox"][data-bank]')).forEach(cb => {
+        cb.checked = false;
+      });
+      setLS("tm_qris_selected_banks_v5", []);
+    });
+
+    body.appendChild(btnQris);
+
+    // Set Gate
+    const boxAuto = document.createElement("div");
+    boxAuto.className = "tm-card";
+
+    const autoMinKey = "tm_auto_sec_min";
+    const autoMin = getLS(autoMinKey, false);
+
+    const headAuto = document.createElement("div");
+    headAuto.className = "tm-sec-hdr";
+
+    const headT = document.createElement("div");
+    headT.className = "t";
+    headT.textContent = "Set Gate";
+
+    const headB = document.createElement("button");
+    headB.type = "button";
+    headB.className = "b";
+    headB.textContent = autoMin ? "▢" : "—";
+    headB.title = autoMin ? "Buka" : "Tutup";
+
+    headAuto.appendChild(headT);
+    headAuto.appendChild(headB);
+    boxAuto.appendChild(headAuto);
+
+    const autoBody = document.createElement("div");
+    autoBody.className = "tm-sec-body";
+    autoBody.style.display = autoMin ? "none" : "block";
+    boxAuto.appendChild(autoBody);
+
+    headAuto.addEventListener("click", (e) => {
+      if (e.target === headB) return;
+      headB.click();
+    });
+
+    headB.addEventListener("click", () => {
+      const isClosed = autoBody.style.display === "none";
+      if (isClosed) animateOpen(autoBody);
+      else animateClose(autoBody);
+
+      headB.textContent = isClosed ? "—" : "▢";
+      headB.title = isClosed ? "Tutup" : "Buka";
+      setLS(autoMinKey, !isClosed);
+    });
+
+    const savedAuto = getLS("tm_auto_list_bank_setonly", { setLabel: "SET DANA", text: "" });
+
+    const dd = createCustomDropdown({
+      items: SET_OPTIONS.map(x => x.label),
+      value: savedAuto.setLabel || "SET DANA",
+      onChange: (v) => {
+        savedAuto.setLabel = v;
+        setLS("tm_auto_list_bank_setonly", savedAuto);
+      }
+    });
+    autoBody.appendChild(dd.el);
+
+    const ta = document.createElement("textarea");
+    ta.value = savedAuto.text || "";
+    ta.placeholder = "Tempel list akun di sini";
+    ta.addEventListener("input", () => {
+      savedAuto.text = ta.value;
+      setLS("tm_auto_list_bank_setonly", savedAuto);
+    });
+    autoBody.appendChild(ta);
+
+    const btnAuto = document.createElement("button");
+    btnAuto.className = "tm-btn set";
+    btnAuto.textContent = "Gas Set";
+    btnAuto.style.marginTop = "8px";
+    btnAuto.addEventListener("click", () => {
+      const selectedLabel = dd.getValue();
+      const chosen = SET_OPTIONS.find(x => x.label === selectedLabel) || SET_OPTIONS[0];
+
+      const rows = getRowsForBank(chosen.bank);
+      if (!rows.length) {
+        updateStatus(`AutoIsi: Tidak ada baris ${resolveBankName(chosen.bank)} di halaman ini.`);
+        return;
+      }
+
+      const dbKey = "tm_geser_rekening_db_v2";
+      const liveDbRaw = (() => {
+        const fromTextarea = (dbTa?.value || "").trim();
+        if (fromTextarea) return dbTa.value || "";
+        const stored = getLS(dbKey, { text: "" });
+        return stored.text || "";
+      })();
+
+      const allowDbNumber = chosen.mode !== "dana_rule";
+      const parsedSet = parseSetGateAccounts(ta.value || "", {
+        allowDbNumber,
+        dbRawText: liveDbRaw,
+        expectedBank: chosen.bank
+      });
+
+      if (!parsedSet.accounts.length) {
+        if (parsedSet.missingDb.length) {
+          const preview = parsedSet.missingDb.slice(0, 3).join(", ");
+          updateStatus(`AutoIsi: nomor rekening tidak ditemukan di Data Rekening Geser untuk ${preview}${parsedSet.missingDb.length > 3 ? " dll" : ""}`);
+          return;
+        }
+        updateStatus("AutoIsi: Data tidak valid. Pastikan tiap baris ada NAMA + NOMOR, atau untuk BNI/BRI gunakan nama yang ada di Data Rekening Geser.");
+        return;
+      }
+
+      if (parsedSet.invalidLines.length) {
+        const preview = parsedSet.invalidLines.slice(0, 2).join(" | ");
+        updateStatus(`AutoIsi: Ada format yang tidak valid: ${preview}${parsedSet.invalidLines.length > 2 ? " ..." : ""}`);
+        return;
+      }
+
+      if (parsedSet.missingDb.length) {
+        const preview = parsedSet.missingDb.slice(0, 3).join(", ");
+        updateStatus(`AutoIsi: nomor rekening tidak ditemukan di Data Rekening Geser untuk ${preview}${parsedSet.missingDb.length > 3 ? " dll" : ""}`);
+        return;
+      }
+
+      autoIsiListBank({
+        bankName: chosen.bank,
+        rawText: ta.value || "",
+        setMode: chosen.mode,
+        dbRawText: liveDbRaw
+      });
+
+      ta.value = "";
+      savedAuto.text = "";
+      setLS("tm_auto_list_bank_setonly", savedAuto);
+    });
+    autoBody.appendChild(btnAuto);
+
+    body.appendChild(boxAuto);
+
+    // Data Rekening Geser
+    const dbKey = "tm_geser_rekening_db_v2";
+    const dbMinKey = "tm_db_sec_min";
+    const savedDb = getLS(dbKey, { text: "" });
+    const dbMin = getLS(dbMinKey, false);
+
+    const boxDb = document.createElement("div");
+    boxDb.className = "tm-card";
+
+    const headDb = document.createElement("div");
+    headDb.className = "tm-sec-hdr";
+
+    const dbTitle = document.createElement("div");
+    dbTitle.className = "t";
+    dbTitle.textContent = "Data Rekening Geser";
+
+    const dbBtnMin = document.createElement("button");
+    dbBtnMin.type = "button";
+    dbBtnMin.className = "b";
+    dbBtnMin.textContent = dbMin ? "▢" : "—";
+    dbBtnMin.title = dbMin ? "Buka" : "Tutup";
+
+    headDb.appendChild(dbTitle);
+    headDb.appendChild(dbBtnMin);
+    boxDb.appendChild(headDb);
+
+    const dbBody = document.createElement("div");
+    dbBody.className = "tm-sec-body";
+    dbBody.style.display = dbMin ? "none" : "block";
+    boxDb.appendChild(dbBody);
+
+    headDb.addEventListener("click", (e) => {
+      if (e.target === dbBtnMin) return;
+      dbBtnMin.click();
+    });
+
+    dbBtnMin.addEventListener("click", () => {
+      const isClosed = dbBody.style.display === "none";
+      if (isClosed) animateOpen(dbBody);
+      else animateClose(dbBody);
+
+      dbBtnMin.textContent = isClosed ? "—" : "▢";
+      dbBtnMin.title = isClosed ? "Tutup" : "Buka";
+      setLS(dbMinKey, !isClosed);
+    });
+
+    const dbEditorWrap = document.createElement("div");
+    dbTa = document.createElement("textarea");
+    dbTa.style.height = "92px";
+    dbTa.placeholder = "Tempel data nama + nomor di sini";
+    dbTa.value = savedDb.text || "";
+    dbEditorWrap.appendChild(dbTa);
+
+    const dbTableWrapOuter = document.createElement("div");
+    dbTableWrapOuter.style.display = "none";
+
+    const dbTableWrap = document.createElement("div");
+    dbTableWrap.className = "tm-db-table-wrap";
+    dbTableWrapOuter.appendChild(dbTableWrap);
+
+    const btnRowDb = document.createElement("div");
+    btnRowDb.className = "tm-btn-row";
+
+    const btnSaveDb = document.createElement("button");
+    btnSaveDb.className = "tm-btn set";
+    btnSaveDb.textContent = "Simpan Data";
+
+    const btnClearDb = document.createElement("button");
+    btnClearDb.className = "tm-btn qris";
+    btnClearDb.textContent = "Hapus Data";
+
+    btnRowDb.appendChild(btnSaveDb);
+    btnRowDb.appendChild(btnClearDb);
+
+    dbBody.appendChild(dbEditorWrap);
+    dbBody.appendChild(dbTableWrapOuter);
+    dbBody.appendChild(btnRowDb);
+
+    function renderDbTable(rawText) {
+      const parsed = parseNameNumberDatabase(rawText || "");
+
+      if (!parsed.entries.length) {
+        dbTableWrap.innerHTML = `<div class="tm-db-empty">Belum ada data.</div>`;
+        return parsed;
+      }
+
+      const rowsHtml = parsed.entries.map((item) => `
+        <tr>
+          <td>${escapeHtml(item.name)}</td>
+          <td>${escapeHtml(item.number)}</td>
+        </tr>
+      `).join("");
+
+      dbTableWrap.innerHTML = `
+        <table class="tm-db-table">
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      `;
+
+      return parsed;
+    }
+
+    function showDbEditor() {
+      dbEditorWrap.style.display = "block";
+      dbTableWrapOuter.style.display = "none";
+      btnSaveDb.style.display = "";
+      btnClearDb.style.display = "";
+    }
+
+    function showDbTable() {
+      dbEditorWrap.style.display = "none";
+      dbTableWrapOuter.style.display = "block";
+      btnSaveDb.style.display = "none";
+      btnClearDb.style.display = "";
+    }
+
+    btnSaveDb.addEventListener("click", () => {
+      const raw = dbTa.value || "";
+      const parsed = parseNameNumberDatabase(raw);
+
+      if (!parsed.entries.length) {
+        updateStatus("Data rekening geser tidak valid.");
+        return;
+      }
+
+      setLS(dbKey, { text: raw });
+      renderDbTable(raw);
+      showDbTable();
+      updateStatus(`Data rekening geser tersimpan ${parsed.entries.length} data`);
+    });
+
+    btnClearDb.addEventListener("click", () => {
+      dbTa.value = "";
+      dbTableWrap.innerHTML = "";
+      setLS(dbKey, { text: "" });
+      showDbEditor();
+      updateStatus("Data rekening geser dihapus.");
+    });
+
+    if ((savedDb.text || "").trim()) {
+      const parsedOnLoad = renderDbTable(savedDb.text || "");
+      if (parsedOnLoad.entries.length) showDbTable();
+      else showDbEditor();
+    } else {
+      showDbEditor();
+    }
+
+    body.appendChild(boxDb);
+
+    // Geser Gatebank
+    const boxGeser = document.createElement("div");
+    boxGeser.className = "tm-card";
+
+    const headGeser = document.createElement("div");
+    headGeser.textContent = "Geser Gatebank";
+    headGeser.style.cssText = "font-weight:900; letter-spacing:.25px; margin-bottom:8px; color: rgba(236,244,255,.88);";
+    boxGeser.appendChild(headGeser);
+
+    const savedSimple = getLS("tm_geser_simple_v2", { map: "", newNumber: "" });
+
+    const mapInp = document.createElement("input");
+    mapInp.type = "text";
+    mapInp.value = savedSimple.map || "";
+    mapInp.placeholder = "Contoh: MYBCA G13 / Fillya Agdyanty >> MYBCA G2 / Rizky Prasitiyo";
+    mapInp.style.cssText = setValueStyle() + " margin-bottom:8px; user-select:text;";
+    mapInp.addEventListener("input", () => {
+      savedSimple.map = mapInp.value;
+      setLS("tm_geser_simple_v2", savedSimple);
+    });
+    boxGeser.appendChild(mapInp);
+
+    const numInp = document.createElement("input");
+    numInp.type = "text";
+    numInp.value = savedSimple.newNumber || "";
+    numInp.placeholder = "Nomor baru (opsional)";
+    numInp.style.cssText = setValueStyle() + " margin-bottom:8px; user-select:text;";
+    numInp.addEventListener("input", () => {
+      savedSimple.newNumber = numInp.value;
+      setLS("tm_geser_simple_v2", savedSimple);
+    });
+    boxGeser.appendChild(numInp);
+
+    const btnDo = document.createElement("button");
+    btnDo.className = "tm-btn geser";
+    btnDo.textContent = "Geser Bosku";
+    btnDo.addEventListener("click", () => {
+      const data = getLS("tm_geser_simple_v2", savedSimple);
+
+      const parsed = parseGeserSimpleLine(data.map);
+      if (!parsed) {
+        updateStatus("Geser: format salah. Contoh: BNI G7 / Ani >> BNI G4 / Bibit");
+        return;
+      }
+      const rows = getRowsForBank(parsed.bankTarget);
+      if (!rows.length) {
+        updateStatus(`Geser: baris bank ${norm(parsed.bankTarget)} tidak ditemukan.`);
+        return;
+      }
+
+      const liveDbRaw = (() => {
+        const fromTextarea = (dbTa?.value || "").trim();
+        if (fromTextarea) return dbTa.value || "";
+        const stored = getLS(dbKey, { text: "" });
+        return stored.text || "";
+      })();
+
+      geserSimple({
+        mappingText: data.map,
+        newNumber: data.newNumber,
+        dbRawText: liveDbRaw
+      });
+
+      mapInp.value = "";
+      numInp.value = "";
+      savedSimple.map = "";
+      savedSimple.newNumber = "";
+      setLS("tm_geser_simple_v2", savedSimple);
+    });
+
+    boxGeser.appendChild(btnDo);
+    body.appendChild(boxGeser);
+
+    // status
+    statusEl = document.createElement("div");
+    statusEl.className = "tm-status";
+    statusEl.textContent = "Ready.";
+    panel.appendChild(statusEl);
+
+    // ripple
+    panel.addEventListener("pointerdown", (e) => {
+      const t = e.target;
+      if (!(t instanceof HTMLElement)) return;
+      if (!t.matches("button.tm-btn")) return;
+      const r = t.getBoundingClientRect();
+      const rx = ((e.clientX - r.left) / r.width) * 100;
+      const ry = ((e.clientY - r.top) / r.height) * 100;
+      t.style.setProperty("--rx", rx + "%");
+      t.style.setProperty("--ry", ry + "%");
+    }, { passive: true });
+
+    // minimize panel
+    minBtn.addEventListener("click", () => {
+      const isClosed = body.style.display === "none";
+      if (isClosed) animateOpen(body);
+      else animateClose(body);
+
+      minBtn.textContent = isClosed ? "—" : "▢";
+      minBtn.title = isClosed ? "Minimize" : "Maximize";
+      setLS("tm_banklist_min", !isClosed);
+    });
+
+    // drag
+    let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+    header.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
+      dragging = true;
+
+      const rect = panel.getBoundingClientRect();
+      startX = e.clientX; startY = e.clientY;
+      startLeft = rect.left; startTop = rect.top;
+
+      panel.style.left = `${rect.left}px`;
+      panel.style.top = `${rect.top}px`;
+      panel.style.right = "auto";
+      e.preventDefault();
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      const maxLeft = window.innerWidth - panel.offsetWidth - 4;
+      const maxTop = window.innerHeight - panel.offsetHeight - 4;
+
+      panel.style.left = `${clamp(startLeft + dx, 4, Math.max(4, maxLeft))}px`;
+      panel.style.top = `${clamp(startTop + dy, 4, Math.max(4, maxTop))}px`;
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (!dragging) return;
+      dragging = false;
+      const rect = panel.getBoundingClientRect();
+      setLS("tm_banklist_pos", { top: rect.top, left: rect.left, right: null });
+    });
+
+    document.body.appendChild(panel);
+  }
+
+  function escapeHtml(str) {
+    return (str ?? "").toString()
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function init() { createPanel(); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
