@@ -3,251 +3,344 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tampermonkey Script Cloud Manager</title>
+<title>📦 TM Script Vault - Cloud Storage</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
   :root {
-    --bg-primary: #1e1e1e;
-    --bg-secondary: #252526;
-    --bg-tertiary: #2d2d30;
-    --bg-hover: #3e3e42;
-    --border: #3e3e42;
-    --text-primary: #d4d4d4;
-    --text-secondary: #969696;
-    --accent: #0078d4;
-    --accent-hover: #1084de;
-    --success: #4ec9b0;
-    --danger: #f48771;
-    --warning: #dcdcaa;
+    --bg-dark: #1a1a1a;
+    --bg-card: #2a2a2a;
+    --bg-hover: #333;
+    --bg-input: #1f1f1f;
+    --border: #3a3a3a;
+    --text: #e5e5e5;
+    --text-dim: #999;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
   }
   body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    height: 100vh;
-    overflow: hidden;
+    background: var(--bg-dark);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+  /* Sidebar */
+  .sidebar {
+    width: 260px;
+    background: #141414;
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
     display: flex;
     flex-direction: column;
-  }
-  /* HEADER */
-  .header {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
   }
   .logo {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .logo-icon { font-size: 22px; }
-  .toolbar {
-    display: flex;
-    gap: 6px;
-    flex: 1;
-    flex-wrap: wrap;
-  }
-  .btn {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .btn:hover { background: var(--bg-hover); border-color: var(--accent); }
-  .btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
-  .btn-primary:hover { background: var(--accent-hover); }
-  .btn-danger:hover { background: var(--danger); border-color: var(--danger); color: white; }
-  .btn-success:hover { background: var(--success); border-color: var(--success); color: #1e1e1e; }
-  .status-bar {
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border);
-    padding: 4px 16px;
-    font-size: 12px;
-    color: var(--text-secondary);
-    display: flex;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-  /* MAIN LAYOUT */
-  .main {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-  }
-  .sidebar {
-    width: 300px;
-    background: var(--bg-secondary);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-  }
-  .sidebar-header {
-    padding: 10px;
+    padding: 0 20px 20px;
     border-bottom: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    margin-bottom: 15px;
   }
-  .search-box {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-size: 13px;
-    width: 100%;
-  }
-  .search-box:focus { outline: none; border-color: var(--accent); }
-  .script-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 6px;
-  }
-  .script-item {
-    padding: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-bottom: 4px;
-    border: 1px solid transparent;
-    transition: all 0.15s;
-  }
-  .script-item:hover { background: var(--bg-hover); }
-  .script-item.active {
-    background: var(--bg-tertiary);
-    border-color: var(--accent);
-  }
-  .script-name {
-    font-size: 13px;
-    font-weight: 500;
-    margin-bottom: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .script-meta {
-    font-size: 11px;
-    color: var(--text-secondary);
-    display: flex;
-    justify-content: space-between;
-  }
-  .editor-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .editor-tabs {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-    padding: 6px 12px;
+  .logo h1 {
+    font-size: 20px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 13px;
   }
-  .tab-name {
-    color: var(--text-primary);
+  .logo p { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+  .menu { padding: 0 10px; flex: 1; }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: all 0.2s;
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+  .menu-item:hover { background: var(--bg-hover); color: var(--text); }
+  .menu-item.active {
+    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2));
+    color: var(--accent-hover);
+    border-left: 3px solid var(--accent);
+  }
+  .menu-item i { width: 18px; text-align: center; }
+  .sidebar-footer {
+    padding: 15px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--danger);
+    margin-right: 6px;
+  }
+  .status-dot.online { background: var(--success); box-shadow: 0 0 8px var(--success); }
+
+  /* Main */
+  .main {
+    margin-left: 260px;
+    flex: 1;
+    padding: 30px;
+    width: calc(100% - 260px);
+  }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  .topbar h2 { font-size: 26px; }
+  .topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
     font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    color: white;
   }
-  .tab-status {
-    color: var(--text-secondary);
-    font-size: 12px;
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #a855f7); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+  .btn-secondary { background: var(--bg-card); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg-hover); }
+  .btn-danger { background: var(--danger); }
+  .btn-success { background: var(--success); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* Search */
+  .search-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
   }
-  #editor { flex: 1; }
-  /* MODAL */
+  .search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    flex: 1;
+    font-size: 14px;
+  }
+  .search-box i { color: var(--text-dim); }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .stat-card .label { color: var(--text-dim); font-size: 12px; margin-bottom: 6px; }
+  .stat-card .value { font-size: 24px; font-weight: 700; }
+  .stat-card i { float: right; font-size: 22px; color: var(--accent); opacity: 0.6; }
+
+  /* Script list */
+  .script-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 15px;
+  }
+  .script-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .script-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .script-card h3 {
+    font-size: 16px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .script-card .desc {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-bottom: 12px;
+    min-height: 36px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .script-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .script-meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .tag {
+    display: inline-block;
+    background: rgba(99,102,241,0.15);
+    color: var(--accent-hover);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+  .script-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Modal */
   .modal-overlay {
+    display: none;
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.7);
-    display: none;
-    align-items: center;
+    backdrop-filter: blur(4px);
+    z-index: 100;
     justify-content: center;
-    z-index: 1000;
+    align-items: center;
+    padding: 20px;
   }
-  .modal-overlay.show { display: flex; }
+  .modal-overlay.active { display: flex; }
   .modal {
-    background: var(--bg-secondary);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 25px;
+    width: 100%;
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h3 {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal h3 .close {
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 20px;
+  }
+  .form-group { margin-bottom: 15px; }
+  .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    background: var(--bg-input);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 24px;
-    min-width: 400px;
-    max-width: 600px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
   }
-  .modal h2 {
-    margin-bottom: 16px;
-    color: var(--accent);
-    font-size: 18px;
+  .form-group input:focus, .form-group textarea:focus {
+    border-color: var(--accent);
   }
-  .modal p { margin-bottom: 12px; line-height: 1.5; font-size: 14px; }
-  .modal-input {
-    width: 100%;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 13px;
-    margin-bottom: 12px;
+  .form-group textarea {
+    font-family: 'Consolas', 'Monaco', monospace;
+    resize: vertical;
+    min-height: 200px;
   }
-  .modal-input:focus { outline: none; border-color: var(--accent); }
+  .form-group textarea.code-area { min-height: 350px; font-size: 13px; line-height: 1.5; }
+  .char-count {
+    text-align: right;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
   .modal-actions {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     justify-content: flex-end;
-    margin-top: 16px;
+    margin-top: 20px;
   }
-  .info-box {
-    background: var(--bg-tertiary);
-    border-left: 3px solid var(--accent);
-    padding: 10px 12px;
-    margin: 12px 0;
+
+  /* View modal */
+  .view-code {
+    background: #0d0d0d;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 15px;
+    font-family: 'Consolas', monospace;
     font-size: 13px;
-    border-radius: 4px;
-  }
-  .info-box code {
-    background: var(--bg-primary);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 12px;
+    max-height: 400px;
+    overflow: auto;
+    white-space: pre-wrap;
     word-break: break-all;
+    color: #d4d4d4;
+    line-height: 1.5;
   }
-  /* TOAST */
+
+  /* Toast */
   .toast-container {
     position: fixed;
     top: 20px;
     right: 20px;
-    z-index: 2000;
+    z-index: 200;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
   .toast {
-    background: var(--bg-secondary);
+    background: var(--bg-card);
     border: 1px solid var(--border);
     border-left: 4px solid var(--accent);
-    padding: 12px 16px;
-    border-radius: 4px;
+    padding: 12px 18px;
+    border-radius: 8px;
     min-width: 250px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    animation: slideIn 0.3s;
-    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
   }
   .toast.success { border-left-color: var(--success); }
   .toast.error { border-left-color: var(--danger); }
@@ -256,620 +349,815 @@
     from { transform: translateX(400px); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
   }
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-secondary);
+
+  /* Setup */
+  .setup-box {
+    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1));
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
   }
-  .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
-  /* LOADING */
-  .spinner {
+  .setup-box h3 { margin-bottom: 12px; color: var(--accent-hover); }
+  .setup-box ol { margin-left: 20px; margin-bottom: 15px; line-height: 1.8; font-size: 14px; }
+  .setup-box a { color: var(--accent-hover); }
+  .setup-box code {
+    background: var(--bg-input);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+  .empty i { font-size: 60px; margin-bottom: 15px; opacity: 0.3; }
+  .empty h3 { margin-bottom: 8px; color: var(--text); }
+
+  /* Loading */
+  .loader {
     display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: var(--bg-primary); }
-  ::-webkit-scrollbar-thumb { background: var(--bg-hover); border-radius: 5px; }
-  ::-webkit-scrollbar-thumb:hover { background: #555; }
-  /* RESPONSIVE */
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-dark); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* Responsive */
   @media (max-width: 768px) {
-    .sidebar { width: 220px; }
-    .btn span.label { display: none; }
+    .sidebar { width: 70px; }
+    .sidebar .logo h1 span, .sidebar .logo p, .menu-item span, .sidebar-footer { display: none; }
+    .menu-item { justify-content: center; padding: 12px; }
+    .main { margin-left: 70px; width: calc(100% - 70px); padding: 15px; }
   }
 </style>
 </head>
 <body>
 
-<div class="header">
+<!-- SIDEBAR -->
+<aside class="sidebar">
   <div class="logo">
-    <span class="logo-icon">📜</span>
-    <span>TM Cloud Manager</span>
+    <h1><i class="fas fa-vault"></i> <span>TM Vault</span></h1>
+    <p>Cloud Script Storage</p>
   </div>
-  <div class="toolbar">
-    <button class="btn btn-primary" onclick="newScript()">➕ <span class="label">Baru</span></button>
-    <button class="btn" onclick="saveCurrent()">💾 <span class="label">Simpan</span></button>
-    <button class="btn" onclick="copyScript()">📋 <span class="label">Copy</span></button>
-    <button class="btn" onclick="downloadScript()">⬇️ <span class="label">Download</span></button>
-    <button class="btn" onclick="renameCurrent()">✏️ <span class="label">Rename</span></button>
-    <button class="btn btn-danger" onclick="deleteCurrent()">🗑️ <span class="label">Hapus</span></button>
-    <button class="btn" onclick="refreshList()">🔄 <span class="label">Refresh</span></button>
-    <button class="btn" onclick="exportAll()">📦 <span class="label">Export</span></button>
-    <button class="btn" onclick="document.getElementById('importFile').click()">📥 <span class="label">Import</span></button>
-    <input type="file" id="importFile" style="display:none" accept=".json" onchange="importAll(event)">
-    <button class="btn" onclick="showSetup()">⚙️ <span class="label">Setup</span></button>
+  <nav class="menu">
+    <div class="menu-item active" data-page="dashboard"><i class="fas fa-home"></i><span>Dashboard</span></div>
+    <div class="menu-item" data-page="scripts"><i class="fas fa-code"></i><span>Semua Script</span></div>
+    <div class="menu-item" data-page="add"><i class="fas fa-plus-circle"></i><span>Tambah Script</span></div>
+    <div class="menu-item" data-page="backup"><i class="fas fa-cloud-arrow-up"></i><span>Backup / Restore</span></div>
+    <div class="menu-item" data-page="settings"><i class="fas fa-gear"></i><span>Pengaturan</span></div>
+    <div class="menu-item" data-page="help"><i class="fas fa-circle-question"></i><span>Bantuan</span></div>
+  </nav>
+  <div class="sidebar-footer">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="statusText">Belum terhubung</span>
   </div>
-</div>
+</aside>
 
-<div class="main">
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <input type="text" class="search-box" placeholder="🔍 Cari script..." oninput="filterScripts(this.value)">
-      <div style="font-size:11px;color:var(--text-secondary);">
-        Total: <span id="scriptCount">0</span> script
+<!-- MAIN -->
+<main class="main">
+
+  <!-- PAGE: DASHBOARD -->
+  <section id="page-dashboard" class="page">
+    <div class="topbar">
+      <h2><i class="fas fa-home"></i> Dashboard</h2>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" onclick="loadScripts()"><i class="fas fa-sync"></i> Refresh</button>
+        <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Script Baru</button>
       </div>
     </div>
-    <div class="script-list" id="scriptList">
-      <div class="empty-state">
-        <div class="empty-state-icon">📂</div>
-        <div>Belum ada script</div>
+
+    <div id="setupAlert" class="setup-box" style="display:none;">
+      <h3><i class="fas fa-key"></i> Setup JSONBin API (Sekali Saja)</h3>
+      <ol>
+        <li>Buka <a href="https://jsonbin.io/signup" target="_blank">jsonbin.io/signup</a> dan daftar gratis (bisa pakai Google).</li>
+        <li>Setelah login, buka <a href="https://jsonbin.io/api-access" target="_blank">Dashboard → API Access</a>.</li>
+        <li>Copy <code>X-Master-Key</code> (format: <code>$2a$10$xxxxx</code>).</li>
+        <li>Paste di bawah ini, lalu klik <b>Simpan & Hubungkan</b>.</li>
+      </ol>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <input type="text" id="apiKeyInput" placeholder="$2a$10$xxxxxxxxxxxxxxxxxxxxxx" style="flex:1; min-width:250px; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:10px; color:var(--text);">
+        <button class="btn btn-primary" onclick="saveApiKey()"><i class="fas fa-plug"></i> Simpan & Hubungkan</button>
+      </div>
+      <p style="margin-top:10px; font-size:12px; color:var(--text-dim);">
+        <i class="fas fa-info-circle"></i> API key hanya disimpan di browser Anda (sessionStorage). Data script tersimpan aman di cloud JSONBin.
+      </p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card"><i class="fas fa-code"></i><div class="label">Total Script</div><div class="value" id="statTotal">0</div></div>
+      <div class="stat-card"><i class="fas fa-weight-hanging"></i><div class="label">Total Karakter</div><div class="value" id="statChars">0</div></div>
+      <div class="stat-card"><i class="fas fa-calendar-plus"></i><div class="label">Ditambahkan Hari Ini</div><div class="value" id="statToday">0</div></div>
+      <div class="stat-card"><i class="fas fa-clock"></i><div class="label">Update Terakhir</div><div class="value" id="statLast" style="font-size:14px;">-</div></div>
+    </div>
+
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchInput" placeholder="Cari script berdasarkan judul, deskripsi, atau tag..." oninput="renderScripts()">
+    </div>
+
+    <div id="scriptList" class="script-grid"></div>
+  </section>
+
+  <!-- PAGE: SCRIPTS -->
+  <section id="page-scripts" class="page" style="display:none;">
+    <div class="topbar">
+      <h2><i class="fas fa-code"></i> Semua Script</h2>
+    </div>
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchInput2" placeholder="Cari..." oninput="document.getElementById('searchInput').value=this.value; renderScripts();">
+    </div>
+    <div id="scriptList2" class="script-grid"></div>
+  </section>
+
+  <!-- PAGE: ADD -->
+  <section id="page-add" class="page" style="display:none;">
+    <div class="topbar"><h2><i class="fas fa-plus-circle"></i> Tambah Script Baru</h2></div>
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px;">
+      <div class="form-group">
+        <label>Judul Script *</label>
+        <input type="text" id="quickTitle" placeholder="Contoh: Auto Click Bot">
+      </div>
+      <div class="form-group">
+        <label>Deskripsi</label>
+        <input type="text" id="quickDesc" placeholder="Deskripsi singkat script">
+      </div>
+      <div class="form-group">
+        <label>Versi</label>
+        <input type="text" id="quickVersion" placeholder="1.0.0" value="1.0.0">
+      </div>
+      <div class="form-group">
+        <label>Author</label>
+        <input type="text" id="quickAuthor" placeholder="Nama Anda">
+      </div>
+      <div class="form-group">
+        <label>Tags (pisahkan dengan koma)</label>
+        <input type="text" id="quickTags" placeholder="bot, auto, game">
+      </div>
+      <div class="form-group">
+        <label>Kode Script * <span style="color:var(--text-dim);">(Tidak ada limit karakter)</span></label>
+        <textarea class="code-area" id="quickCode" placeholder="// Paste script Tampermonkey Anda di sini...&#10;// ==UserScript==&#10;// @name         My Script&#10;// @namespace    http://tampermonkey.net/&#10;// @version      1.0&#10;// ==/UserScript==&#10;&#10;(function() {&#10;    'use strict';&#10;    // Your code here...&#10;})();"></textarea>
+        <div class="char-count"><span id="quickCharCount">0</span> karakter | <span id="quickLineCount">0</span> baris</div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-primary" onclick="quickSave()"><i class="fas fa-save"></i> Simpan ke Cloud</button>
+        <button class="btn btn-secondary" onclick="clearQuickForm()"><i class="fas fa-eraser"></i> Reset</button>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="editor-container">
-    <div class="editor-tabs">
-      <span class="tab-name" id="tabName">Belum ada script dipilih</span>
-      <span class="tab-status" id="tabStatus"></span>
+  <!-- PAGE: BACKUP -->
+  <section id="page-backup" class="page" style="display:none;">
+    <div class="topbar"><h2><i class="fas fa-cloud-arrow-up"></i> Backup & Restore</h2></div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:15px;">
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px;">
+        <h3 style="margin-bottom:10px;"><i class="fas fa-download"></i> Export / Download</h3>
+        <p style="color:var(--text-dim); font-size:13px; margin-bottom:15px;">Download semua script sebagai file JSON untuk backup lokal.</p>
+        <button class="btn btn-primary" onclick="exportData()"><i class="fas fa-file-arrow-down"></i> Export JSON</button>
+      </div>
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px;">
+        <h3 style="margin-bottom:10px;"><i class="fas fa-upload"></i> Import / Restore</h3>
+        <p style="color:var(--text-dim); font-size:13px; margin-bottom:15px;">Upload file JSON backup. Data lama akan digabung.</p>
+        <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+        <button class="btn btn-success" onclick="document.getElementById('importFile').click()"><i class="fas fa-file-arrow-up"></i> Import JSON</button>
+      </div>
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px;">
+        <h3 style="margin-bottom:10px;"><i class="fas fa-file-code"></i> Export Semua sebagai .user.js</h3>
+        <p style="color:var(--text-dim); font-size:13px; margin-bottom:15px;">Download setiap script sebagai file .user.js terpisah (dalam ZIP).</p>
+        <button class="btn btn-secondary" onclick="exportAllUserJs()"><i class="fas fa-file-export"></i> Export .user.js</button>
+      </div>
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px;">
+        <h3 style="margin-bottom:10px;"><i class="fas fa-trash"></i> Hapus Semua</h3>
+        <p style="color:var(--text-dim); font-size:13px; margin-bottom:15px;">Hapus semua script dari cloud. Tindakan ini tidak dapat dibatalkan!</p>
+        <button class="btn btn-danger" onclick="deleteAll()"><i class="fas fa-trash"></i> Hapus Semua</button>
+      </div>
     </div>
-    <div id="editor"></div>
-  </div>
-</div>
+  </section>
 
-<div class="status-bar">
-  <div>
-    <span id="statusLeft">💾 Cloud: npoint.io</span>
-  </div>
-  <div>
-    <span id="statusRight">Index ID: <span id="indexIdDisplay">belum diset</span></span>
-  </div>
-</div>
+  <!-- PAGE: SETTINGS -->
+  <section id="page-settings" class="page" style="display:none;">
+    <div class="topbar"><h2><i class="fas fa-gear"></i> Pengaturan</h2></div>
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px; max-width:600px;">
+      <div class="form-group">
+        <label>X-Master-Key (JSONBin)</label>
+        <input type="password" id="settingsApiKey" placeholder="$2a$10$...">
+      </div>
+      <div class="form-group">
+        <label>Bin ID (otomatis dibuat)</label>
+        <input type="text" id="settingsBinId" readonly style="opacity:0.7;">
+      </div>
+      <div class="form-group">
+        <label>Default Author</label>
+        <input type="text" id="settingsAuthor" placeholder="Nama default untuk script baru">
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Simpan</button>
+        <button class="btn btn-danger" onclick="disconnect()"><i class="fas fa-unlink"></i> Putuskan & Reset</button>
+      </div>
+    </div>
+  </section>
 
-<!-- SETUP MODAL -->
-<div class="modal-overlay" id="setupModal">
+  <!-- PAGE: HELP -->
+  <section id="page-help" class="page" style="display:none;">
+    <div class="topbar"><h2><i class="fas fa-circle-question"></i> Bantuan</h2></div>
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px; line-height:1.8;">
+      <h3 style="margin-bottom:10px;">📦 Apa itu TM Script Vault?</h3>
+      <p style="color:var(--text-dim); margin-bottom:20px;">Aplikasi web untuk menyimpan script Tampermonkey/Greasemonkey Anda di cloud (JSONBin.io). Bukan Google Sheet, bukan localStorage PC. Semua pengguna bisa akses dari perangkat manapun.</p>
+
+      <h3 style="margin-bottom:10px;">🚀 Cara Mulai</h3>
+      <ol style="margin-left:20px; color:var(--text-dim); margin-bottom:20px;">
+        <li>Daftar gratis di <a href="https://jsonbin.io" target="_blank" style="color:var(--accent-hover);">jsonbin.io</a></li>
+        <li>Copy <b>X-Master-Key</b> dari dashboard</li>
+        <li>Paste di halaman Dashboard, klik "Simpan & Hubungkan"</li>
+        <li>Mulai simpan script Anda!</li>
+      </ol>
+
+      <h3 style="margin-bottom:10px;">✨ Fitur</h3>
+      <ul style="margin-left:20px; color:var(--text-dim); margin-bottom:20px;">
+        <li>✅ Simpan script tanpa limit karakter</li>
+        <li>✅ Cloud storage (JSONBin) - akses dari mana saja</li>
+        <li>✅ Search & filter script</li>
+        <li>✅ Tag & versi script</li>
+        <li>✅ Copy / Download sebagai .user.js</li>
+        <li>✅ Backup & Restore JSON</li>
+        <li>✅ Dark grey modern UI</li>
+      </ul>
+
+      <h3 style="margin-bottom:10px;">🔒 Privasi</h3>
+      <p style="color:var(--text-dim);">API key Anda hanya disimpan di <b>sessionStorage</b> browser (hilang saat tab ditutup, kecuali Anda centang "Ingat Saya"). Data script tersimpan privat di akun JSONBin Anda.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- MODAL: EDIT -->
+<div class="modal-overlay" id="editModal">
   <div class="modal">
-    <h2>⚙️ Setup Cloud Storage</h2>
-    <p>Aplikasi ini menyimpan semua script di <b>npoint.io</b> (cloud JSON gratis, tanpa API key).</p>
-    <div class="info-box">
-      <b>Cara Kerja:</b><br>
-      • Klik tombol di bawah untuk membuat <b>Index Bin</b> baru di cloud<br>
-      • ID Index akan otomatis tersimpan di <b>URL browser</b> (bukan di PC)<br>
-      • <b>Bookmark URL ini</b> agar bisa akses kembali<br>
-      • Setiap script disimpan di bin terpisah (tanpa limit ukuran)
+    <h3><span><i class="fas fa-edit"></i> Edit Script</span><span class="close" onclick="closeModal('editModal')">&times;</span></h3>
+    <input type="hidden" id="editId">
+    <div class="form-group"><label>Judul</label><input type="text" id="editTitle"></div>
+    <div class="form-group"><label>Deskripsi</label><input type="text" id="editDesc"></div>
+    <div class="form-group"><label>Versi</label><input type="text" id="editVersion"></div>
+    <div class="form-group"><label>Author</label><input type="text" id="editAuthor"></div>
+    <div class="form-group"><label>Tags (pisah koma)</label><input type="text" id="editTags"></div>
+    <div class="form-group">
+      <label>Kode Script</label>
+      <textarea class="code-area" id="editCode"></textarea>
+      <div class="char-count"><span id="editCharCount">0</span> karakter</div>
     </div>
-    <div id="setupInfo"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal('setupModal')">Tutup</button>
-      <button class="btn btn-danger" onclick="resetSetup()">🗑️ Reset Index</button>
-      <button class="btn btn-primary" onclick="createIndex()">🚀 Buat Index Baru</button>
-    </div>
-  </div>
-</div>
-
-<!-- RENAME MODAL -->
-<div class="modal-overlay" id="renameModal">
-  <div class="modal">
-    <h2>✏️ Rename Script</h2>
-    <input type="text" class="modal-input" id="renameInput" placeholder="Nama script baru...">
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal('renameModal')">Batal</button>
-      <button class="btn btn-primary" onclick="confirmRename()">Simpan</button>
+      <button class="btn btn-secondary" onclick="closeModal('editModal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveEdit()"><i class="fas fa-save"></i> Simpan</button>
     </div>
   </div>
 </div>
 
-<!-- CONFIRM MODAL -->
-<div class="modal-overlay" id="confirmModal">
-  <div class="modal">
-    <h2 id="confirmTitle">Konfirmasi</h2>
-    <p id="confirmMessage"></p>
+<!-- MODAL: VIEW -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal" style="max-width:900px;">
+    <h3><span id="viewTitle"><i class="fas fa-eye"></i> Lihat Script</span><span class="close" onclick="closeModal('viewModal')">&times;</span></h3>
+    <div id="viewMeta" style="margin-bottom:15px; color:var(--text-dim); font-size:13px;"></div>
+    <div class="view-code" id="viewCode"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal('confirmModal')">Batal</button>
-      <button class="btn btn-danger" id="confirmBtn">Ya, Lanjutkan</button>
+      <button class="btn btn-secondary" onclick="closeModal('viewModal')">Tutup</button>
+      <button class="btn btn-success" onclick="copyViewCode()"><i class="fas fa-copy"></i> Copy</button>
+      <button class="btn btn-primary" onclick="downloadViewCode()"><i class="fas fa-download"></i> Download .user.js</button>
     </div>
   </div>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- MONACO EDITOR -->
-<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
 <script>
-/* ============================================================
-   TAMPERMONKEY CLOUD MANAGER
-   Storage: npoint.io (cloud JSON, no API key, no localStorage)
-   Config disimpan di URL hash (bisa di-bookmark)
-============================================================ */
+/* ==================== STATE ==================== */
+let API_KEY = sessionStorage.getItem('tm_api_key') || '';
+let BIN_ID = sessionStorage.getItem('tm_bin_id') || '';
+let SCRIPTS = [];
+let currentViewCode = '';
 
-const API_BASE = 'https://api.npoint.io';
-let editor = null;
-let indexId = null;
-let scripts = []; // [{id, name, date, size}]
-let currentScriptId = null;
-let currentContent = '';
-let isDirty = false;
-let allScriptsData = {}; // cache content: {id: {name, content, date}}
+const BIN_NAME = 'TM_Script_Vault_Data';
+const API_BASE = 'https://api.jsonbin.io/v3/b';
 
-/* ---------- TOAST ---------- */
-function toast(msg, type = 'info') {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = 'toast ' + type;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
-}
+/* ==================== INIT ==================== */
+window.addEventListener('DOMContentLoaded', () => {
+  updateStatus();
+  if (API_KEY) {
+    document.getElementById('setupAlert').style.display = 'none';
+    if (BIN_ID) loadScripts();
+    else createBin();
+  } else {
+    document.getElementById('setupAlert').style.display = 'block';
+  }
+  // Load default author
+  const defAuthor = sessionStorage.getItem('tm_default_author') || '';
+  document.getElementById('quickAuthor').value = defAuthor;
 
-/* ---------- MODAL ---------- */
-function showModal(id) { document.getElementById(id).classList.add('show'); }
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+  // Char counter for quick form
+  document.getElementById('quickCode').addEventListener('input', updateQuickCount);
+  document.getElementById('editCode').addEventListener('input', updateEditCount);
 
-function confirmDialog(title, message) {
-  return new Promise(resolve => {
-    document.getElementById('confirmTitle').textContent = title;
-    document.getElementById('confirmMessage').textContent = message;
-    const btn = document.getElementById('confirmBtn');
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    newBtn.onclick = () => { closeModal('confirmModal'); resolve(true); };
-    showModal('confirmModal');
-    const origClose = window.closeModal;
-    const closeHandler = (e) => {
-      if (e.target.id === 'confirmModal' || e.target.classList.contains('btn')) {
-        setTimeout(() => { resolve(false); document.removeEventListener('click', closeHandler); }, 10);
-      }
-    };
-    // simpler: resolve false on cancel
-    const cancelBtn = document.querySelector('#confirmModal .btn:not(.btn-danger)');
-    const c2 = cancelBtn.cloneNode(true);
-    cancelBtn.parentNode.replaceChild(c2, cancelBtn);
-    c2.onclick = () => { closeModal('confirmModal'); resolve(false); };
+  // Menu navigation
+  document.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const page = item.dataset.page;
+      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+      document.getElementById('page-' + page).style.display = 'block';
+      if (page === 'scripts') renderScripts('scriptList2');
+      if (page === 'settings') loadSettings();
+    });
   });
+});
+
+/* ==================== API KEY ==================== */
+async function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) { toast('API key wajib diisi!', 'error'); return; }
+  if (!key.startsWith('$2a$')) { toast('Format API key tidak valid (harus dimulai $2a$)', 'error'); return; }
+  API_KEY = key;
+  sessionStorage.setItem('tm_api_key', key);
+  toast('API key tersimpan. Menghubungkan...', 'success');
+  document.getElementById('setupAlert').style.display = 'none';
+  updateStatus();
+  // Check existing bin or create new
+  await findOrCreateBin();
 }
 
-/* ---------- URL HASH CONFIG ---------- */
-function getIndexFromHash() {
-  const hash = window.location.hash.replace('#', '');
-  const params = new URLSearchParams(hash);
-  return params.get('idx');
-}
-function setIndexToHash(id) {
-  window.location.hash = 'idx=' + id;
-}
-
-/* ---------- API CALLS ---------- */
-async function apiCall(method, path, body) {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(API_BASE + path, opts);
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  if (method === 'DELETE') return null;
-  return await res.json();
-}
-
-/* ---------- INDEX MANAGEMENT ---------- */
-async function createIndex() {
+async function findOrCreateBin() {
   try {
-    toast('Membuat index bin...', 'info');
-    const data = await apiCall('POST', '/', { scripts: [], version: '1.0', created: new Date().toISOString() });
-    indexId = data.id;
-    setIndexToHash(indexId);
-    scripts = [];
-    document.getElementById('indexIdDisplay').textContent = indexId;
-    toast('✅ Index berhasil dibuat! Bookmark URL ini.', 'success');
-    closeModal('setupModal');
-    renderList();
-  } catch (e) {
-    toast('❌ Gagal membuat index: ' + e.message, 'error');
-  }
-}
-
-async function loadIndex() {
-  if (!indexId) return;
-  try {
-    const data = await apiCall('GET', '/' + indexId);
-    scripts = data.scripts || [];
-    document.getElementById('indexIdDisplay').textContent = indexId;
-    renderList();
-  } catch (e) {
-    toast('❌ Gagal load index: ' + e.message, 'error');
-  }
-}
-
-async function saveIndex() {
-  if (!indexId) return;
-  try {
-    await apiCall('POST', '/' + indexId, { scripts, version: '1.0', updated: new Date().toISOString() });
-  } catch (e) {
-    toast('❌ Gagal simpan index: ' + e.message, 'error');
-  }
-}
-
-/* ---------- SCRIPT OPERATIONS ---------- */
-async function saveScriptToCloud(id, name, content) {
-  const payload = { name, content, date: new Date().toISOString(), size: content.length };
-  if (id) {
-    await apiCall('POST', '/' + id, payload);
-  } else {
-    const res = await apiCall('POST', '/', payload);
-    return res.id;
-  }
-  return id;
-}
-
-async function loadScriptContent(id) {
-  const data = await apiCall('GET', '/' + id);
-  return data;
-}
-
-/* ---------- UI ACTIONS ---------- */
-async function newScript() {
-  if (!indexId) { showSetup(); return; }
-  if (isDirty) {
-    const ok = await confirmDialog('Simpan perubahan?', 'Script saat ini belum disimpan. Simpan dulu?');
-    if (ok) await saveCurrent();
-  }
-  const name = 'Script Baru ' + new Date().toLocaleString('id-ID');
-  const template = `// ==UserScript==
-// @name         ${name}
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Deskripsi script di sini
-// @author       You
-// @match        *://*/*
-// @grant        none
-// ==/UserScript==
-
-(function() {
-    'use strict';
-    // Kode script Anda di sini
-    console.log('Script berjalan!');
-})();
-`;
-  currentScriptId = null;
-  currentContent = template;
-  isDirty = true;
-  editor.setValue(template);
-  document.getElementById('tabName').textContent = '📝 ' + name + ' (baru)';
-  document.getElementById('tabStatus').textContent = '• Belum disimpan';
-  renderList();
-}
-
-async function saveCurrent() {
-  if (!indexId) { showSetup(); return; }
-  const content = editor.getValue();
-  const nameMatch = content.match(/@name\s+(.+)/i);
-  let name = nameMatch ? nameMatch[1].trim() : 'Script ' + (scripts.length + 1);
-  
-  try {
-    document.getElementById('tabStatus').innerHTML = '<span class="spinner"></span> Menyimpan...';
-    if (!currentScriptId) {
-      const newId = await saveScriptToCloud(null, name, content);
-      currentScriptId = newId;
-      scripts.push({ id: newId, name, date: new Date().toISOString(), size: content.length });
+    toast('Mencari bin yang ada...', 'warning');
+    const res = await fetch(`${API_BASE}?name=${encodeURIComponent(BIN_NAME)}`, {
+      headers: { 'X-Master-Key': API_KEY }
+    });
+    const data = await res.json();
+    if (data.record && data.record.length > 0) {
+      BIN_ID = data.record[0].metadata.id;
+      sessionStorage.setItem('tm_bin_id', BIN_ID);
+      toast('Bin ditemukan! Memuat data...', 'success');
+      await loadScripts();
     } else {
-      await saveScriptToCloud(currentScriptId, name, content);
-      const idx = scripts.findIndex(s => s.id === currentScriptId);
-      if (idx >= 0) {
-        scripts[idx].name = name;
-        scripts[idx].date = new Date().toISOString();
-        scripts[idx].size = content.length;
-      }
+      await createBin();
     }
-    await saveIndex();
-    isDirty = false;
-    currentContent = content;
-    document.getElementById('tabName').textContent = '📝 ' + name;
-    document.getElementById('tabStatus').textContent = '✓ Tersimpan';
-    toast('✅ Script tersimpan ke cloud', 'success');
-    renderList();
   } catch (e) {
-    toast('❌ Gagal simpan: ' + e.message, 'error');
-    document.getElementById('tabStatus').textContent = '✗ Gagal simpan';
+    console.error(e);
+    await createBin();
   }
 }
 
-async function loadScript(id) {
-  if (isDirty && currentScriptId) {
-    const ok = await confirmDialog('Simpan perubahan?', 'Script saat ini belum disimpan. Simpan dulu?');
-    if (ok) await saveCurrent();
-  }
+async function createBin() {
   try {
-    toast('Memuat script...', 'info');
-    const data = await loadScriptContent(id);
-    currentScriptId = id;
-    currentContent = data.content || '';
-    isDirty = false;
-    editor.setValue(currentContent);
-    document.getElementById('tabName').textContent = '📝 ' + data.name;
-    document.getElementById('tabStatus').textContent = '✓ Dimuat • ' + formatSize(data.size || currentContent.length);
-    renderList();
-  } catch (e) {
-    toast('❌ Gagal load: ' + e.message, 'error');
-  }
-}
-
-async function copyScript() {
-  const content = editor.getValue();
-  try {
-    await navigator.clipboard.writeText(content);
-    toast('📋 Script dicopy ke clipboard', 'success');
-  } catch (e) {
-    // fallback
-    const ta = document.createElement('textarea');
-    ta.value = content;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    toast('📋 Script dicopy', 'success');
-  }
-}
-
-function downloadScript() {
-  const content = editor.getValue();
-  const name = (document.getElementById('tabName').textContent || 'script').replace(/[^\w\s-]/g, '').trim() || 'script';
-  const blob = new Blob([content], { type: 'text/javascript' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name + '.user.js';
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('⬇️ Script didownload', 'success');
-}
-
-function renameCurrent() {
-  if (!currentScriptId) { toast('⚠️ Pilih script dulu', 'warning'); return; }
-  const item = scripts.find(s => s.id === currentScriptId);
-  document.getElementById('renameInput').value = item ? item.name : '';
-  showModal('renameModal');
-  setTimeout(() => document.getElementById('renameInput').focus(), 100);
-}
-
-async function confirmRename() {
-  const newName = document.getElementById('renameInput').value.trim();
-  if (!newName) { toast('⚠️ Nama tidak boleh kosong', 'warning'); return; }
-  const idx = scripts.findIndex(s => s.id === currentScriptId);
-  if (idx >= 0) {
-    scripts[idx].name = newName;
-    await saveIndex();
-    document.getElementById('tabName').textContent = '📝 ' + newName;
-    toast('✅ Script di-rename', 'success');
-    renderList();
-  }
-  closeModal('renameModal');
-}
-
-async function deleteCurrent() {
-  if (!currentScriptId) { toast('⚠️ Pilih script dulu', 'warning'); return; }
-  const item = scripts.find(s => s.id === currentScriptId);
-  const ok = await confirmDialog('Hapus script?', `Yakin hapus "${item?.name}"? Tindakan ini tidak bisa dibatalkan.`);
-  if (!ok) return;
-  try {
-    await apiCall('DELETE', '/' + currentScriptId);
-    scripts = scripts.filter(s => s.id !== currentScriptId);
-    await saveIndex();
-    currentScriptId = null;
-    editor.setValue('// Script dihapus. Klik "Baru" untuk membuat script baru.');
-    document.getElementById('tabName').textContent = 'Tidak ada script';
-    document.getElementById('tabStatus').textContent = '';
-    toast('🗑️ Script dihapus', 'success');
-    renderList();
-  } catch (e) {
-    toast('❌ Gagal hapus: ' + e.message, 'error');
-  }
-}
-
-async function refreshList() {
-  if (!indexId) { showSetup(); return; }
-  toast('🔄 Refresh...', 'info');
-  await loadIndex();
-  toast('✅ List diperbarui', 'success');
-}
-
-/* ---------- EXPORT / IMPORT ---------- */
-async function exportAll() {
-  if (!indexId || scripts.length === 0) { toast('⚠️ Tidak ada script', 'warning'); return; }
-  try {
-    toast('📦 Mengumpulkan data...', 'info');
-    const allData = { version: '1.0', exported: new Date().toISOString(), scripts: [] };
-    for (const s of scripts) {
-      const data = await loadScriptContent(s.id);
-      allData.scripts.push(data);
+    toast('Membuat bin baru di cloud...', 'warning');
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': API_KEY,
+        'X-Bin-Name': BIN_NAME,
+        'X-Bin-Private': 'true'
+      },
+      body: JSON.stringify({ scripts: [] })
+    });
+    const data = await res.json();
+    if (data.metadata && data.metadata.id) {
+      BIN_ID = data.metadata.id;
+      sessionStorage.setItem('tm_bin_id', BIN_ID);
+      SCRIPTS = [];
+      toast('Bin berhasil dibuat! Siap digunakan.', 'success');
+      renderScripts();
+      updateStats();
+    } else {
+      toast('Gagal membuat bin: ' + (data.message || 'Unknown'), 'error');
     }
-    const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'tampermonkey-backup-' + Date.now() + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('✅ Backup didownload', 'success');
   } catch (e) {
-    toast('❌ Gagal export: ' + e.message, 'error');
+    toast('Error: ' + e.message, 'error');
   }
 }
 
-async function importAll(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (!indexId) { toast('⚠️ Setup index dulu', 'warning'); showSetup(); return; }
+/* ==================== LOAD / SAVE ==================== */
+async function loadScripts() {
+  if (!API_KEY || !BIN_ID) { toast('Setup API key dulu!', 'error'); return; }
   try {
-    const text = await file.text();
-    const data = JSON.parse(text);
-    if (!data.scripts || !Array.isArray(data.scripts)) throw new Error('Format tidak valid');
-    const ok = await confirmDialog('Import script?', `Import ${data.scripts.length} script? Script lama tetap ada.`);
-    if (!ok) { event.target.value = ''; return; }
-    toast('📥 Mengimport...', 'info');
-    for (const s of data.scripts) {
-      const newId = await saveScriptToCloud(null, s.name, s.content);
-      scripts.push({ id: newId, name: s.name, date: s.date || new Date().toISOString(), size: (s.content || '').length });
-    }
-    await saveIndex();
-    renderList();
-    toast('✅ Import berhasil', 'success');
+    const res = await fetch(`${API_BASE}/${BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': API_KEY }
+    });
+    const data = await res.json();
+    SCRIPTS = (data.record && data.record.scripts) || [];
+    renderScripts();
+    renderScripts('scriptList2');
+    updateStats();
+    toast('Data berhasil dimuat (' + SCRIPTS.length + ' script)', 'success');
   } catch (e) {
-    toast('❌ Gagal import: ' + e.message, 'error');
+    toast('Gagal memuat: ' + e.message, 'error');
   }
-  event.target.value = '';
 }
 
-/* ---------- SETUP ---------- */
-function showSetup() {
-  const info = document.getElementById('setupInfo');
-  if (indexId) {
-    info.innerHTML = `
-      <div class="info-box">
-        <b>✅ Index sudah aktif</b><br>
-        Index ID: <code>${indexId}</code><br>
-        Jumlah script: <b>${scripts.length}</b><br><br>
-        <b>URL Bookmark:</b><br>
-        <code>${window.location.href}</code>
-      </div>
-    `;
+async function saveToCloud() {
+  if (!API_KEY || !BIN_ID) { toast('Setup dulu!', 'error'); return false; }
+  try {
+    const res = await fetch(`${API_BASE}/${BIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': API_KEY
+      },
+      body: JSON.stringify({ scripts: SCRIPTS })
+    });
+    const data = await res.json();
+    if (data.metadata) {
+      updateStats();
+      return true;
+    }
+    toast('Gagal simpan: ' + (data.message || ''), 'error');
+    return false;
+  } catch (e) {
+    toast('Error simpan: ' + e.message, 'error');
+    return false;
+  }
+}
+
+/* ==================== QUICK ADD ==================== */
+function updateQuickCount() {
+  const v = document.getElementById('quickCode').value;
+  document.getElementById('quickCharCount').textContent = v.length.toLocaleString();
+  document.getElementById('quickLineCount').textContent = v.split('\n').length;
+}
+function updateEditCount() {
+  document.getElementById('editCharCount').textContent = document.getElementById('editCode').value.length.toLocaleString();
+}
+
+async function quickSave() {
+  const title = document.getElementById('quickTitle').value.trim();
+  const code = document.getElementById('quickCode').value;
+  if (!title) { toast('Judul wajib diisi!', 'error'); return; }
+  if (!code) { toast('Kode script wajib diisi!', 'error'); return; }
+  if (!API_KEY) { toast('Setup API key dulu!', 'error'); return; }
+
+  const script = {
+    id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+    title: title,
+    description: document.getElementById('quickDesc').value.trim(),
+    version: document.getElementById('quickVersion').value.trim() || '1.0.0',
+    author: document.getElementById('quickAuthor').value.trim() || 'Anonim',
+    tags: document.getElementById('quickTags').value.split(',').map(t => t.trim()).filter(t => t),
+    code: code,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  SCRIPTS.unshift(script);
+  toast('Menyimpan ke cloud...', 'warning');
+  const ok = await saveToCloud();
+  if (ok) {
+    toast('Script berhasil disimpan! ✓', 'success');
+    clearQuickForm();
+    renderScripts();
+    renderScripts('scriptList2');
   } else {
-    info.innerHTML = `
-      <div class="info-box" style="border-left-color:var(--warning)">
-        <b>⚠️ Index belum dibuat</b><br>
-        Klik "Buat Index Baru" untuk memulai.
-      </div>
-    `;
+    SCRIPTS.shift();
   }
-  showModal('setupModal');
 }
 
-async function resetSetup() {
-  const ok = await confirmDialog('Reset index?', 'Index lama akan ditinggalkan (script di cloud tidak terhapus). Buat index baru?');
-  if (!ok) return;
-  window.location.hash = '';
-  indexId = null;
-  scripts = [];
-  document.getElementById('indexIdDisplay').textContent = 'belum diset';
-  renderList();
-  toast('🔄 Index direset', 'success');
-  closeModal('setupModal');
+function clearQuickForm() {
+  document.getElementById('quickTitle').value = '';
+  document.getElementById('quickDesc').value = '';
+  document.getElementById('quickVersion').value = '1.0.0';
+  document.getElementById('quickTags').value = '';
+  document.getElementById('quickCode').value = '';
+  updateQuickCount();
 }
 
-/* ---------- RENDER LIST ---------- */
-let filterText = '';
-function filterScripts(val) {
-  filterText = val.toLowerCase();
-  renderList();
-}
+/* ==================== RENDER ==================== */
+function renderScripts(targetId = 'scriptList') {
+  const container = document.getElementById(targetId);
+  if (!container) return;
+  const search = (document.getElementById('searchInput').value || '').toLowerCase();
+  const filtered = SCRIPTS.filter(s =>
+    s.title.toLowerCase().includes(search) ||
+    (s.description || '').toLowerCase().includes(search) ||
+    (s.tags || []).some(t => t.toLowerCase().includes(search)) ||
+    (s.author || '').toLowerCase().includes(search)
+  );
 
-function renderList() {
-  const list = document.getElementById('scriptList');
-  const filtered = scripts.filter(s => s.name.toLowerCase().includes(filterText));
-  document.getElementById('scriptCount').textContent = scripts.length;
-  
   if (filtered.length === 0) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📂</div><div>${scripts.length === 0 ? 'Belum ada script' : 'Tidak ditemukan'}</div></div>`;
+    container.innerHTML = `<div class="empty" style="grid-column:1/-1;"><i class="fas fa-inbox"></i><h3>${SCRIPTS.length === 0 ? 'Belum ada script' : 'Tidak ditemukan'}</h3><p>${SCRIPTS.length === 0 ? 'Klik "Script Baru" untuk mulai menyimpan.' : 'Coba kata kunci lain.'}</p></div>`;
     return;
   }
-  
-  list.innerHTML = filtered.map(s => `
-    <div class="script-item ${s.id === currentScriptId ? 'active' : ''}" onclick="loadScript('${s.id}')">
-      <div class="script-name">📄 ${escapeHtml(s.name)}</div>
+
+  container.innerHTML = filtered.map(s => `
+    <div class="script-card">
+      <h3><i class="fas fa-scroll" style="color:var(--accent);"></i> ${escapeHtml(s.title)}</h3>
+      <div class="desc">${escapeHtml(s.description || 'Tanpa deskripsi')}</div>
       <div class="script-meta">
-        <span>${formatDate(s.date)}</span>
-        <span>${formatSize(s.size || 0)}</span>
+        <span><i class="fas fa-code-branch"></i> v${escapeHtml(s.version || '1.0')}</span>
+        <span><i class="fas fa-user"></i> ${escapeHtml(s.author || 'Anonim')}</span>
+        <span><i class="fas fa-weight-hanging"></i> ${(s.code || '').length.toLocaleString()} char</span>
+      </div>
+      <div style="margin-bottom:10px;">
+        ${(s.tags || []).map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}
+      </div>
+      <div class="script-meta" style="margin-bottom:0;">
+        <span><i class="fas fa-calendar"></i> ${formatDate(s.createdAt)}</span>
+      </div>
+      <div class="script-actions">
+        <button class="btn btn-sm btn-secondary" onclick="viewScript('${s.id}')"><i class="fas fa-eye"></i> Lihat</button>
+        <button class="btn btn-sm btn-secondary" onclick="copyScript('${s.id}')"><i class="fas fa-copy"></i> Copy</button>
+        <button class="btn btn-sm btn-primary" onclick="downloadScript('${s.id}')"><i class="fas fa-download"></i></button>
+        <button class="btn btn-sm btn-secondary" onclick="openEditModal('${s.id}')"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-danger" onclick="deleteScript('${s.id}')"><i class="fas fa-trash"></i></button>
       </div>
     </div>
   `).join('');
 }
 
-/* ---------- UTILS ---------- */
-function formatSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+function updateStats() {
+  document.getElementById('statTotal').textContent = SCRIPTS.length;
+  const totalChars = SCRIPTS.reduce((a, s) => a + (s.code || '').length, 0);
+  document.getElementById('statChars').textContent = totalChars.toLocaleString();
+  const today = new Date().toDateString();
+  const todayCount = SCRIPTS.filter(s => new Date(s.createdAt).toDateString() === today).length;
+  document.getElementById('statToday').textContent = todayCount;
+  if (SCRIPTS.length > 0) {
+    const latest = SCRIPTS.reduce((a, s) => new Date(s.updatedAt) > new Date(a.updatedAt) ? s : a);
+    document.getElementById('statLast').textContent = formatDate(latest.updatedAt);
+  } else {
+    document.getElementById('statLast').textContent = '-';
+  }
 }
+
+/* ==================== CRUD ==================== */
+function viewScript(id) {
+  const s = SCRIPTS.find(x => x.id === id);
+  if (!s) return;
+  currentViewCode = s.code;
+  document.getElementById('viewTitle').innerHTML = `<i class="fas fa-eye"></i> ${escapeHtml(s.title)}`;
+  document.getElementById('viewMeta').innerHTML = `
+    <b>Versi:</b> ${escapeHtml(s.version)} | <b>Author:</b> ${escapeHtml(s.author)} |
+    <b>Karakter:</b> ${(s.code || '').length.toLocaleString()} | <b>Update:</b> ${formatDate(s.updatedAt)}
+    <br><b>Deskripsi:</b> ${escapeHtml(s.description || '-')}
+    <br>${(s.tags || []).map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}
+  `;
+  document.getElementById('viewCode').textContent = s.code;
+  document.getElementById('viewModal').classList.add('active');
+}
+
+function copyViewCode() {
+  navigator.clipboard.writeText(currentViewCode).then(() => toast('Kode berhasil dicopy!', 'success'));
+}
+
+function downloadViewCode() {
+  const s = SCRIPTS.find(x => x.code === currentViewCode);
+  if (s) downloadAsFile(s.title + '.user.js', s.code);
+}
+
+function copyScript(id) {
+  const s = SCRIPTS.find(x => x.id === id);
+  if (!s) return;
+  navigator.clipboard.writeText(s.code).then(() => toast('Script dicopy ke clipboard!', 'success'));
+}
+
+function downloadScript(id) {
+  const s = SCRIPTS.find(x => x.id === id);
+  if (!s) return;
+  downloadAsFile(sanitizeFilename(s.title) + '.user.js', s.code);
+  toast('File .user.js didownload!', 'success');
+}
+
+function openEditModal(id) {
+  const s = SCRIPTS.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('editId').value = s.id;
+  document.getElementById('editTitle').value = s.title;
+  document.getElementById('editDesc').value = s.description || '';
+  document.getElementById('editVersion').value = s.version || '1.0.0';
+  document.getElementById('editAuthor').value = s.author || '';
+  document.getElementById('editTags').value = (s.tags || []).join(', ');
+  document.getElementById('editCode').value = s.code;
+  updateEditCount();
+  document.getElementById('editModal').classList.add('active');
+}
+
+function openAddModal() {
+  document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+  document.querySelector('[data-page="add"]').classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.getElementById('page-add').style.display = 'block';
+  document.getElementById('quickTitle').focus();
+}
+
+async function saveEdit() {
+  const id = document.getElementById('editId').value;
+  const idx = SCRIPTS.findIndex(s => s.id === id);
+  if (idx < 0) return;
+  SCRIPTS[idx] = {
+    ...SCRIPTS[idx],
+    title: document.getElementById('editTitle').value.trim(),
+    description: document.getElementById('editDesc').value.trim(),
+    version: document.getElementById('editVersion').value.trim(),
+    author: document.getElementById('editAuthor').value.trim(),
+    tags: document.getElementById('editTags').value.split(',').map(t => t.trim()).filter(t => t),
+    code: document.getElementById('editCode').value,
+    updatedAt: new Date().toISOString()
+  };
+  toast('Menyimpan perubahan...', 'warning');
+  const ok = await saveToCloud();
+  if (ok) {
+    toast('Script berhasil diupdate! ✓', 'success');
+    closeModal('editModal');
+    renderScripts();
+    renderScripts('scriptList2');
+  }
+}
+
+async function deleteScript(id) {
+  if (!confirm('Yakin hapus script ini?')) return;
+  SCRIPTS = SCRIPTS.filter(s => s.id !== id);
+  toast('Menghapus dari cloud...', 'warning');
+  const ok = await saveToCloud();
+  if (ok) {
+    toast('Script dihapus!', 'success');
+    renderScripts();
+    renderScripts('scriptList2');
+  } else {
+    await loadScripts();
+  }
+}
+
+async function deleteAll() {
+  if (!confirm('HAPUS SEMUA SCRIPT? Tindakan ini tidak dapat dibatalkan!')) return;
+  if (!confirm('Benar-benar yakin? Ketik OK untuk konfirmasi.')) return;
+  SCRIPTS = [];
+  const ok = await saveToCloud();
+  if (ok) {
+    toast('Semua script dihapus!', 'success');
+    renderScripts();
+    renderScripts('scriptList2');
+  }
+}
+
+/* ==================== BACKUP ==================== */
+function exportData() {
+  if (SCRIPTS.length === 0) { toast('Tidak ada data untuk di-export!', 'warning'); return; }
+  const data = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    totalScripts: SCRIPTS.length,
+    scripts: SCRIPTS
+  };
+  downloadAsFile('tm_vault_backup_' + Date.now() + '.json', JSON.stringify(data, null, 2));
+  toast('Backup JSON didownload!', 'success');
+}
+
+async function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const newScripts = data.scripts || [];
+      if (!Array.isArray(newScripts)) throw new Error('Format tidak valid');
+      if (!confirm(`Import ${newScripts.length} script? Data lama akan digabung.`)) return;
+      // Merge, avoid duplicates by id
+      const existingIds = new Set(SCRIPTS.map(s => s.id));
+      let added = 0;
+      newScripts.forEach(s => {
+        if (!existingIds.has(s.id)) {
+          SCRIPTS.push(s);
+          added++;
+        }
+      });
+      toast(`Mengupload ${added} script baru...`, 'warning');
+      const ok = await saveToCloud();
+      if (ok) {
+        toast(`${added} script berhasil diimport! ✓`, 'success');
+        renderScripts();
+        renderScripts('scriptList2');
+      }
+    } catch (err) {
+      toast('File tidak valid: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function exportAllUserJs() {
+  if (SCRIPTS.length === 0) { toast('Tidak ada script!', 'warning'); return; }
+  // Download satu per satu (browser akan prompt multiple download)
+  if (!confirm(`Download ${SCRIPTS.length} file .user.js?`)) return;
+  SCRIPTS.forEach((s, i) => {
+    setTimeout(() => {
+      downloadAsFile(sanitizeFilename(s.title) + '.user.js', s.code);
+    }, i * 300);
+  });
+  toast('Downloading ' + SCRIPTS.length + ' file...', 'success');
+}
+
+/* ==================== SETTINGS ==================== */
+function loadSettings() {
+  document.getElementById('settingsApiKey').value = API_KEY;
+  document.getElementById('settingsBinId').value = BIN_ID || '(belum ada)';
+  document.getElementById('settingsAuthor').value = sessionStorage.getItem('tm_default_author') || '';
+}
+
+function saveSettings() {
+  const newKey = document.getElementById('settingsApiKey').value.trim();
+  const author = document.getElementById('settingsAuthor').value.trim();
+  if (newKey && newKey !== API_KEY) {
+    API_KEY = newKey;
+    sessionStorage.setItem('tm_api_key', newKey);
+    BIN_ID = '';
+    sessionStorage.removeItem('tm_bin_id');
+    toast('API key diubah. Mencari bin...', 'warning');
+    findOrCreateBin();
+  }
+  sessionStorage.setItem('tm_default_author', author);
+  document.getElementById('quickAuthor').value = author;
+  toast('Pengaturan disimpan!', 'success');
+}
+
+function disconnect() {
+  if (!confirm('Putuskan koneksi & hapus API key dari browser?')) return;
+  sessionStorage.removeItem('tm_api_key');
+  sessionStorage.removeItem('tm_bin_id');
+  API_KEY = '';
+  BIN_ID = '';
+  SCRIPTS = [];
+  location.reload();
+}
+
+/* ==================== UTILS ==================== */
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+function toast(msg, type = 'info') {
+  const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function sanitizeFilename(s) {
+  return (s || 'script').replace(/[^a-z0-9_\-\s]/gi, '').replace(/\s+/g, '_').substring(0, 60);
+}
+
 function formatDate(iso) {
   if (!iso) return '-';
   const d = new Date(iso);
-  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: '2-digit' });
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if (diff < 60) return 'Baru saja';
+  if (diff < 3600) return Math.floor(diff / 60) + ' menit lalu';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' jam lalu';
+  if (diff < 604800) return Math.floor(diff / 86400) + ' hari lalu';
+  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 }
-function escapeHtml(s) {
-  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function downloadAsFile(filename, content) {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
 }
 
-/* ---------- INIT ---------- */
-window.addEventListener('hashchange', () => {
-  const newId = getIndexFromHash();
-  if (newId && newId !== indexId) {
-    indexId = newId;
-    loadIndex();
-  }
-});
-
-window.addEventListener('beforeunload', (e) => {
-  if (isDirty) {
-    e.preventDefault();
-    e.returnValue = '';
-  }
-});
-
-require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
-require(['vs/editor/editor.main'], function () {
-  monaco.editor.defineTheme('tm-dark', {
-    base: 'vs-dark',
-    inherit: true,
-    rules: [],
-    colors: {
-      'editor.background': '#1e1e1e',
-      'editor.lineHighlightBackground': '#2a2a2a'
-    }
-  });
-  
-  editor = monaco.editor.create(document.getElementById('editor'), {
-    value: '// 🚀 Selamat Datang di Tampermonkey Cloud Manager!\n// \n// 📌 LANGKAH PERTAMA:\n// 1. Klik tombol ⚙️ [Setup] di toolbar\n// 2. Klik "Buat Index Baru"\n// 3. BOOKMARK URL browser Anda (penting!)\n// 4. Klik ➕ [Baru] untuk membuat script\n// 5. Edit script, lalu klik 💾 [Simpan]\n// \n// 💾 Semua script tersimpan di CLOUD (npoint.io)\n// 📱 Bisa diakses dari device manapun dengan URL yang sama\n// ♾️ Tanpa limit ukuran script\n// \n// ==UserScript==\n// @name         Welcome Script\n// @version      1.0\n// ==/UserScript==\n\n(function() {\n    \'use strict\';\n    console.log(\'Hello from cloud!\');\n})();\n',
-    language: 'javascript',
-    theme: 'tm-dark',
-    automaticLayout: true,
-    fontSize: 14,
-    minimap: { enabled: true },
-    wordWrap: 'on',
-    lineNumbers: 'on',
-    scrollBeyondLastLine: false,
-    renderWhitespace: 'selection',
-    tabSize: 2
-  });
-  
-  editor.onDidChangeModelContent(() => {
-    if (!isDirty) {
-      isDirty = true;
-      document.getElementById('tabStatus').textContent = '• Belum tersimpan';
-    }
-  });
-  
-  // Ctrl+S to save
-  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => saveCurrent());
-  
-  // Init
-  indexId = getIndexFromHash();
-  if (indexId) {
-    loadIndex();
+function updateStatus() {
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  if (API_KEY && BIN_ID) {
+    dot.classList.add('online');
+    txt.textContent = 'Terhubung ke Cloud';
+  } else if (API_KEY) {
+    dot.classList.remove('online');
+    txt.textContent = 'Menghubungkan...';
   } else {
-    setTimeout(() => showSetup(), 500);
+    dot.classList.remove('online');
+    txt.textContent = 'Belum terhubung';
   }
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
 });
 </script>
 </body>
