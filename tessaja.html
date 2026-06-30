@@ -11,12 +11,14 @@
   --glass:rgba(255,255,255,0.025);--glass-2:rgba(255,255,255,0.05);--glass-3:rgba(255,255,255,0.08);
   --border:rgba(255,255,255,0.06);--border-hi:rgba(255,255,255,0.12);--border-max:rgba(255,255,255,0.18);
   --text:#f0f0f2;--text-2:#a8a8b0;--text-3:#6a6a72;--text-4:#484850;
-  --ok:#4ade80;--err:#f87171;--warn:#fbbf24;--info:#60a5fa;
+  --ok:#4ade80;--err:#f87171;--warn:#fbbf24;--info:#60a5fa;--purple:#a78bfa;
   --grad:linear-gradient(135deg,#e0e0e5 0%,#a0a0a8 100%);
   --grad-soft:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
   --grad-ok:linear-gradient(135deg,#4ade80,#22c55e);
   --grad-warn:linear-gradient(135deg,#fbbf24,#f59e0b);
   --grad-err:linear-gradient(135deg,#f87171,#ef4444);
+  --grad-info:linear-gradient(135deg,#60a5fa,#3b82f6);
+  --grad-purple:linear-gradient(135deg,#a78bfa,#8b5cf6);
   --sh-sm:0 2px 8px rgba(0,0,0,.3);--sh-md:0 8px 24px rgba(0,0,0,.4);--sh-lg:0 16px 48px rgba(0,0,0,.5);
   --max-w:1200px;
 }
@@ -34,10 +36,13 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 #loading p{color:var(--text-2);font-size:13px;font-weight:500;text-align:center;max-width:400px}
 #loading small{color:var(--text-3);font-size:11px;margin-top:-12px}
 
-.app{position:relative;z-index:1;display:grid;grid-template-columns:260px 1fr;height:100vh;opacity:0;transition:opacity .5s}
+.app{position:relative;z-index:1;display:grid;grid-template-columns:280px 1fr;height:100vh;opacity:0;transition:opacity .5s}
 .app.show{opacity:1}
 
+/* ============ SIDEBAR ============ */
 .side{background:linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 14px;overflow-y:auto;position:relative}
+.side::-webkit-scrollbar{width:6px}
+.side::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:10px}
 .logo{display:flex;align-items:center;gap:12px;padding:6px 10px 18px;border-bottom:1px solid var(--border);margin-bottom:18px}
 .logo-ic{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#3a3a42,#24242a);border:1px solid var(--border-hi);display:grid;place-items:center;font-size:20px;box-shadow:var(--sh-sm),inset 0 1px 0 rgba(255,255,255,.08)}
 .logo h1{font-size:15px;font-weight:800;letter-spacing:-.02em;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
@@ -58,18 +63,52 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .nav-i[data-v="editor"].show{display:flex;animation:slideIn .35s cubic-bezier(.4,0,.2,1)}
 @keyframes slideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
 
+/* Folder item dengan warna */
+.nav-folder{position:relative}
+.nav-folder .folder-color{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor}
+.nav-folder .folder-actions{margin-left:auto;display:none;gap:4px}
+.nav-folder:hover .folder-actions{display:flex}
+.nav-folder .folder-actions button{background:none;border:none;color:var(--text-3);cursor:pointer;padding:2px 4px;border-radius:4px;font-size:11px}
+.nav-folder .folder-actions button:hover{background:var(--glass-2);color:var(--text)}
+
+.new-folder-btn{
+  margin:4px 0;padding:8px 12px;
+  background:transparent;border:1px dashed var(--border-hi);
+  border-radius:10px;color:var(--text-3);font-size:12px;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-family:inherit;font-weight:500;
+}
+.new-folder-btn:hover{background:var(--glass-2);color:var(--text);border-color:var(--border-max)}
+
 .side-ft{margin-top:auto;padding-top:14px;border-top:1px solid var(--border);font-size:10px;color:var(--text-4);display:flex;align-items:center;gap:6px}
 .side-ft::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok)}
 
+/* ============ MAIN ============ */
 .main{display:flex;flex-direction:column;overflow:hidden;position:relative}
 .top{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:rgba(28,28,31,.6);backdrop-filter:blur(20px);gap:14px;z-index:2}
 .top h2{font-size:18px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
 .top h2::before{content:'';width:4px;height:20px;background:var(--grad);border-radius:2px}
 .top-r{display:flex;gap:10px;align-items:center}
-.search{display:flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--border);border-radius:10px;padding:8px 14px;width:260px;transition:all .2s}
+
+/* Search + Filter */
+.search-bar{display:flex;gap:8px;align-items:center}
+.search{display:flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--border);border-radius:10px;padding:8px 14px;width:240px;transition:all .2s}
 .search:focus-within{border-color:var(--border-max);background:var(--glass-2)}
 .search input{background:none;border:none;outline:none;color:var(--text);flex:1;font-size:13px;font-family:inherit}
 .search input::placeholder{color:var(--text-4)}
+.sort-select{
+  background:var(--glass);border:1px solid var(--border);
+  border-radius:10px;padding:8px 12px;color:var(--text);
+  font-size:12px;font-family:inherit;cursor:pointer;
+  outline:none;transition:all .2s;
+}
+.sort-select:hover{border-color:var(--border-max)}
+.sort-select option{background:var(--bg-2);color:var(--text)}
+.view-toggle{display:flex;background:var(--glass);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.view-toggle button{background:none;border:none;color:var(--text-3);padding:8px 10px;cursor:pointer;font-size:13px;transition:all .2s}
+.view-toggle button.on{background:var(--glass-3);color:var(--text)}
+.view-toggle button:hover{color:var(--text)}
 
 .btn{padding:9px 16px;border:none;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:600;transition:all .2s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:7px;font-family:inherit;position:relative;overflow:hidden;letter-spacing:-.01em;text-decoration:none}
 .btn-p{background:var(--grad);color:var(--bg-0);box-shadow:var(--sh-sm),inset 0 1px 0 rgba(255,255,255,.3);font-weight:700}
@@ -77,8 +116,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .btn-p:hover::before{transform:translateX(100%)}
 .btn-p:hover{transform:translateY(-1px);box-shadow:var(--sh-md)}
 .btn-ok{background:var(--grad-ok);color:#052e12;box-shadow:var(--sh-sm),inset 0 1px 0 rgba(255,255,255,.25);font-weight:700}
-.btn-ok::before{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.4) 50%,transparent 60%);transform:translateX(-100%);transition:transform .6s}
-.btn-ok:hover::before{transform:translateX(100%)}
 .btn-ok:hover{transform:translateY(-1px);box-shadow:var(--sh-md)}
 .btn-warn{background:var(--grad-warn);color:#3a2600;box-shadow:var(--sh-sm),inset 0 1px 0 rgba(255,255,255,.25);font-weight:700}
 .btn-warn:hover{transform:translateY(-1px);box-shadow:var(--sh-md)}
@@ -101,7 +138,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 .container{max-width:var(--max-w);margin:0 auto}
 
-.bento{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px}
+/* ============ BENTO DASHBOARD ============ */
+.bento{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
 .bento-stat{background:linear-gradient(135deg,var(--bg-1),var(--bg-2));border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:all .3s cubic-bezier(.4,0,.2,1)}
 .bento-stat::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;filter:blur(40px);opacity:.15;transition:opacity .3s}
 .bento-stat:nth-child(1)::before{background:#a0a0a8}
@@ -129,25 +167,89 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .sh h3 .bar{width:3px;height:16px;background:var(--grad);border-radius:2px}
 .sh small{font-size:11px;color:var(--text-3);font-weight:500}
 
+/* ============ CARD GRID ============ */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
-.card{background:linear-gradient(135deg,var(--bg-2),var(--bg-1));border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.grid.list-view{grid-template-columns:1fr}
+
+.card{
+  background:linear-gradient(135deg,var(--bg-2),var(--bg-1));
+  border:1px solid var(--border);border-radius:14px;
+  padding:14px;cursor:pointer;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--card-color,var(--grad));
+  transform:scaleX(0);transform-origin:left;transition:transform .3s;
+}
 .card:hover{border-color:var(--border-hi);transform:translateY(-3px);box-shadow:var(--sh-md)}
 .card:hover::before{transform:scaleX(1)}
-.card-h{display:flex;gap:12px;margin-bottom:8px}
-.card-ic{width:38px;height:38px;border-radius:10px;background:var(--grad-soft);border:1px solid var(--border-hi);display:grid;place-items:center;font-size:17px;flex-shrink:0}
-.card-t{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card.favorite{border-color:rgba(251,191,36,.3)}
+.card.favorite::after{
+  content:'⭐';position:absolute;top:10px;right:10px;
+  font-size:14px;filter:drop-shadow(0 0 4px rgba(251,191,36,.5));
+}
+
+.card-h{display:flex;gap:12px;margin-bottom:8px;align-items:flex-start}
+.card-ic{
+  width:40px;height:40px;border-radius:10px;
+  background:var(--grad-soft);border:1px solid var(--border-hi);
+  display:grid;place-items:center;font-size:18px;flex-shrink:0;
+}
+.card-title-wrap{flex:1;min-width:0}
+.card-t{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
 .card-d{font-size:11.5px;color:var(--text-2);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5;min-height:34px}
-.card-m{display:flex;gap:12px;font-size:10px;color:var(--text-3);padding-top:8px;border-top:1px solid var(--border);margin-top:8px;font-weight:500}
+
+/* Badge NEW */
+.badge-new{
+  background:var(--grad-ok);color:#052e12;
+  font-size:8px;font-weight:800;
+  padding:2px 6px;border-radius:4px;
+  letter-spacing:1px;flex-shrink:0;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+
+/* Tags */
+.card-tags{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}
+.tag{
+  background:var(--glass-2);border:1px solid var(--border);
+  color:var(--text-2);font-size:9px;font-weight:600;
+  padding:2px 8px;border-radius:10px;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+
+/* Code preview */
+.card-preview{
+  background:rgba(0,0,0,.3);border:1px solid var(--border);
+  border-radius:8px;padding:8px 10px;margin:8px 0;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--text-3);line-height:1.5;
+  max-height:50px;overflow:hidden;
+  white-space:pre;
+}
+
+.card-m{display:flex;gap:12px;font-size:10px;color:var(--text-3);padding-top:8px;border-top:1px solid var(--border);margin-top:8px;font-weight:500;flex-wrap:wrap}
 .card-m span{display:flex;align-items:center;gap:4px}
 .card-a{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
-.card-a .btn{padding:6px 10px;font-size:10px;flex:1;justify-content:center;min-width:70px}
+.card-a .btn{padding:6px 10px;font-size:10px;flex:1;justify-content:center;min-width:60px}
+
+/* List view card */
+.grid.list-view .card{padding:12px 16px}
+.grid.list-view .card-h{margin-bottom:0;align-items:center}
+.grid.list-view .card-d{display:none}
+.grid.list-view .card-preview{display:none}
+.grid.list-view .card-tags{margin:0 0 0 12px}
+.grid.list-view .card-m{border:none;padding:0;margin:0 0 0 auto}
+.grid.list-view .card-a{margin:0 0 0 12px}
 
 .empty{text-align:center;padding:60px 20px;background:var(--glass);border:1px dashed var(--border-hi);border-radius:16px}
 .empty .ic{font-size:42px;margin-bottom:14px;opacity:.4;filter:grayscale(.5)}
 .empty h4{font-size:15px;margin-bottom:6px}
 .empty p{color:var(--text-2);font-size:12.5px;margin-bottom:16px}
 
+/* ============ EDITOR ============ */
 .ed{background:linear-gradient(135deg,var(--bg-1),rgba(28,28,31,.6));border:1px solid var(--border);border-radius:16px;padding:22px;max-width:900px;margin:0 auto}
 .ed-tb{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 .ed-tb h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px}
@@ -155,25 +257,43 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .ed-tb .tools{display:flex;gap:8px;flex-wrap:wrap}
 .f{margin-bottom:14px}
 .f label{display:block;font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px}
-.f input,.f textarea{width:100%;padding:11px 14px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;transition:all .2s}
-.f input:focus,.f textarea:focus{outline:none;border-color:var(--border-max);box-shadow:0 0 0 3px rgba(255,255,255,.04);background:rgba(0,0,0,.5)}
+.f input,.f textarea,.f select{width:100%;padding:11px 14px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;transition:all .2s}
+.f input:focus,.f textarea:focus,.f select:focus{outline:none;border-color:var(--border-max);box-shadow:0 0 0 3px rgba(255,255,255,.04);background:rgba(0,0,0,.5)}
+.f select option{background:var(--bg-2);color:var(--text)}
 .f textarea{min-height:440px;resize:vertical;font-family:'JetBrains Mono','Fira Code',Consolas,monospace;font-size:12.5px;line-height:1.65;tab-size:2}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .f-h{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-3);margin-top:6px;font-weight:500}
 
+/* ============ MODALS ============ */
 .pin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:none;align-items:center;justify-content:center;padding:20px;z-index:500}
 .pin-overlay.show{display:flex;animation:fi .25s}
-.pin-box{background:linear-gradient(180deg,var(--bg-2),var(--bg-1));border:1px solid var(--border-hi);border-radius:20px;padding:28px;max-width:380px;width:100%;box-shadow:var(--sh-lg);text-align:center;animation:mSlide .3s cubic-bezier(.4,0,.2,1);position:relative}
+.pin-box{background:linear-gradient(180deg,var(--bg-2),var(--bg-1));border:1px solid var(--border-hi);border-radius:20px;padding:28px;max-width:420px;width:100%;box-shadow:var(--sh-lg);text-align:center;animation:mSlide .3s cubic-bezier(.4,0,.2,1);position:relative}
 .pin-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);border-radius:20px 20px 0 0}
 .pin-ic{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,rgba(248,113,113,.15),rgba(239,68,68,.08));border:1px solid rgba(248,113,113,.3);display:grid;place-items:center;font-size:28px;margin:0 auto 16px}
 .pin-box h3{font-size:17px;margin-bottom:6px;font-weight:700;background:var(--grad-err);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
 .pin-box p{color:var(--text-2);font-size:12px;margin-bottom:18px;line-height:1.5}
-.pin-input{width:100%;padding:12px 16px;background:rgba(0,0,0,.4);border:1px solid var(--border-hi);border-radius:10px;color:var(--text);font-size:20px;font-family:'JetBrains Mono',monospace;text-align:center;letter-spacing:8px;font-weight:700;transition:all .2s}
+.pin-input{width:100%;padding:12px 16px;background:rgba(0,0,0,.4);border:1px solid var(--border-hi);border-radius:10px;color:var(--text);font-size:16px;font-family:inherit;text-align:center;font-weight:600;transition:all .2s}
 .pin-input:focus{outline:none;border-color:var(--err);box-shadow:0 0 0 3px rgba(248,113,113,.15)}
 .pin-input.shake{animation:shake .4s}
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
 .pin-err{color:var(--err);font-size:11px;margin-top:10px;min-height:16px;font-weight:600}
 .pin-acts{display:flex;gap:8px;margin-top:18px}
 .pin-acts .btn{flex:1;justify-content:center;padding:11px}
+
+/* Folder create modal */
+.folder-form{text-align:left;margin:16px 0}
+.folder-form label{display:block;font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px;margin-top:12px}
+.folder-form label:first-child{margin-top:0}
+.folder-form input,.folder-form select{width:100%;padding:10px 12px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit}
+.folder-form input:focus,.folder-form select:focus{outline:none;border-color:var(--border-max)}
+.emoji-picker{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:6px}
+.emoji-picker button{background:var(--glass);border:1px solid var(--border);border-radius:6px;padding:6px;font-size:16px;cursor:pointer;transition:all .15s}
+.emoji-picker button:hover{background:var(--glass-3);transform:scale(1.1)}
+.emoji-picker button.selected{background:var(--glass-3);border-color:var(--info);box-shadow:0 0 0 2px rgba(96,165,250,.3)}
+.color-picker{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.color-picker button{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .15s}
+.color-picker button:hover{transform:scale(1.15)}
+.color-picker button.selected{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.3)}
 
 .toasts{position:fixed;bottom:20px;right:20px;z-index:400;display:flex;flex-direction:column;gap:8px;max-width:340px}
 .tst{background:linear-gradient(135deg,var(--bg-3),var(--bg-2));backdrop-filter:blur(20px);border:1px solid var(--border-hi);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-lg);animation:si .3s cubic-bezier(.4,0,.2,1);font-size:12.5px;font-weight:500}
@@ -186,10 +306,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 @media(max-width:900px){
   .app{grid-template-columns:1fr}
   .side{display:none}
-  .top{padding:12px 16px}
+  .top{padding:12px 16px;flex-wrap:wrap}
   .ct{padding:16px}
   .search{width:140px}
-  .bento{grid-template-columns:1fr}
+  .bento{grid-template-columns:repeat(2,1fr)}
+  .f-row{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -200,7 +321,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div id="loading">
   <div class="loader"><div class="loader-core">🐒</div></div>
   <p id="loadTxt">Menghubungkan ke Firebase...</p>
-  <small>ScriptVault v11.0 · Public Cloud</small>
+  <small>ScriptVault v12.0 · Public Cloud</small>
 </div>
 
 <div class="app" id="app">
@@ -212,67 +333,102 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         <small>Public Cloud</small>
       </div>
     </div>
-    <div class="nav">
-      <div class="nav-lbl">Workspace</div>
-      <div class="nav-i on" data-v="dashboard" onclick="go('dashboard')"><span class="ic">📊</span>Dashboard</div>
-      <div class="nav-i" data-v="scripts" onclick="go('scripts')"><span class="ic">📜</span>Script<span class="bdg" id="nCnt">0</span></div>
-      <div class="nav-i" data-v="editor" onclick="go('editor')"><span class="ic">✏️</span>Editor</div>
+    <div class="nav" id="navMenu">
+      <div class="nav-lbl">Menu</div>
+      <div class="nav-i on" data-view="dashboard" onclick="go('dashboard')"><span class="ic">📊</span>Dashboard</div>
+      <div class="nav-i" data-view="all" onclick="go('all')"><span class="ic">📦</span>All Scripts<span class="bdg" id="cntAll">0</span></div>
+      <div class="nav-i" data-view="favorites" onclick="go('favorites')"><span class="ic">⭐</span>Favorites<span class="bdg" id="cntFav">0</span></div>
+      <div class="nav-i" data-view="recent" onclick="go('recent')"><span class="ic">🕐</span>Recent<span class="bdg" id="cntRecent">0</span></div>
+      <div class="nav-i" data-view="editor" onclick="go('editor')"><span class="ic">✏️</span>Editor</div>
+      
+      <div class="nav-lbl">📁 Folders</div>
+      <div id="folderList"></div>
+      <button class="new-folder-btn" onclick="openFolderModal()">➕ New Folder</button>
+      
+      <div class="nav-lbl">Other</div>
+      <div class="nav-i" data-view="trash" onclick="go('trash')"><span class="ic">🗑️</span>Trash<span class="bdg" id="cntTrash">0</span></div>
     </div>
-    <div class="side-ft">v11.0 · Public Access</div>
+    <div class="side-ft">v12.0 · Public Access</div>
   </aside>
 
   <main class="main">
     <div class="top">
-      <h2 id="vTitle">Dashboard</h2>
+      <h2 id="vTitle">📊 Dashboard</h2>
       <div class="top-r">
-        <div class="search"><span>🔍</span><input type="text" id="qIn" placeholder="Cari script..." oninput="renderList()"></div>
+        <div class="search-bar">
+          <div class="search"><span>🔍</span><input type="text" id="qIn" placeholder="Cari script..." oninput="renderCurrentView()"></div>
+          <select class="sort-select" id="sortSelect" onchange="renderCurrentView()">
+            <option value="newest">🕐 Terbaru</option>
+            <option value="oldest">📅 Terlama</option>
+            <option value="name">🔤 Nama A-Z</option>
+            <option value="size">📦 Ukuran</option>
+          </select>
+          <div class="view-toggle">
+            <button class="on" id="viewGrid" onclick="setView('grid')" title="Grid">⊞</button>
+            <button id="viewList" onclick="setView('list')" title="List">☰</button>
+          </div>
+        </div>
         <button class="btn-ic" onclick="sync()" title="Sync">🔄</button>
         <button class="btn btn-p" onclick="newScriptFromTop()">➕ Baru</button>
       </div>
     </div>
 
     <div class="ct">
+      <!-- DASHBOARD -->
       <div class="v on" id="v-dashboard">
         <div class="container">
           <div class="bento">
             <div class="bento-stat"><div class="bento-lbl">Total Script</div><div class="bento-val" id="sTot">0</div><div class="bento-sub">Tersimpan di cloud</div></div>
             <div class="bento-stat"><div class="bento-lbl">Karakter</div><div class="bento-val" id="sChr">0</div><div class="bento-sub">Total ukuran kode</div></div>
-            <div class="bento-stat"><div class="bento-lbl">Update Terakhir</div><div class="bento-val" id="sLast" style="font-size:16px">-</div><div class="bento-sub">Waktu lokal</div></div>
-            <div class="bento-stat"><div class="bento-lbl">Status</div><div class="bento-val" id="sStatus" style="font-size:16px">Online</div><div class="bento-sub">Firebase Realtime DB</div></div>
+            <div class="bento-stat"><div class="bento-lbl">Folders</div><div class="bento-val" id="sFld">0</div><div class="bento-sub">Kategori aktif</div></div>
+            <div class="bento-stat"><div class="bento-lbl">Favorites</div><div class="bento-val" id="sFav">0</div><div class="bento-sub">Script berbintang</div></div>
           </div>
           <div class="section">
-            <div class="sh"><h3><span class="bar"></span>⚡ Script Terbaru</h3><small>5 terakhir</small></div>
+            <div class="sh"><h3><span class="bar"></span>⚡ Terbaru Diupdate</h3><small>5 terakhir</small></div>
             <div id="recent"></div>
+          </div>
+          <div class="section">
+            <div class="sh"><h3><span class="bar"></span>⭐ Favorit Pilihan</h3><small>Top 5</small></div>
+            <div id="topFav"></div>
           </div>
         </div>
       </div>
 
+      <!-- SCRIPT LIST (All/Favorites/Recent/Folder/Trash) -->
       <div class="v" id="v-scripts">
         <div class="container">
           <div class="section">
-            <div class="sh"><h3><span class="bar"></span>📜 Semua Script</h3><small><span id="fCnt">0</span> script</small></div>
+            <div class="sh">
+              <h3><span class="bar"></span><span id="listTitle">📦 All Scripts</span></h3>
+              <small><span id="fCnt">0</span> script</small>
+            </div>
             <div id="list"></div>
           </div>
         </div>
       </div>
 
+      <!-- EDITOR -->
       <div class="v" id="v-editor">
         <div class="ed">
           <div class="ed-tb">
             <h3><span class="bar"></span><span id="edTitle">✏️ Script Baru</span></h3>
             <div class="tools">
-              <button class="btn btn-ok" onclick="openTMFromEditor()">
-                <span style="font-size:14px">🐒</span><span>Buka TM</span>
-              </button>
+              <button class="btn btn-ok" onclick="openTMFromEditor()"><span style="font-size:14px">🐒</span><span>Buka TM</span></button>
               <button class="btn btn-warn" onclick="copyCode()"><span style="font-size:14px">📋</span><span>Copy</span></button>
               <button class="btn btn-e" onclick="delS()" id="bDel" style="display:none"><span style="font-size:14px">🗑️</span><span>Hapus</span></button>
               <button class="btn btn-p" onclick="saveS()"><span style="font-size:14px">💾</span><span>Simpan</span></button>
             </div>
           </div>
-          <div class="f"><label>Nama Script</label><input type="text" id="sName" placeholder="Contoh: Auto Click Bot" maxlength="80"></div>
+          <div class="f-row">
+            <div class="f"><label>Nama Script *</label><input type="text" id="sName" placeholder="Contoh: Auto Click Bot" maxlength="80"></div>
+            <div class="f"><label>Folder</label>
+              <select id="sFolder"></select>
+            </div>
+          </div>
           <div class="f"><label>Deskripsi</label><input type="text" id="sDesc" placeholder="Opsional" maxlength="200"></div>
+          <div class="f"><label>Tags (pisah koma)</label><input type="text" id="sTags" placeholder="auto, click, bot"></div>
           <div class="f">
-            <label>Script Code</label>
+            <label>Script Code *</label>
             <textarea id="sCode" placeholder="// ==UserScript==
 // @name         My Script
 // @namespace    http://tampermonkey.net/
@@ -292,6 +448,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </main>
 </div>
 
+<!-- PIN MODAL -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-box">
     <div class="pin-ic">🔒</div>
@@ -302,6 +459,28 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="pin-acts">
       <button class="btn btn-g" onclick="closePin()">Batal</button>
       <button class="btn btn-e" onclick="verifyPin()">🗑️ Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOLDER MODAL -->
+<div class="pin-overlay" id="folderOverlay">
+  <div class="pin-box" style="text-align:left">
+    <div class="pin-ic" style="background:linear-gradient(135deg,rgba(96,165,250,.15),rgba(59,130,246,.08));border-color:rgba(96,165,250,.3);text-align:center">📁</div>
+    <h3 id="folderModalTitle" style="background:var(--grad-info);-webkit-background-clip:text;background-clip:text;text-align:center">Buat Folder Baru</h3>
+    <div class="folder-form">
+      <label>Nama Folder</label>
+      <input type="text" id="fName" placeholder="Contoh: Game Scripts" maxlength="30">
+      
+      <label>Icon (pilih satu)</label>
+      <div class="emoji-picker" id="emojiPicker"></div>
+      
+      <label>Warna</label>
+      <div class="color-picker" id="colorPicker"></div>
+    </div>
+    <div class="pin-acts">
+      <button class="btn btn-g" onclick="closeFolderModal()">Batal</button>
+      <button class="btn btn-p" onclick="saveFolder()">💾 Simpan</button>
     </div>
   </div>
 </div>
@@ -328,37 +507,57 @@ const db = firebase.database();
 const DELETE_PIN = "0113";
 const TM_URL = "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html#nav=new-user-script+editor";
 
-const FIREBASE = {
-  load: async () => {
-    const snap = await db.ref('scripts').once('value');
-    const val = snap.val();
-    if (!val) return [];
-    if (Array.isArray(val)) return val;
-    return Object.values(val);
+// Default folders
+const DEFAULT_FOLDERS = [
+  { id: 'game', name: 'Game', icon: '🎮', color: '#60a5fa' },
+  { id: 'auto', name: 'Auto Bot', icon: '🤖', color: '#4ade80' },
+  { id: 'tools', name: 'Tools', icon: '🛠️', color: '#fbbf24' },
+  { id: 'ui', name: 'UI/Theme', icon: '🎨', color: '#a78bfa' },
+  { id: 'web', name: 'Web', icon: '🌐', color: '#f87171' },
+];
+
+const EMOJI_OPTIONS = ['📁','🎮','🤖','🛠️','🎨','🌐','📱','💼','🎵','📚','🔧','⚡','🔥','💎','🎯','🚀','🎪','🎭','🎬','📷','🎁','🏆','⭐','💡'];
+const COLOR_OPTIONS = ['#60a5fa','#4ade80','#fbbf24','#a78bfa','#f87171','#fb923c','#22d3ee','#e879f9','#84cc16','#f472b6'];
+
+let scripts = [];
+let folders = [...DEFAULT_FOLDERS];
+let trash = [];
+let editId = null;
+let pendingDeleteId = null;
+let pendingDeleteAction = null;
+let currentView = 'dashboard';
+let viewMode = 'grid';
+let editingFolderId = null;
+let selectedEmoji = '📁';
+let selectedColor = '#60a5fa';
+
+/* ============ FIREBASE ============ */
+const FB = {
+  loadAll: async () => {
+    const snap = await db.ref('data').once('value');
+    return snap.val() || { scripts: [], folders: DEFAULT_FOLDERS, trash: [] };
   },
-  save: async (scripts) => {
-    await db.ref('scripts').set(scripts);
+  saveAll: async (data) => {
+    await db.ref('data').set(data);
   }
 };
 
-let scripts = [];
-let editId = null;
-let pendingDeleteId = null;
-
-function requestPin(scriptId, scriptName){
-  pendingDeleteId = scriptId;
-  document.getElementById('pinDesc').innerHTML = `Masukkan PIN untuk menghapus script <strong style="color:var(--text)">"${esc(scriptName)}"</strong>`;
+/* ============ PIN ============ */
+function requestPin(id, name, action='delete'){
+  pendingDeleteId = id;
+  pendingDeleteAction = action;
+  const actionText = action === 'trash' ? 'memindahkan ke trash' : 'menghapus permanen';
+  document.getElementById('pinDesc').innerHTML = `Masukkan PIN untuk ${actionText} <strong style="color:var(--text)">"${esc(name)}"</strong>`;
   document.getElementById('pinInput').value = '';
   document.getElementById('pinErr').textContent = '';
   document.getElementById('pinOverlay').classList.add('show');
   setTimeout(()=>document.getElementById('pinInput').focus(), 100);
 }
-
 function closePin(){
   document.getElementById('pinOverlay').classList.remove('show');
   pendingDeleteId = null;
+  pendingDeleteAction = null;
 }
-
 function verifyPin(){
   const input = document.getElementById('pinInput');
   const errEl = document.getElementById('pinErr');
@@ -377,21 +576,142 @@ function verifyPin(){
     return;
   }
   errEl.textContent = '';
-  executeDelete(pendingDeleteId);
+  executeDelete(pendingDeleteId, pendingDeleteAction);
 }
 
-async function executeDelete(id){
+async function executeDelete(id, action){
   closePin();
-  scripts = scripts.filter(s=>s.id!==id);
-  try{
-    await FIREBASE.save(scripts);
+  if (action === 'trash') {
+    // Pindah ke trash
+    const s = scripts.find(x=>x.id===id);
+    if (s) {
+      s.deletedAt = new Date().toISOString();
+      trash.push(s);
+      scripts = scripts.filter(x=>x.id!==id);
+    }
+    toast('🗑️ Script dipindah ke trash','ok');
+  } else if (action === 'restore') {
+    // Restore dari trash
+    const s = trash.find(x=>x.id===id);
+    if (s) {
+      delete s.deletedAt;
+      scripts.push(s);
+      trash = trash.filter(x=>x.id!==id);
+    }
+    toast('✅ Script dipulihkan','ok');
+  } else if (action === 'permadelete') {
+    // Hapus permanen dari trash
+    trash = trash.filter(x=>x.id!==id);
+    toast('🗑️ Script dihapus permanen','ok');
+  } else {
+    // Delete permanen langsung
+    scripts = scripts.filter(s=>s.id!==id);
     toast('🗑️ Script dihapus','ok');
-    document.getElementById('nCnt').textContent = scripts.length;
+  }
+  
+  try {
+    await FB.saveAll({ scripts, folders, trash });
     if(editId===id){ hideEditorNav(); newS(); }
     renderAll();
-  }catch(e){ toast('❌ Gagal: '+e.message,'err'); }
+  } catch(e) {
+    toast('❌ Gagal: '+e.message,'err');
+  }
 }
 
+/* ============ FOLDER MODAL ============ */
+function openFolderModal(folderId=null){
+  editingFolderId = folderId;
+  const title = document.getElementById('folderModalTitle');
+  const nameInput = document.getElementById('fName');
+  
+  if (folderId) {
+    const f = folders.find(x=>x.id===folderId);
+    if (!f) return;
+    title.textContent = 'Edit Folder';
+    nameInput.value = f.name;
+    selectedEmoji = f.icon;
+    selectedColor = f.color;
+  } else {
+    title.textContent = 'Buat Folder Baru';
+    nameInput.value = '';
+    selectedEmoji = '📁';
+    selectedColor = '#60a5fa';
+  }
+  
+  renderEmojiPicker();
+  renderColorPicker();
+  document.getElementById('folderOverlay').classList.add('show');
+  setTimeout(()=>nameInput.focus(), 100);
+}
+
+function closeFolderModal(){
+  document.getElementById('folderOverlay').classList.remove('show');
+  editingFolderId = null;
+}
+
+function renderEmojiPicker(){
+  const el = document.getElementById('emojiPicker');
+  el.innerHTML = EMOJI_OPTIONS.map(e => 
+    `<button type="button" class="${e===selectedEmoji?'selected':''}" onclick="selectEmoji('${e}')">${e}</button>`
+  ).join('');
+}
+
+function renderColorPicker(){
+  const el = document.getElementById('colorPicker');
+  el.innerHTML = COLOR_OPTIONS.map(c => 
+    `<button type="button" style="background:${c}" class="${c===selectedColor?'selected':''}" onclick="selectColor('${c}')"></button>`
+  ).join('');
+}
+
+function selectEmoji(e){ selectedEmoji = e; renderEmojiPicker(); }
+function selectColor(c){ selectedColor = c; renderColorPicker(); }
+
+async function saveFolder(){
+  const name = document.getElementById('fName').value.trim();
+  if (!name) { toast('Nama folder wajib diisi','err'); return; }
+  
+  if (editingFolderId) {
+    const f = folders.find(x=>x.id===editingFolderId);
+    if (f) {
+      f.name = name;
+      f.icon = selectedEmoji;
+      f.color = selectedColor;
+    }
+    toast('✅ Folder diupdate','ok');
+  } else {
+    const id = 'f_' + Date.now() + '_' + Math.random().toString(36).substr(2,4);
+    folders.push({ id, name, icon: selectedEmoji, color: selectedColor });
+    toast('✅ Folder dibuat','ok');
+  }
+  
+  try {
+    await FB.saveAll({ scripts, folders, trash });
+    closeFolderModal();
+    renderAll();
+  } catch(e) {
+    toast('❌ Gagal: '+e.message,'err');
+  }
+}
+
+async function deleteFolder(id){
+  const f = folders.find(x=>x.id===id);
+  if (!f) return;
+  if (!confirm(`Hapus folder "${f.name}"? Script di dalamnya akan pindah ke "Uncategorized".`)) return;
+  
+  // Pindah script ke folder null
+  scripts.forEach(s => { if (s.folder === id) s.folder = null; });
+  folders = folders.filter(x=>x.id!==id);
+  
+  try {
+    await FB.saveAll({ scripts, folders, trash });
+    toast('🗑️ Folder dihapus','ok');
+    renderAll();
+  } catch(e) {
+    toast('❌ Gagal: '+e.message,'err');
+  }
+}
+
+/* ============ TAMPERMONKEY ============ */
 function buildCode(s){
   let c = s.code||'';
   if(!/\/\/\s*==UserScript==/i.test(c)){
@@ -415,7 +735,7 @@ function buildCode(s){
 function openTMFromCard(event, scriptId){
   event.preventDefault();
   event.stopPropagation();
-  const s = scripts.find(x=>x.id===scriptId);
+  const s = scripts.find(x=>x.id===scriptId) || trash.find(x=>x.id===scriptId);
   if(!s){ toast('Script tidak ditemukan','err'); return false; }
   const code = buildCode(s);
   navigator.clipboard.writeText(code).then(()=>{
@@ -455,11 +775,15 @@ function fallbackCopy(text){
   document.body.removeChild(t);
 }
 
+/* ============ BOOT ============ */
 (async()=>{
   const lt = document.getElementById('loadTxt');
   try {
-    lt.textContent = 'Memuat script...';
-    scripts = await FIREBASE.load();
+    lt.textContent = 'Memuat data...';
+    const data = await FB.loadAll();
+    scripts = data.scripts || [];
+    folders = data.folders && data.folders.length ? data.folders : [...DEFAULT_FOLDERS];
+    trash = data.trash || [];
     
     document.getElementById('loading').classList.add('hide');
     document.getElementById('app').classList.add('show');
@@ -472,18 +796,252 @@ function fallbackCopy(text){
   }
 })();
 
+/* ============ NAVIGATION ============ */
+function go(view, folderId=null){
+  currentView = view;
+  
+  // Hide editor nav kalau bukan editor
+  if (view !== 'editor') hideEditorNav();
+  
+  document.querySelectorAll('.v').forEach(v=>v.classList.remove('on'));
+  document.querySelectorAll('.nav-i').forEach(i=>i.classList.remove('on'));
+  
+  const titles = {
+    dashboard: '📊 Dashboard',
+    all: '📦 All Scripts',
+    favorites: '⭐ Favorites',
+    recent: '🕐 Recent (7 hari)',
+    editor: '✏️ Editor',
+    trash: '🗑️ Trash',
+  };
+  
+  if (view === 'dashboard') {
+    document.getElementById('v-dashboard').classList.add('on');
+    document.querySelector('.nav-i[data-view="dashboard"]').classList.add('on');
+    document.getElementById('vTitle').textContent = titles.dashboard;
+    renderDash();
+  } else if (view === 'editor') {
+    document.getElementById('v-editor').classList.add('on');
+    document.querySelector('.nav-i[data-view="editor"]').classList.add('on');
+    document.getElementById('vTitle').textContent = titles.editor;
+  } else {
+    document.getElementById('v-scripts').classList.add('on');
+    
+    let navSelector = `.nav-i[data-view="${view}"]`;
+    if (view === 'folder') navSelector = `.nav-folder[data-id="${folderId}"]`;
+    const navEl = document.querySelector(navSelector);
+    if (navEl) navEl.classList.add('on');
+    
+    if (view === 'folder') {
+      const f = folders.find(x=>x.id===folderId);
+      document.getElementById('vTitle').textContent = `${f?f.icon:'📁'} ${f?f.name:'Folder'}`;
+      document.getElementById('listTitle').innerHTML = `${f?f.icon:'📁'} ${f?f.name:'Folder'}`;
+    } else {
+      document.getElementById('vTitle').textContent = titles[view];
+      document.getElementById('listTitle').textContent = titles[view];
+    }
+    
+    renderCurrentView();
+  }
+  
+  window._currentFolderId = folderId;
+}
+
+function setView(mode){
+  viewMode = mode;
+  document.getElementById('viewGrid').classList.toggle('on', mode==='grid');
+  document.getElementById('viewList').classList.toggle('on', mode==='list');
+  renderCurrentView();
+}
+
+function renderCurrentView(){
+  if (currentView === 'dashboard') { renderDash(); return; }
+  if (currentView === 'editor') return;
+  
+  let list = [];
+  if (currentView === 'all') list = scripts;
+  else if (currentView === 'favorites') list = scripts.filter(s=>s.favorite);
+  else if (currentView === 'recent') {
+    const week = Date.now() - 7*24*60*60*1000;
+    list = scripts.filter(s=>new Date(s.updated).getTime() > week);
+  }
+  else if (currentView === 'folder') list = scripts.filter(s=>s.folder===window._currentFolderId);
+  else if (currentView === 'trash') list = trash;
+  
+  // Search
+  const q = document.getElementById('qIn').value.toLowerCase();
+  if (q) list = list.filter(s=>
+    (s.name||'').toLowerCase().includes(q) ||
+    (s.desc||'').toLowerCase().includes(q) ||
+    (s.tags||'').toLowerCase().includes(q)
+  );
+  
+  // Sort
+  const sort = document.getElementById('sortSelect').value;
+  if (sort === 'newest') list.sort((a,b)=>new Date(b.updated)-new Date(a.updated));
+  else if (sort === 'oldest') list.sort((a,b)=>new Date(a.updated)-new Date(b.updated));
+  else if (sort === 'name') list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  else if (sort === 'size') list.sort((a,b)=>(b.code?.length||0)-(a.code?.length||0));
+  
+  document.getElementById('fCnt').textContent = list.length;
+  const c = document.getElementById('list');
+  
+  if (list.length === 0) {
+    const emptyMsg = currentView === 'trash' ? 'Trash kosong' : (q ? 'Tidak ditemukan' : 'Belum ada script');
+    const emptySub = currentView === 'trash' ? 'Script yang dihapus akan muncul di sini' : (q ? 'Coba kata kunci lain' : 'Klik "➕ Baru" untuk mulai');
+    c.innerHTML = `<div class="empty"><div class="ic">📭</div><h4>${emptyMsg}</h4><p>${emptySub}</p></div>`;
+    return;
+  }
+  
+  c.innerHTML = `<div class="grid ${viewMode==='list'?'list-view':''}">` + list.map(s => cardH(s, currentView==='trash')).join('') + '</div>';
+}
+
+/* ============ CARD ============ */
+function cardH(s, isTrash=false){
+  const folder = folders.find(f=>f.id===s.folder);
+  const folderColor = folder ? folder.color : '#60a5fa';
+  const isNew = (Date.now() - new Date(s.created).getTime()) < 24*60*60*1000;
+  const tags = (s.tags||'').split(',').map(t=>t.trim()).filter(t=>t);
+  const preview = (s.code||'').split('\n').slice(0,3).join('\n').substring(0,150);
+  
+  const actionsHtml = isTrash ? `
+    <button class="btn btn-ok" onclick="event.stopPropagation();restoreScript('${s.id}')">♻️ Restore</button>
+    <button class="btn btn-e" onclick="event.stopPropagation();requestPin('${s.id}','${esc(s.name)}','permadelete')">🔥 Hapus</button>
+  ` : `
+    <button class="btn btn-ok" onclick="openTMFromCard(event,'${s.id}')">🐒 TM</button>
+    <button class="btn btn-g" onclick="event.stopPropagation();editS('${s.id}')">✏️</button>
+    <button class="btn btn-warn" onclick="event.stopPropagation();quickCopy('${s.id}')">📋</button>
+    <button class="btn btn-g" onclick="event.stopPropagation();toggleFav('${s.id}')" style="${s.favorite?'color:#fbbf24':''}">${s.favorite?'⭐':'☆'}</button>
+    <button class="btn btn-e" onclick="event.stopPropagation();requestPin('${s.id}','${esc(s.name)}','trash')">🗑️</button>
+  `;
+  
+  return `<div class="card ${s.favorite?'favorite':''}" style="--card-color:${folderColor}" onclick="${isTrash?'':'editS(\''+s.id+'\')'}">
+    <div class="card-h">
+      <div class="card-ic" style="background:linear-gradient(135deg,${folderColor}22,${folderColor}11);border-color:${folderColor}44">${folder?folder.icon:'📄'}</div>
+      <div class="card-title-wrap">
+        <div class="card-t">
+          ${esc(s.name||'Unnamed')}
+          ${isNew?'<span class="badge-new">NEW</span>':''}
+        </div>
+        <div class="card-d">${esc(s.desc||'Tanpa deskripsi')}</div>
+      </div>
+    </div>
+    ${tags.length?`<div class="card-tags">${tags.slice(0,4).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
+    ${!isTrash && preview?`<div class="card-preview">${esc(preview)}</div>`:''}
+    <div class="card-m">
+      <span>📅 ${ago(s.updated)}</span>
+      <span>📦 ${s.code?formatSize(s.code.length):'0 B'}</span>
+      ${folder?`<span style="color:${folderColor}">${folder.icon} ${esc(folder.name)}</span>`:'<span>📁 Uncategorized</span>'}
+    </div>
+    <div class="card-a" onclick="event.stopPropagation()">${actionsHtml}</div>
+  </div>`;
+}
+
+function formatSize(bytes){
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(2) + ' MB';
+}
+
+async function toggleFav(id){
+  const s = scripts.find(x=>x.id===id);
+  if (!s) return;
+  s.favorite = !s.favorite;
+  try {
+    await FB.saveAll({ scripts, folders, trash });
+    toast(s.favorite?'⭐ Ditambahkan ke favorit':'☆ Dihapus dari favorit','ok');
+    renderAll();
+  } catch(e) {
+    toast('❌ Gagal: '+e.message,'err');
+  }
+}
+
+async function restoreScript(id){
+  const s = trash.find(x=>x.id===id);
+  if (!s) return;
+  delete s.deletedAt;
+  scripts.push(s);
+  trash = trash.filter(x=>x.id!==id);
+  try {
+    await FB.saveAll({ scripts, folders, trash });
+    toast('✅ Script dipulihkan','ok');
+    renderAll();
+  } catch(e) {
+    toast('❌ Gagal: '+e.message,'err');
+  }
+}
+
+/* ============ RENDER ============ */
+function renderAll(){
+  renderSidebar();
+  renderDash();
+  if (currentView !== 'dashboard' && currentView !== 'editor') renderCurrentView();
+  updateFolderSelect();
+}
+
+function renderSidebar(){
+  // Counts
+  document.getElementById('cntAll').textContent = scripts.length;
+  document.getElementById('cntFav').textContent = scripts.filter(s=>s.favorite).length;
+  const week = Date.now() - 7*24*60*60*1000;
+  document.getElementById('cntRecent').textContent = scripts.filter(s=>new Date(s.updated).getTime() > week).length;
+  document.getElementById('cntTrash').textContent = trash.length;
+  
+  // Folders
+  const fl = document.getElementById('folderList');
+  fl.innerHTML = folders.map(f => {
+    const count = scripts.filter(s=>s.folder===f.id).length;
+    return `<div class="nav-i nav-folder" data-view="folder" data-id="${f.id}" onclick="go('folder','${f.id}')">
+      <span class="folder-color" style="background:${f.color};color:${f.color}"></span>
+      <span class="ic">${f.icon}</span>
+      <span style="flex:1">${esc(f.name)}</span>
+      <span class="bdg">${count}</span>
+      <span class="folder-actions">
+        <button onclick="event.stopPropagation();openFolderModal('${f.id}')" title="Edit">✏️</button>
+        <button onclick="event.stopPropagation();deleteFolder('${f.id}')" title="Hapus">🗑️</button>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+function updateFolderSelect(){
+  const sel = document.getElementById('sFolder');
+  sel.innerHTML = '<option value="">📁 Uncategorized</option>' + 
+    folders.map(f => `<option value="${f.id}">${f.icon} ${esc(f.name)}</option>`).join('');
+}
+
+function renderDash(){
+  document.getElementById('sTot').textContent = scripts.length;
+  const ch = scripts.reduce((a,s)=>a+(s.code?s.code.length:0),0);
+  document.getElementById('sChr').textContent = ch.toLocaleString('id-ID');
+  document.getElementById('sFld').textContent = folders.length;
+  document.getElementById('sFav').textContent = scripts.filter(s=>s.favorite).length;
+  
+  // Recent 5
+  const recent = [...scripts].sort((a,b)=>new Date(b.updated)-new Date(a.updated)).slice(0,5);
+  document.getElementById('recent').innerHTML = recent.length===0
+    ? '<div class="empty"><div class="ic">📭</div><h4>Belum ada script</h4><p>Klik "➕ Baru" untuk membuat script pertama</p></div>'
+    : '<div class="grid">' + recent.map(s=>cardH(s)).join('') + '</div>';
+  
+  // Top favorites
+  const favs = scripts.filter(s=>s.favorite).sort((a,b)=>new Date(b.updated)-new Date(a.updated)).slice(0,5);
+  document.getElementById('topFav').innerHTML = favs.length===0
+    ? '<div class="empty" style="padding:30px"><div class="ic">⭐</div><h4>Belum ada favorit</h4><p>Klik ☆ di card script untuk menambahkan</p></div>'
+    : '<div class="grid">' + favs.map(s=>cardH(s)).join('') + '</div>';
+}
+
+/* ============ EDITOR ============ */
 function showEditorNav(){
-  const e = document.querySelector('.nav-i[data-v="editor"]');
+  const e = document.querySelector('.nav-i[data-view="editor"]');
   if(e && !e.classList.contains('show')) e.classList.add('show');
 }
 function hideEditorNav(){
-  const e = document.querySelector('.nav-i[data-v="editor"]');
+  const e = document.querySelector('.nav-i[data-view="editor"]');
   if(e) e.classList.remove('show');
 }
 function newScriptFromTop(){showEditorNav();newS();go('editor')}
 
 function init(){
-  document.getElementById('nCnt').textContent = scripts.length;
   renderAll();
   
   const ta = document.getElementById('sCode');
@@ -500,79 +1058,12 @@ function init(){
   document.getElementById('pinOverlay').addEventListener('click', e=>{
     if(e.target.id==='pinOverlay') closePin();
   });
-}
-
-function renderAll(){renderDash();renderList()}
-
-function renderDash(){
-  document.getElementById('sTot').textContent = scripts.length;
-  const ch = scripts.reduce((a,s)=>a+(s.code?s.code.length:0),0);
-  document.getElementById('sChr').textContent = ch.toLocaleString('id-ID');
-  const srt = [...scripts].sort((a,b)=>new Date(b.updated)-new Date(a.updated));
-  document.getElementById('sLast').textContent = srt[0]?ago(srt[0].updated):'Belum ada';
-  const rec = srt.slice(0,5);
-  const c = document.getElementById('recent');
-  c.innerHTML = rec.length===0
-    ? emptyH('Belum ada script','Klik "➕ Baru" untuk membuat script pertama')
-    : '<div class="grid">'+rec.map(cardH).join('')+'</div>';
-}
-
-function renderList(){
-  const q = document.getElementById('qIn').value.toLowerCase();
-  const f = scripts.filter(s=>(s.name||'').toLowerCase().includes(q)||(s.desc||'').toLowerCase().includes(q));
-  document.getElementById('fCnt').textContent = f.length;
-  const c = document.getElementById('list');
-  c.innerHTML = f.length===0
-    ? emptyH(q?'Tidak ditemukan':'Vault kosong',q?'Coba kata kunci lain':'Klik "➕ Baru" untuk mulai')
-    : '<div class="grid">'+f.sort((a,b)=>new Date(b.updated)-new Date(a.updated)).map(cardH).join('')+'</div>';
-}
-
-function cardH(s){
-  return `<div class="card" onclick="editS('${s.id}')">
-    <div class="card-h">
-      <div class="card-ic">${icon(s.name)}</div>
-      <div style="flex:1;min-width:0">
-        <div class="card-t">${esc(s.name||'Unnamed')}</div>
-        <div class="card-d">${esc(s.desc||'Tanpa deskripsi')}</div>
-      </div>
-    </div>
-    <div class="card-m"><span>📅 ${ago(s.updated)}</span><span>📝 ${s.code?(s.code.length/1024).toFixed(1)+'KB':'0KB'}</span></div>
-    <div class="card-a" onclick="event.stopPropagation()">
-      <button class="btn btn-ok" onclick="openTMFromCard(event,'${s.id}')">🐒 Buka TM</button>
-      <button class="btn btn-g" onclick="editS('${s.id}')">✏️ Edit</button>
-      <button class="btn btn-warn" onclick="quickCopy('${s.id}')">📋 Copy</button>
-      <button class="btn btn-e" onclick="quickDel('${s.id}')">🗑️ Hapus</button>
-    </div>
-  </div>`;
-}
-
-function emptyH(t,m){
-  return `<div class="empty"><div class="ic">📭</div><h4>${t}</h4><p>${m}</p>${t==='Belum ada script'?'<button class="btn btn-p" onclick="newScriptFromTop()">➕ Buat Script Pertama</button>':''}</div>`;
-}
-
-function icon(n){
-  if(!n)return'📄';const l=n.toLowerCase();
-  if(l.includes('auto')||l.includes('bot'))return'🤖';
-  if(l.includes('click'))return'👆';
-  if(l.includes('download')||l.includes('dl'))return'⬇️';
-  if(l.includes('skip')||l.includes('bypass'))return'⏭️';
-  if(l.includes('theme')||l.includes('ui'))return'🎨';
-  if(l.includes('game'))return'🎮';
-  if(l.includes('youtube')||l.includes('yt'))return'▶️';
-  if(l.includes('scraper')||l.includes('scrape'))return'🕷️';
-  return'📜';
-}
-
-function go(n){
-  document.querySelectorAll('.v').forEach(v=>v.classList.remove('on'));
-  document.getElementById('v-'+n).classList.add('on');
-  document.querySelectorAll('.nav-i').forEach(i=>i.classList.remove('on'));
-  const nv = document.querySelector(`.nav-i[data-v="${n}"]`);
-  if(nv)nv.classList.add('on');
-  const t = {dashboard:'📊 Dashboard',scripts:'📜 Script',editor:'✏️ Editor'};
-  document.getElementById('vTitle').textContent = t[n];
-  if(n==='dashboard')renderDash();
-  if(n==='scripts')renderList();
+  document.getElementById('folderOverlay').addEventListener('click', e=>{
+    if(e.target.id==='folderOverlay') closeFolderModal();
+  });
+  document.getElementById('fName').addEventListener('keydown', e=>{
+    if(e.key==='Enter') saveFolder();
+  });
 }
 
 function newS(){
@@ -580,6 +1071,8 @@ function newS(){
   document.getElementById('sName').value='';
   document.getElementById('sDesc').value='';
   document.getElementById('sCode').value='';
+  document.getElementById('sTags').value='';
+  document.getElementById('sFolder').value = window._currentFolderId && window._currentFolderId!=='dashboard' && !['all','favorites','recent','trash'].includes(window._currentFolderId) ? window._currentFolderId : '';
   document.getElementById('edTitle').textContent='✏️ Script Baru';
   document.getElementById('bDel').style.display='none';
   updateStats();
@@ -591,6 +1084,8 @@ function editS(id){
   document.getElementById('sName').value=s.name||'';
   document.getElementById('sDesc').value=s.desc||'';
   document.getElementById('sCode').value=s.code||'';
+  document.getElementById('sTags').value=s.tags||'';
+  document.getElementById('sFolder').value=s.folder||'';
   document.getElementById('edTitle').textContent='✏️ '+(s.name||'Unnamed');
   document.getElementById('bDel').style.display='inline-flex';
   updateStats();
@@ -608,25 +1103,33 @@ async function saveS(){
   const name = document.getElementById('sName').value.trim();
   const desc = document.getElementById('sDesc').value.trim();
   const code = document.getElementById('sCode').value;
+  const tags = document.getElementById('sTags').value.trim();
+  const folder = document.getElementById('sFolder').value;
+  
   if(!name){toast('Nama wajib diisi','err');return}
   if(!code){toast('Code kosong','err');return}
+  
   const now = new Date().toISOString();
   if(editId){
     const i = scripts.findIndex(s=>s.id===editId);
-    if(i>=0) scripts[i] = {...scripts[i],name,desc,code,updated:now};
+    if(i>=0) scripts[i] = {...scripts[i],name,desc,code,tags,folder,updated:now};
   } else {
-    const ns = {id:'s_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),name,desc,code,created:now,updated:now};
+    const ns = {
+      id:'s_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),
+      name,desc,code,tags,folder,
+      favorite:false,
+      created:now,updated:now
+    };
     scripts.push(ns);
     editId = ns.id;
   }
   try{
     toast('Menyimpan ke Firebase...','info');
-    await FIREBASE.save(scripts);
+    await FB.saveAll({ scripts, folders, trash });
     document.getElementById('edTitle').textContent='✏️ '+name;
     document.getElementById('bDel').style.display='inline-flex';
-    document.getElementById('nCnt').textContent = scripts.length;
     renderAll();
-    toast('✅ Tersimpan di Firebase','ok');
+    toast('✅ Tersimpan','ok');
   }catch(e){ console.error(e); toast('❌ Gagal: '+e.message,'err'); }
 }
 
@@ -634,13 +1137,7 @@ async function delS(){
   if(!editId){toast('Tidak ada script yang dipilih','err');return}
   const s = scripts.find(x=>x.id===editId);
   if(!s) return;
-  requestPin(editId, s.name);
-}
-
-function quickDel(id){
-  const s = scripts.find(x=>x.id===id);
-  if(!s) return;
-  requestPin(id, s.name);
+  requestPin(editId, s.name, 'trash');
 }
 
 function quickCopy(id){
@@ -653,15 +1150,18 @@ function quickCopy(id){
 
 function copyCode(){
   const c = document.getElementById('sCode').value;
-  if(c)navigator.clipboard.writeText(c).then(()=>toast('📋 Disalin ke clipboard','ok'))
+  if(c)navigator.clipboard.writeText(c).then(()=>toast('📋 Disalin','ok'))
     .catch(()=>{fallbackCopy(c);toast('📋 Disalin','ok')});
   else toast('Code kosong','err');
 }
 
 async function sync(){
   try{
-    toast('Syncing dari Firebase...','info');
-    scripts = await FIREBASE.load();
+    toast('Syncing...','info');
+    const data = await FB.loadAll();
+    scripts = data.scripts || [];
+    folders = data.folders || [...DEFAULT_FOLDERS];
+    trash = data.trash || [];
     renderAll();
     toast('✅ Sync OK','ok');
   }catch(e){toast('❌ Gagal: '+e.message,'err')}
