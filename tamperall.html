@@ -499,6 +499,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
       <div class="side-ft-left">v13.0 · Public</div>
       <button class="side-ft-btn" onclick="forceClean()">🐒 Clean</button>
     </div>
+    <!-- TAMBAHAN: NAMA PEMILIK APLIKASI -->
+    <div style="text-align:center; font-size:11px; color:var(--text-4); margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
+      👑 App by: <strong style="color:var(--accent);">[Nama Pemilik]</strong>
+    </div>
   </aside>
 
   <main class="main">
@@ -557,6 +561,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
       </div>
     </div>
     <div class="f"><label>Nama Script</label><input type="text" id="sName" placeholder="Contoh: Auto Click Bot" maxlength="80"></div>
+    <!-- TAMBAHAN: INPUT PEMILIK SCRIPT -->
+    <div class="f"><label>Pemilik / Author</label><input type="text" id="sAuthor" placeholder="Nama pemilik script ini" maxlength="50"></div>
     <div class="f"><label>Deskripsi</label><input type="text" id="sDesc" placeholder="Opsional" maxlength="200"></div>
     <div class="f">
       <label>Script Code</label>
@@ -757,11 +763,13 @@ function buildCode(s){
   if(!/\/\/\s*==UserScript==/i.test(c)){
     const n = (s.name||'Script').replace(/\*\//g,'* /');
     const d = (s.desc||'').replace(/\*\//g,'* /');
+    const a = (s.author||'ScriptVault User').replace(/\*\//g,'* /');
     c = `// ==UserScript==
 // @name         ${n}
 // @namespace    scriptvault.local
 // @version      1.0
 // @description  ${d||'Script from ScriptVault'}
+// @author       ${a}
 // @match        *://*/*
 // @grant        none
 // @run-at       document-idle
@@ -788,7 +796,7 @@ function openTMFromEditor(){
   const desc = document.getElementById('sDesc').value.trim();
   if(!name){toast('Isi nama script dulu','err');return false}
   if(!code){toast('Code kosong','err');return false}
-  const built = buildCode({name,desc,code});
+  const built = buildCode({name,desc,code,author:document.getElementById('sAuthor').value.trim()});
   navigator.clipboard.writeText(built).then(()=>tryOpenTM()).catch(()=>{fallbackCopy(built);tryOpenTM()});
   return false;
 }
@@ -858,7 +866,7 @@ function renderDash(){
 
 function renderList(){
   const q = document.getElementById('qIn').value.toLowerCase();
-  const f = scripts.filter(s=>s && ((s.name||'').toLowerCase().includes(q)||(s.desc||'').toLowerCase().includes(q)));
+  const f = scripts.filter(s=>s && ((s.name||'').toLowerCase().includes(q)||(s.desc||'').toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)));
   document.getElementById('fCnt').textContent = f.length;
   const c = document.getElementById('list');
   c.innerHTML = f.length===0
@@ -868,12 +876,14 @@ function renderList(){
 
 function cardH(s){
   const displayName = s.name || 'Unnamed';
+  const authorHtml = s.author ? `<div style="font-size:11px; color:var(--text-3); margin-top:6px; display:flex; align-items:center; gap:6px; font-weight:500;"><span>👤</span> ${esc(s.author)}</div>` : '';
   return `<div class="card">
     <div class="card-h" onclick="editS('${s.id}')" style="cursor:pointer">
       <div class="card-ic">🐒</div>
       <div class="card-body">
         <div class="card-t">${esc(displayName)}</div>
         <div class="card-d">${esc(s.desc||'Tanpa deskripsi')}</div>
+        ${authorHtml}
       </div>
     </div>
     <div class="card-m">
@@ -897,6 +907,7 @@ function emptyH(t,m){
 function newS(){
   editId = null;
   document.getElementById('sName').value='';
+  document.getElementById('sAuthor').value='';
   document.getElementById('sDesc').value='';
   document.getElementById('sCode').value='';
   document.getElementById('edTitle').textContent='🐒 Script Baru';
@@ -910,9 +921,10 @@ function editS(id){
   if(!s){toast('❌ Script tidak ditemukan','err');return}
   editId = id;
   document.getElementById('sName').value=s.name||'';
+  document.getElementById('sAuthor').value=s.author||'';
   document.getElementById('sDesc').value=s.desc||'';
   document.getElementById('sCode').value=s.code||'';
-  document.getElementById('edTitle').textContent=' '+(s.name||'Unnamed');
+  document.getElementById('edTitle').textContent='🐒 '+(s.name||'Unnamed');
   document.getElementById('bDel').style.display='inline-flex';
   updateStats();
   openEditor();
@@ -926,6 +938,7 @@ function updateStats(){
 
 async function saveS(){
   const name = document.getElementById('sName').value.trim();
+  const author = document.getElementById('sAuthor').value.trim();
   const desc = document.getElementById('sDesc').value.trim();
   const code = document.getElementById('sCode').value;
   if(!name){toast('Nama wajib diisi','err');return}
@@ -933,16 +946,16 @@ async function saveS(){
   const now = new Date().toISOString();
   if(editId){
     const i = scripts.findIndex(s=>s && s.id===editId);
-    if(i>=0) scripts[i] = {...scripts[i],name,desc,code,updated:now};
+    if(i>=0) scripts[i] = {...scripts[i],name,author,desc,code,updated:now};
   } else {
-    const ns = {id:'s_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),name,desc,code,created:now,updated:now};
+    const ns = {id:'s_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),name,author,desc,code,created:now,updated:now};
     scripts.push(ns);
     editId = ns.id;
   }
   try{
     toast('Menyimpan ke Firebase...','info');
     await FIREBASE.save(scripts);
-    document.getElementById('edTitle').textContent=' '+name;
+    document.getElementById('edTitle').textContent='🐒 '+name;
     document.getElementById('bDel').style.display='inline-flex';
     renderAll();
     toast('✅ Tersimpan di Firebase','ok');
