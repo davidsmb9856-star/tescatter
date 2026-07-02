@@ -18,178 +18,251 @@
   --grad-warn:linear-gradient(135deg,#f59e0b,#d97706);
   --grad-err:linear-gradient(135deg,#ef4444,#dc2626);
   --grad-purple:linear-gradient(135deg,#a855f7,#7c3aed);
+  --sh-sm:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.4);
+  --sh-md:0 4px 6px -1px rgba(0,0,0,.4),0 2px 4px -2px rgba(0,0,0,.4);
+  --sh-lg:0 10px 15px -3px rgba(0,0,0,.5),0 4px 6px -4px rgba(0,0,0,.5);
+  --sh-xl:0 20px 25px -5px rgba(0,0,0,.6),0 8px 10px -6px rgba(0,0,0,.6);
   --radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;
+  --max-w:1000px;
 }
 html,body{height:100%;overflow:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;background:var(--bg-0);color:var(--text);-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Segoe UI',sans-serif;background:var(--bg-0);color:var(--text);letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
 
 .bg-mesh{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 .bg-mesh::before{content:'';position:absolute;width:800px;height:800px;background:radial-gradient(circle,rgba(6,182,212,.06) 0%,transparent 70%);top:-300px;left:-300px;animation:meshFloat1 25s ease-in-out infinite}
 .bg-mesh::after{content:'';position:absolute;width:700px;height:700px;background:radial-gradient(circle,rgba(59,130,246,.05) 0%,transparent 70%);bottom:-250px;right:-250px;animation:meshFloat2 30s ease-in-out infinite}
 @keyframes meshFloat1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(120px,100px) scale(1.15)}}
 @keyframes meshFloat2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-100px,-80px) scale(1.1)}}
+.bg-noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-#loading{position:fixed;inset:0;background:var(--bg-0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;z-index:999}
-.loader-wrap{position:relative;width:80px;height:80px}
-.loader-ring{position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--accent);animation:spin 1s linear infinite}
-.loader-ring:nth-child(2){inset:8px;border-top-color:var(--info);animation-duration:.8s;animation-direction:reverse}
-@keyframes spin{to{transform:rotate(360deg)}}
-#loading p{color:var(--text-2);font-size:14px}
+#loading{position:fixed;inset:0;background:var(--bg-0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:999;transition:opacity .6s}
+#loading.hide{opacity:0;pointer-events:none}
+.loader-wrap{position:relative;width:90px;height:90px}
+.loader-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:var(--accent);border-right-color:rgba(59,130,246,.25);animation:loaderSpin 1.8s cubic-bezier(.5,0,.5,1) infinite}
+.loader-ring:nth-child(2){inset:10px;border-top-color:var(--info);border-right-color:rgba(6,182,212,.25);animation-duration:1.2s;animation-direction:reverse}
+.loader-core{position:absolute;inset:20px;border-radius:50%;background:linear-gradient(135deg,var(--bg-3),var(--bg-2));border:1px solid var(--border-hi);display:grid;place-items:center;font-size:32px;animation:monkeyPulse 2.5s ease-in-out infinite;box-shadow:var(--sh-md)}
+@keyframes loaderSpin{to{transform:rotate(360deg)}}
+@keyframes monkeyPulse{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.15) rotate(180deg)}}
+#loading p{color:var(--text-2);font-size:15px;font-weight:500;text-align:center}
+#loading small{color:var(--text-4);font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:600}
 
-.app{display:grid;grid-template-columns:260px 1fr;height:100vh;opacity:0;transition:opacity .5s}
+.app{position:relative;z-index:1;display:grid;grid-template-columns:280px 1fr;height:100vh;opacity:0;transition:opacity .7s}
 .app.show{opacity:1}
 
-.side{background:linear-gradient(180deg,var(--bg-1),var(--bg-0));border-right:1px solid var(--border);padding:20px 16px;display:flex;flex-direction:column}
-.logo{display:flex;align-items:center;gap:12px;padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:20px}
-.logo-ic{width:44px;height:44px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--bg-3),var(--bg-2));display:grid;place-items:center;font-size:24px}
-.logo-text h1{font-size:16px;font-weight:700}
-.logo-text small{font-size:10px;color:var(--text-4);text-transform:uppercase;letter-spacing:2px}
+.side{background:linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 20px;overflow-y:auto;position:relative}
+.side::before{content:'';position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(180deg,transparent,var(--border-hi),transparent)}
 
-/* DOMAIN WARNING */
-.domain-warning{background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(220,38,38,.08));border:1px solid rgba(239,68,68,.3);border-radius:var(--radius-md);padding:14px;margin-bottom:16px}
-.domain-warning h4{font-size:12px;color:var(--err);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.domain-warning p{font-size:11px;color:var(--text-3);line-height:1.6;margin-bottom:10px}
-.domain-warning code{background:rgba(0,0,0,.4);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:10px;color:var(--warn)}
-.domain-warning a{display:inline-block;background:var(--grad-err);color:#fff;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;margin-top:8px;transition:all .2s}
-.domain-warning a:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.logo{display:flex;align-items:center;gap:14px;padding-bottom:24px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.logo-ic{width:52px;height:52px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--bg-3),var(--bg-2));border:1px solid var(--border-hi);display:grid;place-items:center;font-size:28px;box-shadow:var(--sh-sm);animation:monkeyDance 5s ease-in-out infinite;transition:all .4s;cursor:pointer}
+.logo-ic:hover{animation:monkeySpinFast 1s ease-in-out infinite;transform:scale(1.18);box-shadow:0 0 32px rgba(6,182,212,.4)}
+@keyframes monkeyDance{0%,100%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-5px) rotate(-12deg)}50%{transform:translateY(0) rotate(0deg)}75%{transform:translateY(-5px) rotate(12deg)}}
+@keyframes monkeySpinFast{0%{transform:scale(1.18) rotate(0deg)}100%{transform:scale(1.18) rotate(360deg)}}
+.logo-text h1{font-size:18px;font-weight:800;letter-spacing:-.03em;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2}
+.logo-text small{font-size:10px;color:var(--text-4);letter-spacing:3px;text-transform:uppercase;font-weight:600;margin-top:3px;display:block}
 
-.user-card{background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04));border:1px solid rgba(168,85,247,.2);border-radius:var(--radius-md);padding:12px;margin-bottom:16px}
+/* USER CARD */
+.user-card{background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04));border:1px solid rgba(168,85,247,.2);border-radius:var(--radius-md);padding:14px;margin:12px 0;display:flex;align-items:center;gap:12px;transition:all .3s;position:relative}
 .user-card.logged{cursor:pointer}
-.user-card.logged:hover{border-color:rgba(168,85,247,.4);transform:translateY(-2px)}
-.user-header{display:flex;align-items:center;gap:10px}
-.user-avatar{width:36px;height:36px;border-radius:50%;background:var(--grad-purple);display:grid;place-items:center;font-size:14px;font-weight:700}
-.user-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.user-card.logged:hover{border-color:rgba(168,85,247,.4);transform:translateY(-2px);box-shadow:0 4px 16px rgba(168,85,247,.15)}
+.user-avatar{width:42px;height:42px;border-radius:50%;background:var(--grad-purple);display:grid;place-items:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;border:2px solid rgba(255,255,255,.1)}
+.user-avatar img{width:100%;height:100%;object-fit:cover}
 .user-info{flex:1;min-width:0}
-.user-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.user-email{font-size:10px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.user-badge{font-size:9px;padding:2px 6px;border-radius:4px;margin-left:4px}
-.user-badge.google{background:rgba(34,197,94,.2);color:var(--ok)}
-.user-badge.manual{background:rgba(245,158,11,.2);color:var(--warn)}
-.user-logout{color:var(--text-4);cursor:pointer;padding:4px}
-.user-logout:hover{color:var(--err)}
+.user-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email{font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
+.user-email .verified{color:var(--ok);font-size:10px}
+.user-email .manual{color:var(--warn);font-size:10px}
+.user-logout{color:var(--text-4);font-size:14px;padding:4px;cursor:pointer;transition:all .2s;border-radius:6px}
+.user-logout:hover{color:var(--err);background:rgba(239,68,68,.1)}
 
-.btn-google{width:100%;padding:10px;background:#fff;color:#3c4043;border:none;border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
-.btn-google:hover{background:#f8f9fa}
-.btn-google svg{width:16px;height:16px}
-.btn-manual{width:100%;padding:9px;background:var(--glass-2);color:var(--text);border:1px solid var(--border-hi);border-radius:var(--radius-md);font-size:11px;font-weight:600;cursor:pointer}
-.btn-manual:hover{background:var(--glass-3)}
+.btn-google{width:100%;padding:11px;background:#fff;color:#3c4043;border:none;border-radius:var(--radius-md);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .25s;box-shadow:var(--sh-sm);font-family:inherit;margin-bottom:8px}
+.btn-google:hover{background:#f8f9fa;transform:translateY(-1px);box-shadow:var(--sh-md)}
+.btn-google svg{width:18px;height:18px}
+.btn-manual{width:100%;padding:10px;background:var(--glass-2);color:var(--text);border:1px solid var(--border-hi);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .25s;font-family:inherit}
+.btn-manual:hover{background:var(--glass-3);border-color:var(--border-max);transform:translateY(-1px)}
 
-.nav{flex:1}
-.nav-lbl{font-size:10px;color:var(--text-4);text-transform:uppercase;letter-spacing:2px;padding:14px 12px 8px;font-weight:700}
-.nav-i{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:var(--radius-md);cursor:pointer;color:var(--text-2);font-size:13px;margin:2px 0;transition:all .2s}
-.nav-i:hover{background:var(--glass-2);color:var(--text)}
-.nav-i.on{background:linear-gradient(135deg,rgba(6,182,212,.15),rgba(59,130,246,.1));color:var(--text);border:1px solid rgba(6,182,212,.25)}
-.nav-i .ic{font-size:18px;width:20px;text-align:center}
-.nav-i .badge{margin-left:auto;background:var(--glass-3);font-size:9px;padding:2px 6px;border-radius:8px}
+.nav{display:flex;flex-direction:column;gap:6px;flex:1}
+.nav-lbl{font-size:11px;color:var(--text-4);text-transform:uppercase;letter-spacing:2.5px;padding:18px 14px 12px;font-weight:700;display:flex;align-items:center;gap:10px}
+.nav-lbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+.nav-i{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:var(--radius-md);cursor:pointer;color:var(--text-2);font-size:14px;font-weight:500;transition:all .3s;position:relative;margin:2px 0}
+.nav-i:hover{background:var(--glass-2);color:var(--text);transform:translateX(4px)}
+.nav-i.on{background:linear-gradient(135deg,rgba(6,182,212,.15),rgba(59,130,246,.1));color:var(--text);border:1px solid rgba(6,182,212,.25);box-shadow:0 4px 16px rgba(6,182,212,.12)}
+.nav-i.on::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--grad-accent);border-radius:0 3px 3px 0;box-shadow:0 0 10px rgba(6,182,212,.6)}
+.nav-i .ic{font-size:20px;width:24px;text-align:center}
+.nav-i .badge{margin-left:auto;background:var(--glass-3);color:var(--text-3);font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
 
-.side-ft{padding-top:16px;border-top:1px solid var(--border);font-size:10px;color:var(--text-4);display:flex;justify-content:space-between}
-.side-credit{text-align:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);font-size:10px;color:var(--text-4)}
-.side-credit strong{color:var(--accent)}
+.side-ft{margin-top:auto;padding-top:20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-4);display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.side-ft-left{display:flex;align-items:center;gap:8px;font-weight:500}
+.side-ft-left::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok);animation:pulse 2.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.side-ft-btn{background:var(--glass-2);border:1px solid var(--border);color:var(--text-3);padding:8px 14px;border-radius:var(--radius-sm);font-size:11px;cursor:pointer;transition:all .25s;font-family:inherit;font-weight:600}
+.side-ft-btn:hover{color:var(--err);border-color:var(--err);background:rgba(239,68,68,.1);transform:translateY(-1px)}
+.side-credit{text-align:center;font-size:11px;color:var(--text-4);margin-top:16px;padding-top:16px;border-top:1px dashed var(--border);line-height:1.6}
+.side-credit strong{color:var(--accent);font-weight:600}
 
-.main{display:flex;flex-direction:column;overflow:hidden}
-.top{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;border-bottom:1px solid var(--border);background:rgba(15,15,18,.8);backdrop-filter:blur(20px)}
-.top h2{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px}
-.top-r{display:flex;gap:10px;align-items:center}
+.main{display:flex;flex-direction:column;overflow:hidden;position:relative}
+.top{display:flex;align-items:center;justify-content:space-between;padding:20px 36px;border-bottom:1px solid var(--border);background:rgba(15,15,18,.75);backdrop-filter:blur(28px);gap:18px;z-index:2}
+.top h2{font-size:24px;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:14px}
+.top h2::before{content:'';width:5px;height:26px;background:var(--grad-accent);border-radius:3px;box-shadow:0 0 12px rgba(6,182,212,.6)}
+.top-r{display:flex;gap:12px;align-items:center}
 
-.search{display:flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:9px 14px;width:260px}
-.search:focus-within{border-color:var(--accent)}
-.search input{background:none;border:none;outline:none;color:var(--text);flex:1;font-size:13px}
+.search{display:flex;align-items:center;gap:10px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 18px;width:300px;transition:all .3s}
+.search:focus-within{border-color:var(--accent);background:var(--glass-2);box-shadow:0 0 0 4px rgba(6,182,212,.12)}
+.search input{background:none;border:none;outline:none;color:var(--text);flex:1;font-size:14px;font-family:inherit;font-weight:500}
 .search input::placeholder{color:var(--text-4)}
 
-.btn{padding:9px 16px;border:none;border-radius:var(--radius-md);cursor:pointer;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .2s}
-.btn-p{background:var(--grad-accent);color:#fff}
-.btn-p:hover{transform:translateY(-2px)}
-.btn-ok{background:var(--grad-ok);color:#fff}
-.btn-warn{background:var(--grad-warn);color:#fff}
-.btn-e{background:var(--grad-err);color:#fff}
-.btn-purple{background:var(--grad-purple);color:#fff}
-.btn-g{background:var(--glass-2);color:var(--text);border:1px solid var(--border-hi)}
-.btn-g:hover{background:var(--glass-3)}
-.btn-ic{width:38px;height:38px;padding:0;display:grid;place-items:center;background:var(--glass-2);border:1px solid var(--border);border-radius:var(--radius-md);cursor:pointer}
-.btn-ic:hover{border-color:var(--accent)}
+.btn{padding:11px 20px;border:none;border-radius:var(--radius-md);cursor:pointer;font-size:13px;font-weight:600;transition:all .3s;display:inline-flex;align-items:center;gap:8px;font-family:inherit;position:relative;overflow:hidden}
+.btn-p{background:var(--grad-accent);color:#fff;box-shadow:var(--sh-sm),0 0 0 1px rgba(6,182,212,.35)}
+.btn-p:hover{transform:translateY(-2px);box-shadow:var(--sh-md),0 0 24px rgba(6,182,212,.35)}
+.btn-ok{background:var(--grad-ok);color:#fff;box-shadow:var(--sh-sm)}
+.btn-ok:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.btn-warn{background:var(--grad-warn);color:#fff;box-shadow:var(--sh-sm)}
+.btn-warn:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.btn-e{background:var(--grad-err);color:#fff;box-shadow:var(--sh-sm)}
+.btn-e:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.btn-purple{background:var(--grad-purple);color:#fff;box-shadow:var(--sh-sm)}
+.btn-purple:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.btn-g{background:var(--glass-2);color:var(--text);border:1px solid var(--border-hi);backdrop-filter:blur(12px)}
+.btn-g:hover{background:var(--glass-3);border-color:var(--border-max);transform:translateY(-2px)}
+.btn-ic{width:44px;height:44px;padding:0;display:grid;place-items:center;background:var(--glass-2);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-2);cursor:pointer;transition:all .3s;font-size:20px}
+.btn-ic:hover{color:var(--text);border-color:var(--accent);background:var(--glass-3);transform:scale(1.08);box-shadow:0 0 16px rgba(6,182,212,.25)}
 
-.ct{flex:1;overflow-y:auto;padding:24px 28px}
-.container{max-width:900px;margin:0 auto}
+.ct{flex:1;overflow-y:auto;padding:32px 36px;position:relative;z-index:1}
+.ct::-webkit-scrollbar{width:10px}
+.ct::-webkit-scrollbar-track{background:transparent}
+.ct::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:10px;border:3px solid var(--bg-0)}
+.ct::-webkit-scrollbar-thumb:hover{background:var(--bg-4)}
 
-.bento{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px}
-.bento-stat{background:linear-gradient(135deg,var(--bg-2),var(--bg-1));border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
-.bento-lbl{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;display:flex;align-items:center;gap:8px}
-.bento-val{font-size:32px;font-weight:800;margin-top:8px;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.bento-sub{font-size:11px;color:var(--text-4);margin-top:6px}
+.container{max-width:var(--max-w);margin:0 auto}
 
-.section{background:linear-gradient(135deg,var(--bg-2),rgba(15,15,18,.6));border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:20px}
-.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-.sh h3{font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
-.sh h3 .bar{width:4px;height:18px;background:var(--grad-accent);border-radius:2px}
-.sh small{font-size:11px;color:var(--text-3);background:var(--glass-2);padding:4px 12px;border-radius:16px}
+.bento{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:32px}
+.bento-stat{background:linear-gradient(135deg,var(--bg-2),var(--bg-1));border:1px solid var(--border);border-radius:var(--radius-lg);padding:26px;position:relative;overflow:hidden;transition:all .4s}
+.bento-stat::before{content:'';position:absolute;top:-50px;right:-50px;width:140px;height:140px;border-radius:50%;filter:blur(60px);opacity:.18;transition:opacity .4s}
+.bento-stat:nth-child(1)::before{background:var(--accent)}
+.bento-stat:nth-child(2)::before{background:var(--info)}
+.bento-stat:nth-child(3)::before{background:var(--purple)}
+.bento-stat:nth-child(4)::before{background:var(--ok)}
+.bento-stat:hover{border-color:var(--border-hi);transform:translateY(-5px);box-shadow:var(--sh-lg)}
+.bento-stat:hover::before{opacity:.32}
+.bento-lbl{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:2px;font-weight:700;display:flex;align-items:center;gap:10px}
+.bento-lbl .ic{font-size:20px}
+.bento-val{font-size:40px;font-weight:800;margin-top:12px;letter-spacing:-.04em;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
+.bento-sub{font-size:12px;color:var(--text-4);margin-top:8px;font-weight:500}
 
-.card-list{display:flex;flex-direction:column;gap:12px}
-.card{background:linear-gradient(135deg,var(--bg-2),var(--bg-1));border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;transition:all .3s}
-.card:hover{border-color:var(--border-hi);transform:translateY(-3px)}
-.card-h{display:flex;gap:14px;margin-bottom:12px}
-.card-ic{width:48px;height:48px;border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(6,182,212,.15),rgba(59,130,246,.1));border:1px solid rgba(6,182,212,.2);display:grid;place-items:center;font-size:24px}
-.card-body{flex:1}
-.card-t{font-weight:600;font-size:15px;margin-bottom:4px}
-.card-d{font-size:12px;color:var(--text-2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.card-author{font-size:11px;color:var(--text-3);margin-top:6px}
-.card-m{display:flex;gap:16px;font-size:11px;color:var(--text-3);padding:10px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:10px 0}
-.card-a{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.card-a .btn{padding:7px 12px;font-size:11px}
+.section{background:linear-gradient(135deg,var(--bg-2),rgba(15,15,18,.6));border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;margin-bottom:24px;backdrop-filter:blur(12px)}
+.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.sh h3{font-size:18px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:12px}
+.sh h3 .bar{width:4px;height:22px;background:var(--grad-accent);border-radius:2px;box-shadow:0 0 10px rgba(6,182,212,.5)}
+.sh small{font-size:12px;color:var(--text-3);font-weight:600;background:var(--glass-2);padding:5px 14px;border-radius:20px;border:1px solid var(--border)}
 
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(20px);display:none;align-items:center;justify-content:center;padding:24px;z-index:500}
-.overlay.show{display:flex}
-.modal{background:linear-gradient(135deg,var(--bg-2),var(--bg-1));border:1px solid var(--border-hi);border-radius:var(--radius-xl);padding:28px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto}
-.modal-tb{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
-.modal-tb h3{font-size:18px;font-weight:700}
-.f{margin-bottom:16px}
-.f label{display:block;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:8px}
-.f input,.f textarea{width:100%;padding:12px 14px;background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text);font-size:13px;font-family:inherit}
-.f input:focus,.f textarea:focus{outline:none;border-color:var(--accent)}
-.f textarea{min-height:400px;resize:vertical;font-family:'SF Mono',monospace;font-size:12px}
-.f-hint{font-size:10px;color:var(--text-4);margin-top:6px;font-style:italic}
+.card-list{display:flex;flex-direction:column;gap:16px}
+.card{background:linear-gradient(135deg,var(--bg-2),var(--bg-1));border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;transition:all .4s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad-accent);transform:scaleX(0);transform-origin:left;transition:transform .5s}
+.card:hover{border-color:var(--border-hi);transform:translateY(-4px);box-shadow:var(--sh-lg)}
+.card:hover::before{transform:scaleX(1)}
+.card-h{display:flex;gap:18px;margin-bottom:16px;align-items:flex-start}
+.card-ic{width:56px;height:56px;border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(6,182,212,.18),rgba(59,130,246,.1));border:1px solid rgba(6,182,212,.25);display:grid;place-items:center;font-size:28px;flex-shrink:0;animation:monkeyFloat 3.5s ease-in-out infinite;transition:all .4s;box-shadow:var(--sh-sm)}
+.card:hover .card-ic{animation:monkeySpin 1.8s linear infinite;transform:scale(1.12);box-shadow:0 0 24px rgba(6,182,212,.35)}
+@keyframes monkeyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.card-body{flex:1;min-width:0}
+.card-t{font-weight:700;font-size:17px;margin-bottom:7px;color:var(--text);letter-spacing:-.02em}
+.card-d{font-size:13px;color:var(--text-2);line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-author{font-size:12px;color:var(--text-3);margin-top:8px;display:flex;align-items:center;gap:7px;font-weight:500}
+.card-m{display:flex;gap:24px;font-size:12px;color:var(--text-3);padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:14px 0;font-weight:500;flex-wrap:wrap}
+.card-m span{display:flex;align-items:center;gap:7px}
+.card-m span .ic{font-size:15px}
+.card-a{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.card-a .btn{padding:9px 16px;font-size:12px}
 
-.hist-list{display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow-y:auto}
-.hist-item{background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px}
-.hist-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:var(--radius-sm) 0 0 var(--radius-sm)}
-.hist-item.create::before{background:var(--grad-ok)}
-.hist-item.update::before{background:var(--grad-accent)}
-.hist-item.delete::before{background:var(--grad-err)}
-.hist-head{display:flex;justify-content:space-between;margin-bottom:8px}
-.hist-action{font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:4px}
-.hist-action.create{background:rgba(34,197,94,.2);color:var(--ok)}
-.hist-action.update{background:rgba(6,182,212,.2);color:var(--accent)}
-.hist-action.delete{background:rgba(239,68,68,.2);color:var(--err)}
-.hist-time{font-size:11px;color:var(--text-3)}
-.hist-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:11px;color:var(--text-2)}
+.empty{text-align:center;padding:80px 24px;background:var(--glass);border:1px dashed var(--border-hi);border-radius:var(--radius-lg)}
+.empty .ic{font-size:64px;margin-bottom:18px;opacity:.4;animation:monkeyFloat 3.5s ease-in-out infinite}
+.empty h4{font-size:20px;margin-bottom:10px;font-weight:700}
+.empty p{color:var(--text-2);font-size:14px;margin-bottom:24px}
 
-.pin-box{max-width:400px;text-align:center}
-.pin-input{width:100%;padding:14px;background:rgba(0,0,0,.4);border:1px solid var(--border-hi);border-radius:var(--radius-md);color:var(--text);font-size:22px;font-family:monospace;text-align:center;letter-spacing:8px;margin:16px 0}
-.pin-err{color:var(--err);font-size:12px;margin-top:10px;min-height:18px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(24px);display:none;align-items:center;justify-content:center;padding:28px;z-index:500;overflow-y:auto}
+.overlay.show{display:flex;animation:fadeIn .35s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:linear-gradient(135deg,var(--bg-2),var(--bg-1));border:1px solid var(--border-hi);border-radius:var(--radius-xl);padding:32px;max-width:1000px;width:100%;margin:auto;animation:modalSlide .45s cubic-bezier(.4,0,.2,1);box-shadow:var(--sh-xl)}
+@keyframes modalSlide{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-tb{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;flex-wrap:wrap;gap:14px}
+.modal-tb h3{font-size:20px;font-weight:700;display:flex;align-items:center;gap:14px;letter-spacing:-.02em}
+.modal-tb h3 .bar{width:4px;height:24px;background:var(--grad-accent);border-radius:2px;display:inline-block;box-shadow:0 0 10px rgba(6,182,212,.5)}
+.modal-tb .tools{display:flex;gap:10px;flex-wrap:wrap}
 
-.toasts{position:fixed;bottom:20px;right:20px;z-index:700;display:flex;flex-direction:column;gap:8px}
-.tst{background:var(--bg-3);border:1px solid var(--border-hi);border-radius:var(--radius-md);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
-.tst.ok{border-left:3px solid var(--ok)}
-.tst.err{border-left:3px solid var(--err)}
-.tst.info{border-left:3px solid var(--info)}
+.f{margin-bottom:20px}
+.f label{display:block;font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:2px;font-weight:700;margin-bottom:10px}
+.f input,.f textarea{width:100%;padding:14px 18px;background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text);font-size:14px;font-family:inherit;transition:all .3s;font-weight:500}
+.f input:focus,.f textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(6,182,212,.12);background:rgba(0,0,0,.45)}
+.f textarea{min-height:440px;resize:vertical;font-family:'SF Mono','JetBrains Mono','Fira Code',Consolas,monospace;font-size:13px;line-height:1.75;tab-size:2}
+.f-h{display:flex;justify-content:space-between;font-size:11px;color:var(--text-4);margin-top:10px;font-weight:500}
+.f-hint{font-size:11px;color:var(--text-4);margin-top:8px;font-style:italic}
 
-@media(max-width:768px){
+.pin-box{max-width:420px;text-align:center}
+.pin-ic{width:68px;height:68px;border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(220,38,38,.1));border:1px solid rgba(239,68,68,.35);display:grid;place-items:center;font-size:34px;margin:0 auto 20px;box-shadow:var(--sh-sm)}
+.pin-box h3{font-size:22px;margin-bottom:10px;font-weight:700;color:var(--err)}
+.pin-box p{color:var(--text-2);font-size:14px;margin-bottom:24px;line-height:1.65}
+.pin-input{width:100%;padding:16px 18px;background:rgba(0,0,0,.45);border:1px solid var(--border-hi);border-radius:var(--radius-md);color:var(--text);font-size:24px;font-family:'SF Mono',monospace;text-align:center;letter-spacing:12px;font-weight:700;transition:all .3s}
+.pin-input:focus{outline:none;border-color:var(--err);box-shadow:0 0 0 4px rgba(239,68,68,.18)}
+.pin-input.shake{animation:shake .45s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-12px)}40%,80%{transform:translateX(12px)}}
+.pin-err{color:var(--err);font-size:13px;margin-top:14px;min-height:20px;font-weight:600}
+.pin-acts{display:flex;gap:12px;margin-top:26px}
+.pin-acts .btn{flex:1;justify-content:center;padding:13px}
+
+.hist-modal{max-width:800px}
+.hist-list{display:flex;flex-direction:column;gap:12px;max-height:60vh;overflow-y:auto;padding-right:8px}
+.hist-list::-webkit-scrollbar{width:6px}
+.hist-list::-webkit-scrollbar-thumb{background:var(--bg-4);border-radius:6px}
+.hist-item{background:linear-gradient(135deg,var(--bg-3),var(--bg-2));border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;transition:all .3s;position:relative;overflow:hidden}
+.hist-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.hist-item.action-create::before{background:var(--grad-ok)}
+.hist-item.action-update::before{background:var(--grad-accent)}
+.hist-item.action-delete::before{background:var(--grad-err)}
+.hist-item:hover{border-color:var(--border-hi);transform:translateX(4px)}
+.hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.hist-action{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:4px 10px;border-radius:6px}
+.hist-action.create{background:rgba(34,197,94,.15);color:var(--ok);border:1px solid rgba(34,197,94,.3)}
+.hist-action.update{background:rgba(6,182,212,.15);color:var(--accent);border:1px solid rgba(6,182,212,.3)}
+.hist-action.delete{background:rgba(239,68,68,.15);color:var(--err);border:1px solid rgba(239,68,68,.3)}
+.hist-time{font-size:12px;color:var(--text-3);font-weight:500}
+.hist-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px;padding-top:12px;border-top:1px dashed var(--border)}
+.hist-meta-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2)}
+.hist-meta-item .ic{font-size:14px;opacity:.7}
+.hist-meta-item b{color:var(--text);font-weight:600}
+.hist-empty{text-align:center;padding:60px 20px;color:var(--text-3)}
+.hist-empty .ic{font-size:48px;opacity:.4;margin-bottom:12px;display:block}
+
+.toasts{position:fixed;bottom:28px;right:28px;z-index:700;display:flex;flex-direction:column;gap:12px;max-width:380px}
+.tst{background:linear-gradient(135deg,var(--bg-3),var(--bg-2));backdrop-filter:blur(24px);border:1px solid var(--border-hi);border-radius:var(--radius-md);padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:var(--sh-xl);animation:toastIn .45s cubic-bezier(.4,0,.2,1);font-size:13px;font-weight:500}
+.tst.ok{border-left:4px solid var(--ok)}
+.tst.err{border-left:4px solid var(--err)}
+.tst.info{border-left:4px solid var(--info)}
+.tst .ic{font-size:20px}
+@keyframes toastIn{from{transform:translateX(130%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+@media(max-width:900px){
   .app{grid-template-columns:1fr}
   .side{display:none}
+  .top{padding:16px 20px}
+  .ct{padding:20px}
+  .search{width:180px}
   .bento{grid-template-columns:1fr}
-  .search{width:160px}
+  .top h2{font-size:20px}
 }
 </style>
 </head>
 <body>
 
 <div class="bg-mesh"></div>
+<div class="bg-noise"></div>
 
 <div id="loading">
   <div class="loader-wrap">
     <div class="loader-ring"></div>
     <div class="loader-ring"></div>
+    <div class="loader-core">🐒</div>
   </div>
-  <p id="loadTxt">Loading...</p>
+  <p id="loadTxt">Menghubungkan ke Firebase...</p>
+  <small>ScriptVault Premium v17.0</small>
 </div>
 
 <div class="app" id="app">
@@ -198,30 +271,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-
       <div class="logo-ic">🐒</div>
       <div class="logo-text">
         <h1>ScriptVault</h1>
-        <small>Premium</small>
+        <small>Premium Cloud</small>
       </div>
-    </div>
-
-    <!-- DOMAIN WARNING -->
-    <div id="domainWarning" class="domain-warning" style="display:none">
-      <h4>⚠️ Domain Belum Authorized</h4>
-      <p>Google Sign-In memerlukan domain <code id="currentDomain">-</code> ditambahkan ke Firebase Console.</p>
-      <a href="https://console.firebase.google.com/project/script-vault-e9e0c/authentication/settings" target="_blank">🔧 Tambahkan Domain Sekarang</a>
     </div>
 
     <div id="userCardContainer"></div>
 
     <div class="nav">
       <div class="nav-lbl">Workspace</div>
-      <div class="nav-i on"><span class="ic"></span>Dashboard</div>
-      <div class="nav-i" onclick="openGlobalHistory()"><span class="ic">📜</span>Riwayat<span class="badge" id="histBadge">0</span></div>
+      <div class="nav-i on"><span class="ic">🐒</span>Dashboard</div>
+      <div class="nav-i" onclick="openGlobalHistory()" style="cursor:pointer"><span class="ic">📜</span>Riwayat Global<span class="badge" id="globalHistBadge">0</span></div>
     </div>
-
     <div class="side-ft">
-      <span>v19.0</span>
-      <button class="btn-g" onclick="forceClean()" style="padding:4px 8px;font-size:10px">Clean</button>
+      <div class="side-ft-left">v17.0 · Premium</div>
+      <button class="side-ft-btn" onclick="forceClean()">🐒 Clean</button>
     </div>
-    <div class="side-credit">Created by <strong>[Nama Pemilik]</strong></div>
+    <div class="side-credit">
+      👑 Created by<br><strong>[Nama Pemilik]</strong>
+    </div>
   </aside>
 
   <main class="main">
@@ -230,7 +297,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-
       <div class="top-r">
         <div class="search"><span>🔍</span><input type="text" id="qIn" placeholder="Cari script..." oninput="renderList()"></div>
         <button class="btn-ic" onclick="sync()" title="Sync">🔄</button>
-        <button class="btn btn-p" onclick="newS()">+ Script</button>
+        <button class="btn btn-p" onclick="newS()">🐒 Script Baru</button>
       </div>
     </div>
 
@@ -238,28 +305,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-
       <div class="container">
         <div class="bento">
           <div class="bento-stat">
-            <div class="bento-lbl"><span>📦</span>Total Script</div>
+            <div class="bento-lbl"><span class="ic">📦</span>Total Script</div>
             <div class="bento-val" id="sTot">0</div>
+            <div class="bento-sub">Tersimpan di cloud</div>
           </div>
           <div class="bento-stat">
-            <div class="bento-lbl"><span>📝</span>Karakter</div>
+            <div class="bento-lbl"><span class="ic">📝</span>Karakter</div>
             <div class="bento-val" id="sChr">0</div>
+            <div class="bento-sub">Total ukuran kode</div>
           </div>
           <div class="bento-stat">
-            <div class="bento-lbl"><span>📜</span>Riwayat</div>
+            <div class="bento-lbl"><span class="ic">📜</span>Total Edit</div>
             <div class="bento-val" id="sHist">0</div>
+            <div class="bento-sub">Aksi tercatat</div>
           </div>
           <div class="bento-stat">
-            <div class="bento-lbl"><span>🌐</span>IP</div>
-            <div class="bento-val" id="sIp" style="font-size:16px">...</div>
+            <div class="bento-lbl"><span class="ic">🌐</span>IP Anda</div>
+            <div class="bento-val" id="sIp" style="font-size:18px">...</div>
+            <div class="bento-sub">Tersimpan otomatis</div>
           </div>
         </div>
-
         <div class="section">
-          <div class="sh">
-            <h3><span class="bar"></span>Script</h3>
-            <small><span id="fCnt">0</span> items</small>
-          </div>
+          <div class="sh"><h3><span class="bar"></span>🐒 Semua Script</h3><small><span id="fCnt">0</span> script</small></div>
           <div id="list" class="card-list"></div>
         </div>
       </div>
@@ -267,72 +334,114 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-
   </main>
 </div>
 
-<!-- EDITOR -->
+<!-- EDITOR MODAL -->
 <div class="overlay" id="editorOverlay">
   <div class="modal">
     <div class="modal-tb">
-      <h3 id="edTitle">Script Baru</h3>
-      <div>
+      <h3><span class="bar"></span><span id="edTitle">🐒 Script Baru</span></h3>
+      <div class="tools">
         <button class="btn btn-purple" onclick="openHistFromEditor()">📜 Riwayat</button>
-        <button class="btn btn-e" id="bDel" style="display:none" onclick="delS()">Hapus</button>
-        <button class="btn btn-p" onclick="saveS()">Simpan</button>
-        <button class="btn btn-g" onclick="closeEditor()">Tutup</button>
+        <button class="btn btn-ok" onclick="openTMFromEditor()">🐒 Buka TM</button>
+        <button class="btn btn-warn" onclick="copyCode()">🐒 Copy</button>
+        <button class="btn btn-e" onclick="delS()" id="bDel" style="display:none">🐒 Hapus</button>
+        <button class="btn btn-p" onclick="saveS()">🐒 Simpan</button>
+        <button class="btn btn-g" onclick="closeEditor()">🐒 Tutup</button>
       </div>
     </div>
-    <div class="f"><label>Nama</label><input type="text" id="sName" maxlength="80"></div>
-    <div class="f"><label>Author</label><input type="text" id="sAuthor" maxlength="50"></div>
-    <div class="f"><label>Deskripsi</label><input type="text" id="sDesc" maxlength="200"></div>
-    <div class="f"><label>Code</label><textarea id="sCode" placeholder="// ==UserScript==..."></textarea></div>
-  </div>
-</div>
+    <div class="f"><label>Nama Script</label><input type="text" id="sName" placeholder="Contoh: Auto Click Bot" maxlength="80"></div>
+    <div class="f"><label>Pemilik / Author</label><input type="text" id="sAuthor" placeholder="Nama pemilik script ini" maxlength="50"></div>
+    <div class="f"><label>Deskripsi</label><input type="text" id="sDesc" placeholder="Opsional" maxlength="200"></div>
+    <div class="f">
+      <label>Script Code</label>
+      <textarea id="sCode" placeholder="// ==UserScript==
+// @name         My Script
+// ==/UserScript==
 
-<!-- MANUAL SETUP -->
-<div class="overlay" id="manualOverlay">
-  <div class="modal" style="max-width:450px">
-    <div class="modal-tb"><h3>Setup Profil</h3></div>
-    <p style="color:var(--text-3);font-size:12px;margin-bottom:16px">Isi data untuk mencatat riwayat aktivitas.</p>
-    <div class="f"><label>Nama</label><input type="text" id="setupName"></div>
-    <div class="f"><label>Email</label><input type="email" id="setupEmail"></div>
-    <div class="f-hint">IP akan terdeteksi otomatis</div>
-    <div style="display:flex;gap:10px;margin-top:20px">
-      <button class="btn btn-g" onclick="closeManual()" style="flex:1">Batal</button>
-      <button class="btn btn-p" onclick="saveManual()" style="flex:1">Simpan</button>
+(function() {
+    'use strict';
+})();"></textarea>
+      <div class="f-h"><span>Ctrl+S simpan · Esc tutup</span><span><span id="cCnt">0</span> chars · <span id="lCnt">0</span> lines</span></div>
     </div>
   </div>
 </div>
 
-<!-- HISTORY -->
-<div class="overlay" id="historyOverlay">
-  <div class="modal" style="max-width:700px">
+<!-- MANUAL USER SETUP MODAL -->
+<div class="overlay" id="manualUserOverlay" style="z-index:550">
+  <div class="modal" style="max-width:480px">
     <div class="modal-tb">
-      <h3 id="histTitle">Riwayat</h3>
-      <button class="btn btn-g" onclick="closeHistory()">Tutup</button>
+      <h3><span class="bar"></span>👤 Setup Profil Manual</h3>
+    </div>
+    <p style="color:var(--text-2);font-size:13px;line-height:1.6;margin-bottom:20px">
+      Data ini akan tercatat di setiap aksi (buat/edit/hapus script) untuk keperluan riwayat. Email & IP akan otomatis tersimpan.
+    </p>
+    <div class="f"><label>Nama Lengkap</label><input type="text" id="setupName" placeholder="Nama Anda" maxlength="50"></div>
+    <div class="f"><label>Email</label><input type="email" id="setupEmail" placeholder="email@contoh.com" maxlength="100"></div>
+    <div class="f-hint">💡 IP Address akan dideteksi otomatis dari koneksi internet Anda.</div>
+    <div style="display:flex;gap:10px;margin-top:24px">
+      <button class="btn btn-g" onclick="closeManualSetup()" style="flex:1">Batal</button>
+      <button class="btn btn-purple" onclick="saveManualProfile()" style="flex:1">💾 Simpan Profil</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="overlay" id="pinOverlay" style="z-index:600">
+  <div class="modal pin-box">
+    <div class="pin-ic">🔒</div>
+    <h3>Konfirmasi Hapus</h3>
+    <p id="pinDesc">Masukkan PIN untuk menghapus script ini</p>
+    <input type="password" class="pin-input" id="pinInput" maxlength="10" placeholder="••••" autocomplete="off">
+    <div class="pin-err" id="pinErr"></div>
+    <div class="pin-acts">
+      <button class="btn btn-g" onclick="closePin()">🐒 Batal</button>
+      <button class="btn btn-e" onclick="verifyPin()">🐒 Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="overlay" id="historyOverlay" style="z-index:650">
+  <div class="modal hist-modal">
+    <div class="modal-tb">
+      <h3><span class="bar"></span>📜 <span id="histTitle">Riwayat Edit</span></h3>
+      <div class="tools">
+        <button class="btn btn-g" onclick="closeHistory()">✖ Tutup</button>
+      </div>
     </div>
     <div id="histList" class="hist-list"></div>
   </div>
 </div>
 
-<!-- PIN -->
-<div class="overlay" id="pinOverlay">
-  <div class="modal pin-box">
-    <h3 style="color:var(--err);margin-bottom:12px">Konfirmasi Hapus</h3>
-    <p id="pinDesc" style="color:var(--text-3);font-size:13px;margin-bottom:16px"></p>
-    <input type="password" class="pin-input" id="pinInput" maxlength="10" placeholder="••••">
-    <div class="pin-err" id="pinErr"></div>
-    <div style="display:flex;gap:10px;margin-top:20px">
-      <button class="btn btn-g" onclick="closePin()" style="flex:1">Batal</button>
-      <button class="btn btn-e" onclick="verifyPin()" style="flex:1">Hapus</button>
+<!-- TM HELP MODAL -->
+<div class="overlay" id="tmHelpOverlay" style="z-index:700">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-tb"><h3><span class="bar"></span>🐒 TamperMonkey Diblokir</h3></div>
+    <p style="color:var(--text-2);font-size:14px;line-height:1.65;margin-bottom:20px">Browser memblokir akses ke TamperMonkey. Gunakan cara manual berikut:</p>
+    <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:var(--radius-md);padding:18px;margin:16px 0">
+      <b style="color:var(--info);display:block;margin-bottom:12px;font-size:13px;font-weight:700">🐒 Cara Manual:</b>
+      <ol style="color:var(--text-2);font-size:13px;line-height:2.1;margin-left:22px">
+        <li>Klik tombol <b>"🐒 Copy Code"</b> di editor</li>
+        <li>Buka TamperMonkey dari icon di browser</li>
+        <li>Klik <b>"Create a new script"</b></li>
+        <li>Paste code (Ctrl+V) dan simpan (Ctrl+S)</li>
+      </ol>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:20px">
+      <button class="btn btn-g" onclick="document.getElementById('tmHelpOverlay').classList.remove('show')" style="flex:1">🐒 Tutup</button>
+      <button class="btn btn-p" onclick="copyCode();document.getElementById('tmHelpOverlay').classList.remove('show');toast('✅ Code sudah di-copy!','ok')" style="flex:1">🐒 Copy Code Dulu</button>
     </div>
   </div>
 </div>
 
 <div class="toasts" id="toasts"></div>
 
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
+// ============ FIREBASE CONFIG ============
 const firebaseConfig = {
   apiKey: "AIzaSyBExdIerKUOoOPZ9fOODSF4ZPJIUNci1bo",
   authDomain: "script-vault-e9e0c.firebaseapp.com",
@@ -345,151 +454,207 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const auth = firebase.auth();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
+let auth = null;
+let googleProvider = null;
+let authAvailable = false;
+
+try {
+  auth = firebase.auth();
+  googleProvider = new firebase.auth.GoogleAuthProvider();
+  authAvailable = true;
+} catch(e) {
+  console.warn('Firebase Auth tidak tersedia:', e.message);
+  authAvailable = false;
+}
 
 const DELETE_PIN = "0113";
 const TM_URL = "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html#nav=new-user-script+editor";
-const USER_KEY = 'sv_user_v4';
-const MAX_HIST = 30;
+const MAX_HISTORY = 30;
+const USER_KEY = 'scriptvault_user_v2';
 
-let currentUser = loadUser();
-let currentIP = '...';
-let scripts = [];
-let editId = null;
-let pendingDelete = null;
+// ============ USER STATE ============
+// currentUser: {name, email, photo, method: 'google'|'manual', uid?}
+let currentUser = loadUserFromStorage();
+let currentIP = 'unknown';
 
-// ============ DOMAIN CHECK ============
-const currentDomain = window.location.hostname;
-const authorizedDomains = ['localhost', '127.0.0.1', 'script-vault-e9e0c.firebaseapp.com', 'script-vault-e9e0c.web.app'];
-const isAuthorized = authorizedDomains.includes(currentDomain);
-
-function checkDomain(){
-  if(!isAuthorized){
-    document.getElementById('currentDomain').textContent = currentDomain;
-    document.getElementById('domainWarning').style.display = 'block';
-  }
-}
-
-// ============ USER FUNCTIONS ============
-function loadUser(){
+function loadUserFromStorage(){
   try{
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? JSON.parse(raw) : null;
-  }catch(e){ return null; }
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
 }
-function saveUser(u){
+function saveUserToStorage(u){
   currentUser = u;
   if(u) localStorage.setItem(USER_KEY, JSON.stringify(u));
   else localStorage.removeItem(USER_KEY);
-  renderUser();
+  renderUserCard();
 }
-function renderUser(){
+
+// ============ RENDER USER CARD ============
+function renderUserCard(){
   const container = document.getElementById('userCardContainer');
   if(currentUser){
-    const initial = (currentUser.name || '?').charAt(0).toUpperCase();
-    const avatar = currentUser.photo ? `<img src="${currentUser.photo}">` : initial;
+    const initial = (currentUser.name || currentUser.email || '?').charAt(0).toUpperCase();
+    const avatarContent = currentUser.photo 
+      ? `<img src="${currentUser.photo}" alt="avatar">` 
+      : initial;
     const badge = currentUser.method === 'google' 
-      ? '<span class="user-badge google">Google</span>'
-      : '<span class="user-badge manual">Manual</span>';
+      ? '<span class="verified" title="Terverifikasi Google">✓</span>'
+      : '<span class="manual" title="Input manual">✎</span>';
     container.innerHTML = `
-      <div class="user-card logged" onclick="showUserMenu()">
-        <div class="user-header">
-          <div class="user-avatar">${avatar}</div>
-          <div class="user-info">
-            <div class="user-name">${esc(currentUser.name)}${badge}</div>
-            <div class="user-email">${esc(currentUser.email)}</div>
-          </div>
-          <div class="user-logout" onclick="event.stopPropagation();logout()">🚪</div>
+      <div class="user-card logged" onclick="showUserMenu()" title="Klik untuk opsi">
+        <div class="user-avatar">${avatarContent}</div>
+        <div class="user-info">
+          <div class="user-name">${esc(currentUser.name || 'User')}</div>
+          <div class="user-email">${esc(currentUser.email)} ${badge}</div>
         </div>
+        <div class="user-logout" onclick="event.stopPropagation();logoutUser()" title="Logout">🚪</div>
       </div>
     `;
   }else{
+    // Tampilkan 2 opsi: Google Sign-In + Manual
+    let googleBtn = '';
+    if(authAvailable){
+      googleBtn = `
+        <button class="btn-google" onclick="loginGoogle()">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Login dengan Google
+        </button>
+      `;
+    }
     container.innerHTML = `
-      <div class="user-card">
-        <div style="text-align:center;margin-bottom:12px">
-          <div style="font-size:12px;font-weight:600;margin-bottom:4px">Selamat Datang</div>
-          <div style="font-size:10px;color:var(--text-3)">Login untuk riwayat otomatis</div>
+      <div class="user-card" style="flex-direction:column;align-items:stretch;gap:12px;padding:16px">
+        <div style="text-align:center">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">👋 Selamat Datang</div>
+          <div style="font-size:11px;color:var(--text-3)">Login untuk mencatat riwayat</div>
         </div>
-        ${!isAuthorized ? `
-          <button class="btn-manual" onclick="openManual()" style="margin-bottom:8px">
-            ✏️ Setup Profil Manual
-          </button>
-          <div style="font-size:10px;color:var(--text-4);text-align:center">
-            Atau ${isAuthorized ? '' : 'tambahkan domain dulu, lalu '}<a href="#" onclick="checkDomain();return false" style="color:var(--accent)">refresh</a>
-          </div>
-        ` : `
-          <button class="btn-google" onclick="loginGoogle()">
-            <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-            Login Google
-          </button>
-          <button class="btn-manual" onclick="openManual()">Setup Manual</button>
-        `}
+        ${googleBtn}
+        <button class="btn-manual" onclick="openManualSetup()">
+          <span>✏️</span> Setup Profil Manual
+        </button>
       </div>
     `;
   }
 }
 
+// ============ GOOGLE SIGN-IN ============
 async function loginGoogle(){
+  if(!authAvailable){
+    toast('❌ Firebase Auth tidak tersedia. Gunakan mode manual.','err');
+    openManualSetup();
+    return;
+  }
   try{
-    toast('Login...','info');
+    toast('Membuka login Google...','info');
     const result = await auth.signInWithPopup(googleProvider);
-    const u = result.user;
-    saveUser({name:u.displayName||'User',email:u.email,photo:u.photoURL,method:'google',uid:u.uid});
-    toast(`✅ Login sebagai ${u.email}`,'ok');
+    const user = result.user;
+    saveUserToStorage({
+      name: user.displayName || 'User',
+      email: user.email,
+      photo: user.photoURL || null,
+      method: 'google',
+      uid: user.uid
+    });
+    toast(`✅ Login berhasil! Halo ${currentUser.name}`,'ok');
     fetchIP();
   }catch(e){
-    if(e.code==='auth/unauthorized-domain'){
-      toast('⚠️ Domain tidak authorized. Gunakan mode manual.','err');
-      setTimeout(openManual,500);
-    }else if(e.code!=='auth/popup-closed-by-user'){
-      toast('❌ '+e.message,'err');
+    console.error('Google login error:', e);
+    // Deteksi error konfigurasi
+    if(e.code === 'auth/configuration-not-found' || e.code === 'auth/operation-not-allowed'){
+      toast('⚠️ Google Sign-In belum dikonfigurasi. Gunakan mode manual.','info');
+      setTimeout(()=>openManualSetup(), 800);
+    } else if(e.code === 'auth/popup-closed-by-user'){
+      toast('Login dibatalkan','info');
+    } else if(e.code === 'auth/popup-blocked-by-browser'){
+      toast('Popup diblokir. Izinkan popup atau gunakan mode manual.','err');
+    } else {
+      toast('❌ Gagal login: '+e.message+'. Gunakan mode manual.','err');
+      setTimeout(()=>openManualSetup(), 800);
     }
   }
 }
 
-function openManual(){
+// ============ MANUAL SETUP ============
+function openManualSetup(){
   document.getElementById('setupName').value = currentUser?.name || '';
   document.getElementById('setupEmail').value = currentUser?.email || '';
-  document.getElementById('manualOverlay').classList.add('show');
+  document.getElementById('manualUserOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('setupName').focus(), 100);
 }
-function closeManual(){
-  document.getElementById('manualOverlay').classList.remove('show');
+function closeManualSetup(){
+  document.getElementById('manualUserOverlay').classList.remove('show');
 }
-function saveManual(){
+function saveManualProfile(){
   const name = document.getElementById('setupName').value.trim();
   const email = document.getElementById('setupEmail').value.trim();
   if(!name){toast('Nama wajib diisi','err');return}
-  saveUser({name,email:email||'-',photo:null,method:'manual',uid:'manual_'+Date.now()});
-  closeManual();
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    toast('Format email tidak valid','err');
+    return;
+  }
+  saveUserToStorage({
+    name: name,
+    email: email || '(email tidak diisi)',
+    photo: null,
+    method: 'manual',
+    uid: 'manual_' + Date.now()
+  });
+  closeManualSetup();
   toast('✅ Profil tersimpan','ok');
 }
 
-function logout(){
-  if(!confirm('Logout?')) return;
-  if(currentUser?.method==='google') auth.signOut().catch(()=>{});
-  saveUser(null);
-  toast('Logged out','ok');
+// ============ LOGOUT ============
+function logoutUser(){
+  if(!confirm(`Profil:\n\n👤 ${currentUser.name}\n📧 ${currentUser.email}\n\nIngin logout?`)) return;
+  if(authAvailable && currentUser.method === 'google'){
+    try { auth.signOut(); } catch(e){}
+  }
+  saveUserToStorage(null);
+  toast('👋 Berhasil logout','ok');
 }
 
 function showUserMenu(){
   if(!currentUser) return;
-  if(confirm(`User: ${currentUser.name}\nEmail: ${currentUser.email}\n\nLogout?`)) logout();
+  if(confirm(`Profil:\n\n👤 ${currentUser.name}\n📧 ${currentUser.email}\n🔐 Metode: ${currentUser.method === 'google' ? 'Google (Verified)' : 'Manual'}\n\nIngin logout atau edit profil?`)){
+    logoutUser();
+  }
 }
 
-auth.onAuthStateChanged(u=>{
-  if(u && (!currentUser || currentUser.method!=='google')){
-    saveUser({name:u.displayName||'User',email:u.email,photo:u.photoURL,method:'google',uid:u.uid});
+// Auto-detect login state saat load (Google)
+if(authAvailable){
+  try {
+    auth.onAuthStateChanged(user=>{
+      if(user && !currentUser){
+        saveUserToStorage({
+          name: user.displayName || 'User',
+          email: user.email,
+          photo: user.photoURL || null,
+          method: 'google',
+          uid: user.uid
+        });
+      }
+    });
+  } catch(e) {
+    console.warn('onAuthStateChanged error:', e);
   }
-});
+}
 
-// ============ IP DETECTION ============
+// ============ FETCH IP ============
 async function fetchIP(){
   try{
     const r = await fetch('https://api.ipify.org?format=json');
     const d = await r.json();
     currentIP = d.ip || 'unknown';
-  }catch(e){ currentIP = 'unknown'; }
+  }catch(e){
+    try{
+      const r2 = await fetch('https://api64.ipify.org?format=json');
+      const d2 = await r2.json();
+      currentIP = d2.ip || 'unknown';
+    }catch(e2){
+      currentIP = 'unknown';
+    }
+  }
   document.getElementById('sIp').textContent = currentIP;
 }
 
@@ -498,313 +663,479 @@ const FIREBASE = {
   load: async () => {
     const snap = await db.ref('scripts').once('value');
     const val = snap.val();
-    if(!val) return [];
-    return Array.isArray(val) ? val.filter(s=>s&&s.id) : Object.values(val).filter(s=>s&&s.id);
+    if (!val) return [];
+    if (Array.isArray(val)) return val.filter(s => s && s.id);
+    return Object.values(val).filter(s => s && s.id);
   },
-  save: async (arr) => {
-    const clean = arr.filter(s=>s&&s.id);
-    await db.ref('scripts')[clean.length? 'set':'remove'](clean);
+  save: async (scripts) => {
+    const clean = scripts.filter(s => s && s.id);
+    if (clean.length === 0) {
+      await db.ref('scripts').remove();
+    } else {
+      await db.ref('scripts').set(clean);
+    }
   }
 };
 
+let scripts = [];
+let editId = null;
+let pendingDeleteId = null;
+
 // ============ HISTORY ============
-function buildHist(action, name){
-  return {action,timestamp:new Date().toISOString(),editor:currentUser?.name||'Anonim',email:currentUser?.email||'-',method:currentUser?.method||'none',ip:currentIP,uid:currentUser?.uid||null,scriptName:name||'Unnamed'};
+function buildHistoryEntry(action, scriptName){
+  return {
+    action: action,
+    timestamp: new Date().toISOString(),
+    editor: currentUser ? currentUser.name : 'Anonim',
+    email: currentUser ? currentUser.email : '(belum login)',
+    method: currentUser ? currentUser.method : 'none',
+    ip: currentIP,
+    uid: currentUser ? currentUser.uid : null,
+    scriptName: scriptName || 'Unnamed'
+  };
 }
-function pushHist(s, entry){
-  if(!s.history) s.history = [];
-  s.history.unshift(entry);
-  if(s.history.length > MAX_HIST) s.history = s.history.slice(0, MAX_HIST);
+function pushHistory(script, entry){
+  if(!script.history) script.history = [];
+  script.history.unshift(entry);
+  if(script.history.length > MAX_HISTORY) script.history = script.history.slice(0, MAX_HISTORY);
 }
-function countHist(){ return scripts.reduce((a,s)=>a+((s.history&&s.history.length)||0), 0); }
+function countAllHistory(){
+  return scripts.reduce((acc, s) => acc + ((s.history && s.history.length) || 0), 0);
+}
 
-// ============ CRUD ============
+// ============ CLEAN ============
 async function forceClean(){
-  if(!confirm('Hapus script tanpa nama/ID?')) return;
-  const before = scripts.length;
-  scripts = scripts.filter(s=>s&&s.id&&s.name?.trim());
-  await FIREBASE.save(scripts);
-  renderAll();
-  toast(`Cleaned ${before-scripts.length} items`,'ok');
+  if(!confirm('🐒 Clean Data\n\nHapus semua script tanpa nama & tanpa ID?\n\nLanjutkan?')) return;
+  try{
+    toast('Membersihkan data...','info');
+    const before = scripts.length;
+    scripts = scripts.filter(s => s && s.id && s.name && s.name.trim() !== '');
+    const removed = before - scripts.length;
+    await FIREBASE.save(scripts);
+    renderAll();
+    toast(`✅ ${removed} script dibersihkan!`,'ok');
+  }catch(e){
+    toast('❌ Gagal: '+e.message,'err');
+  }
 }
 
-function openEditor(){ document.getElementById('editorOverlay').classList.add('show'); }
-function closeEditor(){ document.getElementById('editorOverlay').classList.remove('show'); }
+// ============ EDITOR ============
+function openEditor(){
+  document.getElementById('editorOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('sName').focus(), 100);
+}
+function closeEditor(){
+  document.getElementById('editorOverlay').classList.remove('show');
+}
 
-function requestPin(id, name){
-  pendingDelete = id;
-  document.getElementById('pinDesc').textContent = `Hapus "${name||'Unnamed'}"?`;
+// ============ PIN ============
+function requestPin(scriptId, scriptName){
+  if(!scriptId){toast('❌ Error: ID script tidak valid','err');return}
+  pendingDeleteId = scriptId;
+  const displayName = scriptName || 'Unnamed';
+  document.getElementById('pinDesc').innerHTML = `Masukkan PIN untuk menghapus script <strong style="color:var(--text)">"${esc(displayName)}"</strong>`;
   document.getElementById('pinInput').value = '';
   document.getElementById('pinErr').textContent = '';
   document.getElementById('pinOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('pinInput').focus(), 100);
 }
-function closePin(){ document.getElementById('pinOverlay').classList.remove('show'); pendingDelete = null; }
+function closePin(){
+  document.getElementById('pinOverlay').classList.remove('show');
+  pendingDeleteId = null;
+}
 function verifyPin(){
-  const pin = document.getElementById('pinInput').value;
-  if(pin !== DELETE_PIN){
-    document.getElementById('pinErr').textContent = 'PIN salah';
+  const input = document.getElementById('pinInput');
+  const errEl = document.getElementById('pinErr');
+  const pin = input.value;
+  if(!pendingDeleteId){errEl.textContent = '❌ Error: tidak ada script yang dipilih';return}
+  if (!pin) {
+    errEl.textContent = '⚠️ Masukkan PIN terlebih dahulu';
+    input.classList.add('shake');
+    setTimeout(()=>input.classList.remove('shake'), 450);
     return;
   }
-  executeDelete(pendingDelete);
+  if (pin !== DELETE_PIN) {
+    errEl.textContent = '❌ PIN salah! Coba lagi.';
+    input.classList.add('shake');
+    input.value = '';
+    setTimeout(()=>{ input.classList.remove('shake'); input.focus(); }, 450);
+    return;
+  }
+  errEl.textContent = '';
+  executeDelete(pendingDeleteId);
 }
 async function executeDelete(id){
-  const idx = scripts.findIndex(s=>s.id===id);
-  if(idx<0) return;
-  const s = scripts[idx];
-  pushHist(s, buildHist('delete', s.name));
-  try{
-    await db.ref('deleted_history/'+id).set({name:s.name,history:s.history||[]});
-    scripts.splice(idx,1);
-    await FIREBASE.save(scripts);
-    if(editId===id){ editId=null; closeEditor(); }
-    renderAll();
-    toast('Deleted','ok');
-  }catch(e){ toast('❌ '+e.message,'err'); }
+  if(!id){toast('❌ Error: ID tidak valid','err');closePin();return}
+  const idx = scripts.findIndex(s => s && s.id === id);
+  if(idx === -1){toast('❌ Script tidak ditemukan','err');closePin();renderAll();return}
+  const script = scripts[idx];
+  const scriptName = script.name || 'Unnamed';
+  pushHistory(script, buildHistoryEntry('delete', scriptName));
   closePin();
+  try{
+    toast('Menghapus dari Firebase...','info');
+    await db.ref('deleted_history/' + id).set({
+      originalId: id,
+      name: scriptName,
+      history: script.history || []
+    });
+    scripts.splice(idx, 1);
+    await FIREBASE.save(scripts);
+    if(editId === id){ editId = null; closeEditor(); }
+    renderAll();
+    toast(`✅ "${scriptName}" berhasil dihapus`,'ok');
+  }catch(e){ 
+    toast('❌ Gagal hapus: '+e.message,'err');
+    scripts = await FIREBASE.load();
+    renderAll();
+  }
 }
 
+// ============ USERSCRIPT BUILDER ============
 function buildCode(s){
   let c = s.code||'';
   if(!/\/\/\s*==UserScript==/i.test(c)){
+    const n = (s.name||'Script').replace(/\*\//g,'* /');
+    const d = (s.desc||'').replace(/\*\//g,'* /');
+    const a = (s.author||'ScriptVault User').replace(/\*\//g,'* /');
     c = `// ==UserScript==
-// @name         ${s.name||'Script'}
+// @name         ${n}
 // @namespace    scriptvault.local
 // @version      1.0
-// @description  ${s.desc||''}
-// @author       ${s.author||'User'}
+// @description  ${d||'Script from ScriptVault'}
+// @author       ${a}
 // @match        *://*/*
 // @grant        none
+// @run-at       document-idle
 // ==/UserScript==
 
-${c}`;
+`+c;
   }
   return c;
 }
+function openTMFromCard(event, scriptId){
+  event.preventDefault();event.stopPropagation();
+  const s = scripts.find(x=>x && x.id===scriptId);
+  if(!s){ toast('Script tidak ditemukan','err'); return false; }
+  const code = buildCode(s);
+  navigator.clipboard.writeText(code).then(()=>tryOpenTM()).catch(()=>{fallbackCopy(code);tryOpenTM()});
+  return false;
+}
+function openTMFromEditor(){
+  const name = document.getElementById('sName').value.trim();
+  const code = document.getElementById('sCode').value;
+  const desc = document.getElementById('sDesc').value.trim();
+  const author = document.getElementById('sAuthor').value.trim();
+  if(!name){toast('Isi nama script dulu','err');return false}
+  if(!code){toast('Code kosong','err');return false}
+  const built = buildCode({name,desc,code,author});
+  navigator.clipboard.writeText(built).then(()=>tryOpenTM()).catch(()=>{fallbackCopy(built);tryOpenTM()});
+  return false;
+}
+function tryOpenTM(){
+  toast('🐒 Code sudah di-copy!','ok');
+  setTimeout(()=>{
+    const newWindow = window.open(TM_URL, '_blank');
+    setTimeout(()=>{
+      if(!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined'){
+        document.getElementById('tmHelpOverlay').classList.add('show');
+      }
+    }, 1000);
+  }, 300);
+}
+function fallbackCopy(text){
+  const t=document.createElement('textarea');
+  t.value=text;t.style.position='fixed';t.style.opacity='0';
+  document.body.appendChild(t);t.select();
+  try{document.execCommand('copy')}catch(e){}
+  document.body.removeChild(t);
+}
+
+// ============ INIT LOAD ============
+(async()=>{
+  const lt = document.getElementById('loadTxt');
+  try {
+    lt.textContent = 'Mendeteksi IP & memuat data...';
+    await fetchIP();
+    lt.textContent = 'Memuat script...';
+    scripts = await FIREBASE.load();
+    renderUserCard();
+    document.getElementById('loading').classList.add('hide');
+    document.getElementById('app').classList.add('show');
+    init();
+    setTimeout(()=>document.getElementById('loading').remove(),600);
+    if(!currentUser){
+      setTimeout(()=>{
+        toast('💡 Login dengan Google atau setup profil manual untuk mencatat riwayat','info');
+      }, 1500);
+    }
+  } catch(e) {
+    lt.textContent = '❌ '+e.message;
+    lt.style.color = '#ef4444';
+  }
+})();
+
+function init(){
+  renderAll();
+  const ta = document.getElementById('sCode');
+  ta.addEventListener('input',updateStats);
+  ta.addEventListener('keydown',e=>{
+    if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveS()}
+    if(e.key==='Tab'){e.preventDefault();const t=e.target,s=t.selectionStart,en=t.selectionEnd;t.value=t.value.substring(0,s)+'  '+t.value.substring(en);t.selectionStart=t.selectionEnd=s+2}
+    if(e.key==='Escape') closeEditor();
+  });
+  document.getElementById('pinInput').addEventListener('keydown', e=>{
+    if(e.key==='Enter') verifyPin();
+    if(e.key==='Escape') closePin();
+  });
+  ['pinOverlay','editorOverlay','manualUserOverlay','historyOverlay','tmHelpOverlay'].forEach(id=>{
+    document.getElementById(id).addEventListener('click', e=>{
+      if(e.target.id===id) document.getElementById(id).classList.remove('show');
+    });
+  });
+}
+
+function renderAll(){renderDash();renderList()}
+
+function renderDash(){
+  document.getElementById('sTot').textContent = scripts.length;
+  const ch = scripts.reduce((a,s)=>a+(s.code?s.code.length:0),0);
+  document.getElementById('sChr').textContent = ch.toLocaleString('id-ID');
+  document.getElementById('sHist').textContent = countAllHistory().toLocaleString('id-ID');
+  document.getElementById('globalHistBadge').textContent = countAllHistory();
+}
+
+function renderList(){
+  const q = document.getElementById('qIn').value.toLowerCase();
+  const f = scripts.filter(s=>s && ((s.name||'').toLowerCase().includes(q)||(s.desc||'').toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)));
+  document.getElementById('fCnt').textContent = f.length;
+  const c = document.getElementById('list');
+  c.innerHTML = f.length===0
+    ? emptyH(q?'Tidak ditemukan':'Belum ada script',q?'Coba kata kunci lain':'Klik "Script Baru" untuk mulai')
+    : f.sort((a,b)=>new Date(b.updated||0)-new Date(a.updated||0)).map(cardH).join('');
+}
+
+function cardH(s){
+  const displayName = s.name || 'Unnamed';
+  const authorHtml = s.author ? `<div class="card-author"><span>👤</span> ${esc(s.author)}</div>` : '';
+  const histCount = (s.history && s.history.length) || 0;
+  return `<div class="card">
+    <div class="card-h" onclick="editS('${s.id}')" style="cursor:pointer">
+      <div class="card-ic">🐒</div>
+      <div class="card-body">
+        <div class="card-t">${esc(displayName)}</div>
+        <div class="card-d">${esc(s.desc||'Tanpa deskripsi')}</div>
+        ${authorHtml}
+      </div>
+    </div>
+    <div class="card-m">
+      <span><span class="ic">🕐</span>${ago(s.updated)}</span>
+      <span><span class="ic">📊</span>${s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB'}</span>
+      <span><span class="ic">📄</span>${s.code?s.code.split('\n').length:0} baris</span>
+      <span><span class="ic">📜</span>${histCount} riwayat</span>
+    </div>
+    <div class="card-a">
+      <button class="btn btn-purple" onclick="event.stopPropagation();openHistFromCard('${s.id}')">📜 Riwayat</button>
+      <button class="btn btn-ok" onclick="event.stopPropagation();openTMFromCard(event,'${s.id}')">🐒 Buka TM</button>
+      <button class="btn btn-g" onclick="event.stopPropagation();editS('${s.id}')">🐒 Edit</button>
+      <button class="btn btn-warn" onclick="event.stopPropagation();quickCopy('${s.id}')">🐒 Copy</button>
+      <button class="btn btn-e" onclick="event.stopPropagation();quickDel('${s.id}')">🐒 Hapus</button>
+    </div>
+  </div>`;
+}
+
+function emptyH(t,m){
+  return `<div class="empty"><div class="ic">🐒</div><h4>${t}</h4><p>${m}</p>${t==='Belum ada script'?'<button class="btn btn-p" onclick="newS()">🐒 Buat Script Pertama</button>':''}</div>`;
+}
 
 function newS(){
-  if(!currentUser){ toast('Setup profil dulu','err'); openManual(); return; }
+  if(!currentUser){
+    toast('⚠️ Setup profil terlebih dahulu','err');
+    openManualSetup();
+    return;
+  }
   editId = null;
-  document.getElementById('sName').value = '';
-  document.getElementById('sAuthor').value = currentUser.name || '';
-  document.getElementById('sDesc').value = '';
-  document.getElementById('sCode').value = '';
-  document.getElementById('edTitle').textContent = 'Script Baru';
-  document.getElementById('bDel').style.display = 'none';
+  document.getElementById('sName').value='';
+  document.getElementById('sAuthor').value = currentUser ? (currentUser.name || '') : '';
+  document.getElementById('sDesc').value='';
+  document.getElementById('sCode').value='';
+  document.getElementById('edTitle').textContent='🐒 Script Baru';
+  document.getElementById('bDel').style.display='none';
+  updateStats();
   openEditor();
 }
 
 function editS(id){
-  const s = scripts.find(x=>x.id===id);
-  if(!s) return;
+  const s = scripts.find(x=>x && x.id===id);
+  if(!s){toast('❌ Script tidak ditemukan','err');return}
   editId = id;
-  document.getElementById('sName').value = s.name||'';
-  document.getElementById('sAuthor').value = s.author||'';
-  document.getElementById('sDesc').value = s.desc||'';
-  document.getElementById('sCode').value = s.code||'';
-  document.getElementById('edTitle').textContent = s.name||'Edit';
-  document.getElementById('bDel').style.display = 'inline-flex';
+  document.getElementById('sName').value=s.name||'';
+  document.getElementById('sAuthor').value=s.author||'';
+  document.getElementById('sDesc').value=s.desc||'';
+  document.getElementById('sCode').value=s.code||'';
+  document.getElementById('edTitle').textContent='🐒 '+(s.name||'Unnamed');
+  document.getElementById('bDel').style.display='inline-flex';
+  updateStats();
   openEditor();
 }
 
+function updateStats(){
+  const c = document.getElementById('sCode').value;
+  document.getElementById('cCnt').textContent = c.length.toLocaleString('id-ID');
+  document.getElementById('lCnt').textContent = c?c.split('\n').length:0;
+}
+
 async function saveS(){
-  if(!currentUser){ toast('Setup profil dulu','err'); openManual(); return; }
+  if(!currentUser){
+    toast('⚠️ Setup profil terlebih dahulu','err');
+    openManualSetup();
+    return;
+  }
   const name = document.getElementById('sName').value.trim();
   const author = document.getElementById('sAuthor').value.trim();
   const desc = document.getElementById('sDesc').value.trim();
   const code = document.getElementById('sCode').value;
-  if(!name){toast('Nama wajib','err');return}
+  if(!name){toast('Nama wajib diisi','err');return}
   if(!code){toast('Code kosong','err');return}
   const now = new Date().toISOString();
   if(editId){
-    const i = scripts.findIndex(s=>s.id===editId);
-    if(i>=0){ scripts[i] = {...scripts[i],name,author,desc,code,updated:now}; pushHist(scripts[i], buildHist('update', name)); }
-  }else{
+    const i = scripts.findIndex(s=>s && s.id===editId);
+    if(i>=0){
+      scripts[i] = {...scripts[i],name,author,desc,code,updated:now};
+      pushHistory(scripts[i], buildHistoryEntry('update', name));
+    }
+  } else {
     const ns = {id:'s_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),name,author,desc,code,created:now,updated:now,history:[]};
-    pushHist(ns, buildHist('create', name));
+    pushHistory(ns, buildHistoryEntry('create', name));
     scripts.push(ns);
     editId = ns.id;
   }
-  await FIREBASE.save(scripts);
-  renderAll();
-  toast('Saved','ok');
+  try{
+    toast('Menyimpan ke Firebase...','info');
+    await FIREBASE.save(scripts);
+    document.getElementById('edTitle').textContent='🐒 '+name;
+    document.getElementById('bDel').style.display='inline-flex';
+    renderAll();
+    toast('✅ Tersimpan di Firebase','ok');
+  }catch(e){ toast('❌ Gagal: '+e.message,'err'); }
 }
 
-function delS(){ if(editId){ const s=scripts.find(x=>x.id===editId); if(s) requestPin(editId, s.name); } }
-function quickDel(id){ const s=scripts.find(x=>x.id===id); if(s) requestPin(id, s.name); }
+async function delS(){
+  if(!editId){toast('❌ Tidak ada script yang dipilih','err');return}
+  const s = scripts.find(x=>x && x.id===editId);
+  if(!s){toast('❌ Script tidak ditemukan','err');return}
+  requestPin(editId, s.name);
+}
+function quickDel(id){
+  if(!id){toast('❌ ID tidak valid','err');return}
+  const s = scripts.find(x=>x && x.id===id);
+  if(!s){toast('❌ Script tidak ditemukan','err');return}
+  requestPin(id, s.name);
+}
 
 function quickCopy(id){
-  const s = scripts.find(x=>x.id===id);
-  if(!s) return;
-  navigator.clipboard.writeText(buildCode(s)).then(()=>toast('Copied','ok'));
+  const s = scripts.find(x=>x && x.id===id);
+  if(!s){ toast('Script tidak ditemukan','err'); return; }
+  const code = buildCode(s);
+  navigator.clipboard.writeText(code).then(()=>toast('✅ Script di-copy','ok')).catch(()=>{fallbackCopy(code);toast('✅ Script di-copy','ok')});
 }
-
 function copyCode(){
   const c = document.getElementById('sCode').value;
-  if(c) navigator.clipboard.writeText(c).then(()=>toast('Copied','ok'));
-}
-
-function openTMFromEditor(){
-  const name = document.getElementById('sName').value.trim();
-  const code = document.getElementById('sCode').value;
-  if(!name || !code){ toast('Isi nama & code','err'); return; }
-  const built = buildCode({name,desc:document.getElementById('sDesc').value,code,author:document.getElementById('sAuthor').value});
-  navigator.clipboard.writeText(built).then(()=>{
-    toast('Copied! Opening TM...','ok');
-    const w = window.open(TM_URL,'_blank');
-    setTimeout(()=>{ if(!w||w.closed) alert('Buka TamperMonkey manual'); },1000);
-  });
+  if(c)navigator.clipboard.writeText(c).then(()=>toast('✅ Disalin ke clipboard','ok')).catch(()=>{fallbackCopy(c);toast('✅ Disalin','ok')});
+  else toast('Code kosong','err');
 }
 
 async function sync(){
-  scripts = await FIREBASE.load();
-  renderAll();
-  toast(`Synced ${scripts.length} scripts`,'ok');
-}
-
-// ============ RENDER ============
-function renderAll(){ renderDash(); renderList(); }
-function renderDash(){
-  document.getElementById('sTot').textContent = scripts.length;
-  document.getElementById('sChr').textContent = scripts.reduce((a,s)=>a+(s.code?.length||0),0).toLocaleString();
-  document.getElementById('sHist').textContent = countHist();
-  document.getElementById('histBadge').textContent = countHist();
-}
-function renderList(){
-  const q = document.getElementById('qIn').value.toLowerCase();
-  const f = scripts.filter(s=>!q || (s.name||'').toLowerCase().includes(q) || (s.desc||'').toLowerCase().includes(q));
-  document.getElementById('fCnt').textContent = f.length;
-  const list = document.getElementById('list');
-  if(f.length===0){
-    list.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-3)"><div style="font-size:48px;margin-bottom:12px">🐒</div><div>Belum ada script</div></div>`;
-  }else{
-    list.innerHTML = f.sort((a,b)=>new Date(b.updated||0)-new Date(a.updated||0)).map(s=>{
-      const hist = (s.history?.length)||0;
-      return `<div class="card">
-        <div class="card-h" onclick="editS('${s.id}')" style="cursor:pointer">
-          <div class="card-ic">🐒</div>
-          <div class="card-body">
-            <div class="card-t">${esc(s.name||'Unnamed')}</div>
-            <div class="card-d">${esc(s.desc||'No description')}</div>
-            ${s.author?`<div class="card-author">👤 ${esc(s.author)}</div>`:''}
-          </div>
-        </div>
-        <div class="card-m">
-          <span>🕐 ${ago(s.updated)}</span>
-          <span>📊 ${((s.code?.length||0)/1024).toFixed(1)} KB</span>
-          <span>📜 ${hist} history</span>
-        </div>
-        <div class="card-a">
-          <button class="btn btn-purple" onclick="event.stopPropagation();openHistCard('${s.id}')">History</button>
-          <button class="btn btn-ok" onclick="event.stopPropagation();openTMFromCard('${s.id}')">TM</button>
-          <button class="btn btn-g" onclick="event.stopPropagation();editS('${s.id}')">Edit</button>
-          <button class="btn btn-warn" onclick="event.stopPropagation();quickCopy('${s.id}')">Copy</button>
-          <button class="btn btn-e" onclick="event.stopPropagation();quickDel('${s.id}')">Delete</button>
-        </div>
-      </div>`;
-    }).join('');
-  }
-}
-
-function openTMFromCard(id){
-  const s = scripts.find(x=>x.id===id);
-  if(!s) return;
-  navigator.clipboard.writeText(buildCode(s)).then(()=>{
-    const w = window.open(TM_URL,'_blank');
-    setTimeout(()=>{ if(!w||w.closed) alert('Buka TamperMonkey manual'); },1000);
-  });
+  try{
+    toast('Syncing dari Firebase...','info');
+    scripts = await FIREBASE.load();
+    renderAll();
+    toast('✅ Sync OK ('+scripts.length+' script)','ok');
+  }catch(e){toast('❌ Gagal: '+e.message,'err')}
 }
 
 // ============ HISTORY VIEW ============
-function openHistCard(id){
-  const s = scripts.find(x=>x.id===id);
-  if(!s) return;
-  showHistory(s.name||'Unnamed', s.history||[]);
+function openHistFromCard(id){
+  const s = scripts.find(x=>x && x.id===id);
+  if(!s){toast('❌ Script tidak ditemukan','err');return}
+  renderHistory(s.name || 'Unnamed', s.history || []);
 }
 function openHistFromEditor(){
-  if(!editId){ toast('Simpan dulu','info'); return; }
-  const s = scripts.find(x=>x.id===editId);
-  if(!s) return;
-  showHistory(s.name||'Unnamed', s.history||[]);
+  if(!editId){toast('⚠️ Simpan script dulu untuk melihat riwayat','info');return}
+  const s = scripts.find(x=>x && x.id===editId);
+  if(!s){toast('❌ Script tidak ditemukan','err');return}
+  renderHistory(s.name || 'Unnamed', s.history || []);
 }
 async function openGlobalHistory(){
   let all = [];
-  scripts.forEach(s=>{ (s.history||[]).forEach(h=>all.push({...h,scriptName:s.name})); });
+  scripts.forEach(s=>{
+    (s.history||[]).forEach(h=>{
+      all.push({...h, scriptName: s.name || h.scriptName || 'Unnamed'});
+    });
+  });
   try{
     const snap = await db.ref('deleted_history').once('value');
     const val = snap.val();
-    if(val) Object.values(val).forEach(d=>{ (d.history||[]).forEach(h=>all.push({...h,scriptName:d.name})); });
+    if(val){
+      Object.values(val).forEach(d=>{
+        (d.history||[]).forEach(h=>{
+          all.push({...h, scriptName: d.name || h.scriptName || 'Deleted Script'});
+        });
+      });
+    }
   }catch(e){}
   all.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-  showHistory('Global History', all.slice(0,100));
+  if(all.length > 100) all = all.slice(0, 100);
+  renderHistory('Riwayat Global (Semua Script)', all);
 }
-function showHistory(title, hist){
+function renderHistory(title, history){
   document.getElementById('histTitle').textContent = title;
   const list = document.getElementById('histList');
-  if(!hist.length){
-    list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-3)">No history</div>`;
+  if(!history || history.length === 0){
+    list.innerHTML = `<div class="hist-empty"><span class="ic">📜</span><p>Belum ada riwayat</p></div>`;
   }else{
-    list.innerHTML = hist.map(h=>{
-      const labels = {create:'✨ Created',update:'✏️ Updated',delete:'🗑️ Deleted'};
-      return `<div class="hist-item ${h.action}">
+    list.innerHTML = history.map(h=>{
+      const actionLabel = {create:'✨ Dibuat',update:'✏️ Diperbarui',delete:'🗑️ Dihapus'}[h.action] || h.action;
+      const methodBadge = h.method === 'google' 
+        ? '<span style="color:var(--ok);font-size:10px;margin-left:4px" title="Google Verified">✓</span>'
+        : h.method === 'manual' 
+        ? '<span style="color:var(--warn);font-size:10px;margin-left:4px" title="Input Manual">✎</span>'
+        : '';
+      return `<div class="hist-item action-${h.action}">
         <div class="hist-head">
-          <span class="hist-action ${h.action}">${labels[h.action]||h.action}</span>
-          <span class="hist-time">${formatDate(h.timestamp)}</span>
+          <span class="hist-action ${h.action}">${actionLabel}</span>
+          <span class="hist-time">🕐 ${formatDate(h.timestamp)}</span>
         </div>
         <div class="hist-meta">
-          <div>📄 <b>${esc(h.scriptName)}</b></div>
-          <div>👤 ${esc(h.editor)} (${h.method})</div>
-          <div>📧 ${esc(h.email)}</div>
-          <div>🌐 ${h.ip}</div>
+          <div class="hist-meta-item"><span class="ic">📄</span> Script: <b>${esc(h.scriptName||'-')}</b></div>
+          <div class="hist-meta-item"><span class="ic">👤</span> Editor: <b>${esc(h.editor||'-')}${methodBadge}</b></div>
+          <div class="hist-meta-item"><span class="ic">📧</span> Email: <b>${esc(h.email||'-')}</b></div>
+          <div class="hist-meta-item"><span class="ic">🌐</span> IP: <b>${esc(h.ip||'-')}</b></div>
         </div>
       </div>`;
     }).join('');
   }
   document.getElementById('historyOverlay').classList.add('show');
 }
-function closeHistory(){ document.getElementById('historyOverlay').classList.remove('show'); }
-
-// ============ UTILS ============
-function esc(t){ return t?String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])):''; }
-function ago(d){
-  if(!d) return '-';
-  const s = (Date.now()-new Date(d).getTime())/1000;
-  if(s<60) return 'baru saja';
-  if(s<3600) return Math.floor(s/60)+'m';
-  if(s<86400) return Math.floor(s/3600)+'j';
-  return Math.floor(s/86400)+'h';
+function closeHistory(){
+  document.getElementById('historyOverlay').classList.remove('show');
 }
 function formatDate(iso){
-  return new Date(iso).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'});
-}
-function toast(msg,type='info'){
-  const w = document.getElementById('toasts'), el = document.createElement('div');
-  el.className = 'tst '+type;
-  el.innerHTML = `<span>${{ok:'✅',err:'❌',info:'ℹ️'}[type]||'🐒'}</span><span>${esc(msg)}</span>`;
-  w.appendChild(el);
-  setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); },3000);
+  if(!iso) return '-';
+  const d = new Date(iso);
+  return d.toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'});
 }
 
-// ============ INIT ============
-(async()=>{
-  checkDomain();
-  document.getElementById('loadTxt').textContent = 'Loading...';
-  await fetchIP();
-  scripts = await FIREBASE.load();
-  renderUser();
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('app').classList.add('show');
-  renderAll();
-  
-  // Shortcuts
-  document.addEventListener('keydown',e=>{
-    if(e.ctrlKey&&e.key==='s' && document.getElementById('editorOverlay').classList.contains('show')){
-      e.preventDefault(); saveS();
-    }
-    if(e.key==='Escape'){
-      document.querySelectorAll('.overlay.show').forEach(o=>o.classList.remove('show'));
-    }
-  });
-})();
+// ============ UTILS ============
+function esc(t){if(!t)return'';return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function ago(d){if(!d)return'-';const s=(Date.now()-new Date(d).getTime())/1000;if(s<60)return'baru saja';if(s<3600)return Math.floor(s/60)+'m lalu';if(s<86400)return Math.floor(s/3600)+'j lalu';if(s<2592000)return Math.floor(s/86400)+'h lalu';return new Date(d).toLocaleDateString('id-ID')}
+function toast(msg,type='info'){
+  const w = document.getElementById('toasts'),el = document.createElement('div');
+  el.className = 'tst '+type;
+  el.innerHTML = `<span class="ic">${{ok:'✅',err:'❌',info:'ℹ️'}[type]||'🐒'}</span><span>${esc(msg)}</span>`;
+  w.appendChild(el);
+  setTimeout(()=>{el.style.animation='toastIn .35s reverse';setTimeout(()=>el.remove(),350)},3500);
+}
 </script>
 </body>
 </html>
