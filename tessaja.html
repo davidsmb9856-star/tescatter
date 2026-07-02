@@ -3,995 +3,1220 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>⚡ ScriptVault Pro — v14.0</title>
+<title>🐒 ScriptVault Aurora — Public Cloud</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-
+/* ============================================
+   DESIGN TOKENS
+   ============================================ */
 :root{
-  /* Base */
-  --bg-0:#08090a;
-  --bg-1:#0d0e10;
-  --bg-2:#141519;
-  --bg-3:#1a1c22;
-  --bg-4:#22242c;
-  --bg-5:#2d2f38;
-  
+  /* Surfaces */
+  --s-0:#05060a;--s-1:#0a0b12;--s-2:#11131c;--s-3:#181a26;--s-4:#1f2233;--s-5:#272a3d;
   /* Glass */
-  --glass:rgba(255,255,255,0.02);
-  --glass-2:rgba(255,255,255,0.04);
-  --glass-3:rgba(255,255,255,0.08);
-  --glass-4:rgba(255,255,255,0.12);
-  
+  --g-1:rgba(255,255,255,0.02);--g-2:rgba(255,255,255,0.04);--g-3:rgba(255,255,255,0.07);--g-4:rgba(255,255,255,0.12);
   /* Borders */
-  --border:rgba(255,255,255,0.06);
-  --border-hi:rgba(255,255,255,0.10);
-  --border-max:rgba(255,255,255,0.18);
-  
+  --b-1:rgba(255,255,255,0.06);--b-2:rgba(255,255,255,0.10);--b-3:rgba(255,255,255,0.16);--b-4:rgba(255,255,255,0.24);
   /* Text */
-  --text:#fafafa;
-  --text-2:#a1a1aa;
-  --text-3:#71717a;
-  --text-4:#52525b;
-  --text-5:#3f3f46;
-  
-  /* Status */
-  --ok:#10b981;--ok-dim:rgba(16,185,129,.15);
-  --err:#ef4444;--err-dim:rgba(239,68,68,.15);
-  --warn:#f59e0b;--warn-dim:rgba(245,158,11,.15);
-  --info:#3b82f6;--info-dim:rgba(59,130,246,.15);
-  
-  /* Accent */
-  --acc:#06b6d4;--acc-2:#0891b2;
-  --acc-glow:rgba(6,182,212,.4);
-  
+  --t-1:#ffffff;--t-2:#e4e7ec;--t-3:#a1a7b8;--t-4:#6b7280;--t-5:#4b5563;
+  /* Brand */
+  --brand:#6366f1;--brand-2:#8b5cf6;--brand-3:#ec4899;
+  /* Semantic */
+  --ok:#10b981;--ok-2:#059669;
+  --err:#ef4444;--err-2:#dc2626;
+  --warn:#f59e0b;--warn-2:#d97706;
+  --info:#3b82f6;--info-2:#2563eb;
   /* Gradients */
-  --grad-text:linear-gradient(135deg,#f5f5f7 0%,#a1a1aa 100%);
-  --grad-acc:linear-gradient(135deg,#06b6d4 0%,#3b82f6 100%);
+  --grad-brand:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#ec4899 100%);
+  --grad-text:linear-gradient(135deg,#ffffff 0%,#a1a7b8 100%);
   --grad-ok:linear-gradient(135deg,#10b981,#059669);
   --grad-warn:linear-gradient(135deg,#f59e0b,#d97706);
   --grad-err:linear-gradient(135deg,#ef4444,#dc2626);
-  --grad-info:linear-gradient(135deg,#3b82f6,#1d4ed8);
-  --grad-purple:linear-gradient(135deg,#a855f7,#7c3aed);
-  
+  --grad-info:linear-gradient(135deg,#3b82f6,#2563eb);
   /* Shadows */
-  --sh-xs:0 1px 2px rgba(0,0,0,.4);
-  --sh-sm:0 2px 8px rgba(0,0,0,.5);
-  --sh-md:0 8px 24px rgba(0,0,0,.6);
-  --sh-lg:0 16px 48px rgba(0,0,0,.7);
-  --sh-glow:0 0 30px rgba(6,182,212,.25);
-  
-  /* Radius */
-  --r-xs:6px;
-  --r-sm:10px;
-  --r-md:14px;
-  --r-lg:18px;
-  --r-xl:24px;
-  --r-2xl:32px;
-  
-  /* Max width */
-  --max-w:1040px;
+  --sh-xs:0 1px 2px rgba(0,0,0,0.3);
+  --sh-sm:0 2px 8px rgba(0,0,0,0.4);
+  --sh-md:0 8px 24px rgba(0,0,0,0.5);
+  --sh-lg:0 16px 48px rgba(0,0,0,0.6);
+  --sh-xl:0 24px 64px rgba(0,0,0,0.7);
+  --sh-glow:0 0 40px rgba(99,102,241,0.3);
+  /* Radii */
+  --r-xs:6px;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--r-2xl:24px;--r-full:9999px;
+  /* Spacing */
+  --max-w:1120px;
+  /* Motion */
+  --ease:cubic-bezier(0.4,0,0.2,1);
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
 }
 
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
 body{
-  font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
-  background:var(--bg-0);
-  color:var(--text);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--s-0);color:var(--t-2);
+  font-feature-settings:'cv11','ss01';
   letter-spacing:-0.011em;
   -webkit-font-smoothing:antialiased;
-  font-feature-settings:'ss01','cv11';
+  -moz-osx-font-smoothing:grayscale;
+  font-size:14px;line-height:1.5;
 }
+button{font-family:inherit;cursor:pointer}
+input,textarea,select{font-family:inherit}
+a{color:inherit;text-decoration:none}
+code,pre,.mono{font-family:'JetBrains Mono','SF Mono',Consolas,monospace}
 
-/* === MESH BG === */
-.bg-mesh{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-.bg-mesh::before{
+/* ============================================
+   BACKGROUND FX
+   ============================================ */
+.bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-fx::before{
   content:'';position:absolute;
   width:800px;height:800px;
-  background:radial-gradient(circle,rgba(6,182,212,.09) 0%,transparent 70%);
-  top:-300px;left:-200px;
-  animation:meshFloat1 25s ease-in-out infinite;
+  background:radial-gradient(circle,rgba(99,102,241,0.15) 0%,rgba(139,92,246,0.08) 30%,transparent 70%);
+  top:-300px;left:-300px;
+  animation:float1 30s ease-in-out infinite;
   filter:blur(40px);
 }
-.bg-mesh::after{
+.bg-fx::after{
   content:'';position:absolute;
   width:700px;height:700px;
-  background:radial-gradient(circle,rgba(59,130,246,.07) 0%,transparent 70%);
-  bottom:-250px;right:-250px;
-  animation:meshFloat2 30s ease-in-out infinite;
+  background:radial-gradient(circle,rgba(236,72,153,0.12) 0%,rgba(99,102,241,0.06) 40%,transparent 70%);
+  bottom:-200px;right:-200px;
+  animation:float2 35s ease-in-out infinite;
   filter:blur(40px);
 }
-@keyframes meshFloat1{
-  0%,100%{transform:translate(0,0) scale(1)}
-  50%{transform:translate(150px,120px) scale(1.3)}
-}
-@keyframes meshFloat2{
-  0%,100%{transform:translate(0,0) scale(1)}
-  50%{transform:translate(-120px,-100px) scale(1.2)}
-}
 .bg-grid{
-  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.018;
+  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.025;
   background-image:
-    linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);
-  background-size:48px 48px;
-  mask-image:radial-gradient(ellipse at center,black 40%,transparent 100%);
-  -webkit-mask-image:radial-gradient(ellipse at center,black 40%,transparent 100%);
+    linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%);
+}
+@keyframes float1{
+  0%,100%{transform:translate(0,0) scale(1) rotate(0deg)}
+  33%{transform:translate(120px,80px) scale(1.15) rotate(60deg)}
+  66%{transform:translate(-60px,140px) scale(0.9) rotate(120deg)}
+}
+@keyframes float2{
+  0%,100%{transform:translate(0,0) scale(1) rotate(0deg)}
+  33%{transform:translate(-100px,-60px) scale(1.1) rotate(-60deg)}
+  66%{transform:translate(80px,-120px) scale(0.95) rotate(-120deg)}
 }
 
-/* === LOADING === */
+/* ============================================
+   LOADING
+   ============================================ */
 #loading{
-  position:fixed;inset:0;background:var(--bg-0);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:999;
-  transition:opacity .6s cubic-bezier(.4,0,.2,1);
+  position:fixed;inset:0;
+  background:radial-gradient(ellipse at center,var(--s-1) 0%,var(--s-0) 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;
+  z-index:999;transition:opacity 0.6s var(--ease);
 }
 #loading.hide{opacity:0;pointer-events:none}
-.loader-wrap{position:relative;width:88px;height:88px}
-.loader-ring{
-  position:absolute;inset:0;border-radius:50%;
-  border:2px solid transparent;
-  border-top-color:var(--acc);
-  border-right-color:var(--info);
-  animation:loaderSpin 1.5s cubic-bezier(.5,0,.5,1) infinite;
+.loader-orb{
+  position:relative;width:72px;height:72px;
 }
-.loader-ring:nth-child(2){
-  inset:10px;
-  border-top-color:var(--acc-2);
-  border-right-color:rgba(6,182,212,.3);
-  animation-duration:1.2s;animation-direction:reverse;
+.loader-orb::before,.loader-orb::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  border:2px solid transparent;
+  border-top-color:var(--brand);
+  animation:spin 1.4s linear infinite;
+}
+.loader-orb::after{
+  inset:8px;
+  border-top-color:var(--brand-2);
+  animation-duration:2s;animation-direction:reverse;
 }
 .loader-core{
-  position:absolute;inset:22px;border-radius:50%;
-  background:linear-gradient(135deg,var(--bg-2),var(--bg-3));
-  border:1px solid var(--border-hi);
-  display:grid;place-items:center;font-size:24px;
-  animation:corePulse 2s ease-in-out infinite;
-  box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.05);
+  position:absolute;inset:18px;border-radius:50%;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  display:grid;place-items:center;font-size:22px;color:white;
+  box-shadow:0 0 30px rgba(99,102,241,0.5);
+  animation:pulse 2s ease-in-out infinite;
 }
-@keyframes loaderSpin{to{transform:rotate(360deg)}}
-@keyframes corePulse{
-  0%,100%{transform:scale(1)}
-  50%{transform:scale(1.08)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{
+  0%,100%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.08);opacity:0.85}
 }
-#loading p{color:var(--text-2);font-size:14px;font-weight:500;text-align:center}
-#loading small{
-  color:var(--text-4);font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:600;
-  padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:var(--glass);
+#loading h2{
+  font-size:15px;font-weight:600;color:var(--t-1);
+  letter-spacing:-0.01em;
+}
+#loading p{font-size:12px;color:var(--t-4);font-weight:500}
+#loading .version{
+  font-size:10px;color:var(--t-5);letter-spacing:3px;
+  text-transform:uppercase;font-weight:600;margin-top:8px;
 }
 
-/* === APP === */
-.app{position:relative;z-index:1;display:grid;grid-template-columns:288px 1fr;height:100vh;opacity:0;transition:opacity .6s}
+/* ============================================
+   APP SHELL
+   ============================================ */
+.app{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:280px 1fr;
+  height:100vh;
+  opacity:0;transition:opacity 0.8s var(--ease);
+}
 .app.show{opacity:1}
 
-/* === SIDEBAR === */
+/* ============================================
+   SIDEBAR
+   ============================================ */
 .side{
-  background:linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);
-  border-right:1px solid var(--border);
-  display:flex;flex-direction:column;padding:24px 20px;
-  overflow-y:auto;position:relative;
+  background:linear-gradient(180deg,rgba(10,11,18,0.95) 0%,rgba(5,6,10,0.98) 100%);
+  backdrop-filter:blur(24px);
+  border-right:1px solid var(--b-1);
+  display:flex;flex-direction:column;
+  padding:20px 16px;
+  overflow-y:auto;
+  position:relative;
 }
-.side::before{
+.side::after{
   content:'';position:absolute;top:0;right:0;width:1px;height:100%;
-  background:linear-gradient(180deg,transparent,var(--border-hi),transparent);
+  background:linear-gradient(180deg,transparent,rgba(99,102,241,0.3),transparent);
+}
+.side::-webkit-scrollbar{width:6px}
+.side::-webkit-scrollbar-thumb{background:var(--b-2);border-radius:3px}
+
+/* Brand */
+.brand{
+  display:flex;align-items:center;gap:12px;
+  padding:4px 8px 20px;
+  border-bottom:1px solid var(--b-1);
+  margin-bottom:20px;
+}
+.brand-ic{
+  width:44px;height:44px;border-radius:var(--r-lg);
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  display:grid;place-items:center;font-size:22px;
+  box-shadow:0 8px 24px rgba(99,102,241,0.35),inset 0 1px 0 rgba(255,255,255,0.15);
+  position:relative;flex-shrink:0;
+  transition:transform 0.3s var(--ease);
+}
+.brand-ic:hover{transform:scale(1.05) rotate(-8deg)}
+.brand-ic::before{
+  content:'';position:absolute;inset:-2px;border-radius:inherit;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2),var(--brand-3));
+  z-index:-1;opacity:0.4;filter:blur(10px);
+  animation:glow 3s ease-in-out infinite;
+}
+@keyframes glow{
+  0%,100%{opacity:0.4}
+  50%{opacity:0.7}
+}
+.brand-txt h1{
+  font-size:16px;font-weight:800;letter-spacing:-0.03em;
+  background:var(--grad-text);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  line-height:1.1;
+}
+.brand-txt small{
+  font-size:10px;color:var(--t-5);
+  letter-spacing:2px;text-transform:uppercase;
+  font-weight:600;display:block;margin-top:3px;
 }
 
-.logo{
-  display:flex;align-items:center;gap:14px;
-  padding-bottom:22px;margin-bottom:22px;
-  border-bottom:1px solid var(--border);
+/* Nav */
+.nav-section{margin-bottom:20px}
+.nav-label{
+  font-size:10px;color:var(--t-5);
+  text-transform:uppercase;letter-spacing:2.5px;
+  font-weight:700;padding:0 10px 10px;
 }
-.logo-ic{
-  width:46px;height:46px;border-radius:var(--r-md);
-  background:linear-gradient(135deg,var(--acc),var(--info));
-  display:grid;place-items:center;
-  box-shadow:0 4px 16px rgba(6,182,212,.3),inset 0 1px 0 rgba(255,255,255,.2);
-  position:relative;flex-shrink:0;
-  transition:transform .4s cubic-bezier(.4,0,.2,1);
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:var(--r-md);
+  color:var(--t-3);font-size:13px;font-weight:500;
+  transition:all 0.2s var(--ease);
+  margin-bottom:2px;position:relative;
   cursor:pointer;
 }
-.logo-ic:hover{transform:rotate(-8deg) scale(1.05)}
-.logo-ic svg{width:22px;height:22px}
-.logo-text h1{
-  font-size:17px;font-weight:800;letter-spacing:-.03em;
-  background:var(--grad-text);-webkit-background-clip:text;background-clip:text;
+.nav-item:hover{background:var(--g-2);color:var(--t-1)}
+.nav-item.active{
+  background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.08));
+  color:var(--t-1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.nav-item.active::before{
+  content:'';position:absolute;left:-16px;top:20%;bottom:20%;
+  width:3px;background:var(--grad-brand);border-radius:0 2px 2px 0;
+  box-shadow:0 0 12px rgba(99,102,241,0.6);
+}
+.nav-item .ic{
+  width:20px;height:20px;
+  display:grid;place-items:center;font-size:15px;flex-shrink:0;
+}
+.nav-item .badge{
+  margin-left:auto;
+  background:var(--g-3);border:1px solid var(--b-2);
+  padding:2px 8px;border-radius:var(--r-full);
+  font-size:10px;font-weight:600;color:var(--t-3);
+}
+.nav-item.active .badge{
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  color:white;border-color:transparent;
+}
+
+/* Stats Mini */
+.stats-mini{
+  background:var(--g-1);
+  border:1px solid var(--b-1);
+  border-radius:var(--r-lg);
+  padding:14px;margin-bottom:16px;
+}
+.stats-mini-title{
+  font-size:10px;color:var(--t-5);
+  text-transform:uppercase;letter-spacing:2px;
+  font-weight:700;margin-bottom:10px;
+}
+.stats-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stats-mini-item{
+  background:var(--g-1);border-radius:var(--r-sm);
+  padding:10px;
+}
+.stats-mini-val{
+  font-size:18px;font-weight:800;letter-spacing:-0.03em;
+  background:var(--grad-text);
+  -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;
+  line-height:1;
 }
-.logo-text small{
-  font-size:10px;color:var(--text-4);letter-spacing:2.5px;
-  text-transform:uppercase;font-weight:600;margin-top:3px;display:block;
+.stats-mini-lbl{
+  font-size:9px;color:var(--t-5);
+  text-transform:uppercase;letter-spacing:1.5px;
+  font-weight:600;margin-top:4px;
 }
 
-.nav{display:flex;flex-direction:column;gap:4px;flex:1}
-.nav-lbl{
-  font-size:10px;color:var(--text-5);text-transform:uppercase;
-  letter-spacing:2.5px;padding:18px 12px 10px;font-weight:700;
-  display:flex;align-items:center;gap:10px;
+/* User Profile */
+.profile{
+  background:linear-gradient(135deg,var(--g-2),var(--g-1));
+  border:1px solid var(--b-1);
+  border-radius:var(--r-lg);
+  padding:14px;display:flex;align-items:center;gap:12px;
+  position:relative;overflow:hidden;
 }
-.nav-lbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
-.nav-i{
-  display:flex;align-items:center;gap:12px;
-  padding:11px 14px;border-radius:var(--r-md);
-  cursor:pointer;color:var(--text-3);font-size:14px;font-weight:500;
-  transition:all .25s cubic-bezier(.4,0,.2,1);
-  position:relative;margin:1px 0;
+.profile::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--brand),transparent);
+  opacity:0.5;
 }
-.nav-i:hover{background:var(--glass-2);color:var(--text-2);transform:translateX(2px)}
-.nav-i.on{
-  background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(59,130,246,.05));
-  color:var(--text);
-  border:1px solid rgba(6,182,212,.18);
+.profile-av{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  display:grid;place-items:center;
+  font-size:18px;color:white;font-weight:700;
+  box-shadow:0 4px 12px rgba(99,102,241,0.3);
+  flex-shrink:0;
+  position:relative;
 }
-.nav-i.on::before{
-  content:'';position:absolute;left:0;top:20%;bottom:20%;
-  width:2px;background:var(--grad-acc);border-radius:0 2px 2px 0;
+.profile-av::after{
+  content:'';position:absolute;bottom:-2px;right:-2px;
+  width:12px;height:12px;border-radius:50%;
+  background:var(--ok);border:2px solid var(--s-1);
+  box-shadow:0 0 8px var(--ok);
 }
-.nav-i .ic{font-size:16px;width:20px;text-align:center;opacity:.9}
+.profile-info{flex:1;min-width:0}
+.profile-name{
+  font-size:13px;font-weight:700;color:var(--t-1);
+  letter-spacing:-0.01em;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.profile-role{
+  font-size:10px;color:var(--t-4);font-weight:500;
+  display:flex;align-items:center;gap:4px;margin-top:2px;
+}
 
+/* Footer */
 .side-ft{
-  margin-top:auto;padding-top:18px;border-top:1px solid var(--border);
-  font-size:11px;color:var(--text-4);
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between;
+  margin-top:auto;padding-top:16px;
+  border-top:1px solid var(--b-1);
+  display:flex;flex-direction:column;gap:10px;
 }
-.side-ft-left{display:flex;align-items:center;gap:8px;font-weight:500}
-.side-ft-left::before{
-  content:'';width:6px;height:6px;border-radius:50%;background:var(--ok);
-  box-shadow:0 0 10px var(--ok);animation:pulse 2s infinite;
+.side-ft-row{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
 }
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.side-ft-status{
+  font-size:10px;color:var(--t-5);font-weight:500;
+  display:flex;align-items:center;gap:6px;
+}
+.side-ft-status::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--ok);box-shadow:0 0 6px var(--ok);
+  animation:pulse 2s infinite;
+}
 .side-ft-btn{
-  background:var(--glass-2);border:1px solid var(--border);
-  color:var(--text-3);padding:7px 12px;border-radius:var(--r-sm);
-  font-size:11px;cursor:pointer;transition:all .2s;
-  font-family:inherit;font-weight:600;
-  display:inline-flex;align-items:center;gap:6px;
+  background:var(--g-2);border:1px solid var(--b-1);
+  color:var(--t-3);padding:6px 10px;border-radius:var(--r-sm);
+  font-size:10px;font-weight:600;cursor:pointer;
+  transition:all 0.2s var(--ease);
+  display:inline-flex;align-items:center;gap:4px;
 }
-.side-ft-btn:hover{color:var(--err);border-color:var(--err);background:var(--err-dim)}
+.side-ft-btn:hover{color:var(--t-1);border-color:var(--b-3);background:var(--g-3)}
+.side-ft-btn.danger:hover{color:var(--err);border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.08)}
+.side-ft-ver{
+  font-size:9px;color:var(--t-5);letter-spacing:1.5px;
+  text-transform:uppercase;font-weight:600;text-align:center;
+}
 
-.owner-card{
-  margin-top:14px;padding:14px;border-radius:var(--r-md);
-  background:linear-gradient(135deg,rgba(6,182,212,.06),rgba(168,85,247,.04));
-  border:1px solid rgba(6,182,212,.12);
-  display:flex;align-items:center;gap:12px;
+/* ============================================
+   MAIN
+   ============================================ */
+.main{
+  display:flex;flex-direction:column;overflow:hidden;
+  position:relative;background:var(--s-0);
 }
-.owner-avatar{
-  width:38px;height:38px;border-radius:50%;flex-shrink:0;
-  background:linear-gradient(135deg,var(--acc),var(--info));
-  display:grid;place-items:center;font-size:14px;font-weight:700;color:#fff;
-  box-shadow:0 4px 12px rgba(6,182,212,.3);
-}
-.owner-info{flex:1;min-width:0}
-.owner-info .lbl{
-  font-size:9px;color:var(--text-4);text-transform:uppercase;
-  letter-spacing:2px;font-weight:700;margin-bottom:3px;
-}
-.owner-info .name{
-  font-size:13px;color:var(--text);font-weight:700;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em;
-}
-.owner-info .role{font-size:10px;color:var(--text-4);margin-top:1px}
 
-/* === MAIN === */
-.main{display:flex;flex-direction:column;overflow:hidden;position:relative;background:linear-gradient(180deg,var(--bg-0) 0%,var(--bg-1) 100%)}
-
-.top{
+/* Header */
+.head{
   display:flex;align-items:center;justify-content:space-between;
-  padding:18px 36px;gap:16px;z-index:2;
-  background:rgba(13,14,16,.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border-bottom:1px solid var(--border);
+  padding:16px 28px;
+  background:rgba(10,11,18,0.7);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--b-1);
+  gap:16px;z-index:10;
 }
-.top h2{
-  font-size:20px;font-weight:800;letter-spacing:-.03em;
-  display:flex;align-items:center;gap:14px;
+.head-l{display:flex;align-items:center;gap:14px;flex:1;min-width:0}
+.head-title{
+  font-size:20px;font-weight:800;letter-spacing:-0.03em;
+  color:var(--t-1);display:flex;align-items:center;gap:10px;
+  line-height:1;
 }
-.top h2::before{
-  content:'';width:4px;height:22px;background:var(--grad-acc);
-  border-radius:2px;box-shadow:0 0 12px var(--acc-glow);
+.head-title-bar{
+  width:3px;height:20px;border-radius:2px;
+  background:var(--grad-brand);
+  box-shadow:0 0 12px rgba(99,102,241,0.5);
 }
-.top-r{display:flex;gap:10px;align-items:center}
+.head-sub{font-size:12px;color:var(--t-4);font-weight:500;margin-top:2px}
 
+/* Search */
 .search{
   display:flex;align-items:center;gap:10px;
-  background:var(--glass);border:1px solid var(--border);
-  border-radius:var(--r-md);padding:10px 16px;width:320px;
-  transition:all .25s cubic-bezier(.4,0,.2,1);
+  background:var(--g-1);border:1px solid var(--b-1);
+  border-radius:var(--r-md);padding:9px 14px;
+  width:320px;max-width:100%;
+  transition:all 0.25s var(--ease);
+  position:relative;
 }
 .search:focus-within{
-  border-color:var(--acc);background:var(--glass-2);
-  box-shadow:0 0 0 3px rgba(6,182,212,.12);
-  width:380px;
+  border-color:var(--brand);
+  background:var(--g-2);
+  box-shadow:0 0 0 4px rgba(99,102,241,0.1);
 }
-.search svg{width:16px;height:16px;color:var(--text-4);flex-shrink:0;transition:color .25s}
-.search:focus-within svg{color:var(--acc)}
+.search-icon{font-size:14px;color:var(--t-4);flex-shrink:0}
 .search input{
   background:none;border:none;outline:none;
-  color:var(--text);flex:1;font-size:13.5px;font-family:inherit;
+  color:var(--t-1);flex:1;font-size:13px;font-weight:500;
 }
-.search input::placeholder{color:var(--text-5)}
+.search input::placeholder{color:var(--t-5)}
+.search-kbd{
+  font-size:10px;color:var(--t-5);
+  background:var(--g-2);border:1px solid var(--b-1);
+  padding:2px 6px;border-radius:4px;font-weight:600;
+  font-family:'JetBrains Mono',monospace;
+}
 
-/* === BUTTONS === */
-.btn{
-  padding:10px 18px;border:none;border-radius:var(--r-md);
-  cursor:pointer;font-size:13px;font-weight:600;
-  transition:all .25s cubic-bezier(.4,0,.2,1);
-  display:inline-flex;align-items:center;gap:8px;
-  font-family:inherit;letter-spacing:-.01em;
-  position:relative;overflow:hidden;white-space:nowrap;
-}
-.btn svg{width:15px;height:15px}
-.btn-p{
-  background:var(--grad-acc);color:#fff;
-  box-shadow:0 4px 12px rgba(6,182,212,.3);
-}
-.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(6,182,212,.4)}
-.btn-p::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.25) 50%,transparent 60%);
-  transform:translateX(-100%);transition:transform .7s;
-}
-.btn-p:hover::after{transform:translateX(100%)}
-.btn-ok{background:var(--grad-ok);color:#fff;box-shadow:var(--sh-sm)}
-.btn-ok:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
-.btn-warn{background:var(--grad-warn);color:#fff;box-shadow:var(--sh-sm)}
-.btn-warn:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
-.btn-e{background:var(--grad-err);color:#fff;box-shadow:var(--sh-sm)}
-.btn-e:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
-.btn-g{
-  background:var(--glass-2);color:var(--text);
-  border:1px solid var(--border-hi);
-  backdrop-filter:blur(10px);
-}
-.btn-g:hover{background:var(--glass-3);border-color:var(--border-max);transform:translateY(-2px)}
-
+/* Header Actions */
+.head-r{display:flex;gap:8px;align-items:center}
 .btn-ic{
-  width:42px;height:42px;padding:0;
+  width:36px;height:36px;border-radius:var(--r-md);
+  background:var(--g-2);border:1px solid var(--b-1);
   display:grid;place-items:center;
-  background:var(--glass-2);border:1px solid var(--border);
-  border-radius:var(--r-md);color:var(--text-2);
-  cursor:pointer;transition:all .25s;font-size:18px;
+  color:var(--t-3);font-size:15px;
+  transition:all 0.2s var(--ease);
+  position:relative;
 }
-.btn-ic svg{width:18px;height:18px}
-.btn-ic:hover{
-  color:var(--acc);border-color:rgba(6,182,212,.3);
-  background:rgba(6,182,212,.08);transform:translateY(-2px);
-  box-shadow:0 0 20px rgba(6,182,212,.15);
+.btn-ic:hover{color:var(--t-1);border-color:var(--b-3);background:var(--g-3);transform:translateY(-1px)}
+.btn-ic[data-tooltip]:hover::after{
+  content:attr(data-tooltip);
+  position:absolute;bottom:-32px;left:50%;transform:translateX(-50%);
+  background:var(--s-4);color:var(--t-1);
+  padding:4px 8px;border-radius:6px;font-size:10px;
+  white-space:nowrap;border:1px solid var(--b-2);
+  pointer-events:none;z-index:100;
 }
 
-/* === CONTENT === */
-.ct{flex:1;overflow-y:auto;padding:28px 36px;position:relative;z-index:1}
+/* Buttons */
+.btn{
+  padding:8px 14px;border:none;border-radius:var(--r-md);
+  font-size:12px;font-weight:600;letter-spacing:-0.005em;
+  transition:all 0.2s var(--ease);
+  display:inline-flex;align-items:center;gap:6px;
+  position:relative;overflow:hidden;
+}
+.btn-primary{
+  background:var(--grad-brand);color:white;
+  box-shadow:0 4px 12px rgba(99,102,241,0.25),inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(99,102,241,0.35)}
+.btn-primary::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,0.2) 50%,transparent 60%);
+  transform:translateX(-100%);transition:transform 0.6s;
+}
+.btn-primary:hover::after{transform:translateX(100%)}
+
+.btn-ghost{
+  background:var(--g-2);color:var(--t-2);
+  border:1px solid var(--b-2);
+}
+.btn-ghost:hover{background:var(--g-3);border-color:var(--b-3);color:var(--t-1)}
+
+.btn-ok{background:var(--grad-ok);color:white;box-shadow:0 4px 12px rgba(16,185,129,0.25)}
+.btn-ok:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(16,185,129,0.35)}
+
+.btn-warn{background:var(--grad-warn);color:white;box-shadow:0 4px 12px rgba(245,158,11,0.25)}
+.btn-warn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(245,158,11,0.35)}
+
+.btn-err{background:var(--grad-err);color:white;box-shadow:0 4px 12px rgba(239,68,68,0.25)}
+.btn-err:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(239,68,68,0.35)}
+
+.btn-info{background:var(--grad-info);color:white;box-shadow:0 4px 12px rgba(59,130,246,0.25)}
+.btn-info:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(59,130,246,0.35)}
+
+.btn-lg{padding:10px 18px;font-size:13px;border-radius:var(--r-lg)}
+.btn-sm{padding:6px 10px;font-size:11px}
+
+/* ============================================
+   CONTENT
+   ============================================ */
+.ct{
+  flex:1;overflow-y:auto;
+  padding:24px 28px;
+  position:relative;z-index:1;
+  scroll-behavior:smooth;
+}
 .ct::-webkit-scrollbar{width:10px}
 .ct::-webkit-scrollbar-track{background:transparent}
-.ct::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:10px;border:2px solid var(--bg-0)}
-.ct::-webkit-scrollbar-thumb:hover{background:var(--bg-4)}
+.ct::-webkit-scrollbar-thumb{background:var(--b-1);border-radius:5px;border:2px solid var(--s-0)}
+.ct::-webkit-scrollbar-thumb:hover{background:var(--b-2)}
 
 .container{max-width:var(--max-w);margin:0 auto}
 
-/* === HERO BENTO === */
+/* ============================================
+   HERO STATS
+   ============================================ */
 .hero{
-  margin-bottom:28px;position:relative;
-  padding:32px;border-radius:var(--r-xl);overflow:hidden;
-  background:linear-gradient(135deg,rgba(6,182,212,.04),rgba(59,130,246,.02));
-  border:1px solid rgba(6,182,212,.12);
+  background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(139,92,246,0.04));
+  border:1px solid var(--b-2);
+  border-radius:var(--r-2xl);
+  padding:28px;margin-bottom:24px;
+  position:relative;overflow:hidden;
 }
 .hero::before{
-  content:'';position:absolute;top:-50%;right:-20%;
-  width:400px;height:400px;border-radius:50%;
-  background:radial-gradient(circle,rgba(6,182,212,.08) 0%,transparent 70%);
-  filter:blur(60px);pointer-events:none;
+  content:'';position:absolute;top:-100px;right:-100px;
+  width:300px;height:300px;
+  background:radial-gradient(circle,rgba(99,102,241,0.15) 0%,transparent 70%);
+  filter:blur(40px);
 }
-.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px;position:relative;z-index:1}
-.hero-info h1{
-  font-size:30px;font-weight:800;letter-spacing:-.03em;
-  background:var(--grad-text);-webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;margin-bottom:8px;
+.hero-title{
+  font-size:20px;font-weight:800;letter-spacing:-0.02em;
+  color:var(--t-1);margin-bottom:4px;
+  display:flex;align-items:center;gap:10px;
 }
-.hero-info p{color:var(--text-3);font-size:14px;max-width:480px;line-height:1.6}
-.hero-info p strong{color:var(--acc);font-weight:600}
-.hero-badge{
-  padding:6px 12px;border-radius:20px;
-  background:var(--ok-dim);color:var(--ok);
-  font-size:11px;font-weight:600;letter-spacing:.5px;
-  display:inline-flex;align-items:center;gap:6px;
-  border:1px solid rgba(16,185,129,.2);
+.hero-title .ic{
+  width:32px;height:32px;border-radius:var(--r-md);
+  background:var(--grad-brand);
+  display:grid;place-items:center;font-size:16px;
+  box-shadow:0 4px 12px rgba(99,102,241,0.3);
 }
-.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite}
+.hero-sub{font-size:12px;color:var(--t-4);font-weight:500;margin-bottom:20px}
 
-.bento{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;position:relative;z-index:1}
-.bento-stat{
-  background:linear-gradient(135deg,var(--bg-2),var(--bg-1));
-  border:1px solid var(--border);
+.stats-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:12px;position:relative;z-index:1;
+}
+.stat{
+  background:var(--g-1);
+  border:1px solid var(--b-1);
   border-radius:var(--r-lg);
-  padding:18px;position:relative;overflow:hidden;
-  transition:all .3s cubic-bezier(.4,0,.2,1);
-}
-.bento-stat:hover{
-  border-color:var(--border-hi);transform:translateY(-2px);
-  box-shadow:var(--sh-md);
-}
-.bento-ic{
-  width:36px;height:36px;border-radius:var(--r-sm);
-  display:grid;place-items:center;margin-bottom:14px;
-  font-size:16px;
-}
-.bento-stat:nth-child(1) .bento-ic{background:rgba(6,182,212,.12);color:var(--acc)}
-.bento-stat:nth-child(2) .bento-ic{background:rgba(168,85,247,.12);color:#a855f7}
-.bento-stat:nth-child(3) .bento-ic{background:rgba(245,158,11,.12);color:var(--warn)}
-.bento-stat:nth-child(4) .bento-ic{background:rgba(16,185,129,.12);color:var(--ok)}
-.bento-lbl{
-  font-size:10.5px;color:var(--text-4);text-transform:uppercase;
-  letter-spacing:1.5px;font-weight:700;margin-bottom:6px;
-}
-.bento-val{
-  font-size:26px;font-weight:800;letter-spacing:-.04em;
-  color:var(--text);font-variant-numeric:tabular-nums;
-}
-.bento-sub{font-size:11px;color:var(--text-4);margin-top:4px}
-
-/* === SECTION === */
-.section{
-  background:var(--glass);
-  border:1px solid var(--border);
-  border-radius:var(--r-xl);
-  padding:26px;margin-bottom:20px;
-  backdrop-filter:blur(10px);
-}
-.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-.sh h3{
-  font-size:17px;font-weight:700;letter-spacing:-.02em;
-  display:flex;align-items:center;gap:12px;
-}
-.sh h3 .bar{width:4px;height:20px;background:var(--grad-acc);border-radius:2px;box-shadow:0 0 10px var(--acc-glow)}
-.sh small{
-  font-size:12px;color:var(--text-3);font-weight:500;
-  background:var(--glass-2);padding:5px 12px;border-radius:20px;
-  border:1px solid var(--border);
-}
-
-.filter-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-.pill{
-  padding:7px 14px;border-radius:20px;
-  background:var(--glass-2);border:1px solid var(--border);
-  color:var(--text-3);font-size:12px;font-weight:500;
-  cursor:pointer;transition:all .2s;
-  display:inline-flex;align-items:center;gap:6px;
-}
-.pill:hover{color:var(--text);border-color:var(--border-hi)}
-.pill.on{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 4px 12px rgba(6,182,212,.3)}
-
-/* === CARD === */
-.card-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
-.card{
-  background:linear-gradient(135deg,var(--bg-2),var(--bg-1));
-  border:1px solid var(--border);
-  border-radius:var(--r-lg);
-  padding:20px;
-  transition:all .3s cubic-bezier(.4,0,.2,1);
+  padding:16px;
+  transition:all 0.3s var(--ease);
   position:relative;overflow:hidden;
-  display:flex;flex-direction:column;
+}
+.stat::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--brand),transparent);
+  opacity:0;transition:opacity 0.3s;
+}
+.stat:hover{transform:translateY(-2px);border-color:var(--b-3);background:var(--g-2)}
+.stat:hover::before{opacity:1}
+.stat-lbl{
+  font-size:10px;color:var(--t-5);
+  text-transform:uppercase;letter-spacing:2px;
+  font-weight:700;display:flex;align-items:center;gap:6px;
+  margin-bottom:8px;
+}
+.stat-lbl .ic{font-size:12px}
+.stat-val{
+  font-size:28px;font-weight:800;letter-spacing:-0.04em;
+  line-height:1;color:var(--t-1);
+}
+.stat-val.grad{
+  background:var(--grad-text);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.stat-sub{font-size:11px;color:var(--t-4);font-weight:500;margin-top:6px}
+.stat-trend{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:10px;font-weight:700;padding:2px 6px;
+  border-radius:var(--r-sm);margin-top:8px;
+}
+.stat-trend.up{background:rgba(16,185,129,0.15);color:var(--ok)}
+.stat-trend.info{background:rgba(59,130,246,0.15);color:var(--info)}
+
+/* ============================================
+   SECTION
+   ============================================ */
+.section{
+  background:linear-gradient(180deg,var(--s-2),var(--s-1));
+  border:1px solid var(--b-1);
+  border-radius:var(--r-xl);
+  padding:24px;margin-bottom:20px;
+  position:relative;
+}
+.section-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:20px;gap:12px;flex-wrap:wrap;
+}
+.section-title{
+  font-size:16px;font-weight:700;letter-spacing:-0.02em;
+  color:var(--t-1);display:flex;align-items:center;gap:10px;
+}
+.section-title-bar{
+  width:3px;height:18px;border-radius:2px;
+  background:var(--grad-brand);
+  box-shadow:0 0 8px rgba(99,102,241,0.4);
+}
+.section-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pill{
+  font-size:11px;color:var(--t-3);font-weight:600;
+  background:var(--g-2);border:1px solid var(--b-1);
+  padding:4px 10px;border-radius:var(--r-full);
+  display:inline-flex;align-items:center;gap:4px;
+}
+
+/* Filters */
+.filters{
+  display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;
+}
+.chip{
+  padding:6px 12px;border-radius:var(--r-full);
+  background:var(--g-2);border:1px solid var(--b-1);
+  color:var(--t-3);font-size:11px;font-weight:600;
+  cursor:pointer;transition:all 0.2s var(--ease);
+  display:inline-flex;align-items:center;gap:5px;
+}
+.chip:hover{background:var(--g-3);color:var(--t-1);border-color:var(--b-3)}
+.chip.active{
+  background:var(--grad-brand);color:white;border-color:transparent;
+  box-shadow:0 2px 8px rgba(99,102,241,0.3);
+}
+.chip .count{
+  background:rgba(255,255,255,0.2);padding:1px 6px;border-radius:var(--r-full);
+  font-size:9px;font-weight:700;
+}
+.chip:not(.active) .count{background:var(--g-3)}
+
+/* ============================================
+   CARDS
+   ============================================ */
+.card-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.card{
+  background:linear-gradient(180deg,var(--s-3),var(--s-2));
+  border:1px solid var(--b-1);
+  border-radius:var(--r-xl);
+  padding:20px;
+  transition:all 0.3s var(--ease);
+  position:relative;overflow:hidden;
+  cursor:pointer;
 }
 .card::before{
   content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:var(--grad-acc);transform:scaleX(0);transform-origin:left;
-  transition:transform .5s cubic-bezier(.4,0,.2,1);
+  background:var(--grad-brand);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform 0.4s var(--ease-out);
+}
+.card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,rgba(99,102,241,0.08),transparent 70%);
+  opacity:0;transition:opacity 0.3s;
+  pointer-events:none;
 }
 .card:hover{
-  border-color:var(--border-hi);transform:translateY(-3px);
-  box-shadow:var(--sh-md),0 0 0 1px var(--border-hi);
+  border-color:var(--b-3);
+  transform:translateY(-3px);
+  box-shadow:0 16px 40px rgba(0,0,0,0.4),0 0 0 1px rgba(99,102,241,0.1);
 }
 .card:hover::before{transform:scaleX(1)}
+.card:hover::after{opacity:1}
 
-.card-h{
-  display:flex;gap:14px;margin-bottom:14px;align-items:flex-start;
-  cursor:pointer;
-}
+.card-top{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start;position:relative;z-index:1}
 .card-ic{
-  width:46px;height:46px;border-radius:var(--r-md);
-  background:linear-gradient(135deg,rgba(6,182,212,.15),rgba(59,130,246,.08));
-  border:1px solid rgba(6,182,212,.2);
-  display:grid;place-items:center;flex-shrink:0;
-  transition:all .3s cubic-bezier(.4,0,.2,1);
+  width:48px;height:48px;border-radius:var(--r-lg);
+  background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.1));
+  border:1px solid rgba(99,102,241,0.25);
+  display:grid;place-items:center;font-size:22px;
+  flex-shrink:0;transition:all 0.3s var(--ease);
 }
-.card-ic svg{width:22px;height:22px;color:var(--acc)}
 .card:hover .card-ic{
-  transform:scale(1.05) rotate(-5deg);
-  box-shadow:0 4px 16px rgba(6,182,212,.2);
+  transform:scale(1.05) rotate(-8deg);
+  box-shadow:0 8px 20px rgba(99,102,241,0.3);
 }
-.card-body{flex:1;min-width:0}
-.card-t{
-  font-weight:700;font-size:15px;margin-bottom:4px;
-  color:var(--text);letter-spacing:-.01em;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+.card-info{flex:1;min-width:0}
+.card-title{
+  font-size:15px;font-weight:700;letter-spacing:-0.02em;
+  color:var(--t-1);margin-bottom:4px;
+  display:flex;align-items:center;gap:8px;line-height:1.2;
 }
-.card-d{
-  font-size:12.5px;color:var(--text-3);line-height:1.5;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+.card-fav{
+  font-size:14px;color:var(--warn);
+  animation:pulse 2s infinite;
 }
-
 .card-author{
-  display:inline-flex;align-items:center;gap:6px;
-  margin-top:10px;padding:3px 10px 3px 3px;
-  background:var(--glass-2);border:1px solid var(--border);
-  border-radius:20px;font-size:11px;color:var(--text-2);font-weight:500;
-  transition:all .2s;
+  font-size:11px;color:var(--t-4);font-weight:500;
+  display:flex;align-items:center;gap:5px;margin-top:2px;
 }
-.card-author:hover{background:var(--glass-3);border-color:var(--border-hi)}
-.card-author-avatar{
-  width:20px;height:20px;border-radius:50%;flex-shrink:0;
-  background:linear-gradient(135deg,var(--acc),var(--info));
-  display:grid;place-items:center;font-size:9px;font-weight:700;color:#fff;
+.card-desc{
+  font-size:12px;color:var(--t-3);line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;
 }
-
-.card-m{
-  display:flex;gap:14px;font-size:11px;color:var(--text-3);
-  padding:12px 0;border-top:1px solid var(--border);
-  margin-top:auto;font-weight:500;flex-wrap:wrap;
+.card-tags{
+  display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;
+  position:relative;z-index:1;
 }
-.card-m span{display:flex;align-items:center;gap:5px}
-.card-m svg{width:13px;height:13px;opacity:.7}
+.tag{
+  background:var(--g-2);border:1px solid var(--b-1);
+  padding:3px 8px;border-radius:var(--r-sm);
+  font-size:10px;color:var(--t-4);font-weight:600;
+  display:inline-flex;align-items:center;gap:3px;
+}
+.tag.accent{background:rgba(99,102,241,0.12);color:var(--brand);border-color:rgba(99,102,241,0.25)}
 
-.card-a{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
-.card-a .btn{padding:7px 12px;font-size:11px;flex:1;justify-content:center}
+.card-meta{
+  display:flex;gap:12px;flex-wrap:wrap;
+  font-size:10px;color:var(--t-4);font-weight:500;
+  padding-top:12px;margin-top:12px;
+  border-top:1px dashed var(--b-1);
+  position:relative;z-index:1;
+}
+.card-meta span{display:flex;align-items:center;gap:4px}
+.card-meta .ic{font-size:11px}
 
-/* === EMPTY === */
+.card-actions{
+  display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;
+  position:relative;z-index:1;
+}
+.card-actions .btn{padding:6px 11px;font-size:11px}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
 .empty{
-  text-align:center;padding:80px 24px;
-  background:linear-gradient(135deg,var(--glass),transparent);
-  border:1px dashed var(--border-hi);
+  text-align:center;padding:60px 24px;
+  background:var(--g-1);
+  border:1px dashed var(--b-2);
   border-radius:var(--r-xl);
-  grid-column:1/-1;
+  position:relative;overflow:hidden;
+}
+.empty::before{
+  content:'';position:absolute;top:-50px;left:50%;transform:translateX(-50%);
+  width:300px;height:300px;
+  background:radial-gradient(circle,rgba(99,102,241,0.1),transparent 70%);
+  filter:blur(40px);
 }
 .empty-ic{
-  width:88px;height:88px;margin:0 auto 20px;
-  border-radius:50%;
-  background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(59,130,246,.05));
-  border:1px solid rgba(6,182,212,.2);
-  display:grid;place-items:center;
-  animation:emptyFloat 4s ease-in-out infinite;
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,var(--g-3),var(--g-1));
+  border:1px solid var(--b-2);
+  display:grid;place-items:center;font-size:36px;
+  margin:0 auto 20px;position:relative;z-index:1;
 }
-.empty-ic svg{width:36px;height:36px;color:var(--acc);opacity:.7}
-@keyframes emptyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.empty h4{font-size:18px;margin-bottom:8px;font-weight:700;letter-spacing:-.01em}
-.empty p{color:var(--text-3);font-size:13px;margin-bottom:24px;max-width:380px;margin-left:auto;margin-right:auto;line-height:1.6}
+.empty h4{
+  font-size:18px;font-weight:700;color:var(--t-1);
+  letter-spacing:-0.02em;margin-bottom:6px;
+  position:relative;z-index:1;
+}
+.empty p{
+  font-size:13px;color:var(--t-4);
+  margin-bottom:20px;max-width:360px;margin-inline:auto;
+  position:relative;z-index:1;
+}
+.empty .btn{position:relative;z-index:1}
 
-/* === EDITOR MODAL === */
-.editor-overlay{
+/* ============================================
+   MODALS
+   ============================================ */
+.modal-overlay{
   position:fixed;inset:0;
-  background:rgba(0,0,0,.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(24px);
   display:none;align-items:center;justify-content:center;
-  padding:24px;z-index:500;overflow-y:auto;
+  padding:20px;z-index:500;
+  overflow-y:auto;
 }
-.editor-overlay.show{display:flex;animation:fadeIn .3s}
+.modal-overlay.show{display:flex;animation:fadeIn 0.25s var(--ease)}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.ed{
-  background:linear-gradient(135deg,var(--bg-2),var(--bg-1));
-  border:1px solid var(--border-hi);
+
+.modal{
+  background:linear-gradient(180deg,var(--s-2),var(--s-1));
+  border:1px solid var(--b-2);
   border-radius:var(--r-2xl);
-  padding:28px;max-width:1040px;width:100%;margin:auto;
-  animation:modalSlide .4s cubic-bezier(.4,0,.2,1);
-  box-shadow:var(--sh-lg),0 0 60px rgba(0,0,0,.5);
+  padding:28px;width:100%;margin:auto;
+  animation:slideUp 0.4s var(--ease-out);
+  box-shadow:var(--sh-xl);
+  position:relative;overflow:hidden;
 }
-@keyframes modalSlide{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(99,102,241,0.5),transparent);
+}
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(20px) scale(0.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.modal-md{max-width:960px}
+.modal-sm{max-width:420px}
+.modal-md-lg{max-width:540px}
 
-.ed-tb{
+.modal-head{
   display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:24px;flex-wrap:wrap;gap:12px;
-  padding-bottom:20px;border-bottom:1px solid var(--border);
+  margin-bottom:22px;gap:12px;flex-wrap:wrap;
 }
-.ed-tb h3{
-  font-size:18px;font-weight:700;display:flex;align-items:center;gap:12px;
-  letter-spacing:-.02em;
+.modal-title{
+  font-size:18px;font-weight:700;letter-spacing:-0.02em;
+  color:var(--t-1);display:flex;align-items:center;gap:10px;
 }
-.ed-tb h3 .bar{
-  width:4px;height:22px;background:var(--grad-acc);
-  border-radius:2px;display:inline-block;box-shadow:0 0 10px var(--acc-glow);
+.modal-title-bar{
+  width:3px;height:20px;border-radius:2px;
+  background:var(--grad-brand);
+  box-shadow:0 0 8px rgba(99,102,241,0.4);
 }
-.ed-tb .tools{display:flex;gap:8px;flex-wrap:wrap}
+.modal-actions{display:flex;gap:6px;flex-wrap:wrap}
 
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-.form-full{margin-bottom:16px}
-.f label{
-  display:block;font-size:10.5px;color:var(--text-3);
-  text-transform:uppercase;letter-spacing:1.5px;
+/* Form */
+.field{margin-bottom:16px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field label{
+  display:block;font-size:10px;color:var(--t-5);
+  text-transform:uppercase;letter-spacing:2px;
   font-weight:700;margin-bottom:8px;
 }
-.f input,.f textarea{
-  width:100%;padding:13px 16px;
-  background:var(--bg-0);border:1px solid var(--border);
-  border-radius:var(--r-md);color:var(--text);
-  font-size:14px;font-family:inherit;
-  transition:all .25s cubic-bezier(.4,0,.2,1);
-}
-.f input::placeholder,.f textarea::placeholder{color:var(--text-5)}
-.f input:focus,.f textarea:focus{
-  outline:none;border-color:var(--acc);
-  box-shadow:0 0 0 3px rgba(6,182,212,.12);
-  background:var(--bg-1);
-}
-.f textarea{
-  min-height:420px;resize:vertical;
-  font-family:'JetBrains Mono','SF Mono','Fira Code',Consolas,monospace;
-  font-size:12.5px;line-height:1.7;tab-size:2;
-}
-.f-h{
-  display:flex;justify-content:space-between;
-  font-size:11px;color:var(--text-4);margin-top:8px;font-weight:500;
-}
-.f-h kbd{
-  font-family:'JetBrains Mono',monospace;font-size:10px;
-  padding:2px 6px;background:var(--bg-3);border-radius:4px;
-  border:1px solid var(--border-hi);color:var(--text-3);
-  margin-right:4px;
-}
-
-/* === PIN MODAL === */
-.pin-overlay{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.85);backdrop-filter:blur(24px);
-  display:none;align-items:center;justify-content:center;
-  padding:20px;z-index:600;
-}
-.pin-overlay.show{display:flex;animation:fadeIn .3s}
-.pin-box{
-  background:linear-gradient(135deg,var(--bg-2),var(--bg-1));
-  border:1px solid var(--border-hi);
-  border-radius:var(--r-2xl);
-  padding:32px;max-width:400px;width:100%;
-  box-shadow:var(--sh-lg);text-align:center;
-  animation:modalSlide .4s cubic-bezier(.4,0,.2,1);
-}
-.pin-ic{
-  width:64px;height:64px;border-radius:var(--r-lg);
-  background:linear-gradient(135deg,var(--err-dim),rgba(220,38,38,.08));
-  border:1px solid rgba(239,68,68,.3);
-  display:grid;place-items:center;margin:0 auto 18px;
-}
-.pin-ic svg{width:28px;height:28px;color:var(--err)}
-.pin-box h3{font-size:19px;margin-bottom:8px;font-weight:700;color:var(--err);letter-spacing:-.02em}
-.pin-box p{color:var(--text-2);font-size:13px;margin-bottom:22px;line-height:1.6}
-.pin-input{
-  width:100%;padding:16px;
-  background:var(--bg-0);border:1px solid var(--border-hi);
-  border-radius:var(--r-md);color:var(--text);
-  font-size:22px;font-family:'JetBrains Mono',monospace;
-  text-align:center;letter-spacing:10px;font-weight:700;
-  transition:all .25s;
-}
-.pin-input:focus{outline:none;border-color:var(--err);box-shadow:0 0 0 3px rgba(239,68,68,.15)}
-.pin-input.shake{animation:shake .4s}
-@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
-.pin-err{color:var(--err);font-size:12px;margin-top:12px;min-height:18px;font-weight:600}
-.pin-acts{display:flex;gap:10px;margin-top:22px}
-.pin-acts .btn{flex:1;justify-content:center;padding:12px}
-
-/* === TM HELP MODAL === */
-.tm-help-overlay{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.85);backdrop-filter:blur(24px);
-  display:none;align-items:center;justify-content:center;
-  padding:20px;z-index:800;
-}
-.tm-help-overlay.show{display:flex}
-.tm-help-box{
-  background:linear-gradient(135deg,var(--bg-2),var(--bg-1));
-  border:1px solid var(--border-hi);
-  border-radius:var(--r-2xl);
-  padding:32px;max-width:560px;width:100%;
-  box-shadow:var(--sh-lg);animation:modalSlide .4s cubic-bezier(.4,0,.2,1);
-}
-.tm-help-box h3{
-  font-size:20px;margin-bottom:12px;color:var(--warn);
-  display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:-.02em;
-}
-.tm-help-box h3 svg{width:24px;height:24px}
-.tm-help-box > p{color:var(--text-2);font-size:14px;line-height:1.6;margin-bottom:20px}
-.tm-steps{
-  background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);
-  border-radius:var(--r-md);padding:18px;margin:14px 0;
-}
-.tm-steps b{color:var(--info);display:block;margin-bottom:10px;font-size:13px}
-.tm-steps ol{color:var(--text-2);font-size:13px;line-height:2;margin-left:20px}
-.tm-steps code{
-  background:var(--bg-0);padding:2px 8px;border-radius:4px;
-  font-family:'JetBrains Mono',monospace;font-size:12px;
-  color:var(--acc);border:1px solid var(--border);
-}
-
-/* === TOASTS === */
-.toasts{position:fixed;bottom:24px;right:24px;z-index:700;display:flex;flex-direction:column;gap:10px;max-width:380px}
-.tst{
-  background:linear-gradient(135deg,var(--bg-3),var(--bg-2));
-  backdrop-filter:blur(24px);
-  border:1px solid var(--border-hi);
+.field input,.field textarea,.field select{
+  width:100%;padding:11px 14px;
+  background:rgba(0,0,0,0.3);
+  border:1px solid var(--b-1);
   border-radius:var(--r-md);
-  padding:14px 18px;
-  display:flex;align-items:center;gap:12px;
-  box-shadow:var(--sh-lg);
-  animation:toastIn .4s cubic-bezier(.4,0,.2,1);
-  font-size:13px;font-weight:500;
+  color:var(--t-1);font-size:13px;font-weight:500;
+  transition:all 0.2s var(--ease);
 }
-.tst.ok{border-left:3px solid var(--ok)}
-.tst.err{border-left:3px solid var(--err)}
-.tst.info{border-left:3px solid var(--info)}
-.tst .tst-ic{
-  width:30px;height:30px;border-radius:var(--r-sm);
-  display:grid;place-items:center;flex-shrink:0;
+.field input:focus,.field textarea:focus,.field select:focus{
+  outline:none;border-color:var(--brand);
+  box-shadow:0 0 0 3px rgba(99,102,241,0.15);
+  background:rgba(0,0,0,0.45);
 }
-.tst.ok .tst-ic{background:var(--ok-dim);color:var(--ok)}
-.tst.err .tst-ic{background:var(--err-dim);color:var(--err)}
-.tst.info .tst-ic{background:var(--info-dim);color:var(--info)}
-.tst-ic svg{width:16px;height:16px}
-@keyframes toastIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+.field input::placeholder,.field textarea::placeholder{color:var(--t-5)}
+.field textarea{
+  min-height:360px;resize:vertical;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;line-height:1.7;
+  tab-size:2;letter-spacing:0;
+}
+.field-hint{
+  display:flex;justify-content:space-between;
+  font-size:10px;color:var(--t-5);font-weight:500;
+  margin-top:6px;
+}
+.field-hint kbd{
+  background:var(--g-2);border:1px solid var(--b-1);
+  padding:1px 5px;border-radius:3px;
+  font-size:9px;font-family:'JetBrains Mono',monospace;
+}
 
-/* === RESPONSIVE === */
-@media(max-width:960px){
+/* Tags input */
+.tags-input{
+  display:flex;flex-wrap:wrap;gap:5px;
+  padding:8px;background:rgba(0,0,0,0.3);
+  border:1px solid var(--b-1);
+  border-radius:var(--r-md);
+  min-height:44px;align-items:center;
+  transition:all 0.2s var(--ease);
+  cursor:text;
+}
+.tags-input:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px rgba(99,102,241,0.15)}
+.tag-chip{
+  background:var(--grad-brand);color:white;
+  padding:4px 10px;border-radius:var(--r-full);
+  font-size:11px;font-weight:600;
+  display:inline-flex;align-items:center;gap:5px;
+}
+.tag-chip-x{
+  width:14px;height:14px;border-radius:50%;
+  background:rgba(255,255,255,0.2);
+  display:grid;place-items:center;
+  cursor:pointer;font-size:10px;
+  transition:all 0.2s;
+}
+.tag-chip-x:hover{background:rgba(255,255,255,0.4)}
+.tags-input input{
+  flex:1;min-width:100px;
+  background:none;border:none;outline:none;
+  color:var(--t-1);font-size:13px;padding:4px;
+}
+
+/* Pin Modal */
+.pin-ic{
+  width:64px;height:64px;border-radius:var(--r-xl);
+  background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(220,38,38,0.1));
+  border:1px solid rgba(239,68,68,0.3);
+  display:grid;place-items:center;font-size:28px;
+  margin:0 auto 18px;
+  box-shadow:0 8px 24px rgba(239,68,68,0.2);
+}
+.pin-title{
+  font-size:18px;font-weight:700;color:var(--err);
+  letter-spacing:-0.02em;margin-bottom:6px;text-align:center;
+}
+.pin-desc{font-size:12px;color:var(--t-3);text-align:center;margin-bottom:20px;line-height:1.6}
+.pin-input{
+  width:100%;padding:14px;
+  background:rgba(0,0,0,0.4);border:1px solid var(--b-2);
+  border-radius:var(--r-md);color:var(--t-1);
+  font-size:24px;font-family:'JetBrains Mono',monospace;
+  text-align:center;letter-spacing:14px;font-weight:700;
+  transition:all 0.2s var(--ease);
+}
+.pin-input:focus{outline:none;border-color:var(--err);box-shadow:0 0 0 3px rgba(239,68,68,0.2)}
+.pin-input.shake{animation:shake 0.4s}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%,60%{transform:translateX(-10px)}
+  40%,80%{transform:translateX(10px)}
+}
+.pin-err{color:var(--err);font-size:11px;margin-top:10px;min-height:16px;font-weight:600;text-align:center}
+.pin-acts{display:flex;gap:8px;margin-top:20px}
+.pin-acts .btn{flex:1;justify-content:center;padding:10px}
+
+/* Help Modal */
+.help-box h3{
+  font-size:18px;font-weight:700;color:var(--warn);
+  letter-spacing:-0.02em;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.help-box p{font-size:12px;color:var(--t-3);line-height:1.7;margin-bottom:14px}
+.help-step{
+  background:rgba(59,130,246,0.08);
+  border:1px solid rgba(59,130,246,0.2);
+  border-radius:var(--r-md);padding:14px;margin:10px 0;
+}
+.help-step b{color:var(--info);display:block;margin-bottom:8px;font-size:12px}
+.help-step ol{color:var(--t-3);font-size:12px;line-height:1.9;margin-left:20px}
+.help-step code{
+  background:rgba(0,0,0,0.4);padding:2px 7px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--brand);
+}
+
+/* Shortcuts Modal */
+.shortcut-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--b-1);
+}
+.shortcut-row:last-child{border-bottom:none}
+.shortcut-desc{font-size:12px;color:var(--t-3);font-weight:500}
+.shortcut-keys{display:flex;gap:4px}
+.kbd{
+  background:var(--g-2);border:1px solid var(--b-2);
+  padding:4px 8px;border-radius:4px;
+  font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--t-2);font-weight:600;
+  box-shadow:0 1px 0 rgba(0,0,0,0.5);
+}
+
+/* ============================================
+   TOASTS
+   ============================================ */
+.toasts{
+  position:fixed;bottom:24px;right:24px;
+  z-index:700;display:flex;flex-direction:column;gap:8px;
+  max-width:360px;
+}
+.toast{
+  background:linear-gradient(180deg,var(--s-3),var(--s-2));
+  backdrop-filter:blur(20px);
+  border:1px solid var(--b-2);
+  border-radius:var(--r-lg);
+  padding:12px 16px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:var(--sh-lg);
+  animation:slideInRight 0.35s var(--ease-out);
+  font-size:12px;font-weight:500;
+  color:var(--t-1);
+  position:relative;overflow:hidden;
+}
+.toast::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+}
+.toast.ok::before{background:var(--grad-ok)}
+.toast.err::before{background:var(--grad-err)}
+.toast.info::before{background:var(--grad-info)}
+.toast.warn::before{background:var(--grad-warn)}
+.toast .ic{font-size:16px;flex-shrink:0}
+@keyframes slideInRight{
+  from{transform:translateX(120%);opacity:0}
+  to{transform:translateX(0);opacity:1}
+}
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+.flex{display:flex}
+.flex-center{display:flex;align-items:center;justify-content:center}
+.gap-xs{gap:4px}.gap-sm{gap:8px}.gap-md{gap:12px}
+.mt-sm{margin-top:8px}.mt-md{margin-top:12px}.mt-lg{margin-top:16px}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width:1000px){
   .app{grid-template-columns:1fr}
   .side{display:none}
-  .top{padding:14px 18px}
-  .ct{padding:20px 18px}
-  .search{width:180px}
-  .search:focus-within{width:200px}
-  .bento{grid-template-columns:repeat(2,1fr)}
-  .hero{padding:22px}
-  .hero-info h1{font-size:22px}
-  .form-grid{grid-template-columns:1fr}
+  .head{padding:12px 16px}
+  .ct{padding:16px}
+  .search{width:100%}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
   .card-list{grid-template-columns:1fr}
+  .hero{padding:20px}
+  .hero-title{font-size:16px}
+  .stat-val{font-size:22px}
 }
-@media(max-width:520px){
-  .bento{grid-template-columns:1fr}
-  .top h2{font-size:16px}
-  .top-r{gap:6px}
-  .btn{padding:8px 12px;font-size:12px}
-  .search{width:120px;font-size:12px}
-  .ed{padding:20px;border-radius:var(--r-lg)}
+@media (max-width:500px){
+  .field-row{grid-template-columns:1fr}
+  .modal{padding:20px;border-radius:var(--r-xl)}
+  .pin-input{letter-spacing:10px;font-size:20px}
 }
 </style>
 </head>
 <body>
 
-<div class="bg-mesh"></div>
+<div class="bg-fx"></div>
 <div class="bg-grid"></div>
 
+<!-- LOADING -->
 <div id="loading">
-  <div class="loader-wrap">
-    <div class="loader-ring"></div>
-    <div class="loader-ring"></div>
-    <div class="loader-core">⚡</div>
+  <div class="loader-orb">
+    <div class="loader-core">🐒</div>
   </div>
-  <p id="loadTxt">Menghubungkan ke Firebase...</p>
-  <small>ScriptVault Pro · v14.0</small>
+  <h2 id="loadTxt">Menghubungkan ke Cloud...</h2>
+  <p>Mempersiapkan workspace Anda</p>
+  <div class="version">ScriptVault · Aurora v14.0</div>
 </div>
 
+<!-- APP -->
 <div class="app" id="app">
+  
+  <!-- SIDEBAR -->
   <aside class="side">
-    <div class="logo">
-      <div class="logo-ic" onclick="logoClick()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#fff">
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-        </svg>
-      </div>
-      <div class="logo-text">
+    <div class="brand">
+      <div class="brand-ic">🐒</div>
+      <div class="brand-txt">
         <h1>ScriptVault</h1>
-        <small>Pro Edition</small>
+        <small>Aurora Edition</small>
       </div>
     </div>
-    <div class="nav">
-      <div class="nav-lbl">Workspace</div>
-      <div class="nav-i on" onclick="navTo(this,'dashboard')">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-        </svg>
-        Dashboard
+
+    <div class="nav-section">
+      <div class="nav-label">Workspace</div>
+      <div class="nav-item active">
+        <span class="ic">📊</span>Dashboard
       </div>
-      <div class="nav-i" onclick="navTo(this,'all')">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-        </svg>
-        Semua Script
+      <div class="nav-item" onclick="filterFav()" id="navFav">
+        <span class="ic">⭐</span>Favorites
+        <span class="badge" id="favCount">0</span>
       </div>
-      <div class="nav-lbl">Tools</div>
-      <div class="nav-i" onclick="exportAll()">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Export JSON
-      </div>
-      <div class="nav-i" onclick="showAbout()">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-        </svg>
-        Tentang
+      <div class="nav-item" onclick="showAll()" id="navAll">
+        <span class="ic">📦</span>All Scripts
       </div>
     </div>
+
+    <div class="stats-mini">
+      <div class="stats-mini-title">Overview</div>
+      <div class="stats-mini-grid">
+        <div class="stats-mini-item">
+          <div class="stats-mini-val" id="sideTotal">0</div>
+          <div class="stats-mini-lbl">Total</div>
+        </div>
+        <div class="stats-mini-item">
+          <div class="stats-mini-val" id="sideAuthors">0</div>
+          <div class="stats-mini-lbl">Authors</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Tools</div>
+      <div class="nav-item" onclick="exportAll()">
+        <span class="ic">📤</span>Export Scripts
+      </div>
+      <div class="nav-item" onclick="importScripts()">
+        <span class="ic">📥</span>Import Scripts
+      </div>
+      <div class="nav-item" onclick="showShortcuts()">
+        <span class="ic">⌨️</span>Shortcuts
+      </div>
+    </div>
+
     <div class="side-ft">
-      <div class="side-ft-left">v14.0</div>
-      <button class="side-ft-btn" onclick="forceClean()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
-          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-        </svg>
-        Clean
-      </button>
-    </div>
-    <div class="owner-card">
-      <div class="owner-avatar" id="ownerAvatarInit">SV</div>
-      <div class="owner-info">
-        <div class="lbl">Created by</div>
-        <div class="name" id="ownerName">ScriptVault Pro</div>
-        <div class="role">Premium Edition</div>
+      <div class="profile">
+        <div class="profile-av">👑</div>
+        <div class="profile-info">
+          <div class="profile-name" id="ownerName">App Owner</div>
+          <div class="profile-role">
+            <span>✨</span>Administrator
+          </div>
+        </div>
       </div>
+      <div class="side-ft-row">
+        <div class="side-ft-status">Connected</div>
+        <button class="side-ft-btn danger" onclick="forceClean()">🧹 Clean</button>
+      </div>
+      <div class="side-ft-ver">Aurora · v14.0.0</div>
     </div>
   </aside>
 
+  <!-- MAIN -->
   <main class="main">
-    <div class="top">
-      <h2>Dashboard</h2>
-      <div class="top-r">
-        <div class="search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input type="text" id="qIn" placeholder="Cari script atau author..." oninput="renderList()">
+    <div class="head">
+      <div class="head-l">
+        <div>
+          <div class="head-title">
+            <span class="head-title-bar"></span>
+            <span id="pageTitle">Dashboard</span>
+          </div>
+          <div class="head-sub" id="pageSub">Manage your script collection</div>
         </div>
-        <button class="btn-ic" onclick="sync()" title="Sync Data">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-          </svg>
-        </button>
-        <button class="btn btn-p" onclick="newS()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Script Baru
-        </button>
+      </div>
+      <div class="search">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="qIn" placeholder="Cari script, author, tag..." oninput="debounceRender()">
+        <span class="search-kbd">⌘K</span>
+      </div>
+      <div class="head-r">
+        <button class="btn-ic" onclick="sync()" data-tooltip="Sync dari cloud">🔄</button>
+        <button class="btn btn-primary btn-lg" onclick="newS()">✨ Script Baru</button>
       </div>
     </div>
 
     <div class="ct">
       <div class="container">
+        
+        <!-- HERO -->
         <div class="hero">
-          <div class="hero-top">
-            <div class="hero-info">
-              <h1>Selamat Datang kembali 👋</h1>
-              <p>Platform penyimpanan script cloud Anda. Semua script tersinkronisasi dengan <strong>Firebase Realtime DB</strong> dan siap digunakan kapan saja.</p>
-            </div>
-            <div class="hero-badge">ONLINE</div>
+          <div class="hero-title">
+            <span class="ic">📈</span>
+            Statistik Vault Anda
           </div>
-          <div class="bento">
-            <div class="bento-stat">
-              <div class="bento-ic">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
-              </div>
-              <div class="bento-lbl">Total Script</div>
-              <div class="bento-val" id="sTot">0</div>
-              <div class="bento-sub">Tersimpan di cloud</div>
+          <div class="hero-sub">Ringkasan koleksi script Anda secara real-time</div>
+          <div class="stats-grid">
+            <div class="stat">
+              <div class="stat-lbl"><span class="ic">📦</span>Total Script</div>
+              <div class="stat-val grad" id="sTot">0</div>
+              <div class="stat-sub">Tersimpan di cloud</div>
             </div>
-            <div class="bento-stat">
-              <div class="bento-ic">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
-                </svg>
-              </div>
-              <div class="bento-lbl">Karakter</div>
-              <div class="bento-val" id="sChr">0</div>
-              <div class="bento-sub">Total ukuran kode</div>
+            <div class="stat">
+              <div class="stat-lbl"><span class="ic">📝</span>Karakter</div>
+              <div class="stat-val grad" id="sChr">0</div>
+              <div class="stat-sub">Total ukuran kode</div>
             </div>
-            <div class="bento-stat">
-              <div class="bento-ic">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                </svg>
-              </div>
-              <div class="bento-lbl">Update Terakhir</div>
-              <div class="bento-val" id="sLast" style="font-size:18px">-</div>
-              <div class="bento-sub">Waktu lokal</div>
+            <div class="stat">
+              <div class="stat-lbl"><span class="ic">👥</span>Authors</div>
+              <div class="stat-val grad" id="sAuth">0</div>
+              <div class="stat-sub">Kontributor unik</div>
             </div>
-            <div class="bento-stat">
-              <div class="bento-ic">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-                  <polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-              </div>
-              <div class="bento-lbl">Authors</div>
-              <div class="bento-val" id="sAuth">0</div>
-              <div class="bento-sub">Penulis unik</div>
+            <div class="stat">
+              <div class="stat-lbl"><span class="ic">🕐</span>Update Terakhir</div>
+              <div class="stat-val grad" id="sLast" style="font-size:16px">-</div>
+              <div class="stat-sub" id="sLastSub">Waktu lokal</div>
             </div>
           </div>
         </div>
 
+        <!-- SECTION -->
         <div class="section">
-          <div class="sh">
-            <h3>
-              <span class="bar"></span>
-              Semua Script
-            </h3>
-            <small><span id="fCnt">0</span> script</small>
-          </div>
-          <div class="filter-pills" id="filterPills">
-            <div class="pill on" onclick="filterBy(this,'all')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-              </svg>
-              Semua
+          <div class="section-head">
+            <div class="section-title">
+              <span class="section-title-bar"></span>
+              <span id="listTitle">Semua Script</span>
             </div>
-            <div class="pill" onclick="filterBy(this,'recent')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-              </svg>
-              Terbaru
-            </div>
-            <div class="pill" onclick="filterBy(this,'big')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
-                <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-              </svg>
-              Terbesar
+            <div class="section-actions">
+              <span class="pill" id="fCnt">0 script</span>
+              <button class="btn btn-ghost btn-sm" onclick="sortScripts()" id="sortBtn">⬆️ Terbaru</button>
             </div>
           </div>
+          
+          <div class="filters" id="filters"></div>
+          
           <div id="list" class="card-list"></div>
         </div>
+
       </div>
     </div>
   </main>
 </div>
 
-<div class="editor-overlay" id="editorOverlay">
-  <div class="ed">
-    <div class="ed-tb">
-      <h3>
-        <span class="bar"></span>
-        <span id="edTitle">Script Baru</span>
-      </h3>
-      <div class="tools">
-        <button class="btn btn-ok" onclick="openTMFromEditor()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
-            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-          Buka TM
-        </button>
-        <button class="btn btn-warn" onclick="copyCode()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-          </svg>
-          Copy
-        </button>
-        <button class="btn btn-e" onclick="delS()" id="bDel" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-          </svg>
-          Hapus
-        </button>
-        <button class="btn btn-p" onclick="saveS()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-            <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
-          </svg>
-          Simpan
-        </button>
-        <button class="btn btn-g" onclick="closeEditor()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-          Tutup
-        </button>
+<!-- EDITOR MODAL -->
+<div class="modal-overlay" id="editorOverlay">
+  <div class="modal modal-md">
+    <div class="modal-head">
+      <div class="modal-title">
+        <span class="modal-title-bar"></span>
+        <span id="edTitle">✨ Script Baru</span>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ok btn-sm" onclick="openTMFromEditor()">🚀 Buka TM</button>
+        <button class="btn btn-warn btn-sm" onclick="copyCode()">📋 Copy</button>
+        <button class="btn btn-err btn-sm" onclick="delS()" id="bDel" style="display:none">🗑️ Hapus</button>
+        <button class="btn btn-primary btn-sm" onclick="saveS()">💾 Simpan</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeEditor()">✕ Tutup</button>
       </div>
     </div>
-    <div class="form-grid">
-      <div class="f"><label>Nama Script *</label><input type="text" id="sName" placeholder="Contoh: Auto Click Bot" maxlength="80"></div>
-      <div class="f"><label>Pemilik / Author</label><input type="text" id="sAuthor" placeholder="Nama pembuat script" maxlength="50"></div>
+    <div class="field-row">
+      <div class="field">
+        <label>Nama Script *</label>
+        <input type="text" id="sName" placeholder="Contoh: Auto Click Bot" maxlength="80">
+      </div>
+      <div class="field">
+        <label>Pemilik / Author</label>
+        <input type="text" id="sAuthor" placeholder="Nama pembuat script" maxlength="50">
+      </div>
     </div>
-    <div class="form-full"><div class="f"><label>Deskripsi</label><input type="text" id="sDesc" placeholder="Deskripsi singkat (opsional)" maxlength="200"></div></div>
-    <div class="f">
-      <label>Script Code</label>
+    <div class="field-row">
+      <div class="field">
+        <label>Deskripsi</label>
+        <input type="text" id="sDesc" placeholder="Deskripsi singkat..." maxlength="200">
+      </div>
+      <div class="field">
+        <label>Tags (Enter untuk tambah)</label>
+        <div class="tags-input" id="tagsInput">
+          <input type="text" id="tagField" placeholder="Tambah tag..." maxlength="30">
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <label style="margin:0">Script Code *</label>
+        <label style="margin:0;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--t-3);text-transform:none;letter-spacing:0">
+          <input type="checkbox" id="sFav" style="cursor:pointer">
+          ⭐ Favorite
+        </label>
+      </div>
       <textarea id="sCode" placeholder="// ==UserScript==
 // @name         My Script
 // ==/UserScript==
@@ -999,550 +1224,908 @@ body{
 (function() {
     'use strict';
 })();"></textarea>
-      <div class="f-h">
-        <span><kbd>Ctrl</kbd>+<kbd>S</kbd> simpan · <kbd>Esc</kbd> tutup</span>
-        <span><span id="cCnt">0</span> karakter · <span id="lCnt">0</span> baris</span>
+      <div class="field-hint">
+        <span><kbd>Ctrl</kbd>+<kbd>S</kbd> simpan · <kbd>Esc</kbd> tutup · <kbd>Tab</kbd> indent</span>
+        <span><span id="cCnt">0</span> chars · <span id="lCnt">0</span> lines</span>
       </div>
     </div>
   </div>
 </div>
 
-<div class="pin-overlay" id="pinOverlay">
-  <div class="pin-box">
-    <div class="pin-ic">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-        <path d="M7 11V7a5 5 0 0110 0v4"/>
-      </svg>
-    </div>
-    <h3>Konfirmasi Hapus</h3>
-    <p id="pinDesc">Masukkan PIN untuk menghapus script ini</p>
+<!-- PIN MODAL -->
+<div class="modal-overlay" id="pinOverlay">
+  <div class="modal modal-sm">
+    <div class="pin-ic">🔐</div>
+    <div class="pin-title">Konfirmasi Hapus</div>
+    <div class="pin-desc" id="pinDesc">Masukkan PIN untuk menghapus script ini</div>
     <input type="password" class="pin-input" id="pinInput" maxlength="10" placeholder="••••" autocomplete="off">
     <div class="pin-err" id="pinErr"></div>
     <div class="pin-acts">
-      <button class="btn btn-g" onclick="closePin()">Batal</button>
-      <button class="btn btn-e" onclick="verifyPin()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-        </svg>
-        Hapus
-      </button>
+      <button class="btn btn-ghost" onclick="closePin()">Batal</button>
+      <button class="btn btn-err" onclick="verifyPin()">🗑️ Hapus</button>
     </div>
   </div>
 </div>
 
-<div class="tm-help-overlay" id="tmHelpOverlay">
-  <div class="tm-help-box">
-    <h3>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
-      TamperMonkey Diblokir
-    </h3>
-    <p>Browser memblokir akses ke TamperMonkey. Gunakan cara manual berikut:</p>
-    <div class="tm-steps">
-      <b>📋 Cara 1: Copy & Paste Manual</b>
+<!-- TM HELP MODAL -->
+<div class="modal-overlay" id="tmHelpOverlay">
+  <div class="modal modal-md-lg help-box">
+    <div class="modal-head">
+      <div class="modal-title">
+        <span class="modal-title-bar"></span>
+        <span style="color:var(--warn)">⚠️ TamperMonkey Diblokir</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('tmHelpOverlay')">✕</button>
+    </div>
+    <p>Browser memblokir akses langsung ke TamperMonkey. Gunakan cara berikut:</p>
+    <div class="help-step">
+      <b>🚀 Cara 1: Copy & Paste Manual (Paling Mudah)</b>
       <ol>
-        <li>Klik tombol <b>"Copy Code"</b> di editor</li>
+        <li>Klik tombol <b>"📋 Copy Code"</b> di editor</li>
         <li>Buka TamperMonkey dari icon browser</li>
         <li>Klik <b>"Create a new script"</b></li>
-        <li>Paste code (<kbd style="background:var(--bg-0);padding:1px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px">Ctrl</kbd>+<kbd style="background:var(--bg-0);padding:1px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px">V</kbd>) dan simpan</li>
+        <li>Paste code (<kbd>Ctrl</kbd>+<kbd>V</kbd>) dan simpan (<kbd>Ctrl</kbd>+<kbd>S</kbd>)</li>
       </ol>
     </div>
-    <div class="tm-steps">
-      <b>🔧 Cara 2: Matikan Ad Blocker</b>
+    <div class="help-step">
+      <b>🛡️ Cara 2: Matikan Extension yang Memblokir</b>
       <ol>
         <li>Buka <code>chrome://extensions/</code></li>
         <li>Cari ad blocker (uBlock, AdBlock, dll)</li>
-        <li>Matikan atau whitelist TamperMonkey</li>
+        <li>Matikan sementara atau whitelist TamperMonkey</li>
         <li>Refresh halaman ini</li>
       </ol>
     </div>
-    <div style="display:flex;gap:10px;margin-top:18px">
-      <button class="btn btn-g" onclick="document.getElementById('tmHelpOverlay').classList.remove('show')" style="flex:1">Tutup</button>
-      <button class="btn btn-p" onclick="copyCode();document.getElementById('tmHelpOverlay').classList.remove('show');toast('Code sudah di-copy!','ok')" style="flex:1">Copy Code Dulu</button>
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button class="btn btn-ghost" onclick="closeModal('tmHelpOverlay')" style="flex:1">Tutup</button>
+      <button class="btn btn-primary" onclick="copyCode();closeModal('tmHelpOverlay');toast('✅ Code sudah di-copy!','ok')" style="flex:1">📋 Copy Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHORTCUTS MODAL -->
+<div class="modal-overlay" id="shortcutsOverlay">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <div class="modal-title">
+        <span class="modal-title-bar"></span>
+        <span>⌨️ Keyboard Shortcuts</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('shortcutsOverlay')">✕</button>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-desc">Cari script</span>
+      <div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">K</span></div>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-desc">Script baru</span>
+      <div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">N</span></div>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-desc">Sync dari cloud</span>
+      <div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">R</span></div>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-desc">Simpan (di editor)</span>
+      <div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">S</span></div>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-desc">Bantuan</span>
+      <div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">/</span></div>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-desc">Tutup modal</span>
+      <div class="shortcut-keys"><span class="kbd">Esc</span></div>
     </div>
   </div>
 </div>
 
 <div class="toasts" id="toasts"></div>
+<input type="file" id="importFile" accept=".json" style="display:none">
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBExdIerKUOoOPZ9fOODSF4ZPJIUNci1bo",
-  authDomain: "script-vault-e9e0c.firebaseapp.com",
-  databaseURL: "https://script-vault-e9e0c-default-rtdb.firebaseio.com",
-  projectId: "script-vault-e9e0c",
-  storageBucket: "script-vault-e9e0c.firebasestorage.app",
-  messagingSenderId: "531469123845",
-  appId: "1:531469123845:web:ee5f26c2e7e62e9a9d776c"
-};
+/* =====================================================
+   SCRIPTVAULT AURORA v14.0
+   Namespace pattern - No global pollution
+   ===================================================== */
+'use strict';
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const App = (() => {
+  
+  /* ===== CONFIG ===== */
+  const CONFIG = {
+    firebaseConfig: {
+      apiKey: "AIzaSyBExdIerKUOoOPZ9fOODSF4ZPJIUNci1bo",
+      authDomain: "script-vault-e9e0c.firebaseapp.com",
+      databaseURL: "https://script-vault-e9e0c-default-rtdb.firebaseio.com",
+      projectId: "script-vault-e9e0c",
+      storageBucket: "script-vault-e9e0c.firebasestorage.app",
+      messagingSenderId: "531469123845",
+      appId: "1:531469123845:web:ee5f26c2e7e62e9a9d776c"
+    },
+    DELETE_PIN: "0113",
+    TM_URL: "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html#nav=new-user-script+editor",
+    OWNER: "App Owner" // 👑 Ganti dengan nama Anda
+  };
 
-const DELETE_PIN = "0113";
-const TM_URL = "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html#nav=new-user-script+editor";
-const APP_OWNER = "ScriptVault Pro";
+  /* ===== STATE ===== */
+  const state = {
+    scripts: [],
+    editId: null,
+    pendingDeleteId: null,
+    currentTags: [],
+    viewMode: 'all', // 'all' | 'favorites'
+    filterTag: null,
+    sortOrder: 'desc',
+    searchDebounce: null
+  };
 
-const FIREBASE = {
-  load: async () => {
-    const snap = await db.ref('scripts').once('value');
-    const val = snap.val();
-    if (!val) return [];
-    if (Array.isArray(val)) return val.filter(s => s && s.id);
-    return Object.values(val).filter(s => s && s.id);
-  },
-  save: async (scripts) => {
-    const clean = scripts.filter(s => s && s.id);
-    if (clean.length === 0) await db.ref('scripts').remove();
-    else await db.ref('scripts').set(clean);
-  }
-};
+  /* ===== FIREBASE LAYER ===== */
+  let db;
+  const api = {
+    init: () => {
+      firebase.initializeApp(CONFIG.firebaseConfig);
+      db = firebase.database();
+    },
+    load: async () => {
+      const snap = await db.ref('scripts').once('value');
+      const val = snap.val();
+      if (!val) return [];
+      const arr = Array.isArray(val) ? val : Object.values(val);
+      return arr.filter(s => s && s.id).map(s => ({
+        id: s.id,
+        name: s.name || '',
+        author: s.author || '',
+        desc: s.desc || '',
+        code: s.code || '',
+        tags: Array.isArray(s.tags) ? s.tags : [],
+        favorite: Boolean(s.favorite),
+        created: s.created || new Date().toISOString(),
+        updated: s.updated || new Date().toISOString()
+      }));
+    },
+    save: async (scripts) => {
+      const clean = scripts.filter(s => s && s.id);
+      if (clean.length === 0) {
+        await db.ref('scripts').remove();
+      } else {
+        await db.ref('scripts').set(clean);
+      }
+    }
+  };
 
-let scripts = [];
-let editId = null;
-let pendingDeleteId = null;
-let currentFilter = 'all';
+  /* ===== UTILS ===== */
+  const util = {
+    esc: (t) => {
+      if (!t) return '';
+      return String(t).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    },
+    ago: (d) => {
+      if (!d) return '-';
+      const s = (Date.now() - new Date(d).getTime()) / 1000;
+      if (s < 60) return 'baru saja';
+      if (s < 3600) return Math.floor(s / 60) + 'm lalu';
+      if (s < 86400) return Math.floor(s / 3600) + 'j lalu';
+      if (s < 2592000) return Math.floor(s / 86400) + 'h lalu';
+      return new Date(d).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'});
+    },
+    uid: () => 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+    debounce: (fn, ms = 200) => {
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), ms);
+      };
+    }
+  };
 
-function getInitials(name){
-  if(!name) return 'SV';
-  const parts = name.trim().split(/\s+/);
-  if(parts.length === 1) return parts[0].substring(0,2).toUpperCase();
-  return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
-}
+  /* ===== TOAST ===== */
+  const toast = (msg, type = 'info') => {
+    const w = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = 'toast ' + type;
+    const icons = { ok: '✅', err: '❌', info: 'ℹ️', warn: '⚠️' };
+    el.innerHTML = `<span class="ic">${icons[type] || 'ℹ️'}</span><span>${util.esc(msg)}</span>`;
+    w.appendChild(el);
+    setTimeout(() => {
+      el.style.animation = 'slideInRight 0.3s reverse';
+      setTimeout(() => el.remove(), 300);
+    }, 3200);
+  };
 
-function initOwnerCard(){
-  document.getElementById('ownerName').textContent = APP_OWNER;
-  document.getElementById('ownerAvatarInit').textContent = getInitials(APP_OWNER);
-}
-
-async function forceClean(){
-  if(!confirm('Clean Data\n\nAksi ini akan menghapus:\n• Script tanpa nama\n• Script tanpa ID\n• Data rusak\n\nLanjutkan?')) return;
-  try{
-    toast('Membersihkan data...','info');
-    const before = scripts.length;
-    scripts = scripts.filter(s => s && s.id && s.name && s.name.trim());
-    const removed = before - scripts.length;
-    await FIREBASE.save(scripts);
-    renderAll();
-    toast(`${removed} script dibersihkan!`,'ok');
-  }catch(e){
-    toast('Gagal: '+e.message,'err');
-  }
-}
-
-function navTo(el,name){
-  document.querySelectorAll('.nav-i').forEach(n=>n.classList.remove('on'));
-  el.classList.add('on');
-  if(name === 'all') document.querySelector('.ct').scrollTo({top:0,behavior:'smooth'});
-}
-
-function logoClick(){
-  renderAll();
-  toast('Data refreshed','info');
-}
-
-function exportAll(){
-  if(scripts.length === 0){toast('Tidak ada script untuk di-export','err');return}
-  const data = JSON.stringify(scripts, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `scriptvault-export-${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  toast(`${scripts.length} script di-export!`,'ok');
-}
-
-function showAbout(){
-  alert('ScriptVault Pro v14.0\n\nPlatform cloud storage untuk UserScript.\n\nFitur:\n• Firebase Realtime DB\n• Tampermonkey integration\n• Export JSON\n• Multi-author support\n• Dark mode premium\n\nDibuat dengan ❤️');
-}
-
-function filterBy(el,type){
-  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
-  el.classList.add('on');
-  currentFilter = type;
-  renderList();
-}
-
-function openEditor(){
-  document.getElementById('editorOverlay').classList.add('show');
-  setTimeout(()=>document.getElementById('sName').focus(), 100);
-}
-function closeEditor(){
-  document.getElementById('editorOverlay').classList.remove('show');
-}
-
-function requestPin(scriptId, scriptName){
-  if(!scriptId){toast('ID script tidak valid','err');return}
-  pendingDeleteId = scriptId;
-  const displayName = scriptName || 'Unnamed';
-  document.getElementById('pinDesc').innerHTML = `Masukkan PIN untuk menghapus <strong style="color:var(--text)">"${esc(displayName)}"</strong>`;
-  document.getElementById('pinInput').value = '';
-  document.getElementById('pinErr').textContent = '';
-  document.getElementById('pinOverlay').classList.add('show');
-  setTimeout(()=>document.getElementById('pinInput').focus(), 100);
-}
-
-function closePin(){
-  document.getElementById('pinOverlay').classList.remove('show');
-  pendingDeleteId = null;
-}
-
-function verifyPin(){
-  const input = document.getElementById('pinInput');
-  const errEl = document.getElementById('pinErr');
-  const pin = input.value;
-  if(!pendingDeleteId){errEl.textContent = 'Error: tidak ada script yang dipilih';return}
-  if (!pin) {
-    errEl.textContent = 'Masukkan PIN terlebih dahulu';
-    input.classList.add('shake');
-    setTimeout(()=>input.classList.remove('shake'), 400);
-    return;
-  }
-  if (pin !== DELETE_PIN) {
-    errEl.textContent = 'PIN salah! Coba lagi.';
-    input.classList.add('shake');
-    input.value = '';
-    setTimeout(()=>{ input.classList.remove('shake'); input.focus(); }, 400);
-    return;
-  }
-  errEl.textContent = '';
-  executeDelete(pendingDeleteId);
-}
-
-async function executeDelete(id){
-  if(!id){toast('ID tidak valid','err');closePin();return}
-  const idx = scripts.findIndex(s => s && s.id === id);
-  if(idx === -1){toast('Script tidak ditemukan','err');closePin();renderAll();return}
-  const scriptName = scripts[idx].name || 'Unnamed';
-  closePin();
-  scripts.splice(idx, 1);
-  try{
-    toast('Menghapus dari Firebase...','info');
-    await FIREBASE.save(scripts);
-    if(editId === id){ editId = null; closeEditor(); }
-    renderAll();
-    toast(`"${scriptName}" berhasil dihapus`,'ok');
-  }catch(e){ 
-    toast('Gagal hapus: '+e.message,'err');
-    scripts = await FIREBASE.load();
-    renderAll();
-  }
-}
-
-function buildCode(s){
-  let c = s.code||'';
-  if(!/\/\/\s*==UserScript==/i.test(c)){
-    const n = (s.name||'Script').replace(/\*\//g,'* /');
-    const d = (s.desc||'').replace(/\*\//g,'* /');
-    const a = (s.author||APP_OWNER).replace(/\*\//g,'* /');
-    c = `// ==UserScript==
+  /* ===== BUILD USERSCRIPT ===== */
+  const buildCode = (s) => {
+    let c = s.code || '';
+    if (!/\/\/\s*==UserScript==/i.test(c)) {
+      const n = (s.name || 'Script').replace(/\*\//g, '* /');
+      const d = (s.desc || '').replace(/\*\//g, '* /');
+      const a = (s.author || CONFIG.OWNER).replace(/\*\//g, '* /');
+      const t = (s.tags || []).join(', ');
+      c = `// ==UserScript==
 // @name         ${n}
-// @namespace    scriptvault.local
+// @namespace    scriptvault.aurora
 // @version      1.0
-// @description  ${d||'Script from ScriptVault Pro'}
+// @description  ${d || 'Script from ScriptVault'}
 // @author       ${a}
 // @match        *://*/*
 // @grant        none
 // @run-at       document-idle
+// @tags         ${t}
 // ==/UserScript==
 
-`+c;
-  }
-  return c;
-}
+` + c;
+    }
+    return c;
+  };
 
-function openTMFromCard(event, scriptId){
-  event.preventDefault();
-  event.stopPropagation();
-  const s = scripts.find(x=>x && x.id===scriptId);
-  if(!s){ toast('Script tidak ditemukan','err'); return false; }
-  const code = buildCode(s);
-  navigator.clipboard.writeText(code).then(()=>tryOpenTM()).catch(()=>{fallbackCopy(code);tryOpenTM()});
-  return false;
-}
+  /* ===== COPY ===== */
+  const copyText = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const t = document.createElement('textarea');
+      t.value = text;
+      t.style.position = 'fixed';
+      t.style.opacity = '0';
+      document.body.appendChild(t);
+      t.select();
+      try { document.execCommand('copy'); return true; }
+      catch { return false; }
+      finally { document.body.removeChild(t); }
+    }
+  };
 
-function openTMFromEditor(){
-  const name = document.getElementById('sName').value.trim();
-  const code = document.getElementById('sCode').value;
-  const desc = document.getElementById('sDesc').value.trim();
-  if(!name){toast('Isi nama script dulu','err');return false}
-  if(!code){toast('Code kosong','err');return false}
-  const built = buildCode({name,desc,code,author:document.getElementById('sAuthor').value.trim()});
-  navigator.clipboard.writeText(built).then(()=>tryOpenTM()).catch(()=>{fallbackCopy(built);tryOpenTM()});
-  return false;
-}
-
-function tryOpenTM(){
-  toast('Code sudah di-copy!','ok');
-  setTimeout(()=>{
-    const newWindow = window.open(TM_URL, '_blank');
-    setTimeout(()=>{
-      if(!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined'){
-        document.getElementById('tmHelpOverlay').classList.add('show');
+  /* ===== RENDER ===== */
+  const render = {
+    all: () => {
+      render.dash();
+      render.list();
+      render.filters();
+      render.sideStats();
+    },
+    dash: () => {
+      const scripts = state.scripts;
+      document.getElementById('sTot').textContent = scripts.length;
+      const ch = scripts.reduce((a, s) => a + (s.code ? s.code.length : 0), 0);
+      document.getElementById('sChr').textContent = ch.toLocaleString('id-ID');
+      const authors = new Set(scripts.map(s => (s.author || '').toLowerCase()).filter(Boolean));
+      document.getElementById('sAuth').textContent = authors.size;
+      const srt = [...scripts].filter(s => s.updated).sort((a, b) => new Date(b.updated) - new Date(a.updated));
+      const last = srt[0];
+      document.getElementById('sLast').textContent = last ? util.ago(last.updated) : 'Belum ada';
+      document.getElementById('sLastSub').textContent = last ? 'Update terakhir' : 'Waktu lokal';
+      document.getElementById('favCount').textContent = scripts.filter(s => s.favorite).length;
+    },
+    sideStats: () => {
+      document.getElementById('sideTotal').textContent = state.scripts.length;
+      const authors = new Set(state.scripts.map(s => (s.author || '').toLowerCase()).filter(Boolean));
+      document.getElementById('sideAuthors').textContent = authors.size;
+      document.getElementById('ownerName').textContent = CONFIG.OWNER;
+    },
+    filters: () => {
+      const allTags = new Set();
+      state.scripts.forEach(s => (s.tags || []).forEach(t => allTags.add(t)));
+      const tags = [...allTags].slice(0, 12);
+      const favCount = state.scripts.filter(s => s.favorite).length;
+      
+      let html = '';
+      html += `<div class="chip ${!state.filterTag && state.viewMode === 'all' ? 'active' : ''}" onclick="App.filter.clear()">
+        📦 All <span class="count">${state.scripts.length}</span>
+      </div>`;
+      if (favCount > 0) {
+        html += `<div class="chip ${state.viewMode === 'favorites' ? 'active' : ''}" onclick="App.filter.fav()">
+          ⭐ Favorites <span class="count">${favCount}</span>
+        </div>`;
       }
-    }, 1000);
-  }, 300);
-}
+      tags.forEach(t => {
+        html += `<div class="chip ${state.filterTag === t ? 'active' : ''}" onclick="App.filter.tag('${util.esc(t)}')">
+          #${util.esc(t)}
+        </div>`;
+      });
+      document.getElementById('filters').innerHTML = html;
+    },
+    list: () => {
+      const q = document.getElementById('qIn').value.toLowerCase().trim();
+      let list = state.scripts;
+      
+      // Filter view mode
+      if (state.viewMode === 'favorites') {
+        list = list.filter(s => s.favorite);
+      }
+      
+      // Filter by tag
+      if (state.filterTag) {
+        list = list.filter(s => (s.tags || []).includes(state.filterTag));
+      }
+      
+      // Search
+      if (q) {
+        list = list.filter(s => {
+          const searchable = [
+            s.name, s.author, s.desc,
+            ...(s.tags || [])
+          ].filter(Boolean).join(' ').toLowerCase();
+          return searchable.includes(q);
+        });
+      }
+      
+      // Sort
+      list = [...list].sort((a, b) => {
+        // Favorites first
+        if (a.favorite && !b.favorite) return -1;
+        if (!a.favorite && b.favorite) return 1;
+        // Then by date
+        const dateA = new Date(a.updated || 0).getTime();
+        const dateB = new Date(b.updated || 0).getTime();
+        return state.sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+      });
+      
+      document.getElementById('fCnt').textContent = `${list.length} script`;
+      const el = document.getElementById('list');
+      
+      if (list.length === 0) {
+        el.innerHTML = q
+          ? `<div class="empty" style="grid-column:1/-1">
+              <div class="empty-ic">🔍</div>
+              <h4>Tidak ditemukan</h4>
+              <p>Coba kata kunci lain atau ubah filter</p>
+            </div>`
+          : `<div class="empty" style="grid-column:1/-1">
+              <div class="empty-ic">✨</div>
+              <h4>Belum ada script</h4>
+              <p>Klik "Script Baru" untuk mulai membuat koleksi Anda</p>
+              <button class="btn btn-primary btn-lg" onclick="App.editor.new()">✨ Buat Script Pertama</button>
+            </div>`;
+        return;
+      }
+      
+      el.innerHTML = list.map(render.card).join('');
+    },
+    card: (s) => {
+      const author = s.author || CONFIG.OWNER;
+      const sizeKB = s.code ? (s.code.length / 1024).toFixed(1) : '0';
+      const lines = s.code ? s.code.split('\n').length : 0;
+      const tags = (s.tags || []).slice(0, 4);
+      const favIcon = s.favorite ? '<span class="card-fav">⭐</span>' : '';
+      
+      return `<div class="card" onclick="App.editor.edit('${s.id}')">
+        <div class="card-top">
+          <div class="card-ic">🐒</div>
+          <div class="card-info">
+            <div class="card-title">${util.esc(s.name || 'Unnamed')} ${favIcon}</div>
+            <div class="card-author">👤 ${util.esc(author)}</div>
+            <div class="card-desc">${util.esc(s.desc || 'Tidak ada deskripsi')}</div>
+          </div>
+        </div>
+        ${tags.length ? `<div class="card-tags">
+          ${tags.map(t => `<span class="tag accent">#${util.esc(t)}</span>`).join('')}
+        </div>` : ''}
+        <div class="card-meta">
+          <span><span class="ic">🕐</span>${util.ago(s.updated)}</span>
+          <span><span class="ic">📏</span>${sizeKB} KB</span>
+          <span><span class="ic">📄</span>${lines} baris</span>
+        </div>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-ok btn-sm" onclick="App.tm.open('${s.id}')">🚀 TM</button>
+          <button class="btn btn-ghost btn-sm" onclick="App.editor.edit('${s.id}')">✏️ Edit</button>
+          <button class="btn btn-warn btn-sm" onclick="App.script.copy('${s.id}')">📋 Copy</button>
+          <button class="btn btn-ghost btn-sm" onclick="App.script.toggleFav('${s.id}')">${s.favorite ? '⭐' : '☆'}</button>
+          <button class="btn btn-err btn-sm" onclick="App.script.del('${s.id}')">🗑️</button>
+        </div>
+      </div>`;
+    }
+  };
 
-function fallbackCopy(text){
-  const t=document.createElement('textarea');
-  t.value=text;t.style.position='fixed';t.style.opacity='0';
-  document.body.appendChild(t);t.select();
-  try{document.execCommand('copy')}catch(e){}
-  document.body.removeChild(t);
-}
+  /* ===== EDITOR ===== */
+  const editor = {
+    open: () => {
+      document.getElementById('editorOverlay').classList.add('show');
+      setTimeout(() => document.getElementById('sName').focus(), 100);
+    },
+    close: () => {
+      document.getElementById('editorOverlay').classList.remove('show');
+    },
+    new: () => {
+      state.editId = null;
+      state.currentTags = [];
+      document.getElementById('sName').value = '';
+      document.getElementById('sAuthor').value = CONFIG.OWNER;
+      document.getElementById('sDesc').value = '';
+      document.getElementById('sCode').value = '';
+      document.getElementById('sFav').checked = false;
+      document.getElementById('edTitle').textContent = '✨ Script Baru';
+      document.getElementById('bDel').style.display = 'none';
+      render.tags();
+      updateStats();
+      editor.open();
+    },
+    edit: (id) => {
+      const s = state.scripts.find(x => x && x.id === id);
+      if (!s) { toast('❌ Script tidak ditemukan', 'err'); return; }
+      state.editId = id;
+      state.currentTags = [...(s.tags || [])];
+      document.getElementById('sName').value = s.name || '';
+      document.getElementById('sAuthor').value = s.author || '';
+      document.getElementById('sDesc').value = s.desc || '';
+      document.getElementById('sCode').value = s.code || '';
+      document.getElementById('sFav').checked = Boolean(s.favorite);
+      document.getElementById('edTitle').textContent = `✏️ ${s.name || 'Unnamed'}`;
+      document.getElementById('bDel').style.display = 'inline-flex';
+      render.tags();
+      updateStats();
+      editor.open();
+    }
+  };
 
-(async()=>{
-  const lt = document.getElementById('loadTxt');
-  try {
-    lt.textContent = 'Memuat script...';
-    scripts = await FIREBASE.load();
-    document.getElementById('loading').classList.add('hide');
-    document.getElementById('app').classList.add('show');
-    init();
-    setTimeout(()=>document.getElementById('loading').remove(),600);
-  } catch(e) {
-    lt.textContent = 'Error: '+e.message;
-    lt.style.color = '#ef4444';
-  }
+  /* ===== RENDER TAGS IN EDITOR ===== */
+  const renderTags = () => {
+    const container = document.getElementById('tagsInput');
+    const input = document.getElementById('tagField');
+    container.querySelectorAll('.tag-chip').forEach(c => c.remove());
+    state.currentTags.forEach((t, i) => {
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip';
+      chip.innerHTML = `${util.esc(t)}<span class="tag-chip-x" onclick="App.tags.remove(${i})">✕</span>`;
+      container.insertBefore(chip, input);
+    });
+  };
+
+  const tags = {
+    add: (tag) => {
+      const clean = tag.trim().toLowerCase().replace(/[^a-z0-9\-_\s]/g, '').replace(/\s+/g, '-');
+      if (!clean || state.currentTags.includes(clean)) return;
+      if (state.currentTags.length >= 8) { toast('Maksimal 8 tags', 'warn'); return; }
+      state.currentTags.push(clean);
+      render.tags();
+    },
+    remove: (i) => {
+      state.currentTags.splice(i, 1);
+      render.tags();
+    }
+  };
+
+  /* ===== SCRIPT ACTIONS ===== */
+  const script = {
+    save: async () => {
+      const name = document.getElementById('sName').value.trim();
+      const author = document.getElementById('sAuthor').value.trim();
+      const desc = document.getElementById('sDesc').value.trim();
+      const code = document.getElementById('sCode').value;
+      const favorite = document.getElementById('sFav').checked;
+      const tagsArr = [...state.currentTags];
+      
+      if (!name) { toast('Nama wajib diisi', 'err'); return; }
+      if (!code) { toast('Code kosong', 'err'); return; }
+      
+      const now = new Date().toISOString();
+      if (state.editId) {
+        const i = state.scripts.findIndex(s => s.id === state.editId);
+        if (i >= 0) {
+          state.scripts[i] = {
+            ...state.scripts[i],
+            name, author, desc, code, tags: tagsArr, favorite,
+            updated: now
+          };
+        }
+      } else {
+        const ns = {
+          id: util.uid(),
+          name, author, desc, code, tags: tagsArr, favorite,
+          created: now, updated: now
+        };
+        state.scripts.push(ns);
+        state.editId = ns.id;
+      }
+      
+      try {
+        toast('💾 Menyimpan ke cloud...', 'info');
+        await api.save(state.scripts);
+        document.getElementById('edTitle').textContent = `✏️ ${name}`;
+        document.getElementById('bDel').style.display = 'inline-flex';
+        render.all();
+        toast('✅ Tersimpan di cloud', 'ok');
+      } catch (e) {
+        toast('❌ Gagal: ' + e.message, 'err');
+      }
+    },
+    del: (id) => {
+      if (!id) { toast('❌ ID tidak valid', 'err'); return; }
+      const s = state.scripts.find(x => x && x.id === id);
+      if (!s) { toast('❌ Script tidak ditemukan', 'err'); return; }
+      state.pendingDeleteId = id;
+      document.getElementById('pinDesc').innerHTML = 
+        `Masukkan PIN untuk menghapus <strong style="color:var(--t-1)">"${util.esc(s.name || 'Unnamed')}"</strong>`;
+      document.getElementById('pinInput').value = '';
+      document.getElementById('pinErr').textContent = '';
+      document.getElementById('pinOverlay').classList.add('show');
+      setTimeout(() => document.getElementById('pinInput').focus(), 100);
+    },
+    verifyPin: () => {
+      const input = document.getElementById('pinInput');
+      const errEl = document.getElementById('pinErr');
+      const pin = input.value;
+      if (!state.pendingDeleteId) {
+        errEl.textContent = '❌ Tidak ada script yang dipilih';
+        return;
+      }
+      if (!pin) {
+        errEl.textContent = '⚠️ Masukkan PIN terlebih dahulu';
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 400);
+        return;
+      }
+      if (pin !== CONFIG.DELETE_PIN) {
+        errEl.textContent = '❌ PIN salah!';
+        input.classList.add('shake');
+        input.value = '';
+        setTimeout(() => { input.classList.remove('shake'); input.focus(); }, 400);
+        return;
+      }
+      script.executeDelete(state.pendingDeleteId);
+    },
+    executeDelete: async (id) => {
+      const idx = state.scripts.findIndex(s => s.id === id);
+      if (idx === -1) { toast('❌ Script tidak ditemukan', 'err'); closeModal('pinOverlay'); return; }
+      const name = state.scripts[idx].name || 'Unnamed';
+      closeModal('pinOverlay');
+      state.scripts.splice(idx, 1);
+      try {
+        toast('🗑️ Menghapus...', 'info');
+        await api.save(state.scripts);
+        if (state.editId === id) { state.editId = null; editor.close(); }
+        render.all();
+        toast(`✅ "${name}" dihapus`, 'ok');
+      } catch (e) {
+        toast('❌ Gagal: ' + e.message, 'err');
+      }
+    },
+    copy: async (id) => {
+      const s = state.scripts.find(x => x && x.id === id);
+      if (!s) { toast('Script tidak ditemukan', 'err'); return; }
+      const code = buildCode(s);
+      const ok = await copyText(code);
+      toast(ok ? '📋 Script di-copy' : '❌ Gagal copy', ok ? 'ok' : 'err');
+    },
+    toggleFav: async (id) => {
+      const s = state.scripts.find(x => x && x.id === id);
+      if (!s) return;
+      s.favorite = !s.favorite;
+      try {
+        await api.save(state.scripts);
+        render.all();
+        toast(s.favorite ? '⭐ Ditambahkan ke favorite' : '☆ Dihapus dari favorite', 'ok');
+      } catch (e) {
+        toast('❌ Gagal: ' + e.message, 'err');
+      }
+    }
+  };
+
+  /* ===== TM ===== */
+  const tm = {
+    open: async (id) => {
+      const s = state.scripts.find(x => x && x.id === id);
+      if (!s) { toast('Script tidak ditemukan', 'err'); return; }
+      const code = buildCode(s);
+      const ok = await copyText(code);
+      if (ok) toast('📋 Code di-copy!', 'ok');
+      setTimeout(() => {
+        const w = window.open(CONFIG.TM_URL, '_blank');
+        setTimeout(() => {
+          if (!w || w.closed || typeof w.closed === 'undefined') {
+            document.getElementById('tmHelpOverlay').classList.add('show');
+          }
+        }, 1000);
+      }, 300);
+    },
+    fromEditor: async () => {
+      const name = document.getElementById('sName').value.trim();
+      const code = document.getElementById('sCode').value;
+      const desc = document.getElementById('sDesc').value.trim();
+      const author = document.getElementById('sAuthor').value.trim();
+      if (!name) { toast('Isi nama script dulu', 'err'); return; }
+      if (!code) { toast('Code kosong', 'err'); return; }
+      const built = buildCode({ name, desc, code, author, tags: state.currentTags });
+      const ok = await copyText(built);
+      if (ok) toast('📋 Code di-copy!', 'ok');
+      setTimeout(() => {
+        const w = window.open(CONFIG.TM_URL, '_blank');
+        setTimeout(() => {
+          if (!w || w.closed) document.getElementById('tmHelpOverlay').classList.add('show');
+        }, 1000);
+      }, 300);
+    }
+  };
+
+  /* ===== FILTER ===== */
+  const filter = {
+    clear: () => {
+      state.viewMode = 'all';
+      state.filterTag = null;
+      document.getElementById('listTitle').textContent = 'Semua Script';
+      document.getElementById('pageSub').textContent = 'Manage your script collection';
+      render.all();
+    },
+    fav: () => {
+      state.viewMode = 'favorites';
+      state.filterTag = null;
+      document.getElementById('listTitle').textContent = '⭐ Favorite Scripts';
+      document.getElementById('pageSub').textContent = 'Script yang Anda tandai sebagai favorite';
+      render.all();
+    },
+    tag: (tag) => {
+      state.filterTag = tag;
+      state.viewMode = 'all';
+      document.getElementById('listTitle').textContent = `#${tag}`;
+      document.getElementById('pageSub').textContent = `Filter script dengan tag "${tag}"`;
+      render.all();
+    }
+  };
+
+  /* ===== SORT ===== */
+  const sortScripts = () => {
+    state.sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc';
+    document.getElementById('sortBtn').textContent = state.sortOrder === 'desc' ? '⬆️ Terbaru' : '⬇️ Terlama';
+    render.list();
+  };
+
+  /* ===== EXPORT / IMPORT ===== */
+  const exportAll = () => {
+    if (state.scripts.length === 0) { toast('Tidak ada script untuk diekspor', 'warn'); return; }
+    const data = {
+      version: '14.0',
+      exported: new Date().toISOString(),
+      scripts: state.scripts
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `scriptvault-backup-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('✅ Export berhasil', 'ok');
+  };
+
+  const importScripts = () => {
+    document.getElementById('importFile').click();
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const imports = Array.isArray(data) ? data : (data.scripts || []);
+      if (!Array.isArray(imports)) throw new Error('Format tidak valid');
+      
+      let added = 0;
+      imports.forEach(s => {
+        if (s && s.id && s.name) {
+          const existing = state.scripts.find(x => x.id === s.id);
+          if (!existing) {
+            state.scripts.push({
+              id: s.id,
+              name: s.name,
+              author: s.author || '',
+              desc: s.desc || '',
+              code: s.code || '',
+              tags: Array.isArray(s.tags) ? s.tags : [],
+              favorite: Boolean(s.favorite),
+              created: s.created || new Date().toISOString(),
+              updated: s.updated || new Date().toISOString()
+            });
+            added++;
+          }
+        }
+      });
+      
+      if (added > 0) {
+        await api.save(state.scripts);
+        render.all();
+        toast(`✅ ${added} script diimpor`, 'ok');
+      } else {
+        toast('Tidak ada script baru', 'info');
+      }
+    } catch (e) {
+      toast('❌ Import gagal: ' + e.message, 'err');
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  /* ===== FORCE CLEAN ===== */
+  const forceClean = async () => {
+    if (!confirm('🧹 Clean Data\n\nAksi ini akan:\n• Hapus semua script tanpa nama\n• Hapus script tanpa ID\n• Hapus data rusak\n\nLanjutkan?')) return;
+    try {
+      toast('Membersihkan data...', 'info');
+      const before = state.scripts.length;
+      state.scripts = state.scripts.filter(s => s && s.id && s.name && s.name.trim() !== '');
+      const removed = before - state.scripts.length;
+      await api.save(state.scripts);
+      render.all();
+      toast(`✅ ${removed} script dibersihkan`, 'ok');
+    } catch (e) {
+      toast('❌ Gagal: ' + e.message, 'err');
+    }
+  };
+
+  /* ===== SYNC ===== */
+  const sync = async () => {
+    try {
+      toast('🔄 Syncing...', 'info');
+      state.scripts = await api.load();
+      render.all();
+      toast(`✅ Sync OK (${state.scripts.length} script)`, 'ok');
+    } catch (e) {
+      toast('❌ Gagal: ' + e.message, 'err');
+    }
+  };
+
+  /* ===== MODAL HELPERS ===== */
+  const closeModal = (id) => {
+    document.getElementById(id).classList.remove('show');
+  };
+
+  const showShortcuts = () => {
+    document.getElementById('shortcutsOverlay').classList.add('show');
+  };
+
+  const showAll = () => filter.clear();
+  const filterFav = () => filter.fav();
+
+  /* ===== STATS ===== */
+  const updateStats = () => {
+    const c = document.getElementById('sCode').value;
+    document.getElementById('cCnt').textContent = c.length.toLocaleString('id-ID');
+    document.getElementById('lCnt').textContent = c ? c.split('\n').length : 0;
+  };
+
+  const copyCode = async () => {
+    const c = document.getElementById('sCode').value;
+    if (!c) { toast('Code kosong', 'err'); return; }
+    const ok = await copyText(c);
+    toast(ok ? '📋 Disalin ke clipboard' : '❌ Gagal', ok ? 'ok' : 'err');
+  };
+
+  const delS = () => script.del(state.editId);
+
+  /* ===== INIT ===== */
+  const init = async () => {
+    const lt = document.getElementById('loadTxt');
+    try {
+      api.init();
+      lt.textContent = 'Memuat script...';
+      state.scripts = await api.load();
+      document.getElementById('loading').classList.add('hide');
+      document.getElementById('app').classList.add('show');
+      render.all();
+      setTimeout(() => document.getElementById('loading').remove(), 600);
+    } catch (e) {
+      lt.textContent = '❌ ' + e.message;
+      lt.style.color = '#ef4444';
+    }
+  };
+
+  /* ===== EVENT BINDINGS ===== */
+  const bindEvents = () => {
+    // Editor textarea
+    const ta = document.getElementById('sCode');
+    ta.addEventListener('input', updateStats);
+    ta.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); script.save(); }
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const s = ta.selectionStart, en = ta.selectionEnd;
+        ta.value = ta.value.substring(0, s) + '  ' + ta.value.substring(en);
+        ta.selectionStart = ta.selectionEnd = s + 2;
+      }
+      if (e.key === 'Escape') editor.close();
+    });
+
+    // Tag input
+    const tf = document.getElementById('tagField');
+    tf.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        tags.add(tf.value);
+        tf.value = '';
+      }
+      if (e.key === 'Backspace' && !tf.value && state.currentTags.length > 0) {
+        tags.remove(state.currentTags.length - 1);
+      }
+    });
+
+    // Pin input
+    document.getElementById('pinInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') script.verifyPin();
+      if (e.key === 'Escape') closeModal('pinOverlay');
+    });
+
+    // Modal backdrop clicks
+    ['editorOverlay', 'pinOverlay', 'tmHelpOverlay', 'shortcutsOverlay'].forEach(id => {
+      document.getElementById(id).addEventListener('click', (e) => {
+        if (e.target.id === id) closeModal(id);
+      });
+    });
+
+    // Import file
+    document.getElementById('importFile').addEventListener('change', handleImport);
+
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      const isInput = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+      
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('qIn').focus();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !isInput) {
+        e.preventDefault();
+        editor.new();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'r' && !isInput) {
+        e.preventDefault();
+        sync();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === '/' && !isInput) {
+        e.preventDefault();
+        showShortcuts();
+      }
+      if (e.key === 'Escape') {
+        ['editorOverlay', 'pinOverlay', 'tmHelpOverlay', 'shortcutsOverlay'].forEach(id => {
+          if (document.getElementById(id).classList.contains('show')) closeModal(id);
+        });
+      }
+    });
+  };
+
+  /* ===== PUBLIC API ===== */
+  return {
+    init,
+    bindEvents,
+    render,
+    editor,
+    script,
+    tm,
+    filter,
+    tags,
+    sync,
+    forceClean,
+    sortScripts,
+    exportAll,
+    importScripts,
+    showShortcuts,
+    showAll,
+    filterFav,
+    updateStats,
+    copyCode,
+    delS,
+    closeModal,
+    closePin: () => closeModal('pinOverlay'),
+    closeEditor: () => editor.close(),
+    verifyPin: script.verifyPin,
+    newS: () => editor.new(),
+    editS: (id) => editor.edit(id),
+    saveS: () => script.save(),
+    openTMFromEditor: () => tm.fromEditor(),
+    openTMFromCard: (id) => tm.open(id),
+    debounceRender: util.debounce(() => render.list(), 200)
+  };
 })();
 
-function init(){
-  initOwnerCard();
-  renderAll();
-  const ta = document.getElementById('sCode');
-  ta.addEventListener('input',updateStats);
-  ta.addEventListener('keydown',e=>{
-    if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveS()}
-    if(e.key==='Tab'){e.preventDefault();const t=e.target,s=t.selectionStart,en=t.selectionEnd;t.value=t.value.substring(0,s)+'  '+t.value.substring(en);t.selectionStart=t.selectionEnd=s+2}
-    if(e.key==='Escape') closeEditor();
-  });
-  document.getElementById('pinInput').addEventListener('keydown', e=>{
-    if(e.key==='Enter') verifyPin();
-    if(e.key==='Escape') closePin();
-  });
-  document.getElementById('pinOverlay').addEventListener('click', e=>{if(e.target.id==='pinOverlay') closePin()});
-  document.getElementById('editorOverlay').addEventListener('click', e=>{if(e.target.id==='editorOverlay') closeEditor()});
-  document.getElementById('tmHelpOverlay').addEventListener('click', e=>{if(e.target.id==='tmHelpOverlay') e.target.classList.remove('show')});
-}
-
-function renderAll(){renderDash();renderList()}
-
-function renderDash(){
-  document.getElementById('sTot').textContent = scripts.length;
-  const ch = scripts.reduce((a,s)=>a+(s.code?s.code.length:0),0);
-  document.getElementById('sChr').textContent = ch.toLocaleString('id-ID');
-  const srt = [...scripts].filter(s=>s&&s.updated).sort((a,b)=>new Date(b.updated)-new Date(a.updated));
-  document.getElementById('sLast').textContent = srt[0]?ago(srt[0].updated):'Belum ada';
-  const authors = new Set(scripts.filter(s=>s&&s.author).map(s=>s.author));
-  document.getElementById('sAuth').textContent = authors.size;
-}
-
-function renderList(){
-  const q = document.getElementById('qIn').value.toLowerCase();
-  let f = scripts.filter(s=>s && ((s.name||'').toLowerCase().includes(q)||(s.desc||'').toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)));
-  
-  if(currentFilter === 'recent'){
-    f.sort((a,b)=>new Date(b.updated||0)-new Date(a.updated||0));
-  } else if(currentFilter === 'big'){
-    f.sort((a,b)=>(b.code?b.code.length:0)-(a.code?a.code.length:0));
-  } else {
-    f.sort((a,b)=>new Date(b.updated||0)-new Date(a.updated||0));
-  }
-  
-  document.getElementById('fCnt').textContent = f.length;
-  const c = document.getElementById('list');
-  c.innerHTML = f.length===0
-    ? emptyH(q?'Tidak ditemukan':'Belum ada script',q?'Coba kata kunci lain':'Klik "Script Baru" untuk mulai')
-    : f.map(cardH).join('');
-}
-
-function cardH(s){
-  const displayName = s.name || 'Unnamed';
-  const authorName = s.author || '';
-  const initials = getInitials(authorName);
-  const authorHtml = authorName ? `
-    <div class="card-author">
-      <div class="card-author-avatar">${initials}</div>
-      <span>${esc(authorName)}</span>
-    </div>
-  ` : '';
-  
-  return `<div class="card">
-    <div class="card-h" onclick="editS('${s.id}')">
-      <div class="card-ic">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-t">${esc(displayName)}</div>
-        <div class="card-d">${esc(s.desc||'Tanpa deskripsi')}</div>
-        ${authorHtml}
-      </div>
-    </div>
-    <div class="card-m">
-      <span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-        ${ago(s.updated)}
-      </span>
-      <span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-        </svg>
-        ${s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB'}
-      </span>
-      <span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>
-        </svg>
-        ${s.code?s.code.split('\n').length:0} baris
-      </span>
-    </div>
-    <div class="card-a">
-      <button class="btn btn-ok" onclick="event.stopPropagation();openTMFromCard(event,'${s.id}')">Buka TM</button>
-      <button class="btn btn-g" onclick="event.stopPropagation();editS('${s.id}')">Edit</button>
-      <button class="btn btn-warn" onclick="event.stopPropagation();quickCopy('${s.id}')">Copy</button>
-      <button class="btn btn-e" onclick="event.stopPropagation();quickDel('${s.id}')">Hapus</button>
-    </div>
-  </div>`;
-}
-
-function emptyH(t,m){
-  return `<div class="empty">
-    <div class="empty-ic">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="9" y1="15" x2="15" y2="15"/>
-      </svg>
-    </div>
-    <h4>${t}</h4>
-    <p>${m}</p>
-    ${t==='Belum ada script'?'<button class="btn btn-p" onclick="newS()">Buat Script Pertama</button>':''}
-  </div>`;
-}
-
-function newS(){
-  editId = null;
-  document.getElementById('sName').value='';
-  document.getElementById('sAuthor').value=APP_OWNER;
-  document.getElementById('sDesc').value='';
-  document.getElementById('sCode').value='';
-  document.getElementById('edTitle').textContent='Script Baru';
-  document.getElementById('bDel').style.display='none';
-  updateStats();
-  openEditor();
-}
-
-function editS(id){
-  const s = scripts.find(x=>x && x.id===id);
-  if(!s){toast('Script tidak ditemukan','err');return}
-  editId = id;
-  document.getElementById('sName').value=s.name||'';
-  document.getElementById('sAuthor').value=s.author||'';
-  document.getElementById('sDesc').value=s.desc||'';
-  document.getElementById('sCode').value=s.code||'';
-  document.getElementById('edTitle').textContent=s.name||'Unnamed';
-  document.getElementById('bDel').style.display='inline-flex';
-  updateStats();
-  openEditor();
-}
-
-function updateStats(){
-  const c = document.getElementById('sCode').value;
-  document.getElementById('cCnt').textContent = c.length.toLocaleString('id-ID');
-  document.getElementById('lCnt').textContent = c?c.split('\n').length:0;
-}
-
-async function saveS(){
-  const name = document.getElementById('sName').value.trim();
-  const author = document.getElementById('sAuthor').value.trim();
-  const desc = document.getElementById('sDesc').value.trim();
-  const code = document.getElementById('sCode').value;
-  if(!name){toast('Nama wajib diisi','err');return}
-  if(!code){toast('Code kosong','err');return}
-  const now = new Date().toISOString();
-  if(editId){
-    const i = scripts.findIndex(s=>s && s.id===editId);
-    if(i>=0) scripts[i] = {...scripts[i],name,author,desc,code,updated:now};
-  } else {
-    const ns = {id:'s_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),name,author,desc,code,created:now,updated:now};
-    scripts.push(ns);
-    editId = ns.id;
-  }
-  try{
-    toast('Menyimpan ke Firebase...','info');
-    await FIREBASE.save(scripts);
-    document.getElementById('edTitle').textContent=name;
-    document.getElementById('bDel').style.display='inline-flex';
-    renderAll();
-    toast('Tersimpan di Firebase','ok');
-  }catch(e){ toast('Gagal: '+e.message,'err'); }
-}
-
-async function delS(){
-  if(!editId){toast('Tidak ada script yang dipilih','err');return}
-  const s = scripts.find(x=>x && x.id===editId);
-  if(!s){toast('Script tidak ditemukan','err');return}
-  requestPin(editId, s.name);
-}
-
-function quickDel(id){
-  if(!id){toast('ID tidak valid','err');return}
-  const s = scripts.find(x=>x && x.id===id);
-  if(!s){toast('Script tidak ditemukan','err');return}
-  requestPin(id, s.name);
-}
-
-function quickCopy(id){
-  const s = scripts.find(x=>x && x.id===id);
-  if(!s){ toast('Script tidak ditemukan','err'); return; }
-  const code = buildCode(s);
-  navigator.clipboard.writeText(code).then(()=>toast('Script di-copy','ok')).catch(()=>{fallbackCopy(code);toast('Script di-copy','ok')});
-}
-
-function copyCode(){
-  const c = document.getElementById('sCode').value;
-  if(c)navigator.clipboard.writeText(c).then(()=>toast('Disalin ke clipboard','ok')).catch(()=>{fallbackCopy(c);toast('Disalin','ok')});
-  else toast('Code kosong','err');
-}
-
-async function sync(){
-  try{
-    toast('Syncing dari Firebase...','info');
-    scripts = await FIREBASE.load();
-    renderAll();
-    toast('Sync OK ('+scripts.length+' script)','ok');
-  }catch(e){toast('Gagal: '+e.message,'err')}
-}
-
-function esc(t){if(!t)return'';return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function ago(d){if(!d)return'-';const s=(Date.now()-new Date(d).getTime())/1000;if(s<60)return'baru saja';if(s<3600)return Math.floor(s/60)+'m lalu';if(s<86400)return Math.floor(s/3600)+'j lalu';if(s<2592000)return Math.floor(s/86400)+'h lalu';return new Date(d).toLocaleDateString('id-ID')}
-
-function toast(msg,type='info'){
-  const w = document.getElementById('toasts'),el = document.createElement('div');
-  el.className = 'tst '+type;
-  const icon = {
-    ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-    err:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-    info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
-  }[type] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
-  el.innerHTML = `<div class="tst-ic">${icon}</div><span>${esc(msg)}</span>`;
-  w.appendChild(el);
-  setTimeout(()=>{el.style.animation='toastIn .3s reverse';setTimeout(()=>el.remove(),300)},3200);
-}
+/* ===== BOOTSTRAP ===== */
+document.addEventListener('DOMContentLoaded', () => {
+  App.bindEvents();
+  App.init();
+});
 </script>
 </body>
 </html>
