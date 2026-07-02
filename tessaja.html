@@ -269,11 +269,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
 .hist-meta-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2)}
 .hist-meta-item .ic{font-size:14px;opacity:.7}
 .hist-meta-item b{color:var(--text);font-weight:600}
-.hist-diff{margin-top:12px;padding:12px;background:rgba(0,0,0,.4);border-radius:var(--radius-sm);font-family:'SF Mono',monospace;font-size:11px;line-height:1.6;max-height:300px;overflow-y:auto;border:1px solid var(--border)}
-.hist-diff-title{font-size:12px;color:var(--text-3);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:1px}
-.hist-diff .added{color:var(--ok);background:rgba(16,185,129,.15);padding:2px 6px;border-radius:3px;display:block;margin:2px 0}
-.hist-diff .removed{color:var(--err);background:rgba(239,68,68,.15);padding:2px 6px;border-radius:3px;display:block;margin:2px 0}
-.hist-diff .line-num{color:var(--text-4);margin-right:8px;user-select:none}
+.hist-diff{margin-top:12px;padding:12px;background:rgba(0,0,0,.4);border-radius:var(--radius-sm);font-family:'SF Mono',monospace;font-size:11px;line-height:1.6;max-height:400px;overflow-y:auto;border:1px solid var(--border)}
+.hist-diff-title{font-size:12px;color:var(--text-3);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px}
+.hist-diff .added{color:var(--ok);background:rgba(16,185,129,.15);padding:3px 8px;border-radius:4px;display:block;margin:3px 0;font-family:'SF Mono',monospace;white-space:pre-wrap;word-break:break-all}
+.hist-diff .removed{color:var(--err);background:rgba(239,68,68,.15);padding:3px 8px;border-radius:4px;display:block;margin:3px 0;font-family:'SF Mono',monospace;white-space:pre-wrap;word-break:break-all}
+.hist-diff .line-num{color:var(--text-4);margin-right:10px;user-select:none;font-weight:600}
+.hist-diff .code-preview{background:rgba(0,0,0,.3);padding:10px;border-radius:6px;margin-top:8px;white-space:pre-wrap;word-break:break-all;color:var(--text-2);font-size:10px;max-height:200px;overflow-y:auto}
 .hist-empty{text-align:center;padding:60px 20px;color:var(--text-3)}
 .hist-empty .ic{font-size:48px;opacity:.4;margin-bottom:12px;display:block}
 
@@ -324,7 +325,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
     <div class="loader-core">🐒</div>
   </div>
   <p id="loadTxt">Memeriksa autentikasi...</p>
-  <small>ScriptVault Premium v22.0</small>
+  <small>ScriptVault Premium v23.0</small>
 </div>
 
 <div class="app" id="app">
@@ -353,7 +354,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
     </div>
     
     <div class="side-ft">
-      <div class="side-ft-left">v22.0 · Premium</div>
+      <div class="side-ft-left">v23.0 · Premium</div>
       <button class="side-ft-btn" onclick="forceClean()">🐒 Clean</button>
       <button class="side-ft-btn" onclick="openPinSettings()" id="pinMenuBtn" style="display:none">🔐 PIN</button>
       <button class="side-ft-btn" onclick="logoutUser()" style="color:var(--err)">🚪 Logout</button>
@@ -595,18 +596,11 @@ let userPIN = null;
 let scripts = [];
 let editId = null;
 let pendingAction = null;
-let authInitialized = false;
 
-// Check auth state on load
-window.addEventListener('load', () => {
-  // Auth state listener will handle this
-});
-
+// Handle auth state - Firebase automatically persists login
 auth.onAuthStateChanged(async user => {
-  if (authInitialized) return; // Prevent double initialization
-  authInitialized = true;
-  
   if (user) {
+    // User is signed in
     currentUser = {
       name: user.displayName || 'User',
       email: user.email,
@@ -620,10 +614,13 @@ auth.onAuthStateChanged(async user => {
     document.getElementById('loading').classList.add('hide');
     document.getElementById('app').classList.add('show');
   } else {
+    // User is signed out
     currentUser = null;
     userPIN = null;
+    scripts = [];
     renderUserCard();
     document.getElementById('authGate').classList.remove('hide');
+    document.getElementById('app').classList.remove('show');
     document.getElementById('loading').classList.add('hide');
   }
 });
@@ -631,28 +628,8 @@ auth.onAuthStateChanged(async user => {
 async function loginGoogle(){
   try{
     toast('Membuka login Google...','info');
-    const result = await auth.signInWithPopup(googleProvider);
-    const user = result.user;
-    currentUser = {
-      name: user.displayName || 'User',
-      email: user.email,
-      photo: user.photoURL || null,
-      uid: user.uid
-    };
-    await loadUserPIN();
-    renderUserCard();
-    await initApp();
-    document.getElementById('authGate').classList.add('hide');
-    document.getElementById('loading').classList.add('hide');
-    document.getElementById('app').classList.add('show');
-    toast(`✅ Login berhasil! Halo ${currentUser.name}`,'ok');
-    if(!userPIN){
-      setTimeout(()=>{
-        toast('⚠️ Setup PIN Anda untuk melindungi script','warn');
-        openPinSettings();
-      }, 1000);
-    }
-    fetchIP();
+    await auth.signInWithPopup(googleProvider);
+    // onAuthStateChanged will handle the rest
   }catch(e){
     console.error('Google login error:', e);
     if(e.code === 'auth/popup-closed-by-user') toast('Login dibatalkan','info');
@@ -663,16 +640,13 @@ async function loginGoogle(){
 
 function logoutUser(){
   if(!confirm(`Logout?\n\n👤 ${currentUser.name}\n📧 ${currentUser.email}`)) return;
-  try { auth.signOut(); } catch(e){}
-  currentUser = null;
-  userPIN = null;
-  scripts = [];
-  renderUserCard();
-  document.getElementById('authGate').classList.remove('hide');
-  document.getElementById('app').classList.remove('show');
-  toast('👋 Berhasil logout','ok');
-  // Reload to reset state
-  setTimeout(()=>location.reload(), 1000);
+  auth.signOut().then(()=>{
+    toast('👋 Berhasil logout','ok');
+    // Force reload to clear all states
+    setTimeout(()=>location.reload(), 1000);
+  }).catch(e=>{
+    toast('❌ Gagal logout: '+e.message,'err');
+  });
 }
 
 async function loadUserPIN(){
@@ -1162,15 +1136,15 @@ function renderHistorySection(){
     container.innerHTML = all.slice(0, 50).map(h=>{
       const actionLabel = {create:'✨ Dibuat',update:'✏️ Diperbarui',delete:'🗑️ Dihapus'}[h.action] || h.action;
       
-      // Build detailed diff display
+      // Build detailed diff display showing what code was changed
       let diffHtml = '';
-      if(h.diff && h.diff.length > 0){
+      if(h.action === 'update' && h.diff && h.diff.length > 0){
         diffHtml = `
           <div class="hist-diff">
-            <div class="hist-diff-title">📝 Detail Perubahan Kode:</div>
+            <div class="hist-diff-title">📝 Kode yang Diubah:</div>
             ${h.diff.map(d=>{
-              if(d.type==='added') return `<div><span class="added"><span class="line-num">+${String(d.line).padStart(4,' ')}</span> ${esc(d.text)}</span></div>`;
-              if(d.type==='removed') return `<div><span class="removed"><span class="line-num">-${String(d.line).padStart(4,' ')}</span> ${esc(d.text)}</span></div>`;
+              if(d.type==='added') return `<div><span class="added"><span class="line-num">+${String(d.line).padStart(4,' ')}</span>${esc(d.text)}</span></div>`;
+              if(d.type==='removed') return `<div><span class="removed"><span class="line-num">-${String(d.line).padStart(4,' ')}</span>${esc(d.text)}</span></div>`;
               return '';
             }).join('')}
           </div>
@@ -1178,17 +1152,17 @@ function renderHistorySection(){
       }else if(h.action === 'create' && h.newCode){
         diffHtml = `
           <div class="hist-diff">
-            <div class="hist-diff-title">📝 Kode Script yang Dibuat:</div>
-            <div style="color:var(--ok);margin-bottom:8px">Script baru dibuat dengan ${h.newCode.split('\n').length} baris kode</div>
-            <pre style="white-space:pre-wrap;word-break:break-all;color:var(--text-2);font-size:10px">${esc(h.newCode.substring(0,500))}${h.newCode.length>500?'...':''}</pre>
+            <div class="hist-diff-title">✨ Script Baru Dibuat:</div>
+            <div style="color:var(--ok);margin-bottom:8px;font-size:12px">📄 ${h.newCode.split('\n').length} baris kode</div>
+            <div class="code-preview">${esc(h.newCode.substring(0,800))}${h.newCode.length>800?'...':''}</div>
           </div>
         `;
       }else if(h.action === 'delete' && h.oldCode){
         diffHtml = `
           <div class="hist-diff">
-            <div class="hist-diff-title">📝 Kode Script yang Dihapus:</div>
-            <div style="color:var(--err);margin-bottom:8px">Script dihapus (${h.oldCode.split('\n').length} baris)</div>
-            <pre style="white-space:pre-wrap;word-break:break-all;color:var(--text-2);font-size:10px">${esc(h.oldCode.substring(0,500))}${h.oldCode.length>500?'...':''}</pre>
+            <div class="hist-diff-title">🗑️ Script yang Dihapus:</div>
+            <div style="color:var(--err);margin-bottom:8px;font-size:12px">📄 ${h.oldCode.split('\n').length} baris kode dihapus</div>
+            <div class="code-preview">${esc(h.oldCode.substring(0,800))}${h.oldCode.length>800?'...':''}</div>
           </div>
         `;
       }
