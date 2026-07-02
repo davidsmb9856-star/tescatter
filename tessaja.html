@@ -35,7 +35,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
 @keyframes meshFloat2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-100px,-80px) scale(1.1)}}
 .bg-noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-/* AUTH GATE */
 .auth-gate{position:fixed;inset:0;background:var(--bg-0);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px}
 .auth-gate.hide{display:none}
 .auth-box{background:linear-gradient(135deg,var(--bg-2),var(--bg-1));border:1px solid var(--border-hi);border-radius:var(--radius-xl);padding:48px;max-width:480px;width:100%;text-align:center;box-shadow:var(--sh-xl)}
@@ -235,11 +234,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
 .hist-diff{margin-top:12px;padding:12px;background:rgba(0,0,0,.3);border-radius:var(--radius-sm);font-family:'SF Mono',monospace;font-size:11px;line-height:1.6;max-height:200px;overflow-y:auto}
 .hist-diff .added{color:var(--ok);background:rgba(34,197,94,.1);padding:2px 6px;border-radius:3px}
 .hist-diff .removed{color:var(--err);background:rgba(239,68,68,.1);padding:2px 6px;border-radius:3px}
-.hist-diff .unchanged{color:var(--text-3)}
 .hist-empty{text-align:center;padding:60px 20px;color:var(--text-3)}
 .hist-empty .ic{font-size:48px;opacity:.4;margin-bottom:12px;display:block}
 
-/* PIN SETUP MODAL */
 .pin-setup-modal{max-width:480px}
 
 .toasts{position:fixed;bottom:28px;right:28px;z-index:700;display:flex;flex-direction:column;gap:12px;max-width:380px}
@@ -247,6 +244,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
 .tst.ok{border-left:4px solid var(--ok)}
 .tst.err{border-left:4px solid var(--err)}
 .tst.info{border-left:4px solid var(--info)}
+.tst.warn{border-left:4px solid var(--warn)}
 .tst .ic{font-size:20px}
 @keyframes toastIn{from{transform:translateX(130%);opacity:0}to{transform:translateX(0);opacity:1}}
 
@@ -286,7 +284,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
     <div class="loader-core">🐒</div>
   </div>
   <p id="loadTxt">Memuat data...</p>
-  <small>ScriptVault Premium v20.0</small>
+  <small>ScriptVault Premium v21.0</small>
 </div>
 
 <div class="app" id="app">
@@ -303,13 +301,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
 
     <div class="nav">
       <div class="nav-lbl">Menu Utama</div>
-      <div class="nav-i on" onclick="showSection('dashboard')"><span class="ic">📊</span>Dashboard</div>
-      <div class="nav-i" onclick="showSection('scripts')"><span class="ic">📦</span>Script Saya<span class="badge" id="scriptBadge">0</span></div>
-      <div class="nav-i" onclick="openHistory()"><span class="ic">📜</span>Histori Edit<span class="badge" id="histBadge">0</span></div>
-      <div class="nav-i" onclick="openPinSettings()"><span class="ic">🔐</span>Pengaturan PIN</div>
+      <div class="nav-i on" data-section="dashboard" onclick="showSection('dashboard', this)"><span class="ic"></span>Dashboard</div>
+      <div class="nav-i" data-section="scripts" onclick="showSection('scripts', this)"><span class="ic">📦</span>Script Saya<span class="badge" id="scriptBadge">0</span></div>
+      <div class="nav-i" data-section="history" onclick="showSection('history', this)"><span class="ic">📜</span>Histori Edit<span class="badge" id="histBadge">0</span></div>
+      <div class="nav-i" data-section="pin" onclick="showSection('pin', this)"><span class="ic">🔐</span>Pengaturan PIN</div>
     </div>
     <div class="side-ft">
-      <div class="side-ft-left">v20.0 · Premium</div>
+      <div class="side-ft-left">v21.0 · Premium</div>
       <button class="side-ft-btn" onclick="forceClean()">🐒 Clean</button>
     </div>
     <div class="side-credit">
@@ -342,7 +340,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
             <div class="bento-sub">Total ukuran kode</div>
           </div>
           <div class="bento-stat">
-            <div class="bento-lbl"><span class="ic">📜</span>Total Edit</div>
+            <div class="bento-lbl"><span class="ic"></span>Total Edit</div>
             <div class="bento-val" id="sHist">0</div>
             <div class="bento-sub">Aksi tercatat</div>
           </div>
@@ -353,7 +351,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
           </div>
         </div>
         <div class="section">
-          <div class="sh"><h3><span class="bar"></span>🐒 Script Terbaru</h3><small><span id="recentCnt">0</span> script</small></div>
+          <div class="sh"><h3><span class="bar"></span> Script Terbaru</h3><small><span id="recentCnt">0</span> script</small></div>
           <div id="recentList" class="card-list"></div>
         </div>
       </div>
@@ -362,9 +360,135 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
     <!-- SCRIPTS SECTION -->
     <div class="ct" id="section-scripts">
       <div class="container">
+        <div class="bento">
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">📦</span>Script Saya</div>
+            <div class="bento-val" id="scTot">0</div>
+            <div class="bento-sub">Total script Anda</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">📝</span>Karakter</div>
+            <div class="bento-val" id="scChr">0</div>
+            <div class="bento-sub">Total ukuran kode</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">📄</span>Total Baris</div>
+            <div class="bento-val" id="scLines">0</div>
+            <div class="bento-sub">Semua script</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">🕐</span>Update Terakhir</div>
+            <div class="bento-val" id="scLast" style="font-size:20px">-</div>
+            <div class="bento-sub">Waktu lokal</div>
+          </div>
+        </div>
         <div class="section">
           <div class="sh"><h3><span class="bar"></span>🐒 Semua Script</h3><small><span id="fCnt">0</span> script</small></div>
           <div id="list" class="card-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY SECTION -->
+    <div class="ct" id="section-history">
+      <div class="container">
+        <div class="bento">
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">📜</span>Total Histori</div>
+            <div class="bento-val" id="hTot">0</div>
+            <div class="bento-sub">Semua aksi tercatat</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">✨</span>Dibuat</div>
+            <div class="bento-val" id="hCreate">0</div>
+            <div class="bento-sub">Script baru</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">✏️</span>Diperbarui</div>
+            <div class="bento-val" id="hUpdate">0</div>
+            <div class="bento-sub">Edit script</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">️</span>Dihapus</div>
+            <div class="bento-val" id="hDelete">0</div>
+            <div class="bento-sub">Script dihapus</div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="sh"><h3><span class="bar"></span>📜 Histori Edit</h3><small><span id="hCnt">0</span> aksi</small></div>
+          <div id="historyList" class="card-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIN SETTINGS SECTION -->
+    <div class="ct" id="section-pin">
+      <div class="container">
+        <div class="bento">
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">🔐</span>Status PIN</div>
+            <div class="bento-val" id="pStatus" style="font-size:22px">-</div>
+            <div class="bento-sub">Perlindungan script</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">👤</span>Pengguna</div>
+            <div class="bento-val" id="pUser" style="font-size:18px">-</div>
+            <div class="bento-sub">Email Google</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic"></span>IP Saat Ini</div>
+            <div class="bento-val" id="pIp" style="font-size:18px">...</div>
+            <div class="bento-sub">Tersimpan otomatis</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-lbl"><span class="ic">🛡️</span>Script Dilindungi</div>
+            <div class="bento-val" id="pProtected">0</div>
+            <div class="bento-sub">Memerlukan PIN</div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="sh"><h3><span class="bar"></span>🔐 Pengaturan PIN</h3><small>Keamanan akun</small></div>
+          <div class="card-list">
+            <div class="card">
+              <div class="card-h">
+                <div class="card-ic">🔑</div>
+                <div class="card-body">
+                  <div class="card-t">Buat / Ubah PIN</div>
+                  <div class="card-d">PIN akan melindungi script Anda dari penghapusan atau edit oleh pengguna lain. PIN tersimpan di cloud dan bisa digunakan di PC mana saja.</div>
+                </div>
+              </div>
+              <div class="card-a">
+                <button class="btn btn-purple" onclick="openPinSettings()">🔐 Atur PIN</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h">
+                <div class="card-ic">ℹ️</div>
+                <div class="card-body">
+                  <div class="card-t">Cara Kerja PIN</div>
+                  <div class="card-d">
+                    • PIN disimpan di Firebase (cloud) — bisa diakses dari device mana saja<br>
+                    • Setiap aksi hapus/edit script memerlukan verifikasi PIN<br>
+                    • Hanya pemilik script (berdasarkan email Google) yang bisa mengedit<br>
+                    • PIN minimal 4 digit, maksimal 10 digit angka
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h">
+                <div class="card-ic">⚠️</div>
+                <div class="card-body">
+                  <div class="card-t">Peringatan</div>
+                  <div class="card-d">
+                    • Jangan bagikan PIN Anda kepada siapapun<br>
+                    • Jika PIN lupa, Anda bisa reset dengan membuat PIN baru<br>
+                    • Script tanpa PIN tidak akan dilindungi dari pengguna lain
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -380,7 +504,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
         <button class="btn btn-purple" onclick="openHistFromEditor()">📜 Histori</button>
         <button class="btn btn-ok" onclick="openTMFromEditor()">🐒 Buka TM</button>
         <button class="btn btn-warn" onclick="copyCode()">🐒 Copy</button>
-        <button class="btn btn-e" onclick="delS()" id="bDel" style="display:none">🐒 Hapus</button>
+        <button class="btn btn-e" onclick="delS()" id="bDel" style="display:none"> Hapus</button>
         <button class="btn btn-p" onclick="saveS()">🐒 Simpan</button>
         <button class="btn btn-g" onclick="closeEditor()">🐒 Tutup</button>
       </div>
@@ -442,19 +566,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
   </div>
 </div>
 
-<!-- HISTORY MODAL -->
-<div class="overlay" id="historyOverlay" style="z-index:650">
-  <div class="modal hist-modal">
-    <div class="modal-tb">
-      <h3><span class="bar"></span>📜 <span id="histTitle">Histori Edit</span></h3>
-      <div class="tools">
-        <button class="btn btn-g" onclick="closeHistory()">✖ Tutup</button>
-      </div>
-    </div>
-    <div id="histList" class="hist-list"></div>
-  </div>
-</div>
-
 <!-- TM HELP MODAL -->
 <div class="overlay" id="tmHelpOverlay" style="z-index:700">
   <div class="modal" style="max-width:560px">
@@ -484,7 +595,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Sego
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
-// ============ FIREBASE CONFIG ============
 const firebaseConfig = {
   apiKey: "AIzaSyBExdIerKUOoOPZ9fOODSF4ZPJIUNci1bo",
   authDomain: "script-vault-e9e0c.firebaseapp.com",
@@ -503,15 +613,13 @@ const googleProvider = new firebase.auth.GoogleAuthProvider();
 const TM_URL = "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html#nav=new-user-script+editor";
 const MAX_HISTORY = 30;
 
-// ============ STATE ============
 let currentUser = null;
 let currentIP = 'unknown';
 let userPIN = null;
 let scripts = [];
 let editId = null;
-let pendingAction = null; // {type: 'delete'|'edit', id: string, data: any}
+let pendingAction = null;
 
-// ============ AUTH GATE ============
 function checkAuth(){
   if(!currentUser){
     document.getElementById('authGate').classList.remove('hide');
@@ -519,11 +627,9 @@ function checkAuth(){
     return false;
   }
   document.getElementById('authGate').classList.add('hide');
-  document.getElementById('app').classList.add('show');
   return true;
 }
 
-// ============ GOOGLE SIGN-IN ============
 async function loginGoogle(){
   try{
     toast('Membuka login Google...','info');
@@ -537,24 +643,22 @@ async function loginGoogle(){
     };
     await loadUserPIN();
     renderUserCard();
-    checkAuth();
+    if(checkAuth()){
+      await initApp();
+    }
     toast(`✅ Login berhasil! Halo ${currentUser.name}`,'ok');
     if(!userPIN){
       setTimeout(()=>{
         toast('⚠️ Setup PIN Anda untuk melindungi script','warn');
-        openPinSettings();
+        showSection('pin', document.querySelector('[data-section="pin"]'));
       }, 1000);
     }
     fetchIP();
   }catch(e){
     console.error('Google login error:', e);
-    if(e.code === 'auth/popup-closed-by-user'){
-      toast('Login dibatalkan','info');
-    } else if(e.code === 'auth/popup-blocked-by-browser'){
-      toast('Popup diblokir browser. Pastikan dijalankan via localhost/https.','err');
-    } else {
-      toast('❌ Gagal login: '+e.message,'err');
-    }
+    if(e.code === 'auth/popup-closed-by-user') toast('Login dibatalkan','info');
+    else if(e.code === 'auth/popup-blocked-by-browser') toast('Popup diblokir browser. Pastikan dijalankan via localhost/https.','err');
+    else toast('❌ Gagal login: '+e.message,'err');
   }
 }
 
@@ -571,12 +675,11 @@ function logoutUser(){
 
 function showUserMenu(){
   if(!currentUser) return;
-  if(confirm(`Profil:\n\n👤 ${currentUser.name}\n📧 ${currentUser.email}\n🔐 PIN: ${userPIN ? 'Sudah diatur ✓' : 'Belum diatur ⚠️'}\n\nIngin logout?`)){
+  if(confirm(`Profil:\n\n👤 ${currentUser.name}\n📧 ${currentUser.email}\n PIN: ${userPIN ? 'Sudah diatur ✓' : 'Belum diatur ⚠️'}\n\nIngin logout?`)){
     logoutUser();
   }
 }
 
-// Auto-detect login state
 auth.onAuthStateChanged(async user=>{
   if(user){
     currentUser = {
@@ -587,9 +690,8 @@ auth.onAuthStateChanged(async user=>{
     };
     await loadUserPIN();
     renderUserCard();
-    checkAuth();
     if(checkAuth()){
-      initApp();
+      await initApp();
     }
   }else{
     currentUser = null;
@@ -599,7 +701,6 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 
-// ============ PIN MANAGEMENT ============
 async function loadUserPIN(){
   if(!currentUser) return;
   try{
@@ -614,26 +715,19 @@ async function loadUserPIN(){
 async function savePin(){
   const newPin = document.getElementById('newPinInput').value.trim();
   const confirmPin = document.getElementById('confirmPinInput').value.trim();
-  
-  if(!newPin){
-    toast('PIN tidak boleh kosong','err');
-    return;
-  }
-  if(!/^\d{4,10}$/.test(newPin)){
-    toast('PIN harus 4-10 digit angka','err');
-    return;
-  }
+  if(!newPin){ toast('PIN tidak boleh kosong','err'); return; }
+  if(!/^\d{4,10}$/.test(newPin)){ toast('PIN harus 4-10 digit angka','err'); return; }
   if(newPin !== confirmPin){
     toast('PIN tidak cocok','err');
     document.getElementById('confirmPinInput').value = '';
     return;
   }
-  
   try{
     await db.ref(`user_pins/${currentUser.uid}`).set(newPin);
     userPIN = newPin;
     closePinSettings();
     toast('✅ PIN berhasil disimpan','ok');
+    renderPinSection();
   }catch(e){
     toast('❌ Gagal simpan PIN: '+e.message,'err');
   }
@@ -645,54 +739,43 @@ function openPinSettings(){
   document.getElementById('pinSetupOverlay').classList.add('show');
   setTimeout(()=>document.getElementById('newPinInput').focus(), 100);
 }
-
 function closePinSettings(){
   document.getElementById('pinSetupOverlay').classList.remove('show');
 }
 
-// ============ NAVIGATION ============
-function showSection(sectionName){
-  // Hide all sections
+function showSection(sectionName, navEl){
   document.querySelectorAll('.ct').forEach(ct=>ct.classList.remove('show'));
-  // Remove active from nav
   document.querySelectorAll('.nav-i').forEach(ni=>ni.classList.remove('on'));
   
-  // Show target section
   const target = document.getElementById(`section-${sectionName}`);
-  if(target){
-    target.classList.add('show');
-  }
+  if(target) target.classList.add('show');
   
-  // Update title and controls
+  if(navEl) navEl.classList.add('on');
+  
   const titles = {
     'dashboard': '📊 Dashboard',
-    'scripts': '📦 Script Saya'
+    'scripts': '📦 Script Saya',
+    'history': '📜 Histori Edit',
+    'pin': '🔐 Pengaturan PIN'
   };
   document.getElementById('pageTitle').textContent = titles[sectionName] || 'Dashboard';
   
-  // Show/hide controls
   const showSearch = sectionName === 'scripts';
   document.getElementById('searchBox').style.display = showSearch ? 'flex' : 'none';
   document.getElementById('syncBtn').style.display = showSearch ? 'inline-flex' : 'none';
   document.getElementById('newScriptBtn').style.display = showSearch ? 'inline-flex' : 'none';
   
-  // Update active nav
-  event.target.closest('.nav-i').classList.add('on');
-  
-  // Render content
-  if(sectionName === 'scripts'){
-    renderList();
-  }
+  if(sectionName === 'scripts') renderScriptsSection();
+  if(sectionName === 'history') renderHistorySection();
+  if(sectionName === 'pin') renderPinSection();
+  if(sectionName === 'dashboard') renderDash();
 }
 
-// ============ RENDER USER CARD ============
 function renderUserCard(){
   const container = document.getElementById('userCardContainer');
   if(currentUser){
     const initial = (currentUser.name || currentUser.email || '?').charAt(0).toUpperCase();
-    const avatarContent = currentUser.photo 
-      ? `<img src="${currentUser.photo}" alt="avatar">` 
-      : initial;
+    const avatarContent = currentUser.photo ? `<img src="${currentUser.photo}" alt="avatar">` : initial;
     container.innerHTML = `
       <div class="user-card logged" onclick="showUserMenu()" title="Klik untuk opsi">
         <div class="user-avatar">${avatarContent}</div>
@@ -708,7 +791,6 @@ function renderUserCard(){
   }
 }
 
-// ============ FETCH IP ============
 async function fetchIP(){
   try{
     const r = await fetch('https://api.ipify.org?format=json');
@@ -719,14 +801,12 @@ async function fetchIP(){
       const r2 = await fetch('https://api64.ipify.org?format=json');
       const d2 = await r2.json();
       currentIP = d2.ip || 'unknown';
-    }catch(e2){
-      currentIP = 'unknown';
-    }
+    }catch(e2){ currentIP = 'unknown'; }
   }
   document.getElementById('sIp').textContent = currentIP;
+  document.getElementById('pIp').textContent = currentIP;
 }
 
-// ============ FIREBASE DB ============
 const FIREBASE = {
   load: async () => {
     const snap = await db.ref('scripts').once('value');
@@ -737,30 +817,21 @@ const FIREBASE = {
   },
   save: async (scripts) => {
     const clean = scripts.filter(s => s && s.id);
-    if (clean.length === 0) {
-      await db.ref('scripts').remove();
-    } else {
-      await db.ref('scripts').set(clean);
-    }
+    if (clean.length === 0) await db.ref('scripts').remove();
+    else await db.ref('scripts').set(clean);
   }
 };
 
-// ============ HISTORY & DIFF ============
 function buildHistoryEntry(action, scriptName, oldData, newData){
   let diff = null;
   if(oldData && newData && action === 'update'){
     diff = calculateDiff(oldData.code || '', newData.code || '');
   }
-  
   return {
-    action: action,
-    timestamp: new Date().toISOString(),
-    editor: currentUser.name,
-    email: currentUser.email,
-    uid: currentUser.uid,
-    ip: currentIP,
-    scriptName: scriptName || 'Unnamed',
-    diff: diff
+    action, timestamp: new Date().toISOString(),
+    editor: currentUser.name, email: currentUser.email,
+    uid: currentUser.uid, ip: currentIP,
+    scriptName: scriptName || 'Unnamed', diff
   };
 }
 
@@ -768,8 +839,6 @@ function calculateDiff(oldCode, newCode){
   const oldLines = oldCode.split('\n');
   const newLines = newCode.split('\n');
   const diff = [];
-  
-  // Simple line-by-line diff
   const maxLen = Math.max(oldLines.length, newLines.length);
   for(let i=0; i<maxLen; i++){
     if(oldLines[i] !== newLines[i]){
@@ -777,8 +846,7 @@ function calculateDiff(oldCode, newCode){
       if(newLines[i]) diff.push({type:'added', line: i+1, text: newLines[i]});
     }
   }
-  
-  return diff.slice(0, 20); // Limit to 20 changes
+  return diff.slice(0, 20);
 }
 
 function pushHistory(script, entry){
@@ -791,17 +859,14 @@ function countAllHistory(){
   return scripts.reduce((acc, s) => acc + ((s.history && s.history.length) || 0), 0);
 }
 
-// ============ PIN VERIFY ============
 function openPinVerify(action, callback){
   if(!userPIN){
     toast('⚠️ Anda belum mengatur PIN. Silakan setup PIN terlebih dahulu.','warn');
-    openPinSettings();
+    showSection('pin', document.querySelector('[data-section="pin"]'));
     return;
   }
   pendingAction = {type: action, callback: callback};
-  document.getElementById('pinVerifyDesc').textContent = action === 'delete' 
-    ? `Masukkan PIN untuk menghapus script`
-    : `Masukkan PIN untuk mengedit script`;
+  document.getElementById('pinVerifyDesc').textContent = action === 'delete' ? `Masukkan PIN untuk menghapus script` : `Masukkan PIN untuk mengedit script`;
   document.getElementById('pinVerifyInput').value = '';
   document.getElementById('pinVerifyErr').textContent = '';
   document.getElementById('pinVerifyOverlay').classList.add('show');
@@ -817,14 +882,12 @@ async function verifyPinAction(){
   const input = document.getElementById('pinVerifyInput');
   const errEl = document.getElementById('pinVerifyErr');
   const pin = input.value;
-  
   if(!pin){
     errEl.textContent = '⚠️ Masukkan PIN';
     input.classList.add('shake');
     setTimeout(()=>input.classList.remove('shake'), 450);
     return;
   }
-  
   if(pin !== userPIN){
     errEl.textContent = '❌ PIN salah!';
     input.classList.add('shake');
@@ -832,18 +895,12 @@ async function verifyPinAction(){
     setTimeout(()=>{ input.classList.remove('shake'); input.focus(); }, 450);
     return;
   }
-  
-  // PIN correct
   errEl.textContent = '';
   closePinVerify();
-  
-  if(pendingAction && pendingAction.callback){
-    await pendingAction.callback();
-  }
+  if(pendingAction && pendingAction.callback) await pendingAction.callback();
   pendingAction = null;
 }
 
-// ============ CLEAN ============
 async function forceClean(){
   if(!confirm('🐒 Clean Data\n\nHapus semua script tanpa nama & tanpa ID?\n\nLanjutkan?')) return;
   try{
@@ -854,12 +911,9 @@ async function forceClean(){
     await FIREBASE.save(scripts);
     renderAll();
     toast(`✅ ${removed} script dibersihkan!`,'ok');
-  }catch(e){
-    toast('❌ Gagal: '+e.message,'err');
-  }
+  }catch(e){ toast('❌ Gagal: '+e.message,'err'); }
 }
 
-// ============ EDITOR ============
 function openEditor(){
   document.getElementById('editorOverlay').classList.add('show');
   setTimeout(()=>document.getElementById('sName').focus(), 100);
@@ -868,26 +922,19 @@ function closeEditor(){
   document.getElementById('editorOverlay').classList.remove('show');
 }
 
-// ============ SCRIPT OPERATIONS ============
 async function executeDelete(id){
   if(!id){toast('❌ Error: ID tidak valid','err');return}
   const idx = scripts.findIndex(s => s && s.id === id);
   if(idx === -1){toast('❌ Script tidak ditemukan','err');return}
   const script = scripts[idx];
   const scriptName = script.name || 'Unnamed';
-  
-  // Get old data for history
   const oldData = {...script};
-  
   pushHistory(script, buildHistoryEntry('delete', scriptName, oldData, null));
-  
   try{
     toast('Menghapus dari Firebase...','info');
     await db.ref('deleted_history/' + id).set({
-      originalId: id,
-      name: scriptName,
-      deletedBy: currentUser.email,
-      deletedAt: new Date().toISOString(),
+      originalId: id, name: scriptName,
+      deletedBy: currentUser.email, deletedAt: new Date().toISOString(),
       history: script.history || []
     });
     scripts.splice(idx, 1);
@@ -904,18 +951,13 @@ async function executeDelete(id){
 
 function delS(){
   if(!editId){toast('❌ Tidak ada script yang dipilih','err');return}
-  openPinVerify('delete', async ()=>{
-    await executeDelete(editId);
-  });
+  openPinVerify('delete', async ()=>{ await executeDelete(editId); });
 }
 
 function quickDel(id){
-  openPinVerify('delete', async ()=>{
-    await executeDelete(id);
-  });
+  openPinVerify('delete', async ()=>{ await executeDelete(id); });
 }
 
-// ============ USERSCRIPT BUILDER ============
 function buildCode(s){
   let c = s.code||'';
   if(!/\/\/\s*==UserScript==/i.test(c)){
@@ -960,7 +1002,7 @@ function openTMFromEditor(){
 }
 
 function tryOpenTM(){
-  toast('🐒 Code sudah di-copy!','ok');
+  toast(' Code sudah di-copy!','ok');
   setTimeout(()=>{
     const newWindow = window.open(TM_URL, '_blank');
     setTimeout(()=>{
@@ -979,7 +1021,6 @@ function fallbackCopy(text){
   document.body.removeChild(t);
 }
 
-// ============ INIT APP ============
 async function initApp(){
   const lt = document.getElementById('loadTxt');
   try {
@@ -992,7 +1033,7 @@ async function initApp(){
     init();
     setTimeout(()=>document.getElementById('loading').remove(),600);
   } catch(e) {
-    lt.textContent = '❌ '+e.message;
+    lt.textContent = ' '+e.message;
     lt.style.color = '#ef4444';
   }
 }
@@ -1010,7 +1051,7 @@ function init(){
     if(e.key==='Enter') verifyPinAction();
     if(e.key==='Escape') closePinVerify();
   });
-  ['pinVerifyOverlay','editorOverlay','historyOverlay','tmHelpOverlay','pinSetupOverlay'].forEach(id=>{
+  ['pinVerifyOverlay','editorOverlay','tmHelpOverlay','pinSetupOverlay'].forEach(id=>{
     document.getElementById(id).addEventListener('click', e=>{
       if(e.target.id===id) document.getElementById(id).classList.remove('show');
     });
@@ -1019,10 +1060,9 @@ function init(){
 
 function renderAll(){
   renderDash();
-  if(document.getElementById('section-scripts').classList.contains('show')){
-    renderList();
-  }
-  renderRecent();
+  renderScriptsSection();
+  renderHistorySection();
+  renderPinSection();
 }
 
 function renderDash(){
@@ -1032,9 +1072,7 @@ function renderDash(){
   document.getElementById('sHist').textContent = countAllHistory().toLocaleString('id-ID');
   document.getElementById('histBadge').textContent = countAllHistory();
   document.getElementById('scriptBadge').textContent = scripts.length;
-}
-
-function renderRecent(){
+  
   const recent = [...scripts].sort((a,b)=>new Date(b.updated||0)-new Date(a.updated||0)).slice(0, 3);
   const container = document.getElementById('recentList');
   document.getElementById('recentCnt').textContent = recent.length;
@@ -1043,13 +1081,13 @@ function renderRecent(){
     container.innerHTML = `<div class="empty"><div class="ic">🐒</div><h4>Belum ada script</h4><p>Klik "Script Baru" untuk mulai</p></div>`;
     return;
   }
-  
   container.innerHTML = recent.map(s=>{
     const displayName = s.name || 'Unnamed';
-    const authorHtml = s.author ? `<div class="card-author"><span>👤</span> ${esc(s.author)} <span style="color:var(--text-4);font-size:10px">(${esc(s.ownerEmail||'-')})</span></div>` : '';
+    const ownerEmail = s.ownerEmail || 'Unknown';
+    const authorHtml = s.author ? `<div class="card-author"><span>👤</span> ${esc(s.author)} <span style="color:var(--text-4);font-size:10px">(${esc(ownerEmail)})</span></div>` : '';
     return `<div class="card">
-      <div class="card-h" onclick="editS('${s.id}');showSection('scripts');document.querySelectorAll('.nav-i')[1].click();" style="cursor:pointer">
-        <div class="card-ic">🐒</div>
+      <div class="card-h" onclick="editS('${s.id}');showSection('scripts', document.querySelector('[data-section=scripts]'));" style="cursor:pointer">
+        <div class="card-ic"></div>
         <div class="card-body">
           <div class="card-t">${esc(displayName)}</div>
           <div class="card-d">${esc(s.desc||'Tanpa deskripsi')}</div>
@@ -1058,10 +1096,21 @@ function renderRecent(){
       </div>
       <div class="card-m">
         <span><span class="ic">🕐</span>${ago(s.updated)}</span>
-        <span><span class="ic">📊</span>${s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB'}</span>
+        <span><span class="ic"></span>${s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB'}</span>
       </div>
     </div>`;
   }).join('');
+}
+
+function renderScriptsSection(){
+  document.getElementById('scTot').textContent = scripts.length;
+  const ch = scripts.reduce((a,s)=>a+(s.code?s.code.length:0),0);
+  document.getElementById('scChr').textContent = ch.toLocaleString('id-ID');
+  const lines = scripts.reduce((a,s)=>a+(s.code?s.code.split('\n').length:0),0);
+  document.getElementById('scLines').textContent = lines.toLocaleString('id-ID');
+  const srt = [...scripts].filter(s=>s&&s.updated).sort((a,b)=>new Date(b.updated)-new Date(a.updated));
+  document.getElementById('scLast').textContent = srt[0]?ago(srt[0].updated):'-';
+  renderList();
 }
 
 function renderList(){
@@ -1095,8 +1144,8 @@ function cardH(s){
       <span><span class="ic">📜</span>${histCount} histori</span>
     </div>
     <div class="card-a">
-      <button class="btn btn-purple" onclick="event.stopPropagation();openHistFromCard('${s.id}')">📜 Histori</button>
-      <button class="btn btn-ok" onclick="event.stopPropagation();openTMFromCard(event,'${s.id}')">🐒 Buka TM</button>
+      <button class="btn btn-purple" onclick="event.stopPropagation();openHistFromCard('${s.id}')"> Histori</button>
+      <button class="btn btn-ok" onclick="event.stopPropagation();openTMFromCard(event,'${s.id}')"> Buka TM</button>
       <button class="btn btn-g" onclick="event.stopPropagation();editS('${s.id}')">🐒 Edit</button>
       <button class="btn btn-warn" onclick="event.stopPropagation();quickCopy('${s.id}')">🐒 Copy</button>
       <button class="btn btn-e" onclick="event.stopPropagation();quickDel('${s.id}')">🐒 Hapus</button>
@@ -1105,13 +1154,84 @@ function cardH(s){
 }
 
 function emptyH(t,m){
-  return `<div class="empty"><div class="ic">🐒</div><h4>${t}</h4><p>${m}</p>${t==='Belum ada script'?'<button class="btn btn-p" onclick="newS()">🐒 Buat Script Pertama</button>':''}</div>`;
+  return `<div class="empty"><div class="ic"></div><h4>${t}</h4><p>${m}</p>${t==='Belum ada script'?'<button class="btn btn-p" onclick="newS()">🐒 Buat Script Pertama</button>':''}</div>`;
+}
+
+function renderHistorySection(){
+  let all = [];
+  scripts.forEach(s=>{
+    (s.history||[]).forEach(h=>{
+      all.push({...h, scriptName: s.name || h.scriptName || 'Unnamed', scriptId: s.id});
+    });
+  });
+  db.ref('deleted_history').once('value').then(snap=>{
+    const val = snap.val();
+    if(val){
+      Object.values(val).forEach(d=>{
+        (d.history||[]).forEach(h=>{
+          all.push({...h, scriptName: d.name || h.scriptName || 'Deleted Script', deleted: true});
+        });
+      });
+    }
+    all.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+    
+    document.getElementById('hTot').textContent = all.length;
+    document.getElementById('hCreate').textContent = all.filter(h=>h.action==='create').length;
+    document.getElementById('hUpdate').textContent = all.filter(h=>h.action==='update').length;
+    document.getElementById('hDelete').textContent = all.filter(h=>h.action==='delete').length;
+    document.getElementById('hCnt').textContent = all.length;
+    
+    const container = document.getElementById('historyList');
+    if(all.length === 0){
+      container.innerHTML = `<div class="empty"><div class="ic">📜</div><h4>Belum ada histori</h4><p>Aksi edit, buat, dan hapus script akan tercatat di sini</p></div>`;
+      return;
+    }
+    
+    container.innerHTML = all.slice(0, 50).map(h=>{
+      const actionLabel = {create:'✨ Dibuat',update:'✏️ Diperbarui',delete:'🗑️ Dihapus'}[h.action] || h.action;
+      const diffHtml = h.diff && h.diff.length > 0 ? `
+        <div class="hist-diff">
+          <div style="margin-bottom:8px;font-weight:600;color:var(--text)">Perubahan:</div>
+          ${h.diff.map(d=>{
+            if(d.type==='added') return `<div><span class="added">+ Baris ${d.line}:</span> ${esc(d.text.substring(0,80))}${d.text.length>80?'...':''}</div>`;
+            if(d.type==='removed') return `<div><span class="removed">- Baris ${d.line}:</span> ${esc(d.text.substring(0,80))}${d.text.length>80?'...':''}</div>`;
+            return '';
+          }).join('')}
+        </div>
+      ` : '';
+      return `<div class="card">
+        <div class="card-h">
+          <div class="card-ic">${h.action==='create'?'✨':h.action==='update'?'️':'🗑️'}</div>
+          <div class="card-body">
+            <div class="card-t">${esc(h.scriptName||'-')}</div>
+            <div class="card-d">${actionLabel} oleh ${esc(h.editor||'-')} (${esc(h.email||'-')})</div>
+          </div>
+        </div>
+        <div class="card-m">
+          <span><span class="ic">🕐</span>${formatDate(h.timestamp)}</span>
+          <span><span class="ic">👤</span>${esc(h.editor||'-')}</span>
+          <span><span class="ic">📧</span>${esc(h.email||'-')}</span>
+          <span><span class="ic">🌐</span>${esc(h.ip||'-')}</span>
+        </div>
+        ${diffHtml}
+      </div>`;
+    }).join('');
+  });
+}
+
+function renderPinSection(){
+  document.getElementById('pStatus').textContent = userPIN ? 'Aktif ✓' : 'Belum diatur';
+  document.getElementById('pStatus').style.color = userPIN ? 'var(--ok)' : 'var(--warn)';
+  document.getElementById('pUser').textContent = currentUser ? (currentUser.email || '-') : '-';
+  document.getElementById('pIp').textContent = currentIP;
+  const protectedCount = scripts.filter(s=>s.ownerEmail === currentUser?.email).length;
+  document.getElementById('pProtected').textContent = protectedCount;
 }
 
 function newS(){
   if(!userPIN){
     toast('⚠️ Setup PIN terlebih dahulu untuk melindungi script Anda','warn');
-    openPinSettings();
+    showSection('pin', document.querySelector('[data-section="pin"]'));
     return;
   }
   editId = null;
@@ -1119,7 +1239,7 @@ function newS(){
   document.getElementById('sAuthor').value = currentUser.name || '';
   document.getElementById('sDesc').value='';
   document.getElementById('sCode').value='';
-  document.getElementById('edTitle').textContent='🐒 Script Baru';
+  document.getElementById('edTitle').textContent=' Script Baru';
   document.getElementById('bDel').style.display='none';
   updateStats();
   openEditor();
@@ -1127,8 +1247,7 @@ function newS(){
 
 function editS(id){
   const s = scripts.find(x=>x && x.id===id);
-  if(!s){toast('❌ Script tidak ditemukan','err');return}
-  // Check if user is owner
+  if(!s){toast(' Script tidak ditemukan','err');return}
   if(s.ownerEmail && s.ownerEmail !== currentUser.email){
     toast('⚠️ Anda bukan pemilik script ini. Hanya pemilik yang bisa edit.','warn');
     return;
@@ -1152,8 +1271,8 @@ function updateStats(){
 
 async function saveS(){
   if(!userPIN){
-    toast('⚠️ Setup PIN terlebih dahulu','err');
-    openPinSettings();
+    toast('️ Setup PIN terlebih dahulu','err');
+    showSection('pin', document.querySelector('[data-section="pin"]'));
     return;
   }
   const name = document.getElementById('sName').value.trim();
@@ -1167,8 +1286,7 @@ async function saveS(){
     const i = scripts.findIndex(s=>s && s.id===editId);
     if(i>=0){
       const oldData = {...scripts[i]};
-      const newData = {name,author,desc,code,updated:now};
-      scripts[i] = {...scripts[i],...newData};
+      scripts[i] = {...scripts[i],name,author,desc,code,updated:now};
       pushHistory(scripts[i], buildHistoryEntry('update', name, oldData, scripts[i]));
     }
   } else {
@@ -1187,7 +1305,7 @@ async function saveS(){
   try{
     toast('Menyimpan ke Firebase...','info');
     await FIREBASE.save(scripts);
-    document.getElementById('edTitle').textContent='🐒 '+name;
+    document.getElementById('edTitle').textContent=' '+name;
     document.getElementById('bDel').style.display='inline-flex';
     renderAll();
     toast('✅ Tersimpan di Firebase','ok');
@@ -1216,93 +1334,24 @@ async function sync(){
   }catch(e){toast('❌ Gagal: '+e.message,'err')}
 }
 
-// ============ HISTORY VIEW ============
 function openHistFromCard(id){
   const s = scripts.find(x=>x && x.id===id);
   if(!s){toast('❌ Script tidak ditemukan','err');return}
-  renderHistory(s.name || 'Unnamed', s.history || []);
+  showSection('history', document.querySelector('[data-section="history"]'));
 }
 
 function openHistFromEditor(){
-  if(!editId){toast('⚠️ Simpan script dulu untuk melihat histori','info');return}
-  const s = scripts.find(x=>x && x.id===editId);
-  if(!s){toast('❌ Script tidak ditemukan','err');return}
-  renderHistory(s.name || 'Unnamed', s.history || []);
+  if(!editId){toast('️ Simpan script dulu untuk melihat histori','info');return}
+  showSection('history', document.querySelector('[data-section="history"]'));
 }
 
-function openHistory(){
-  // Show all history from all scripts
-  let all = [];
-  scripts.forEach(s=>{
-    (s.history||[]).forEach(h=>{
-      all.push({...h, scriptName: s.name || h.scriptName || 'Unnamed', scriptId: s.id});
-    });
-  });
-  // Add deleted history
-  db.ref('deleted_history').once('value').then(snap=>{
-    const val = snap.val();
-    if(val){
-      Object.values(val).forEach(d=>{
-        (d.history||[]).forEach(h=>{
-          all.push({...h, scriptName: d.name || h.scriptName || 'Deleted Script', deleted: true});
-        });
-      });
-    }
-    all.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-    if(all.length > 100) all = all.slice(0, 100);
-    renderHistory('Histori Edit (Semua Script)', all);
-  });
-}
-
-function renderHistory(title, history){
-  document.getElementById('histTitle').textContent = title;
-  const list = document.getElementById('histList');
-  if(!history || history.length === 0){
-    list.innerHTML = `<div class="hist-empty"><span class="ic">📜</span><p>Belum ada histori</p></div>`;
-  }else{
-    list.innerHTML = history.map(h=>{
-      const actionLabel = {create:'✨ Dibuat',update:'✏️ Diperbarui',delete:'🗑️ Dihapus'}[h.action] || h.action;
-      const diffHtml = h.diff && h.diff.length > 0 ? `
-        <div class="hist-diff">
-          <div style="margin-bottom:8px;font-weight:600;color:var(--text)">Perubahan:</div>
-          ${h.diff.map(d=>{
-            if(d.type==='added') return `<div><span class="added">+ Baris ${d.line}:</span> ${esc(d.text.substring(0,80))}${d.text.length>80?'...':''}</div>`;
-            if(d.type==='removed') return `<div><span class="removed">- Baris ${d.line}:</span> ${esc(d.text.substring(0,80))}${d.text.length>80?'...':''}</div>`;
-            return '';
-          }).join('')}
-        </div>
-      ` : '';
-      return `<div class="hist-item action-${h.action}">
-        <div class="hist-head">
-          <span class="hist-action ${h.action}">${actionLabel}</span>
-          <span class="hist-time">🕐 ${formatDate(h.timestamp)}</span>
-        </div>
-        <div class="hist-meta">
-          <div class="hist-meta-item"><span class="ic">📄</span> Script: <b>${esc(h.scriptName||'-')}</b></div>
-          <div class="hist-meta-item"><span class="ic">👤</span> Editor: <b>${esc(h.editor||'-')}</b></div>
-          <div class="hist-meta-item"><span class="ic">📧</span> Email: <b>${esc(h.email||'-')}</b></div>
-          <div class="hist-meta-item"><span class="ic">🌐</span> IP: <b>${esc(h.ip||'-')}</b></div>
-        </div>
-        ${diffHtml}
-      </div>`;
-    }).join('');
-  }
-  document.getElementById('historyOverlay').classList.add('show');
-}
-
-function closeHistory(){
-  document.getElementById('historyOverlay').classList.remove('show');
-}
-
+function esc(t){if(!t)return'';return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function ago(d){if(!d)return'-';const s=(Date.now()-new Date(d).getTime())/1000;if(s<60)return'baru saja';if(s<3600)return Math.floor(s/60)+'m lalu';if(s<86400)return Math.floor(s/3600)+'j lalu';if(s<2592000)return Math.floor(s/86400)+'h lalu';return new Date(d).toLocaleDateString('id-ID')}
 function formatDate(iso){
   if(!iso) return '-';
   const d = new Date(iso);
   return d.toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'});
 }
-
-// ============ UTILS ============
-function esc(t){if(!t)return'';return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function ago(d){if(!d)return'-';const s=(Date.now()-new Date(d).getTime())/1000;if(s<60)return'baru saja';if(s<3600)return Math.floor(s/60)+'m lalu';if(s<86400)return Math.floor(s/3600)+'j lalu';if(s<2592000)return Math.floor(s/86400)+'h lalu';return new Date(d).toLocaleDateString('id-ID')}
 function toast(msg,type='info'){
   const w = document.getElementById('toasts'),el = document.createElement('div');
   el.className = 'tst '+type;
