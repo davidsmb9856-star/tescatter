@@ -799,7 +799,7 @@ html, body {
     <div class="loader-core">🐒</div>
   </div>
   <p id="loadTxt">INITIALIZING</p>
-  <small>SCRIPTVAULT × CYBER PORTAL v33.0</small>
+  <small>SCRIPTVAULT × CYBER PORTAL v34.0</small>
 </div>
 
 <div class="app" id="app">
@@ -814,7 +814,7 @@ html, body {
     <div id="userCardContainer"></div>
     <div class="nav" id="navContainer"></div>
     <div class="sidebar-footer">
-      <div class="sidebar-info">v33.0 · ONLINE</div>
+      <div class="sidebar-info">v34.0 · ONLINE</div>
       <div class="sidebar-actions">
         <button class="sidebar-btn clean" onclick="forceClean()"><i class="fas fa-broom"></i> Clean</button>
         <button class="sidebar-btn pin" onclick="openPinSettings()"><i class="fas fa-key"></i> PIN</button>
@@ -1353,8 +1353,9 @@ let scripts = [];
 let editId = null;
 let pendingAction = null;
 let isDeleting = false;
-let isInitialized = false; // Flag untuk mencegah duplicate init
+let isInitialized = false;
 let currentSection = 'dashboard';
+let clockInterval = null; // Track clock interval untuk prevent duplicate
 
 // ============================================
 // PORTAL DEFAULT LINKS
@@ -1568,7 +1569,7 @@ const FIREBASE = {
 };
 
 // ============================================
-// AUTH STATE - DIPANGGIL HANYA SEKALI PER USER CHANGE
+// AUTH STATE
 // ============================================
 auth.onAuthStateChanged(async (user) => {
   if (user) {
@@ -1580,7 +1581,6 @@ auth.onAuthStateChanged(async (user) => {
     document.getElementById('app').classList.add('show');
     document.getElementById('authGate').classList.remove('show');
     
-    // Load data hanya sekali
     try {
       const lt = document.getElementById('loadTxt');
       lt.textContent = 'LOADING DATA';
@@ -1588,7 +1588,6 @@ auth.onAuthStateChanged(async (user) => {
       lt.textContent = 'LOADING SCRIPTS';
       scripts = await FIREBASE.load();
       
-      // Init event listeners hanya sekali
       if (!isInitialized) {
         initEventListeners();
         isInitialized = true;
@@ -1596,9 +1595,13 @@ auth.onAuthStateChanged(async (user) => {
       
       renderAll();
       updatePortalLinks();
-      updateClock();
       
-      // Record login
+      // Start clock only once
+      if (!clockInterval) {
+        updateClock();
+        clockInterval = setInterval(updateClock, 1000);
+      }
+      
       await recordLogin();
       
       toast(`✅ Login berhasil! Halo ${currentUser.name}`, 'success');
@@ -1627,7 +1630,6 @@ async function loginGoogle() {
   try {
     toast('Membuka login Google...', 'info');
     const result = await auth.signInWithPopup(googleProvider);
-    // onAuthStateChanged akan handle sisanya
   } catch (e) {
     console.error('Google login error:', e);
     if (e.code === 'auth/popup-closed-by-user') toast('Login dibatalkan', 'info');
@@ -1656,7 +1658,7 @@ async function loadUserPIN() {
 }
 
 // ============================================
-// NAV RENDERING - DIPANGGIL SETIAP USER CHANGE
+// NAV RENDERING
 // ============================================
 function renderNav() {
   const navContainer = document.getElementById('navContainer');
@@ -1698,7 +1700,6 @@ function renderNav() {
     ${adminMenu}
   `;
   
-  // Set active section
   const activeItem = navContainer.querySelector(`[data-section="${currentSection}"]`);
   if (activeItem) activeItem.classList.add('active');
 }
@@ -1949,7 +1950,7 @@ function openEditor() { document.getElementById('editorOverlay').classList.add('
 function closeEditor() { document.getElementById('editorOverlay').classList.remove('show'); }
 
 // ============================================
-// DELETE - FIXED: History tercatat dengan benar
+// DELETE - FIXED: No const reassignment bug
 // ============================================
 async function executeDelete(id) {
   if (isDeleting) {
@@ -1961,18 +1962,18 @@ async function executeDelete(id) {
   isDeleting = true;
   
   try {
-    const idx = scripts.findIndex(s => s && s.id === id);
+    let idx = scripts.findIndex(s => s && s.id === id); // Changed from const to let
+    
     if (idx === -1) {
       toast('❌ Script tidak ditemukan. Melakukan sync...', 'warning');
       scripts = await FIREBASE.load();
       renderAll();
-      const newIdx = scripts.findIndex(s => s && s.id === id);
-      if (newIdx === -1) {
+      idx = scripts.findIndex(s => s && s.id === id); // Reassign idx
+      if (idx === -1) {
         toast('❌ Script tetap tidak ditemukan setelah sync', 'error');
         isDeleting = false;
         return;
       }
-      idx = newIdx;
     }
     
     const script = scripts[idx];
@@ -1980,11 +1981,9 @@ async function executeDelete(id) {
     
     toast(`🗑️ Menghapus "${scriptName}"...`, 'info');
     
-    // Step 1: Buat entry delete dan push ke history script
     const deleteEntry = buildHistoryEntry('delete', scriptName, { code: script.code }, null);
     pushHistory(script, deleteEntry);
     
-    // Step 2: Simpan snapshot ke deleted_history (dengan history lengkap termasuk entry delete)
     try {
       await db.ref('deleted_history/' + id).set({
         originalId: id,
@@ -1999,7 +1998,6 @@ async function executeDelete(id) {
       console.warn('⚠️ Failed to save to deleted_history:', e);
     }
     
-    // Step 3: Hapus dari Firebase scripts/{id}
     try {
       await db.ref(`scripts/${id}`).remove();
     } catch (e) {
@@ -2009,16 +2007,13 @@ async function executeDelete(id) {
       return;
     }
     
-    // Step 4: Hapus dari array lokal
     scripts.splice(idx, 1);
     
-    // Step 5: Tutup editor jika script yang dihapus sedang diedit
     if (editId === id) {
       editId = null;
       closeEditor();
     }
     
-    // Step 6: Update UI
     renderAll();
     
     toast(`✅ "${scriptName}" berhasil dihapus!`, 'success');
@@ -2106,7 +2101,7 @@ function fallbackCopy(text) {
 }
 
 // ============================================
-// EVENT LISTENERS - DIPANGGIL HANYA SEKALI
+// EVENT LISTENERS - Called only once
 // ============================================
 function initEventListeners() {
   const ta = document.getElementById('sCode');
@@ -2164,14 +2159,17 @@ function initEventListeners() {
     });
   });
   
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      ['pinVerifyOverlay', 'editorOverlay', 'tmHelpOverlay', 'pinSetupOverlay', 'histDetailOverlay', 'portalSettingsOverlay', 'portalPinOverlay'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove('show');
-      });
-    }
-  });
+  // ESC key handler - added only once
+  document.addEventListener('keydown', handleEscKey);
+}
+
+function handleEscKey(e) {
+  if (e.key === 'Escape') {
+    ['pinVerifyOverlay', 'editorOverlay', 'tmHelpOverlay', 'pinSetupOverlay', 'histDetailOverlay', 'portalSettingsOverlay', 'portalPinOverlay'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('show');
+    });
+  }
 }
 
 function updateClock() {
@@ -2313,13 +2311,28 @@ function emptyH(t, m) { return `<div class="empty"><div class="icon"><i class="f
 
 function renderHistorySection() {
   let all = [];
-  scripts.forEach(s => { (s.history || []).forEach(h => { all.push({ ...h, scriptName: s.name || h.scriptName || 'Unnamed', scriptId: s.id }); }); });
+  const scriptIds = new Set(); // Track to prevent duplicates
+  
+  scripts.forEach(s => {
+    (s.history || []).forEach(h => {
+      const key = `${h.timestamp}_${h.scriptName}`;
+      if (!scriptIds.has(key)) {
+        all.push({ ...h, scriptName: s.name || h.scriptName || 'Unnamed', scriptId: s.id });
+        scriptIds.add(key);
+      }
+    });
+  });
+  
   db.ref('deleted_history').once('value').then(snap => {
     const val = snap.val();
     if (val) {
       Object.values(val).forEach(d => {
         (d.history || []).forEach(h => {
-          all.push({ ...h, scriptName: d.name || h.scriptName || 'Deleted Script', deleted: true });
+          const key = `${h.timestamp}_${d.name || h.scriptName}`;
+          if (!scriptIds.has(key)) {
+            all.push({ ...h, scriptName: d.name || h.scriptName || 'Deleted Script', deleted: true });
+            scriptIds.add(key);
+          }
         });
       });
     }
@@ -2362,13 +2375,28 @@ function renderHistorySection() {
 
 function showHistDetail(timestamp, scriptName) {
   let all = [];
-  scripts.forEach(s => { (s.history || []).forEach(h => { all.push({ ...h, scriptName: s.name || h.scriptName || 'Unnamed' }); }); });
+  const scriptIds = new Set();
+  
+  scripts.forEach(s => {
+    (s.history || []).forEach(h => {
+      const key = `${h.timestamp}_${h.scriptName}`;
+      if (!scriptIds.has(key)) {
+        all.push({ ...h, scriptName: s.name || h.scriptName || 'Unnamed' });
+        scriptIds.add(key);
+      }
+    });
+  });
+  
   db.ref('deleted_history').once('value').then(snap => {
     const val = snap.val();
     if (val) {
       Object.values(val).forEach(d => {
         (d.history || []).forEach(h => {
-          all.push({ ...h, scriptName: d.name || h.scriptName || 'Deleted Script' });
+          const key = `${h.timestamp}_${d.name || h.scriptName}`;
+          if (!scriptIds.has(key)) {
+            all.push({ ...h, scriptName: d.name || h.scriptName || 'Deleted Script' });
+            scriptIds.add(key);
+          }
         });
       });
     }
@@ -2542,7 +2570,7 @@ function toast(msg, type = 'info') {
 }
 
 function openPortalSettings() {
-  currentPortalPinInput = '';
+  currentPortalPinInput = ''; // Reset state
   document.querySelectorAll('.portal-pin').forEach(inp => inp.value = '');
   document.getElementById('portalPinError').textContent = '';
   document.getElementById('portalPinOverlay').classList.add('show');
