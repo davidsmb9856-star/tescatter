@@ -1320,9 +1320,6 @@ html, body {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
-// ============================================
-// FIREBASE CONFIG
-// ============================================
 const firebaseConfig = {
   apiKey: "AIzaSyBExdIerKUOoOPZ9fOODSF4ZPJIUNci1bo",
   authDomain: "script-vault-e9e0c.firebaseapp.com",
@@ -1357,9 +1354,6 @@ let isInitialized = false;
 let currentSection = 'dashboard';
 let clockInterval = null;
 
-// ============================================
-// PORTAL DEFAULT LINKS
-// ============================================
 const defaultPortalLinks = {
   'app-utama': 'https://script.google.com/macros/s/AKfycbya8o-PPA76I8CsTlEVmcANKVuxapOGU5WhhienU7NNQ6HO-igG4Ly8yZPujUZE6DFRlw/exec',
   'kendala-all': 'https://tescatter.vercel.app/kendala.html',
@@ -1435,9 +1429,6 @@ function updatePortalLinks() {
   });
 }
 
-// ============================================
-// ADMIN FUNCTIONS
-// ============================================
 function isAdmin() { return currentUser && currentUser.email === ADMIN_EMAIL; }
 
 async function recordLogin() {
@@ -1515,9 +1506,6 @@ async function renderAdminLoginSection() {
   }).join('');
 }
 
-// ============================================
-// FIREBASE HELPERS
-// ============================================
 function getUserScripts() {
   if (!currentUser) return [];
   return scripts.filter(s => s.ownerEmail === currentUser.email);
@@ -1567,9 +1555,6 @@ const FIREBASE = {
   }
 };
 
-// ============================================
-// AUTH STATE
-// ============================================
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     currentUser = { name: user.displayName || 'User', email: user.email, photo: user.photoURL || null, uid: user.uid };
@@ -1627,7 +1612,7 @@ auth.onAuthStateChanged(async (user) => {
 async function loginGoogle() {
   try {
     toast('Membuka login Google...', 'info');
-    await auth.signInWithPopup(googleProvider);
+    const result = await auth.signInWithPopup(googleProvider);
   } catch (e) {
     console.error('Google login error:', e);
     if (e.code === 'auth/popup-closed-by-user') toast('Login dibatalkan', 'info');
@@ -1655,9 +1640,6 @@ async function loadUserPIN() {
   } catch (e) { console.error('Load PIN error:', e); userPIN = null; }
 }
 
-// ============================================
-// NAV RENDERING
-// ============================================
 function renderNav() {
   const navContainer = document.getElementById('navContainer');
   const adminMenu = isAdmin() ? `
@@ -1799,9 +1781,6 @@ function pushHistory(script, entry) {
 
 function countAllHistory() { return scripts.reduce((acc, s) => acc + ((s.history && s.history.length) || 0), 0); }
 
-// ============================================
-// PIN VERIFICATION
-// ============================================
 function openPinVerify(action, callback) {
   if (!userPIN) { toast('⚠️ Setup PIN terlebih dahulu.', 'warning'); openPinSettings(); return; }
   pendingAction = { type: action, callback: callback };
@@ -1854,9 +1833,6 @@ async function verifyPinAction() {
   pendingAction = null;
 }
 
-// ============================================
-// PIN SETTINGS
-// ============================================
 function openPinSettings() {
   document.getElementById('newPinInput').value = '';
   document.getElementById('confirmPinInput').value = '';
@@ -1930,9 +1906,6 @@ async function savePin() {
 
 function closePinSettings() { document.getElementById('pinSetupOverlay').classList.remove('show'); }
 
-// ============================================
-// CLEAN & DELETE
-// ============================================
 async function forceClean() {
   if (!confirm('🐒 Clean Data\n\nHapus semua script tanpa nama & tanpa ID?\n\nLanjutkan?')) return;
   try {
@@ -1947,9 +1920,6 @@ async function forceClean() {
 function openEditor() { document.getElementById('editorOverlay').classList.add('show'); setTimeout(() => document.getElementById('sName').focus(), 100); }
 function closeEditor() { document.getElementById('editorOverlay').classList.remove('show'); }
 
-// ============================================
-// DELETE - AUTO REFRESH FROM FIREBASE AFTER DELETE
-// ============================================
 async function executeDelete(id) {
   if (isDeleting) {
     toast('⚠️ Sedang memproses hapus, tunggu sebentar...', 'warning');
@@ -1963,11 +1933,11 @@ async function executeDelete(id) {
     let idx = scripts.findIndex(s => s && s.id === id);
     
     if (idx === -1) {
-      toast('🔄 Script tidak ditemukan di lokal. Melakukan sync...', 'info');
+      toast('🔄 Script tidak ditemukan lokal. Sync dari Firebase...', 'info');
       scripts = await FIREBASE.load();
       idx = scripts.findIndex(s => s && s.id === id);
       if (idx === -1) {
-        toast('❌ Script tidak ditemukan di Firebase (sudah terhapus?)', 'error');
+        toast('❌ Script tidak ditemukan setelah sync', 'error');
         isDeleting = false;
         return;
       }
@@ -1978,11 +1948,9 @@ async function executeDelete(id) {
     
     toast(`🗑️ Menghapus "${scriptName}"...`, 'info');
     
-    // Step 1: Push delete history entry
     const deleteEntry = buildHistoryEntry('delete', scriptName, { code: script.code }, null);
     pushHistory(script, deleteEntry);
     
-    // Step 2: Save to deleted_history (backup)
     try {
       await db.ref('deleted_history/' + id).set({
         originalId: id,
@@ -1997,7 +1965,6 @@ async function executeDelete(id) {
       console.warn('⚠️ Failed to save to deleted_history:', e);
     }
     
-    // Step 3: Delete from Firebase
     try {
       await db.ref(`scripts/${id}`).remove();
     } catch (e) {
@@ -2007,29 +1974,19 @@ async function executeDelete(id) {
       return;
     }
     
-    // Step 4: Remove from local array
     scripts.splice(idx, 1);
     
-    // Step 5: Close editor if needed
     if (editId === id) {
       editId = null;
       closeEditor();
     }
     
-    // Step 6: ⭐ AUTO REFRESH - Reload fresh data from Firebase
-    toast('🔄 Refreshing data dari Firebase...', 'info');
-    await new Promise(resolve => setTimeout(resolve, 300)); // Small delay for Firebase propagation
-    
-    try {
-      scripts = await FIREBASE.load(); // Reload fresh data
-    } catch (e) {
-      console.warn('⚠️ Failed to reload, using local data:', e);
-    }
-    
-    // Step 7: Re-render all sections
+    // AUTO-REFRESH: Reload dari Firebase untuk memastikan data konsisten
+    toast('🔄 Auto-refresh data...', 'info');
+    scripts = await FIREBASE.load();
     renderAll();
     
-    toast(`✅ "${scriptName}" berhasil dihapus & data di-refresh!`, 'success');
+    toast(`✅ "${scriptName}" berhasil dihapus!`, 'success');
     
   } catch (e) {
     console.error('❌ Delete error:', e);
@@ -2113,9 +2070,6 @@ function fallbackCopy(text) {
   document.body.removeChild(t);
 }
 
-// ============================================
-// EVENT LISTENERS
-// ============================================
 function initEventListeners() {
   const ta = document.getElementById('sCode');
   if (ta) {
