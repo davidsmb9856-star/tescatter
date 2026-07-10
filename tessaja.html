@@ -799,7 +799,7 @@ html, body {
     <div class="loader-core">🐒</div>
   </div>
   <p id="loadTxt">INITIALIZING</p>
-  <small>SCRIPTVAULT × CYBER PORTAL v35.0</small>
+  <small>SCRIPTVAULT × CYBER PORTAL v36.0</small>
 </div>
 
 <div class="app" id="app">
@@ -814,7 +814,7 @@ html, body {
     <div id="userCardContainer"></div>
     <div class="nav" id="navContainer"></div>
     <div class="sidebar-footer">
-      <div class="sidebar-info">v35.0 · ONLINE</div>
+      <div class="sidebar-info">v36.0 · ONLINE</div>
       <div class="sidebar-actions">
         <button class="sidebar-btn clean" onclick="forceClean()"><i class="fas fa-broom"></i> Clean</button>
         <button class="sidebar-btn pin" onclick="openPinSettings()"><i class="fas fa-key"></i> PIN</button>
@@ -1320,6 +1320,9 @@ html, body {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
+// ============================================
+// FIREBASE CONFIG
+// ============================================
 const firebaseConfig = {
   apiKey: "AIzaSyBExdIerKUOoOPZ9fOODSF4ZPJIUNci1bo",
   authDomain: "script-vault-e9e0c.firebaseapp.com",
@@ -1342,6 +1345,7 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
 const TM_URL = "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html#nav=new-user-script+editor";
 const MAX_HISTORY = 30;
 const ADMIN_EMAIL = 'david.smb9856@gmail.com';
+const DEBUG = true; // Set false untuk production
 
 let currentUser = null;
 let currentIP = 'unknown';
@@ -1353,6 +1357,9 @@ let isDeleting = false;
 let isInitialized = false;
 let currentSection = 'dashboard';
 let clockInterval = null;
+
+function debugLog(...args) { if (DEBUG) console.log('🔍 [DELETE]', ...args); }
+function debugErr(...args) { console.error('❌ [DELETE ERROR]', ...args); }
 
 const defaultPortalLinks = {
   'app-utama': 'https://script.google.com/macros/s/AKfycbya8o-PPA76I8CsTlEVmcANKVuxapOGU5WhhienU7NNQ6HO-igG4Ly8yZPujUZE6DFRlw/exec',
@@ -1920,85 +1927,201 @@ async function forceClean() {
 function openEditor() { document.getElementById('editorOverlay').classList.add('show'); setTimeout(() => document.getElementById('sName').focus(), 100); }
 function closeEditor() { document.getElementById('editorOverlay').classList.remove('show'); }
 
+// ============================================
+// EXECUTE DELETE - ULTRA ROBUST VERSION
+// ============================================
 async function executeDelete(id) {
+  debugLog('=== START DELETE ===', { id, isDeleting, hasPIN: !!userPIN });
+  
+  // SAFETY: Reset flag jika stuck
   if (isDeleting) {
-    toast('⚠️ Sedang memproses hapus, tunggu sebentar...', 'warning');
+    debugLog('⚠️ isDeleting stuck, force reset');
+    isDeleting = false;
+  }
+  
+  if (!id) {
+    toast('❌ Error: ID tidak valid', 'error');
+    debugErr('ID tidak valid');
     return;
   }
-  if (!id) { toast('❌ Error: ID tidak valid', 'error'); return; }
+  
+  if (!userPIN) {
+    toast('⚠️ Setup PIN terlebih dahulu', 'warning');
+    openPinSettings();
+    return;
+  }
   
   isDeleting = true;
+  debugLog('Flag isDeleting set to true');
   
   try {
+    // STEP 1: Cari script di array lokal
     let idx = scripts.findIndex(s => s && s.id === id);
+    debugLog('Step 1: Find in local array', { idx, totalScripts: scripts.length });
     
     if (idx === -1) {
+      debugLog('⚠️ Script tidak ditemukan lokal, sync dari Firebase...');
       toast('🔄 Script tidak ditemukan lokal. Sync dari Firebase...', 'info');
-      scripts = await FIREBASE.load();
+      try {
+        scripts = await FIREBASE.load();
+        debugLog('✅ Sync selesai, scripts count:', scripts.length);
+      } catch (syncErr) {
+        debugErr('Sync gagal:', syncErr);
+        toast('❌ Gagal sync dari Firebase', 'error');
+        return;
+      }
+      
       idx = scripts.findIndex(s => s && s.id === id);
+      debugLog('Re-find after sync', { idx });
+      
       if (idx === -1) {
-        toast('❌ Script tidak ditemukan setelah sync', 'error');
-        isDeleting = false;
+        debugErr('Script tetap tidak ditemukan setelah sync');
+        toast('❌ Script tidak ditemukan (mungkin sudah dihapus)', 'error');
+        scripts = await FIREBASE.load();
+        renderAll();
         return;
       }
     }
     
     const script = scripts[idx];
     const scriptName = script.name || 'Unnamed';
+    debugLog('Step 2: Script found', { scriptName, id });
     
     toast(`🗑️ Menghapus "${scriptName}"...`, 'info');
     
-    const deleteEntry = buildHistoryEntry('delete', scriptName, { code: script.code }, null);
-    pushHistory(script, deleteEntry);
-    
+    // STEP 2: Buat history entry delete
+    let deleteEntry;
     try {
+      deleteEntry = buildHistoryEntry('delete', scriptName, { code: script.code || '' }, null);
+      debugLog('Step 3: History entry created', deleteEntry);
+    } catch (histErr) {
+      debugErr('Gagal buat history entry:', histErr);
+      deleteEntry = {
+        action: 'delete',
+        timestamp: new Date().toISOString(),
+        editor: currentUser?.name || 'Unknown',
+        email: currentUser?.email || 'unknown',
+        uid: currentUser?.uid || '',
+        ip: currentIP,
+        scriptName: scriptName,
+        diff: null,
+        oldCode: script.code || null,
+        newCode: null
+      };
+    }
+    
+    // STEP 3: Push history ke script object
+    try {
+      if (!script.history) script.history = [];
+      script.history.unshift(deleteEntry);
+      if (script.history.length > MAX_HISTORY) {
+        script.history = script.history.slice(0, MAX_HISTORY);
+      }
+      debugLog('Step 4: History pushed to script', { historyCount: script.history.length });
+    } catch (pushErr) {
+      debugErr('Gagal push history (non-fatal):', pushErr);
+    }
+    
+    // STEP 4: Backup ke deleted_history
+    try {
+      debugLog('Step 5: Saving to deleted_history...');
       await db.ref('deleted_history/' + id).set({
         originalId: id,
         name: scriptName,
-        deletedBy: currentUser.email,
-        deletedByName: currentUser.name,
+        deletedBy: currentUser?.email || 'unknown',
+        deletedByName: currentUser?.name || 'Unknown',
         deletedAt: new Date().toISOString(),
         history: script.history || [],
         lastCode: script.code || null
       });
-    } catch (e) {
-      console.warn('⚠️ Failed to save to deleted_history:', e);
+      debugLog('✅ Deleted history saved');
+    } catch (backupErr) {
+      debugErr('⚠️ Gagal backup ke deleted_history (lanjutkan):', backupErr);
     }
     
+    // STEP 5: HAPUS dari Firebase - STEP KRITIS
+    debugLog('Step 6: Removing from Firebase scripts/' + id);
     try {
       await db.ref(`scripts/${id}`).remove();
-    } catch (e) {
-      console.error('❌ Failed to delete from Firebase:', e);
-      toast('❌ Gagal hapus dari cloud: ' + e.message, 'error');
-      isDeleting = false;
+      debugLog('✅ Firebase remove success');
+    } catch (removeErr) {
+      debugErr('❌ GAGAL hapus dari Firebase:', removeErr);
+      toast('❌ Gagal hapus dari cloud: ' + removeErr.message, 'error');
       return;
     }
     
-    scripts.splice(idx, 1);
+    // STEP 6: Verifikasi data terhapus
+    debugLog('Step 7: Verifying deletion...');
+    try {
+      const verifySnap = await db.ref(`scripts/${id}`).once('value');
+      if (verifySnap.exists()) {
+        debugErr('⚠️ Data masih ada setelah remove! Force remove lagi...');
+        await db.ref(`scripts/${id}`).remove();
+        debugLog('✅ Force remove selesai');
+      } else {
+        debugLog('✅ Verified: data sudah terhapus dari Firebase');
+      }
+    } catch (verifyErr) {
+      debugErr('⚠️ Verifikasi gagal (lanjutkan):', verifyErr);
+    }
     
+    // STEP 7: Hapus dari array lokal
+    try {
+      scripts.splice(idx, 1);
+      debugLog('Step 8: Removed from local array', { remainingScripts: scripts.length });
+    } catch (spliceErr) {
+      debugErr('⚠️ Gagal splice (non-fatal):', spliceErr);
+    }
+    
+    // STEP 8: Tutup editor jika script sedang diedit
     if (editId === id) {
       editId = null;
       closeEditor();
+      debugLog('Step 9: Editor closed');
     }
     
-    // AUTO-REFRESH: Reload dari Firebase untuk memastikan data konsisten
-    toast('🔄 Auto-refresh data...', 'info');
-    scripts = await FIREBASE.load();
-    renderAll();
+    // STEP 9: Tunggu Firebase propagation
+    debugLog('Step 10: Waiting for Firebase propagation...');
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    toast(`✅ "${scriptName}" berhasil dihapus!`, 'success');
-    
-  } catch (e) {
-    console.error('❌ Delete error:', e);
-    toast('❌ Gagal hapus: ' + e.message, 'error');
+    // STEP 10: Reload dari Firebase
+    debugLog('Step 11: Reloading from Firebase...');
     try {
       scripts = await FIREBASE.load();
+      debugLog('✅ Reload selesai, scripts count:', scripts.length);
+    } catch (reloadErr) {
+      debugErr('⚠️ Reload gagal (gunakan array lokal):', reloadErr);
+    }
+    
+    // STEP 11: Render ulang UI
+    debugLog('Step 12: Rendering UI...');
+    renderAll();
+    
+    // STEP 12: Success notification
+    debugLog('=== DELETE SUCCESS ===');
+    toast(`🎉 BERHASIL! Script "${scriptName}" telah dihapus dari cloud!`, 'success');
+    
+    // Notifikasi tambahan setelah 1 detik
+    setTimeout(() => {
+      toast(`✅ Auto-refresh selesai. Data sudah sinkron.`, 'info');
+    }, 1000);
+    
+  } catch (e) {
+    debugErr('FATAL ERROR:', e);
+    toast('❌ Gagal hapus: ' + e.message, 'error');
+    
+    try {
+      debugLog('Recovery: reloading from Firebase...');
+      scripts = await FIREBASE.load();
       renderAll();
-    } catch (e2) {
-      console.error('❌ Failed to reload scripts:', e2);
+      debugLog('✅ Recovery selesai');
+    } catch (recoveryErr) {
+      debugErr('Recovery gagal:', recoveryErr);
     }
   } finally {
     isDeleting = false;
+    debugLog('Flag isDeleting reset to false');
+    debugLog('=== END DELETE ===\n');
   }
 }
 
@@ -2532,7 +2655,7 @@ function toast(msg, type = 'info') {
   const iconMap = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-times-circle"></i>', info: '<i class="fas fa-info-circle"></i>', warning: '<i class="fas fa-exclamation-triangle"></i>' };
   el.innerHTML = `<span class="icon">${iconMap[type] || ''}</span><span>${esc(msg)}</span>`;
   w.appendChild(el);
-  setTimeout(() => { el.style.animation = 'slideIn 0.35s reverse'; setTimeout(() => el.remove(), 350); }, 3500);
+  setTimeout(() => { el.style.animation = 'slideIn 0.35s reverse'; setTimeout(() => el.remove(), 350); }, 4500);
 }
 
 function openPortalSettings() {
