@@ -799,7 +799,7 @@ html, body {
     <div class="loader-core">🐒</div>
   </div>
   <p id="loadTxt">INITIALIZING</p>
-  <small>SCRIPTVAULT × CYBER PORTAL v34.0</small>
+  <small>SCRIPTVAULT × CYBER PORTAL v35.0</small>
 </div>
 
 <div class="app" id="app">
@@ -814,7 +814,7 @@ html, body {
     <div id="userCardContainer"></div>
     <div class="nav" id="navContainer"></div>
     <div class="sidebar-footer">
-      <div class="sidebar-info">v34.0 · ONLINE</div>
+      <div class="sidebar-info">v35.0 · ONLINE</div>
       <div class="sidebar-actions">
         <button class="sidebar-btn clean" onclick="forceClean()"><i class="fas fa-broom"></i> Clean</button>
         <button class="sidebar-btn pin" onclick="openPinSettings()"><i class="fas fa-key"></i> PIN</button>
@@ -1355,7 +1355,7 @@ let pendingAction = null;
 let isDeleting = false;
 let isInitialized = false;
 let currentSection = 'dashboard';
-let clockInterval = null; // Track clock interval untuk prevent duplicate
+let clockInterval = null;
 
 // ============================================
 // PORTAL DEFAULT LINKS
@@ -1453,7 +1453,6 @@ async function recordLogin() {
     };
     const loginId = 'login_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
     await db.ref(`login_history/${loginId}`).set(loginData);
-    console.log('✅ Login recorded for', currentUser.email);
   } catch (e) {
     console.error('❌ Failed to record login:', e);
   }
@@ -1596,7 +1595,6 @@ auth.onAuthStateChanged(async (user) => {
       renderAll();
       updatePortalLinks();
       
-      // Start clock only once
       if (!clockInterval) {
         updateClock();
         clockInterval = setInterval(updateClock, 1000);
@@ -1629,7 +1627,7 @@ auth.onAuthStateChanged(async (user) => {
 async function loginGoogle() {
   try {
     toast('Membuka login Google...', 'info');
-    const result = await auth.signInWithPopup(googleProvider);
+    await auth.signInWithPopup(googleProvider);
   } catch (e) {
     console.error('Google login error:', e);
     if (e.code === 'auth/popup-closed-by-user') toast('Login dibatalkan', 'info');
@@ -1933,7 +1931,7 @@ async function savePin() {
 function closePinSettings() { document.getElementById('pinSetupOverlay').classList.remove('show'); }
 
 // ============================================
-// CLEAN & DELETE - FIXED
+// CLEAN & DELETE
 // ============================================
 async function forceClean() {
   if (!confirm('🐒 Clean Data\n\nHapus semua script tanpa nama & tanpa ID?\n\nLanjutkan?')) return;
@@ -1950,7 +1948,7 @@ function openEditor() { document.getElementById('editorOverlay').classList.add('
 function closeEditor() { document.getElementById('editorOverlay').classList.remove('show'); }
 
 // ============================================
-// DELETE - FIXED: No const reassignment bug
+// DELETE - AUTO REFRESH FROM FIREBASE AFTER DELETE
 // ============================================
 async function executeDelete(id) {
   if (isDeleting) {
@@ -1962,15 +1960,14 @@ async function executeDelete(id) {
   isDeleting = true;
   
   try {
-    let idx = scripts.findIndex(s => s && s.id === id); // Changed from const to let
+    let idx = scripts.findIndex(s => s && s.id === id);
     
     if (idx === -1) {
-      toast('❌ Script tidak ditemukan. Melakukan sync...', 'warning');
+      toast('🔄 Script tidak ditemukan di lokal. Melakukan sync...', 'info');
       scripts = await FIREBASE.load();
-      renderAll();
-      idx = scripts.findIndex(s => s && s.id === id); // Reassign idx
+      idx = scripts.findIndex(s => s && s.id === id);
       if (idx === -1) {
-        toast('❌ Script tetap tidak ditemukan setelah sync', 'error');
+        toast('❌ Script tidak ditemukan di Firebase (sudah terhapus?)', 'error');
         isDeleting = false;
         return;
       }
@@ -1981,9 +1978,11 @@ async function executeDelete(id) {
     
     toast(`🗑️ Menghapus "${scriptName}"...`, 'info');
     
+    // Step 1: Push delete history entry
     const deleteEntry = buildHistoryEntry('delete', scriptName, { code: script.code }, null);
     pushHistory(script, deleteEntry);
     
+    // Step 2: Save to deleted_history (backup)
     try {
       await db.ref('deleted_history/' + id).set({
         originalId: id,
@@ -1998,6 +1997,7 @@ async function executeDelete(id) {
       console.warn('⚠️ Failed to save to deleted_history:', e);
     }
     
+    // Step 3: Delete from Firebase
     try {
       await db.ref(`scripts/${id}`).remove();
     } catch (e) {
@@ -2007,16 +2007,29 @@ async function executeDelete(id) {
       return;
     }
     
+    // Step 4: Remove from local array
     scripts.splice(idx, 1);
     
+    // Step 5: Close editor if needed
     if (editId === id) {
       editId = null;
       closeEditor();
     }
     
+    // Step 6: ⭐ AUTO REFRESH - Reload fresh data from Firebase
+    toast('🔄 Refreshing data dari Firebase...', 'info');
+    await new Promise(resolve => setTimeout(resolve, 300)); // Small delay for Firebase propagation
+    
+    try {
+      scripts = await FIREBASE.load(); // Reload fresh data
+    } catch (e) {
+      console.warn('⚠️ Failed to reload, using local data:', e);
+    }
+    
+    // Step 7: Re-render all sections
     renderAll();
     
-    toast(`✅ "${scriptName}" berhasil dihapus!`, 'success');
+    toast(`✅ "${scriptName}" berhasil dihapus & data di-refresh!`, 'success');
     
   } catch (e) {
     console.error('❌ Delete error:', e);
@@ -2101,7 +2114,7 @@ function fallbackCopy(text) {
 }
 
 // ============================================
-// EVENT LISTENERS - Called only once
+// EVENT LISTENERS
 // ============================================
 function initEventListeners() {
   const ta = document.getElementById('sCode');
@@ -2159,7 +2172,6 @@ function initEventListeners() {
     });
   });
   
-  // ESC key handler - added only once
   document.addEventListener('keydown', handleEscKey);
 }
 
@@ -2311,7 +2323,7 @@ function emptyH(t, m) { return `<div class="empty"><div class="icon"><i class="f
 
 function renderHistorySection() {
   let all = [];
-  const scriptIds = new Set(); // Track to prevent duplicates
+  const scriptIds = new Set();
   
   scripts.forEach(s => {
     (s.history || []).forEach(h => {
@@ -2570,7 +2582,7 @@ function toast(msg, type = 'info') {
 }
 
 function openPortalSettings() {
-  currentPortalPinInput = ''; // Reset state
+  currentPortalPinInput = '';
   document.querySelectorAll('.portal-pin').forEach(inp => inp.value = '');
   document.getElementById('portalPinError').textContent = '';
   document.getElementById('portalPinOverlay').classList.add('show');
