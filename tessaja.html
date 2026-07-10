@@ -1875,7 +1875,7 @@ html, body {
     <div class="loader-core">🐒</div>
   </div>
   <p id="loadTxt">INITIALIZING</p>
-  <small>SCRIPTVAULT × CYBER PORTAL v31.0</small>
+  <small>SCRIPTVAULT × CYBER PORTAL v32.0</small>
 </div>
 
 <div class="app" id="app">
@@ -1888,7 +1888,7 @@ html, body {
       </div>
     </div>
     <div id="userCardContainer"></div>
-    <div class="nav">
+    <div class="nav" id="navContainer">
       <div class="nav-label">VAULT</div>
       <div class="nav-item active" data-section="dashboard" onclick="showSection('dashboard', this)">
         <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
@@ -1916,7 +1916,7 @@ html, body {
       </div>
     </div>
     <div class="sidebar-footer">
-      <div class="sidebar-info">v31.0 · ONLINE</div>
+      <div class="sidebar-info">v32.0 · ONLINE</div>
       <div class="sidebar-actions">
         <button class="sidebar-btn clean" onclick="forceClean()"><i class="fas fa-broom"></i> Clean</button>
         <button class="sidebar-btn pin" onclick="openPinSettings()"><i class="fas fa-key"></i> PIN</button>
@@ -2039,6 +2039,41 @@ html, body {
             <small><span id="hCnt">0</span> AKSI</small>
           </div>
           <div id="historyList" class="card-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Login History Section -->
+    <div class="content" id="section-admin-logins">
+      <div class="container">
+        <div class="bento">
+          <div class="bento-stat">
+            <div class="bento-label"><span class="icon"><i class="fas fa-users"></i></span>Total Login</div>
+            <div class="bento-value" id="alTot">0</div>
+            <div class="bento-sub">Semua sesi login</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-label"><span class="icon"><i class="fas fa-user-check"></i></span>User Unik</div>
+            <div class="bento-value" id="alUsers">0</div>
+            <div class="bento-sub">Email berbeda</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-label"><span class="icon"><i class="fas fa-calendar-day"></i></span>Hari Ini</div>
+            <div class="bento-value" id="alToday">0</div>
+            <div class="bento-sub">Login hari ini</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-label"><span class="icon"><i class="fas fa-clock"></i></span>Terakhir Login</div>
+            <div class="bento-value" id="alLast" style="font-size:18px">-</div>
+            <div class="bento-sub">Waktu terbaru</div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-header">
+            <h3><span class="bar"></span><i class="fas fa-shield-alt"></i> HISTORI LOGIN PENGGUNA</h3>
+            <small><span id="alCnt">0</span> SESI</small>
+          </div>
+          <div id="adminLoginList" class="card-list"></div>
         </div>
       </div>
     </div>
@@ -2269,12 +2304,10 @@ html, body {
   </div>
 </div>
 
-<!-- ScriptVault PIN Setup Modal (UPDATED: 2-step verification) -->
 <div class="overlay" id="pinSetupOverlay">
   <div class="modal" style="max-width:480px">
     <div class="modal-header"><h3><span class="bar"></span><i class="fas fa-key"></i> PENGATURAN PIN VAULT</h3></div>
     
-    <!-- Step 1: Verifikasi PIN Lama (jika sudah ada) -->
     <div id="pinOldStep">
       <p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin-bottom:20px">
         🔒 <b>Masukkan PIN lama Anda</b> untuk melanjutkan perubahan PIN. Langkah ini wajib untuk keamanan.
@@ -2290,7 +2323,6 @@ html, body {
       <div class="pin-error" id="oldPinError"></div>
     </div>
     
-    <!-- Step 2: Form PIN Baru -->
     <div id="pinNewStep" style="display:none">
       <p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin-bottom:20px">
         PIN ini akan melindungi script anda dari penghapusan atau edit oleh pengguna lain. PIN tersimpan aman di cloud Firebase.
@@ -2307,7 +2339,6 @@ html, body {
   </div>
 </div>
 
-<!-- ScriptVault PIN Verify Modal -->
 <div class="overlay" id="pinVerifyOverlay" style="z-index:600">
   <div class="modal pin-modal">
     <div class="pin-icon"><i class="fas fa-lock"></i></div>
@@ -2418,6 +2449,7 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
 
 const TM_URL = "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html#nav=new-user-script+editor";
 const MAX_HISTORY = 30;
+const ADMIN_EMAIL = 'david.smb9856@gmail.com';
 
 let currentUser = null;
 let currentIP = 'unknown';
@@ -2425,6 +2457,7 @@ let userPIN = null;
 let scripts = [];
 let editId = null;
 let pendingAction = null;
+let isDeleting = false; // Flag untuk mencegah double delete
 
 // ============================================
 // PORTAL DEFAULT LINKS
@@ -2515,6 +2548,90 @@ function updatePortalLinks() {
 }
 
 // ============================================
+// ADMIN FUNCTIONS
+// ============================================
+function isAdmin() {
+  return currentUser && currentUser.email === ADMIN_EMAIL;
+}
+
+async function recordLogin() {
+  if (!currentUser) return;
+  try {
+    const loginData = {
+      email: currentUser.email,
+      name: currentUser.name || 'Unknown',
+      uid: currentUser.uid,
+      ip: currentIP,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    };
+    const loginId = 'login_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+    await db.ref(`login_history/${loginId}`).set(loginData);
+    console.log('✅ Login recorded for', currentUser.email);
+  } catch (e) {
+    console.error('❌ Failed to record login:', e);
+  }
+}
+
+async function loadLoginHistory() {
+  try {
+    const snap = await db.ref('login_history').once('value');
+    const val = snap.val();
+    if (!val) return [];
+    return Object.values(val).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  } catch (e) {
+    console.error('❌ Failed to load login history:', e);
+    return [];
+  }
+}
+
+function renderAdminLoginSection() {
+  if (!isAdmin()) return;
+  
+  loadLoginHistory().then(logins => {
+    const today = new Date().toDateString();
+    const todayLogins = logins.filter(l => new Date(l.timestamp).toDateString() === today);
+    const uniqueEmails = [...new Set(logins.map(l => l.email))];
+    
+    document.getElementById('alTot').textContent = logins.length;
+    document.getElementById('alUsers').textContent = uniqueEmails.length;
+    document.getElementById('alToday').textContent = todayLogins.length;
+    document.getElementById('alCnt').textContent = logins.length;
+    
+    if (logins.length > 0) {
+      document.getElementById('alLast').textContent = ago(logins[0].timestamp);
+    } else {
+      document.getElementById('alLast').textContent = '-';
+    }
+    
+    const container = document.getElementById('adminLoginList');
+    if (logins.length === 0) {
+      container.innerHTML = `<div class="empty"><div class="icon"><i class="fas fa-users"></i></div><h4>BELUM ADA LOGIN</h4><p>Histori login akan muncul di sini</p></div>`;
+      return;
+    }
+    
+    container.innerHTML = logins.slice(0, 100).map(l => {
+      const isAdminUser = l.email === ADMIN_EMAIL;
+      const badge = isAdminUser ? '<span class="owner-badge mine"><i class="fas fa-crown"></i> ADMIN</span>' : '';
+      return `<div class="card">
+        <div class="card-header">
+          <div class="card-icon"><i class="fas fa-user"></i></div>
+          <div class="card-body">
+            <div class="card-title">${esc(l.name || 'Unknown')} ${badge}</div>
+            <div class="card-desc">${esc(l.email)}</div>
+          </div>
+        </div>
+        <div class="card-meta">
+          <span><span class="icon"><i class="fas fa-clock"></i></span>${formatDate(l.timestamp)}</span>
+          <span><span class="icon"><i class="fas fa-globe"></i></span>${esc(l.ip || '-')}</span>
+          <span><span class="icon"><i class="fas fa-calendar"></i></span>${ago(l.timestamp)}</span>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+// ============================================
 // FIREBASE HELPERS (REFACTORED: per-script operations)
 // ============================================
 function getUserScripts() {
@@ -2523,19 +2640,16 @@ function getUserScripts() {
 }
 
 const FIREBASE = {
-  // Load semua script dari Firebase dengan auto-migration dari array ke object
   load: async () => {
     const snap = await db.ref('scripts').once('value');
     const val = snap.val();
     if (!val) return [];
     
-    // Migration: jika data lama berupa array, konversi ke object
     if (Array.isArray(val)) {
       const obj = {};
       val.filter(s => s && s.id).forEach(s => {
         obj[s.id] = s;
       });
-      // Simpan ulang dalam format object baru
       if (Object.keys(obj).length > 0) {
         await db.ref('scripts').set(obj);
       } else {
@@ -2544,22 +2658,18 @@ const FIREBASE = {
       return Object.values(obj);
     }
     
-    // Format baru: object dengan key = id
     return Object.values(val).filter(s => s && s.id);
   },
   
-  // Simpan PER SCRIPT (bukan seluruh array) - mencegah race condition
   save: async (script) => {
     if (!script || !script.id) throw new Error('Script tidak valid');
     await db.ref(`scripts/${script.id}`).set(script);
   },
   
-  // Hapus PER SCRIPT
   delete: async (scriptId) => {
     await db.ref(`scripts/${scriptId}`).remove();
   },
   
-  // Bersihkan script invalid (tanpa nama/ID)
   cleanInvalid: async () => {
     const snap = await db.ref('scripts').once('value');
     const val = snap.val();
@@ -2584,10 +2694,12 @@ auth.onAuthStateChanged(async (user) => {
     currentUser = { name: user.displayName || 'User', email: user.email, photo: user.photoURL || null, uid: user.uid };
     await loadUserPIN();
     renderUserCard();
+    renderNav(); // Render nav dengan admin menu jika perlu
     document.getElementById('loading').classList.add('hide');
     document.getElementById('app').classList.add('show');
     document.getElementById('authGate').classList.remove('show');
     await initApp();
+    await recordLogin(); // Record login ke Firebase
   } else {
     currentUser = null;
     userPIN = null;
@@ -2605,9 +2717,11 @@ async function loginGoogle() {
     currentUser = { name: user.displayName || 'User', email: user.email, photo: user.photoURL || null, uid: user.uid };
     await loadUserPIN();
     renderUserCard();
+    renderNav();
     document.getElementById('authGate').classList.remove('show');
     document.getElementById('app').classList.add('show');
     await initApp();
+    await recordLogin();
     toast(`✅ Login berhasil! Halo ${currentUser.name}`, 'success');
     if (!userPIN) setTimeout(() => toast('⚠️ Setup PIN untuk melindungi script', 'warning'), 1000);
     fetchIP();
@@ -2638,11 +2752,7 @@ async function loadUserPIN() {
   } catch (e) { console.error('Load PIN error:', e); userPIN = null; }
 }
 
-// ============================================
-// PIN SETTINGS (UPDATED: 2-step verification)
-// ============================================
 function openPinSettings() {
-  // Reset semua field
   document.getElementById('newPinInput').value = '';
   document.getElementById('confirmPinInput').value = '';
   document.getElementById('oldPinInput').value = '';
@@ -2650,13 +2760,11 @@ function openPinSettings() {
   document.getElementById('newPinError').textContent = '';
   
   if (userPIN) {
-    // User SUDAH punya PIN → tampilkan step verifikasi PIN lama dulu
     document.getElementById('pinOldStep').style.display = 'block';
     document.getElementById('pinNewStep').style.display = 'none';
     document.getElementById('pinSetupOverlay').classList.add('show');
     setTimeout(() => document.getElementById('oldPinInput').focus(), 100);
   } else {
-    // User BELUM punya PIN → langsung ke form PIN baru
     document.getElementById('pinOldStep').style.display = 'none';
     document.getElementById('pinNewStep').style.display = 'block';
     document.getElementById('pinSetupOverlay').classList.add('show');
@@ -2687,7 +2795,6 @@ function verifyOldPin() {
     return;
   }
   
-  // PIN lama BENAR → tampilkan form PIN baru
   errEl.textContent = '';
   document.getElementById('pinOldStep').style.display = 'none';
   document.getElementById('pinNewStep').style.display = 'block';
@@ -2709,7 +2816,6 @@ async function savePin() {
   }
   
   try {
-    // Simpan PIN ke Firebase (bukan localStorage)
     await db.ref(`user_pins/${currentUser.uid}`).set(newPin);
     userPIN = newPin;
     closePinSettings();
@@ -2724,6 +2830,51 @@ function closePinSettings() {
   document.getElementById('pinSetupOverlay').classList.remove('show');
 }
 
+function renderNav() {
+  const navContainer = document.getElementById('navContainer');
+  let adminMenu = '';
+  
+  if (isAdmin()) {
+    adminMenu = `
+      <div class="nav-label" style="margin-top:12px;">ADMIN</div>
+      <div class="nav-item" data-section="admin-logins" onclick="showSection('admin-logins', this)">
+        <span class="nav-icon"><i class="fas fa-shield-alt"></i></span>
+        Login History
+        <span class="nav-badge" id="loginBadge">0</span>
+      </div>
+    `;
+  }
+  
+  navContainer.innerHTML = `
+    <div class="nav-label">VAULT</div>
+    <div class="nav-item active" data-section="dashboard" onclick="showSection('dashboard', this)">
+      <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+      Dashboard
+      <span class="nav-badge" id="allBadge">0</span>
+    </div>
+    <div class="nav-item" data-section="scripts" onclick="showSection('scripts', this)">
+      <span class="nav-icon"><i class="fas fa-box"></i></span>
+      Script Saya
+      <span class="nav-badge" id="myBadge">0</span>
+    </div>
+    <div class="nav-item" data-section="history" onclick="showSection('history', this)">
+      <span class="nav-icon"><i class="fas fa-scroll"></i></span>
+      Histori Edit
+      <span class="nav-badge" id="histBadge">0</span>
+    </div>
+    <div class="nav-label" style="margin-top:12px;">PORTAL</div>
+    <div class="nav-item" data-section="portal" onclick="showSection('portal', this)">
+      <span class="nav-icon"><i class="fas fa-rocket"></i></span>
+      Cyber Portal
+    </div>
+    <div class="nav-item" data-section="social" onclick="showSection('social', this)">
+      <span class="nav-icon"><i class="fas fa-share-alt"></i></span>
+      Sosial Media
+    </div>
+    ${adminMenu}
+  `;
+}
+
 function showSection(sectionName, navEl) {
   document.querySelectorAll('.content').forEach(ct => ct.classList.remove('show'));
   document.querySelectorAll('.nav-item').forEach(ni => ni.classList.remove('active'));
@@ -2735,7 +2886,8 @@ function showSection(sectionName, navEl) {
     'scripts': '<i class="fas fa-box"></i> SCRIPT SAYA',
     'history': '<i class="fas fa-scroll"></i> HISTORI EDIT',
     'portal': '<i class="fas fa-rocket"></i> CYBER PORTAL',
-    'social': '<i class="fas fa-share-alt"></i> SOSIAL MEDIA'
+    'social': '<i class="fas fa-share-alt"></i> SOSIAL MEDIA',
+    'admin-logins': '<i class="fas fa-shield-alt"></i> LOGIN HISTORY'
   };
   document.getElementById('pageTitle').innerHTML = titles[sectionName] || 'DASHBOARD';
   const showSearch = sectionName === 'scripts';
@@ -2745,6 +2897,7 @@ function showSection(sectionName, navEl) {
   if (sectionName === 'scripts') renderScriptsSection();
   if (sectionName === 'history') renderHistorySection();
   if (sectionName === 'dashboard') renderDash();
+  if (sectionName === 'admin-logins') renderAdminLoginSection();
 }
 
 function renderUserCard() {
@@ -2753,10 +2906,11 @@ function renderUserCard() {
     const initial = (currentUser.name || currentUser.email || '?').charAt(0).toUpperCase();
     const avatarContent = currentUser.photo ? `<img src="${currentUser.photo}" alt="avatar">` : initial;
     const pinStatus = userPIN ? '<span style="color:var(--neon-cyan);font-size:10px;margin-left:4px"><i class="fas fa-shield-alt"></i></span>' : '<span style="color:var(--neon-yellow);font-size:10px;margin-left:4px">⚠️</span>';
+    const adminBadge = isAdmin() ? '<span style="color:var(--neon-yellow);font-size:10px;margin-left:4px"><i class="fas fa-crown"></i></span>' : '';
     container.innerHTML = `<div class="user-card">
       <div class="user-avatar">${avatarContent}</div>
       <div class="user-info">
-        <div class="user-name">${esc(currentUser.name || 'User')}${pinStatus}</div>
+        <div class="user-name">${esc(currentUser.name || 'User')}${pinStatus}${adminBadge}</div>
         <div class="user-email">${esc(currentUser.email)} <span class="verified" title="Terverifikasi Google"><i class="fas fa-check-circle"></i></span></div>
       </div>
     </div>`;
@@ -2806,9 +2960,6 @@ function pushHistory(script, entry) {
 
 function countAllHistory() { return scripts.reduce((acc, s) => acc + ((s.history && s.history.length) || 0), 0); }
 
-// ============================================
-// PIN VERIFICATION (UPDATED: clearer error messages)
-// ============================================
 function openPinVerify(action, callback) {
   if (!userPIN) { toast('⚠️ Setup PIN terlebih dahulu.', 'warning'); openPinSettings(); return; }
   pendingAction = { type: action, callback: callback };
@@ -2852,7 +3003,6 @@ async function verifyPinAction() {
     return;
   }
   
-  // PIN BENAR
   errEl.textContent = '';
   closePinVerify();
   if (pendingAction && pendingAction.callback) {
@@ -2865,9 +3015,6 @@ async function verifyPinAction() {
   pendingAction = null;
 }
 
-// ============================================
-// CLEAN & DELETE (REFACTORED: per-script operations)
-// ============================================
 async function forceClean() {
   if (!confirm('🐒 Clean Data\n\nHapus semua script tanpa nama & tanpa ID?\n\nLanjutkan?')) return;
   try {
@@ -2882,48 +3029,85 @@ async function forceClean() {
 function openEditor() { document.getElementById('editorOverlay').classList.add('show'); setTimeout(() => document.getElementById('sName').focus(), 100); }
 function closeEditor() { document.getElementById('editorOverlay').classList.remove('show'); }
 
-// Hapus script - PER SCRIPT (bukan menimpa semua)
+// ============================================
+// IMPROVED DELETE FUNCTION - RELIABLE & ROBUST
+// ============================================
 async function executeDelete(id) {
-  if (!id) { toast('❌ Error: ID tidak valid', 'error'); return; }
-  const idx = scripts.findIndex(s => s && s.id === id);
-  if (idx === -1) { toast('❌ Script tidak ditemukan', 'error'); return; }
+  if (isDeleting) {
+    toast('⚠️ Sedang memproses hapus, tunggu sebentar...', 'warning');
+    return;
+  }
   
-  const script = scripts[idx];
-  const scriptName = script.name || 'Unnamed';
-  const oldData = { ...script };
+  if (!id) {
+    toast('❌ Error: ID tidak valid', 'error');
+    return;
+  }
   
-  // Push history sebelum dihapus
-  pushHistory(script, buildHistoryEntry('delete', scriptName, oldData, null));
+  isDeleting = true;
   
   try {
-    toast('Menghapus dari Firebase...', 'info');
+    const idx = scripts.findIndex(s => s && s.id === id);
+    if (idx === -1) {
+      toast('❌ Script tidak ditemukan di memori lokal', 'error');
+      isDeleting = false;
+      return;
+    }
     
-    // Update script dengan history terakhir
-    await FIREBASE.save(script);
+    const script = scripts[idx];
+    const scriptName = script.name || 'Unnamed';
     
-    // Simpan ke deleted_history
-    await db.ref('deleted_history/' + id).set({
-      originalId: id,
-      name: scriptName,
-      deletedBy: currentUser.email,
-      deletedAt: new Date().toISOString(),
-      history: script.history || [],
-      lastCode: script.code || null
-    });
+    toast(`🗑️ Menghapus "${scriptName}"...`, 'info');
     
-    // HAPUS PER SCRIPT dari Firebase
-    await FIREBASE.delete(id);
+    // Step 1: Simpan ke deleted_history (backup)
+    try {
+      await db.ref('deleted_history/' + id).set({
+        originalId: id,
+        name: scriptName,
+        deletedBy: currentUser.email,
+        deletedAt: new Date().toISOString(),
+        history: script.history || [],
+        lastCode: script.code || null
+      });
+    } catch (e) {
+      console.warn('⚠️ Failed to save to deleted_history:', e);
+    }
     
-    // Update array lokal
+    // Step 2: Hapus dari Firebase scripts/{id}
+    try {
+      await db.ref(`scripts/${id}`).remove();
+    } catch (e) {
+      console.error('❌ Failed to delete from Firebase:', e);
+      toast('❌ Gagal hapus dari cloud: ' + e.message, 'error');
+      isDeleting = false;
+      return;
+    }
+    
+    // Step 3: Hapus dari array lokal
     scripts.splice(idx, 1);
-    if (editId === id) { editId = null; closeEditor(); }
     
+    // Step 4: Tutup editor jika script yang dihapus sedang diedit
+    if (editId === id) {
+      editId = null;
+      closeEditor();
+    }
+    
+    // Step 5: Update UI
     renderAll();
-    toast(`✅ "${scriptName}" berhasil dihapus`, 'success');
+    
+    toast(`✅ "${scriptName}" berhasil dihapus!`, 'success');
+    
   } catch (e) {
+    console.error('❌ Delete error:', e);
     toast('❌ Gagal hapus: ' + e.message, 'error');
-    scripts = await FIREBASE.load();
-    renderAll();
+    // Reload scripts dari Firebase untuk sinkronisasi
+    try {
+      scripts = await FIREBASE.load();
+      renderAll();
+    } catch (e2) {
+      console.error('❌ Failed to reload scripts:', e2);
+    }
+  } finally {
+    isDeleting = false;
   }
 }
 
@@ -2932,7 +3116,6 @@ function delS() {
   openPinVerify('delete', async () => { await executeDelete(editId); });
 }
 
-// Hapus cepat dari card (Dashboard & Script Saya) - dengan verifikasi PIN
 function quickDel(id) {
   openPinVerify('delete', async () => { await executeDelete(id); });
 }
@@ -3053,7 +3236,17 @@ function updateClock() {
   if (clockDay) clockDay.textContent = now.toLocaleDateString('id-ID', {weekday:'long'});
 }
 
-function renderAll() { renderDash(); renderScriptsSection(); renderHistorySection(); }
+function renderAll() { 
+  renderDash(); 
+  renderScriptsSection(); 
+  renderHistorySection(); 
+  if (isAdmin()) {
+    loadLoginHistory().then(logins => {
+      const badge = document.getElementById('loginBadge');
+      if (badge) badge.textContent = logins.length;
+    });
+  }
+}
 
 function renderDash() {
   document.getElementById('sTot').textContent = scripts.length;
@@ -3275,7 +3468,6 @@ function updateStats() {
   document.getElementById('lCnt').textContent = c ? c.split('\n').length : 0;
 }
 
-// Simpan script - PER SCRIPT (bukan seluruh array)
 async function saveS() {
   if (!userPIN) { toast('⚠️ Setup PIN terlebih dahulu', 'error'); return; }
   const name = document.getElementById('sName').value.trim();
@@ -3314,7 +3506,7 @@ async function saveS() {
   
   try {
     toast('Menyimpan ke Firebase...', 'info');
-    await FIREBASE.save(scriptToSave); // Simpan PER SCRIPT
+    await FIREBASE.save(scriptToSave);
     document.getElementById('edTitle').textContent = name;
     document.getElementById('bDel').style.display = 'inline-flex';
     renderAll();
@@ -3366,9 +3558,6 @@ function toast(msg, type = 'info') {
   setTimeout(() => { el.style.animation = 'slideIn 0.35s reverse'; setTimeout(() => el.remove(), 350); }, 3500);
 }
 
-// ============================================
-// PORTAL SETTINGS FUNCTIONS
-// ============================================
 function openPortalSettings() {
   currentPortalPinInput = '';
   document.querySelectorAll('.portal-pin').forEach(inp => inp.value = '');
@@ -3474,7 +3663,6 @@ function resetPortalLinks() {
   }
 }
 
-// ESC key handler
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     ['pinVerifyOverlay', 'editorOverlay', 'tmHelpOverlay', 'pinSetupOverlay', 'histDetailOverlay', 'portalSettingsOverlay', 'portalPinOverlay'].forEach(id => {
