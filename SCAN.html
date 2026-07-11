@@ -2,528 +2,526 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>📟 Visor Scanner Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visor Scanner - Text & Nominal Reader</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif; }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
   body {
-    background:#2b2b2b;
-    color:#e0e0e0;
-    min-height:100vh;
-    padding:20px;
+    background: #2b2b2b;
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 20px;
   }
-  .container { max-width:1100px; margin:0 auto; }
-  h1 {
-    text-align:center;
-    color:#4fc3f7;
-    margin-bottom:20px;
-    font-size:28px;
-    text-shadow:0 0 10px rgba(79,195,247,0.3);
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
   }
+  header {
+    text-align: center;
+    padding: 20px 0 30px;
+    border-bottom: 2px solid #444;
+    margin-bottom: 25px;
+  }
+  header h1 {
+    color: #4fc3f7;
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  header p { color: #aaa; font-size: 14px; }
+
   .panel {
-    background:#3a3a3a;
-    border:1px solid #555;
-    border-radius:10px;
-    padding:20px;
-    margin-bottom:20px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.4);
+    background: #363636;
+    border: 1px solid #4a4a4a;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   }
   .panel h2 {
-    color:#81d4fa;
-    font-size:18px;
-    margin-bottom:15px;
-    border-bottom:1px solid #555;
-    padding-bottom:8px;
+    color: #4fc3f7;
+    font-size: 18px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
-  label { color:#bbb; font-size:14px; min-width:90px; }
-  select, input {
-    background:#2b2b2b;
-    color:#e0e0e0;
-    border:1px solid #555;
-    padding:8px 12px;
-    border-radius:6px;
-    font-size:14px;
-    outline:none;
-  }
-  select:focus, input:focus { border-color:#4fc3f7; }
+
+  .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
   button {
-    background:linear-gradient(135deg,#4fc3f7,#0288d1);
-    color:#fff;
-    border:none;
-    padding:10px 18px;
-    border-radius:6px;
-    cursor:pointer;
-    font-weight:600;
-    font-size:14px;
-    transition:all 0.2s;
-    box-shadow:0 2px 6px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #4fc3f7, #2196f3);
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
-  button:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(79,195,247,0.4); }
-  button:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
-  .btn-green { background:linear-gradient(135deg,#66bb6a,#2e7d32); }
-  .btn-orange { background:linear-gradient(135deg,#ffa726,#e65100); }
-  .btn-red { background:linear-gradient(135deg,#ef5350,#b71c1c); }
-  .btn-purple { background:linear-gradient(135deg,#ab47bc,#6a1b9a); }
+  button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(79,195,247,0.3);
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary { background: linear-gradient(135deg, #66bb6a, #43a047); }
+  button.warn { background: linear-gradient(135deg, #ffa726, #fb8c00); }
+  button.danger { background: linear-gradient(135deg, #ef5350, #e53935); }
+
   .status {
-    padding:8px 12px;
-    border-radius:6px;
-    font-size:13px;
-    font-weight:600;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-top: 12px;
+    font-size: 13px;
+    background: #2b2b2b;
+    border-left: 4px solid #4fc3f7;
   }
-  .status.ok { background:#1b5e20; color:#a5d6a7; }
-  .status.err { background:#b71c1c; color:#ffcdd2; }
-  .status.info { background:#0d47a1; color:#bbdefb; }
-  #log {
-    background:#1e1e1e;
-    border:1px solid #444;
-    border-radius:6px;
-    padding:12px;
-    height:140px;
-    overflow-y:auto;
-    font-family:'Consolas', monospace;
-    font-size:12px;
-    color:#9ccc65;
+  .status.ok { border-left-color: #66bb6a; color: #a5d6a7; }
+  .status.err { border-left-color: #ef5350; color: #ef9a9a; }
+  .status.warn { border-left-color: #ffa726; color: #ffcc80; }
+
+  .preview-area {
+    margin-top: 15px;
+    background: #1e1e1e;
+    border: 1px dashed #555;
+    border-radius: 8px;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
   }
-  #log .line { margin-bottom:3px; }
-  #log .line.err { color:#ef9a9a; }
-  #log .line.warn { color:#ffcc80; }
-  #results {
-    background:#1e1e1e;
-    border:1px solid #444;
-    border-radius:6px;
-    padding:12px;
-    min-height:200px;
-    max-height:500px;
-    overflow-y:auto;
+  .preview-area img, .preview-area video {
+    max-width: 100%;
+    max-height: 400px;
+    display: block;
   }
-  .result-item {
-    background:#2b2b2b;
-    border-left:3px solid #4fc3f7;
-    padding:10px 12px;
-    margin-bottom:8px;
-    border-radius:4px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
+  .preview-placeholder { color: #666; font-style: italic; }
+
+  .progress {
+    width: 100%;
+    height: 8px;
+    background: #1e1e1e;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 12px;
+    display: none;
   }
-  .result-item.nominal { border-left-color:#ffa726; }
-  .result-item .text {
-    flex:1;
-    font-family:'Consolas', monospace;
-    word-break:break-all;
-    font-size:14px;
+  .progress.active { display: block; }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4fc3f7, #2196f3);
+    width: 0%;
+    transition: width 0.3s;
   }
-  .result-item .badge {
-    background:#4fc3f7;
-    color:#000;
-    padding:2px 8px;
-    border-radius:10px;
-    font-size:11px;
-    font-weight:700;
+
+  .result-box {
+    background: #1e1e1e;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 12px;
+    min-height: 150px;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #d0d0d0;
   }
-  .result-item.nominal .badge { background:#ffa726; }
-  .result-item button {
-    padding:5px 10px;
-    font-size:12px;
+  .result-box:empty::before {
+    content: "Hasil scan akan muncul di sini...";
+    color: #666;
+    font-style: italic;
   }
-  .counter {
-    display:inline-block;
-    background:#4fc3f7;
-    color:#000;
-    padding:3px 10px;
-    border-radius:12px;
-    font-weight:700;
-    margin-left:10px;
-    font-size:13px;
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
   }
-  .toolbar {
-    display:flex;
-    gap:10px;
-    margin-bottom:15px;
-    flex-wrap:wrap;
+  .stat-card {
+    background: #2b2b2b;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid #4a4a4a;
   }
-  .preview-box {
-    background:#000;
-    border:1px solid #555;
-    border-radius:6px;
-    padding:10px;
-    text-align:center;
-    margin-top:10px;
-  }
-  #preview { max-width:100%; max-height:250px; border-radius:4px; }
-  .empty {
-    text-align:center;
-    color:#777;
-    padding:40px;
-    font-style:italic;
-  }
-  .tabs { display:flex; gap:5px; margin-bottom:15px; }
+  .stat-card .label { font-size: 11px; color: #888; text-transform: uppercase; }
+  .stat-card .value { font-size: 22px; color: #4fc3f7; font-weight: bold; margin-top: 4px; }
+
+  .tabs { display: flex; gap: 5px; margin-bottom: 12px; border-bottom: 1px solid #4a4a4a; }
   .tab {
-    padding:8px 16px;
-    background:#2b2b2b;
-    border:1px solid #555;
-    border-radius:6px 6px 0 0;
-    cursor:pointer;
-    color:#bbb;
-    font-size:13px;
+    padding: 8px 16px;
+    background: transparent;
+    color: #aaa;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    cursor: pointer;
+    font-size: 13px;
   }
-  .tab.active { background:#4fc3f7; color:#000; font-weight:700; border-color:#4fc3f7; }
-  .tab-content { display:none; }
-  .tab-content.active { display:block; }
-  ::-webkit-scrollbar { width:8px; }
-  ::-webkit-scrollbar-track { background:#1e1e1e; }
-  ::-webkit-scrollbar-thumb { background:#555; border-radius:4px; }
-  ::-webkit-scrollbar-thumb:hover { background:#777; }
+  .tab.active { color: #4fc3f7; border-bottom-color: #4fc3f7; }
+
+  .nominal-highlight {
+    color: #ffd54f;
+    font-weight: bold;
+    background: rgba(255,213,79,0.1);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #1e1e1e; }
+  ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>📟 VISOR SCANNER PRO</h1>
+  <header>
+    <h1>⚡ Visor Scanner</h1>
+    <p>Capture & Scan Text / Nominal dari Layar Visor (OCR)</p>
+  </header>
 
-  <!-- KONEKSI SERIAL -->
+  <!-- KONEK VISOR -->
   <div class="panel">
-    <h2>🔌 Koneksi Visor (Serial Port)</h2>
-    <div class="row">
-      <label>Baud Rate:</label>
-      <select id="baudRate">
-        <option>9600</option><option>19200</option><option>38400</option>
-        <option>57600</option><option selected>115200</option><option>230400</option>
-      </select>
-      <button id="btnConnect" class="btn-green">⚡ Connect Visor</button>
-      <button id="btnDisconnect" class="btn-red" disabled>❌ Disconnect</button>
-      <span id="serialStatus" class="status info">● Disconnected</span>
+    <h2>🔌 Koneksi Visor</h2>
+    <div class="btn-group">
+      <button id="btnConnect" onclick="connectVisor()">📺 Capture Layar Visor</button>
+      <button id="btnCamera" class="secondary" onclick="connectCamera()">📷 Pakai Kamera (USB Visor)</button>
+      <button id="btnDisconnect" class="danger" onclick="disconnect()" disabled>⏹ Stop</button>
     </div>
-    <div id="log"></div>
+    <div id="statusConnect" class="status">Belum terhubung. Pilih metode koneksi di atas.</div>
+    <div class="preview-area" id="previewArea">
+      <span class="preview-placeholder">Preview layar visor akan muncul di sini...</span>
+    </div>
   </div>
 
-  <!-- SCAN MODE -->
+  <!-- SCAN -->
   <div class="panel">
-    <h2>🔍 Mode Scan</h2>
+    <h2>🔍 Scan Text & Nominal</h2>
+    <div class="btn-group">
+      <button id="btnScan" onclick="startScan()" disabled>🚀 Mulai Scan</button>
+      <button id="btnRescan" class="warn" onclick="rescanLast()" disabled>🔄 Re-scan</button>
+      <button id="btnClear" class="danger" onclick="clearResult()">🗑️ Clear</button>
+    </div>
+    <div class="progress" id="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div id="statusScan" class="status" style="display:none;"></div>
+  </div>
+
+  <!-- HASIL -->
+  <div class="panel">
+    <h2>📋 Hasil Scan</h2>
     <div class="tabs">
-      <div class="tab active" data-tab="serial">📡 Serial Data</div>
-      <div class="tab" data-tab="screen">🖥️ Screen Capture (OCR)</div>
+      <button class="tab active" onclick="switchTab('all', this)">Semua Text</button>
+      <button class="tab" onclick="switchTab('nominal', this)">Nominal Saja</button>
+      <button class="tab" onclick="switchTab('formatted', this)">Tampilan</button>
     </div>
 
-    <!-- TAB SERIAL -->
-    <div class="tab-content active" id="tab-serial">
-      <p style="color:#bbb; font-size:13px; margin-bottom:10px;">
-        Data text/nominal akan otomatis terdeteksi dari visor yang terhubung via serial port.
-      </p>
-      <div class="toolbar">
-        <button id="btnClearSerial" class="btn-orange">🗑️ Clear Serial Buffer</button>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="label">Kata</div>
+        <div class="value" id="statWords">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Nominal</div>
+        <div class="value" id="statNumbers">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Confidence</div>
+        <div class="value" id="statConf">0%</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Waktu</div>
+        <div class="value" id="statTime">0s</div>
       </div>
     </div>
 
-    <!-- TAB SCREEN -->
-    <div class="tab-content" id="tab-screen">
-      <p style="color:#bbb; font-size:13px; margin-bottom:10px;">
-        Capture layar visor/monitor lalu scan text & nominal otomatis menggunakan OCR.
-      </p>
-      <div class="toolbar">
-        <button id="btnCapture" class="btn-purple">📸 Capture Layar</button>
-        <button id="btnScanOCR" class="btn-green" disabled>🔎 Scan OCR</button>
-        <button id="btnClearOCR" class="btn-orange">🗑️ Clear</button>
-      </div>
-      <div class="preview-box">
-        <img id="preview" alt="Preview capture" style="display:none;">
-        <div id="previewText" style="color:#777;">Belum ada capture</div>
-      </div>
-    </div>
-  </div>
+    <div class="result-box" id="resultBox"></div>
 
-  <!-- HASIL SCAN -->
-  <div class="panel">
-    <h2>📋 Hasil Scan <span class="counter" id="counter">0 item</span></h2>
-    <div class="toolbar">
-      <button id="btnCopyAll" class="btn-green">📋 Copy Semua</button>
-      <button id="btnCopyNominal" class="btn-orange">💰 Copy Nominal Saja</button>
-      <button id="btnCopyText" class="btn-purple">📝 Copy Text Saja</button>
-      <button id="btnClearAll" class="btn-red">🗑️ Clear Semua</button>
-      <button id="btnExport" class="btn-green">💾 Export TXT</button>
-    </div>
-    <div id="results">
-      <div class="empty">Belum ada hasil scan. Klik "Capture Layar" atau connect visor untuk mulai.</div>
+    <div class="btn-group" style="margin-top:15px;">
+      <button id="btnCopy" class="secondary" onclick="copyResult()">📋 Copy Semua</button>
+      <button id="btnCopyNominal" onclick="copyNominal()">💰 Copy Nominal</button>
+      <button id="btnDownload" class="warn" onclick="downloadResult()">💾 Download TXT</button>
     </div>
   </div>
 </div>
 
 <script>
-/* ================== STATE ================== */
-let port = null;
-let reader = null;
-let inputDone = null;
-let serialBuffer = '';
-let results = [];
-let capturedImage = null;
-let ocrWorker = null;
+let stream = null;
+let lastImageData = null;
+let lastResult = { text: '', nominals: [], confidence: 0 };
+let currentTab = 'all';
 
-/* ================== LOG ================== */
-const logEl = document.getElementById('log');
-function log(msg, type='info') {
-  const line = document.createElement('div');
-  line.className = 'line ' + (type==='err'?'err':type==='warn'?'warn':'');
-  const time = new Date().toLocaleTimeString();
-  line.textContent = `[${time}] ${msg}`;
-  logEl.appendChild(line);
-  logEl.scrollTop = logEl.scrollHeight;
-}
-
-/* ================== TABS ================== */
-document.querySelectorAll('.tab').forEach(t => {
-  t.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
-    t.classList.add('active');
-    document.getElementById('tab-' + t.dataset.tab).classList.add('active');
-  });
-});
-
-/* ================== SERIAL ================== */
-const btnConnect = document.getElementById('btnConnect');
-const btnDisconnect = document.getElementById('btnDisconnect');
-const serialStatus = document.getElementById('serialStatus');
-
-async function connectSerial() {
-  if (!('serial' in navigator)) {
-    log('Browser tidak mendukung Web Serial API. Gunakan Chrome/Edge.', 'err');
-    alert('Browser tidak mendukung Web Serial API!\nGunakan Google Chrome atau Microsoft Edge.');
-    return;
-  }
+// ============ KONEK VISOR ============
+async function connectVisor() {
   try {
-    port = await navigator.serial.requestPort();
-    const baud = parseInt(document.getElementById('baudRate').value);
-    await port.open({ baudRate: baud });
-    log(`Terhubung ke visor @ ${baud} baud`, 'ok');
-    serialStatus.textContent = '● Connected';
-    serialStatus.className = 'status ok';
-    btnConnect.disabled = true;
-    btnDisconnect.disabled = false;
-    readSerialLoop();
-  } catch(e) {
-    log('Gagal connect: ' + e.message, 'err');
+    setStatus('connect', 'Membuka pilihan screen capture... Pilih window/display visor Anda.', 'warn');
+    // Minta user memilih screen/window (visor yang tercolok biasanya muncul sebagai display/window)
+    stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { cursor: "never" },
+      audio: false
+    });
+    showPreview(stream);
+    setStatus('connect', '✅ Terhubung ke layar visor. Klik "Mulai Scan" untuk membaca text.', 'ok');
+    document.getElementById('btnScan').disabled = false;
+    document.getElementById('btnDisconnect').disabled = false;
+    document.getElementById('btnConnect').disabled = true;
+
+    stream.getVideoTracks()[0].onended = () => disconnect();
+  } catch (err) {
+    setStatus('connect', '❌ Gagal connect: ' + err.message, 'err');
   }
 }
 
-async function readSerialLoop() {
-  const decoder = new TextDecoderStream();
-  inputDone = port.readable.pipeTo(decoder.writable);
-  const inputStream = decoder.readable;
-  reader = inputStream.getReader();
+async function connectCamera() {
   try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      if (value) {
-        serialBuffer += value;
-        processSerialData(value);
-      }
-    }
-  } catch(e) {
-    log('Read error: ' + e.message, 'err');
-  } finally {
-    reader.releaseLock();
+    setStatus('connect', 'Mencari kamera/USB visor...', 'warn');
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+    });
+    showPreview(stream);
+    setStatus('connect', '✅ Kamera/USB visor terhubung. Klik "Mulai Scan".', 'ok');
+    document.getElementById('btnScan').disabled = false;
+    document.getElementById('btnDisconnect').disabled = false;
+    document.getElementById('btnCamera').disabled = true;
+  } catch (err) {
+    setStatus('connect', '❌ Gagal akses kamera: ' + err.message, 'err');
   }
 }
 
-function processSerialData(data) {
-  // Pisah per baris
-  const lines = data.split(/\r?\n/);
-  lines.forEach(line => {
-    line = line.trim();
-    if (line.length > 0) {
-      addItem(line, 'serial');
-    }
-  });
+function showPreview(stream) {
+  const area = document.getElementById('previewArea');
+  area.innerHTML = '';
+  const video = document.createElement('video');
+  video.autoplay = true;
+  video.playsInline = true;
+  video.muted = true;
+  video.srcObject = stream;
+  area.appendChild(video);
 }
 
-async function disconnectSerial() {
-  try {
-    if (reader) { await reader.cancel(); await inputDone.catch(()=>{}); reader = null; }
-    if (port) { await port.close(); port = null; }
-    serialStatus.textContent = '● Disconnected';
-    serialStatus.className = 'status info';
-    btnConnect.disabled = false;
-    btnDisconnect.disabled = true;
-    log('Disconnected dari visor', 'warn');
-  } catch(e) { log('Disconnect error: ' + e.message, 'err'); }
-}
-
-btnConnect.addEventListener('click', connectSerial);
-btnDisconnect.addEventListener('click', disconnectSerial);
-document.getElementById('btnClearSerial').addEventListener('click', () => {
-  serialBuffer = '';
-  log('Serial buffer di-clear');
-});
-
-/* ================== SCREEN CAPTURE + OCR ================== */
-const btnCapture = document.getElementById('btnCapture');
-const btnScanOCR = document.getElementById('btnScanOCR');
-const preview = document.getElementById('preview');
-const previewText = document.getElementById('previewText');
-
-btnCapture.addEventListener('click', async () => {
-  try {
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: "never" } });
-    const video = document.createElement('video');
-    video.srcObject = stream;
-    await video.play();
-    // tunggu 1 frame
-    await new Promise(r => setTimeout(r, 300));
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
+function disconnect() {
+  if (stream) {
     stream.getTracks().forEach(t => t.stop());
-    capturedImage = canvas.toDataURL('image/png');
-    preview.src = capturedImage;
-    preview.style.display = 'block';
-    previewText.style.display = 'none';
-    btnScanOCR.disabled = false;
-    log('Layar berhasil di-capture');
-  } catch(e) {
-    log('Capture gagal: ' + e.message, 'err');
+    stream = null;
   }
-});
+  document.getElementById('previewArea').innerHTML = '<span class="preview-placeholder">Preview layar visor akan muncul di sini...</span>';
+  document.getElementById('btnScan').disabled = true;
+  document.getElementById('btnDisconnect').disabled = true;
+  document.getElementById('btnConnect').disabled = false;
+  document.getElementById('btnCamera').disabled = false;
+  setStatus('connect', 'Terputus. Silakan connect ulang.', 'warn');
+}
 
-btnScanOCR.addEventListener('click', async () => {
-  if (!capturedImage) return;
-  btnScanOCR.disabled = true;
-  btnScanOCR.textContent = '⏳ Scanning...';
-  log('Memulai OCR...');
+// ============ SCAN OCR ============
+async function startScan() {
+  if (!stream) { alert('Connect ke visor dulu!'); return; }
+
+  const video = document.querySelector('#previewArea video');
+  if (!video) { alert('Video tidak ditemukan'); return; }
+
+  // Capture frame dari video
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  lastImageData = canvas.toDataURL('image/png');
+
+  await runOCR(canvas);
+}
+
+async function rescanLast() {
+  if (!lastImageData) { alert('Belum ada data scan sebelumnya'); return; }
+  const img = new Image();
+  img.src = lastImageData;
+  await new Promise(r => img.onload = r);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  await runOCR(canvas);
+}
+
+async function runOCR(canvas) {
+  const startTime = Date.now();
+  const progress = document.getElementById('progress');
+  const progressBar = document.getElementById('progressBar');
+  const statusScan = document.getElementById('statusScan');
+
+  progress.classList.add('active');
+  progressBar.style.width = '0%';
+  statusScan.style.display = 'block';
+  setStatus('scan', '🔄 Memproses OCR... Mohon tunggu.', 'warn');
+  document.getElementById('btnScan').disabled = true;
+
   try {
-    if (!ocrWorker) {
-      ocrWorker = await Tesseract.createWorker('eng+ind', 1, {
-        logger: m => { if (m.status) log(`OCR: ${m.status} (${Math.round((m.progress||0)*100)}%)`); }
-      });
-    }
-    const { data } = await ocrWorker.recognize(capturedImage);
-    const text = data.text || '';
-    log(`OCR selesai. Ditemukan ${text.length} karakter`);
-    // parse per baris / per kata
-    const lines = text.split(/\n/).map(l => l.trim()).filter(l => l.length > 1);
-    lines.forEach(l => addItem(l, 'ocr'));
-    // juga pecah per token untuk deteksi nominal lebih baik
-    const tokens = text.split(/\s+/).filter(t => t.length > 0);
-    tokens.forEach(t => {
-      if (/[\d.,]/.test(t) && /\d/.test(t)) {
-        addItem(t, 'ocr');
+    const result = await Tesseract.recognize(canvas, 'eng+ind', {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          progressBar.style.width = Math.round(m.progress * 100) + '%';
+        }
+        setStatus('scan', `⏳ ${m.status}... ${Math.round((m.progress||0)*100)}%`, 'warn');
       }
     });
-  } catch(e) {
-    log('OCR error: ' + e.message, 'err');
+
+    const text = result.data.text.trim();
+    const confidence = Math.round(result.data.confidence);
+    const nominals = extractNominals(text);
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+    lastResult = { text, nominals, confidence };
+
+    document.getElementById('statWords').textContent = text.split(/\s+/).filter(w => w).length;
+    document.getElementById('statNumbers').textContent = nominals.length;
+    document.getElementById('statConf').textContent = confidence + '%';
+    document.getElementById('statTime').textContent = elapsed + 's';
+
+    renderResult();
+    document.getElementById('btnRescan').disabled = false;
+
+    setStatus('scan', `✅ Scan selesai! Ditemukan ${nominals.length} nominal, confidence ${confidence}%.`, 'ok');
+  } catch (err) {
+    setStatus('scan', '❌ Error OCR: ' + err.message, 'err');
   } finally {
-    btnScanOCR.disabled = false;
-    btnScanOCR.textContent = '🔎 Scan OCR';
+    progress.classList.remove('active');
+    document.getElementById('btnScan').disabled = false;
   }
-});
-
-document.getElementById('btnClearOCR').addEventListener('click', () => {
-  capturedImage = null;
-  preview.style.display = 'none';
-  previewText.style.display = 'block';
-  previewText.textContent = 'Belum ada capture';
-  btnScanOCR.disabled = true;
-});
-
-/* ================== DETEKSI & HASIL ================== */
-const NOMINAL_REGEX = /(?:Rp\.?\s?)?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?(?:\s?(?:rb|jt|mil|k|M))?/i;
-function isNominal(str) {
-  const s = str.trim();
-  // mengandung angka dan pola nominal
-  if (/^[\d.,\s]+$/.test(s) && /\d/.test(s)) return true;
-  if (/rp\.?\s?\d/i.test(s)) return true;
-  if (/\d{1,3}(?:[.,]\d{3})+/.test(s)) return true;
-  if (/\d+\s?(?:rb|jt|mil|k|M)\b/i.test(s)) return true;
-  return false;
 }
 
-function addItem(text, source) {
-  text = text.trim();
-  if (text.length < 1) return;
-  // cek duplikat
-  if (results.some(r => r.text === text)) return;
-  const type = isNominal(text) ? 'nominal' : 'text';
-  results.push({ text, type, source, time: new Date().toLocaleTimeString() });
-  renderResults();
+function extractNominals(text) {
+  // Match angka: integer, desimal, dengan titik/koma ribuan, mata uang
+  const patterns = [
+    /Rp\s?[\d.,]+/gi,
+    /\$\s?[\d.,]+/g,
+    /€\s?[\d.,]+/g,
+    /\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?/g,  // 1.000.000 atau 1,000,000
+    /\d+[.,]\d+/g,                          // 123.45
+    /\b\d{4,}\b/g                            // 4 digit+
+  ];
+  const found = new Set();
+  patterns.forEach(p => {
+    const matches = text.match(p) || [];
+    matches.forEach(m => found.add(m.trim()));
+  });
+  return Array.from(found);
 }
 
-function renderResults() {
-  const container = document.getElementById('results');
-  document.getElementById('counter').textContent = results.length + ' item';
-  if (results.length === 0) {
-    container.innerHTML = '<div class="empty">Belum ada hasil scan.</div>';
+function renderResult() {
+  const box = document.getElementById('resultBox');
+  if (currentTab === 'all') {
+    box.textContent = lastResult.text || '(tidak ada text terdeteksi)';
+  } else if (currentTab === 'nominal') {
+    if (lastResult.nominals.length === 0) {
+      box.textContent = '(tidak ada nominal terdeteksi)';
+    } else {
+      box.innerHTML = lastResult.nominals.map(n => `<span class="nominal-highlight">${n}</span>`).join('\n');
+    }
+  } else if (currentTab === 'formatted') {
+    let html = '<strong style="color:#4fc3f7">📄 TEXT LENGKAP:</strong>\n';
+    html += (lastResult.text || '(kosong)') + '\n\n';
+    html += '<strong style="color:#ffd54f">💰 NOMINAL TERDETEKSI:</strong>\n';
+    if (lastResult.nominals.length) {
+      html += lastResult.nominals.map((n,i) => `${i+1}. ${n}`).join('\n');
+    } else {
+      html += '(tidak ada)';
+    }
+    html += `\n\n<strong style="color:#81c784">📊 STATISTIK:</strong>\n`;
+    html += `• Confidence: ${lastResult.confidence}%\n`;
+    html += `• Jumlah nominal: ${lastResult.nominals.length}`;
+    box.innerHTML = html;
+  }
+}
+
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (lastResult.text) renderResult();
+}
+
+// ============ COPY & DOWNLOAD ============
+function copyResult() {
+  let content = '';
+  if (currentTab === 'nominal') {
+    content = lastResult.nominals.join('\n');
+  } else {
+    content = lastResult.text;
+  }
+  copyToClipboard(content, 'Text berhasil di-copy!');
+}
+
+function copyNominal() {
+  if (lastResult.nominals.length === 0) {
+    alert('Tidak ada nominal untuk di-copy');
     return;
   }
-  container.innerHTML = '';
-  results.forEach((r, idx) => {
-    const div = document.createElement('div');
-    div.className = 'result-item' + (r.type === 'nominal' ? ' nominal' : '');
-    div.innerHTML = `
-      <span class="badge">${r.type === 'nominal' ? '💰 NOMINAL' : '📝 TEXT'}</span>
-      <span class="text" title="Source: ${r.source} @ ${r.time}">${escapeHtml(r.text)}</span>
-      <button onclick="copyOne(${idx})">📋</button>
-      <button class="btn-red" onclick="removeOne(${idx})">✕</button>
-    `;
-    container.appendChild(div);
+  copyToClipboard(lastResult.nominals.join('\n'), 'Nominal berhasil di-copy!');
+}
+
+function copyToClipboard(text, msg) {
+  if (!text) { alert('Tidak ada data untuk di-copy'); return; }
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btnCopy');
+    const original = btn.innerHTML;
+    btn.innerHTML = '✅ ' + msg;
+    setTimeout(() => btn.innerHTML = original, 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert(msg);
   });
 }
 
-function escapeHtml(s) {
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+function downloadResult() {
+  if (!lastResult.text) { alert('Belum ada hasil scan'); return; }
+  let content = `VISOR SCAN RESULT\n`;
+  content += `Tanggal: ${new Date().toLocaleString('id-ID')}\n`;
+  content += `Confidence: ${lastResult.confidence}%\n`;
+  content += `${'='.repeat(50)}\n\n`;
+  content += `TEXT:\n${lastResult.text}\n\n`;
+  content += `NOMINAL TERDETEKSI (${lastResult.nominals.length}):\n`;
+  content += lastResult.nominals.map((n,i) => `${i+1}. ${n}`).join('\n');
 
-window.copyOne = function(idx) {
-  navigator.clipboard.writeText(results[idx].text).then(() => {
-    log('Disalin: ' + results[idx].text);
-  });
-};
-window.removeOne = function(idx) {
-  results.splice(idx, 1);
-  renderResults();
-};
-
-/* ================== TOOLBAR HASIL ================== */
-document.getElementById('btnCopyAll').addEventListener('click', () => {
-  const txt = results.map(r => r.text).join('\n');
-  navigator.clipboard.writeText(txt).then(() => log('Semua hasil di-copy (' + results.length + ' item)'));
-});
-document.getElementById('btnCopyNominal').addEventListener('click', () => {
-  const nom = results.filter(r => r.type === 'nominal').map(r => r.text);
-  navigator.clipboard.writeText(nom.join('\n')).then(() => log('Nominal di-copy: ' + nom.length + ' item'));
-});
-document.getElementById('btnCopyText').addEventListener('click', () => {
-  const txt = results.filter(r => r.type === 'text').map(r => r.text);
-  navigator.clipboard.writeText(txt.join('\n')).then(() => log('Text di-copy: ' + txt.length + ' item'));
-});
-document.getElementById('btnClearAll').addEventListener('click', () => {
-  results = [];
-  renderResults();
-  log('Semua hasil di-clear');
-});
-document.getElementById('btnExport').addEventListener('click', () => {
-  if (results.length === 0) { alert('Belum ada hasil!'); return; }
-  let out = '=== VISOR SCAN RESULT ===\n';
-  out += 'Tanggal: ' + new Date().toLocaleString() + '\n';
-  out += 'Total: ' + results.length + ' item\n\n';
-  out += '--- NOMINAL ---\n';
-  results.filter(r => r.type === 'nominal').forEach(r => out += r.text + '\n');
-  out += '\n--- TEXT ---\n';
-  results.filter(r => r.type === 'text').forEach(r => out += r.text + '\n');
-  const blob = new Blob([out], { type: 'text/plain' });
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'visor-scan-' + Date.now() + '.txt';
+  a.href = url;
+  a.download = `visor-scan-${Date.now()}.txt`;
   a.click();
-  log('File di-export');
-});
+  URL.revokeObjectURL(url);
+}
 
-/* ================== INIT ================== */
-log('Visor Scanner Pro siap digunakan');
-if (!('serial' in navigator)) {
-  log('⚠️ Web Serial API tidak tersedia di browser ini', 'warn');
+function clearResult() {
+  lastResult = { text: '', nominals: [], confidence: 0 };
+  document.getElementById('resultBox').innerHTML = '';
+  document.getElementById('statWords').textContent = '0';
+  document.getElementById('statNumbers').textContent = '0';
+  document.getElementById('statConf').textContent = '0%';
+  document.getElementById('statTime').textContent = '0s';
+  document.getElementById('btnRescan').disabled = true;
+}
+
+function setStatus(target, msg, type) {
+  const el = document.getElementById(target === 'connect' ? 'statusConnect' : 'statusScan');
+  el.textContent = msg;
+  el.className = 'status ' + (type || '');
+  if (target === 'scan') el.style.display = 'block';
 }
 </script>
 </body>
