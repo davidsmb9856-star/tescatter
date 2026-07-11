@@ -1,1099 +1,829 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor Scanner - Text & Nominal Reader</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #2d2d2d;
-            color: #e0e0e0;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            padding: 30px 0;
-            border-bottom: 2px solid #444;
-            margin-bottom: 30px;
-        }
-
-        header h1 {
-            font-size: 2.2em;
-            color: #00d4ff;
-            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-            margin-bottom: 8px;
-        }
-
-        header p {
-            color: #999;
-            font-size: 0.95em;
-        }
-
-        .status-bar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 20px;
-            background-color: #3a3a3a;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #555;
-        }
-
-        .status-bar.connected {
-            border-left-color: #4caf50;
-        }
-
-        .status-bar.disconnected {
-            border-left-color: #f44336;
-        }
-
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #f44336;
-            animation: pulse 2s infinite;
-        }
-
-        .status-indicator.active {
-            background-color: #4caf50;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .menu-panel {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .btn {
-            padding: 14px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-connect {
-            background: linear-gradient(135deg, #2196f3, #1976d2);
-            color: white;
-        }
-
-        .btn-connect:hover {
-            background: linear-gradient(135deg, #42a5f5, #2196f3);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
-        }
-
-        .btn-scan {
-            background: linear-gradient(135deg, #4caf50, #388e3c);
-            color: white;
-        }
-
-        .btn-scan:hover {
-            background: linear-gradient(135deg, #66bb6a, #4caf50);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-        }
-
-        .btn-copy {
-            background: linear-gradient(135deg, #ff9800, #f57c00);
-            color: white;
-        }
-
-        .btn-copy:hover {
-            background: linear-gradient(135deg, #ffa726, #ff9800);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
-        }
-
-        .btn-clear {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
-            color: white;
-        }
-
-        .btn-clear:hover {
-            background: linear-gradient(135deg, #ef5350, #f44336);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
-        }
-
-        .btn-disconnect {
-            background: linear-gradient(135deg, #9e9e9e, #757575);
-            color: white;
-        }
-
-        .btn-disconnect:hover {
-            background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
-            transform: translateY(-2px);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .config-panel {
-            background-color: #3a3a3a;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border: 1px solid #4a4a4a;
-        }
-
-        .config-panel h3 {
-            color: #00d4ff;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
-
-        .config-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-        }
-
-        .config-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .config-item label {
-            font-size: 0.85em;
-            color: #aaa;
-            font-weight: 500;
-        }
-
-        .config-item select,
-        .config-item input {
-            padding: 10px 12px;
-            background-color: #2d2d2d;
-            border: 1px solid #555;
-            border-radius: 6px;
-            color: #e0e0e0;
-            font-size: 0.9em;
-        }
-
-        .config-item select:focus,
-        .config-item input:focus {
-            outline: none;
-            border-color: #00d4ff;
-        }
-
-        .results-panel {
-            background-color: #3a3a3a;
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid #4a4a4a;
-            min-height: 300px;
-        }
-
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #4a4a4a;
-        }
-
-        .results-header h3 {
-            color: #00d4ff;
-            font-size: 1.1em;
-        }
-
-        .results-count {
-            background-color: #00d4ff;
-            color: #1a1a1a;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 700;
-        }
-
-        .results-list {
-            max-height: 500px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-
-        .results-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .results-list::-webkit-scrollbar-track {
-            background: #2d2d2d;
-            border-radius: 3px;
-        }
-
-        .results-list::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 3px;
-        }
-
-        .result-item {
-            background-color: #2d2d2d;
-            border: 1px solid #4a4a4a;
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
-        }
-
-        .result-item:hover {
-            border-color: #00d4ff;
-            background-color: #333;
-        }
-
-        .result-content {
-            flex: 1;
-        }
-
-        .result-text {
-            font-size: 1.1em;
-            font-weight: 600;
-            color: #fff;
-            word-break: break-all;
-        }
-
-        .result-meta {
-            font-size: 0.8em;
-            color: #888;
-            margin-top: 4px;
-        }
-
-        .result-type {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75em;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-
-        .type-text {
-            background-color: #2196f3;
-            color: white;
-        }
-
-        .type-nominal {
-            background-color: #ff9800;
-            color: white;
-        }
-
-        .result-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-small {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 5px;
-            font-size: 0.8em;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-copy-item {
-            background-color: #4caf50;
-            color: white;
-        }
-
-        .btn-copy-item:hover {
-            background-color: #66bb6a;
-        }
-
-        .btn-delete-item {
-            background-color: #f44336;
-            color: white;
-        }
-
-        .btn-delete-item:hover {
-            background-color: #ef5350;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .empty-state svg {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        .empty-state p {
-            font-size: 1.1em;
-            margin-bottom: 8px;
-        }
-
-        .empty-state small {
-            color: #555;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            padding: 14px 24px;
-            background-color: #4caf50;
-            color: white;
-            border-radius: 8px;
-            font-weight: 500;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .toast.error {
-            background-color: #f44336;
-        }
-
-        .log-panel {
-            background-color: #1a1a1a;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85em;
-            border: 1px solid #333;
-        }
-
-        .log-entry {
-            padding: 3px 0;
-            color: #888;
-            border-bottom: 1px solid #222;
-        }
-
-        .log-entry .timestamp {
-            color: #666;
-            margin-right: 10px;
-        }
-
-        .log-entry.success {
-            color: #4caf50;
-        }
-
-        .log-entry.error {
-            color: #f44336;
-        }
-
-        .log-entry.info {
-            color: #2196f3;
-        }
-
-        .scan-animation {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .scan-animation.active {
-            display: block;
-        }
-
-        .scan-bar {
-            width: 100%;
-            height: 4px;
-            background-color: #444;
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        .scan-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00d4ff, #4caf50);
-            border-radius: 2px;
-            animation: scanning 2s ease-in-out infinite;
-        }
-
-        @keyframes scanning {
-            0% { width: 0%; margin-left: 0; }
-            50% { width: 60%; margin-left: 20%; }
-            100% { width: 0%; margin-left: 100%; }
-        }
-
-        .filter-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .filter-bar input {
-            flex: 1;
-            min-width: 200px;
-            padding: 10px 15px;
-            background-color: #2d2d2d;
-            border: 1px solid #555;
-            border-radius: 6px;
-            color: #e0e0e0;
-            font-size: 0.9em;
-        }
-
-        .filter-bar input:focus {
-            outline: none;
-            border-color: #00d4ff;
-        }
-
-        .filter-bar select {
-            padding: 10px 15px;
-            background-color: #2d2d2d;
-            border: 1px solid #555;
-            border-radius: 6px;
-            color: #e0e0e0;
-            font-size: 0.9em;
-        }
-
-        @media (max-width: 600px) {
-            header h1 {
-                font-size: 1.6em;
-            }
-
-            .menu-panel {
-                grid-template-columns: 1fr;
-            }
-
-            .config-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .result-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .result-actions {
-                width: 100%;
-                justify-content: flex-end;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🖥️ Visor Scanner - HTML Edition</title>
+
+<!-- Tesseract.js dari CDN -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+  }
+
+  body {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    min-height: 100vh;
+    color: #fff;
+    padding: 20px;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: rgba(26, 26, 46, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    border: 1px solid rgba(233, 69, 96, 0.2);
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(90deg, #16213e, #0f3460);
+    padding: 25px;
+    text-align: center;
+    border-bottom: 3px solid #e94560;
+  }
+
+  .header h1 {
+    font-size: 32px;
+    color: #e94560;
+    text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+    margin-bottom: 5px;
+  }
+
+  .header p {
+    color: #aaa;
+    font-size: 14px;
+  }
+
+  /* CONTROL PANEL */
+  .control-panel {
+    padding: 20px;
+    background: rgba(15, 52, 96, 0.3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .control-group label {
+    font-size: 14px;
+    color: #ccc;
+  }
+
+  select, input[type="text"] {
+    background: #0a0a1a;
+    color: #00ff88;
+    border: 1px solid #0f3460;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s;
+  }
+
+  select:hover, input[type="text"]:hover {
+    border-color: #e94560;
+  }
+
+  select:focus, input[type="text"]:focus {
+    border-color: #e94560;
+    box-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+  }
+
+  /* BUTTONS */
+  .btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #e94560, #c73652);
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(233, 69, 96, 0.6);
+  }
+
+  .btn-secondary {
+    background: linear-gradient(135deg, #0f3460, #0a2647);
+    box-shadow: 0 4px 15px rgba(15, 52, 96, 0.4);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15, 52, 96, 0.6);
+  }
+
+  .btn-warning {
+    background: linear-gradient(135deg, #533483, #3d2563);
+  }
+
+  .btn-warning:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  /* STATUS BAR */
+  .status-bar {
+    background: #16213e;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .status-text {
+    color: #00ff88;
+  }
+
+  .status-text.warning { color: #ffb400; }
+  .status-text.error { color: #e94560; }
+
+  .progress-container {
+    width: 200px;
+    height: 6px;
+    background: #0a0a1a;
+    border-radius: 3px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .progress-container.active { display: block; }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #e94560, #00ff88);
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  /* PREVIEW AREA */
+  .preview-section {
+    padding: 20px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    color: #e94560;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .preview-box {
+    background: #0a0a1a;
+    border: 2px dashed #0f3460;
+    border-radius: 12px;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .preview-box img {
+    max-width: 100%;
+    max-height: 300px;
+    display: block;
+  }
+
+  .preview-placeholder {
+    color: #555;
+    font-size: 14px;
+    text-align: center;
+    padding: 40px;
+  }
+
+  /* RESULT AREA */
+  .result-section {
+    padding: 0 20px 20px;
+  }
+
+  .result-box {
+    background: #0a0a1a;
+    border: 1px solid #0f3460;
+    border-radius: 12px;
+    min-height: 250px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 15px;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    color: #00ff88;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .result-box::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .result-box::-webkit-scrollbar-track {
+    background: #0a0a1a;
+  }
+
+  .result-box::-webkit-scrollbar-thumb {
+    background: #0f3460;
+    border-radius: 4px;
+  }
+
+  .result-separator {
+    color: #e94560;
+    font-weight: bold;
+  }
+
+  .result-header {
+    color: #00b4d8;
+    font-weight: bold;
+  }
+
+  /* ACTION BAR */
+  .action-bar {
+    padding: 15px 20px;
+    background: rgba(15, 52, 96, 0.3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* INFO BAR */
+  .info-bar {
+    padding: 10px 20px;
+    background: #0a0a1a;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: #1a1a2e;
+    border-radius: 15px;
+    padding: 25px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid #e94560;
+  }
+
+  .modal h2 {
+    color: #e94560;
+    margin-bottom: 15px;
+  }
+
+  .modal-content {
+    background: #0a0a1a;
+    padding: 15px;
+    border-radius: 8px;
+    color: #00ff88;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .modal-close {
+    margin-top: 15px;
+    text-align: right;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #00ff88;
+    color: #0a0a1a;
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+    transform: translateX(400px);
+    transition: transform 0.3s;
+    z-index: 2000;
+  }
+
+  .toast.active { transform: translateX(0); }
+  .toast.error { background: #e94560; color: #fff; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 24px; }
+    .control-panel { flex-direction: column; }
+    .btn { width: 100%; justify-content: center; }
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🔍 Visor Scanner</h1>
-            <p>Scan & Baca Text / Nominal dari Visor Device</p>
-        </header>
 
-        <!-- Status Bar -->
-        <div class="status-bar disconnected" id="statusBar">
-            <div class="status-indicator" id="statusIndicator"></div>
-            <span id="statusText">Belum Terhubung - Klik "Connect Visor" untuk memulai</span>
-        </div>
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <h1>🖥️ VISOR SCANNER</h1>
+    <p>Capture & OCR Screen - HTML Edition</p>
+  </div>
 
-        <!-- Configuration Panel -->
-        <div class="config-panel">
-            <h3>⚙️ Konfigurasi Serial Port</h3>
-            <div class="config-grid">
-                <div class="config-item">
-                    <label>Baud Rate</label>
-                    <select id="baudRate">
-                        <option value="9600" selected>9600</option>
-                        <option value="19200">19200</option>
-                        <option value="38400">38400</option>
-                        <option value="57600">57600</option>
-                        <option value="115200">115200</option>
-                    </select>
-                </div>
-                <div class="config-item">
-                    <label>Data Bits</label>
-                    <select id="dataBits">
-                        <option value="7">7</option>
-                        <option value="8" selected>8</option>
-                    </select>
-                </div>
-                <div class="config-item">
-                    <label>Stop Bits</label>
-                    <select id="stopBits">
-                        <option value="1" selected>1</option>
-                        <option value="2">2</option>
-                    </select>
-                </div>
-                <div class="config-item">
-                    <label>Parity</label>
-                    <select id="parity">
-                        <option value="none" selected>None</option>
-                        <option value="even">Even</option>
-                        <option value="odd">Odd</option>
-                    </select>
-                </div>
-                <div class="config-item">
-                    <label>Flow Control</label>
-                    <select id="flowControl">
-                        <option value="none" selected>None</option>
-                        <option value="hardware">Hardware</option>
-                    </select>
-                </div>
-                <div class="config-item">
-                    <label>Scan Mode</label>
-                    <select id="scanMode">
-                        <option value="all" selected>Semua (Text + Nominal)</option>
-                        <option value="text">Text Only</option>
-                        <option value="nominal">Nominal Only</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Menu Buttons -->
-        <div class="menu-panel">
-            <button class="btn btn-connect" id="btnConnect" onclick="connectVisor()">
-                🔌 Connect Visor
-            </button>
-            <button class="btn btn-scan" id="btnScan" onclick="startScan()" disabled>
-                📡 Scan Sekarang
-            </button>
-            <button class="btn btn-copy" id="btnCopyAll" onclick="copyAllResults()" disabled>
-                📋 Copy Semua
-            </button>
-            <button class="btn btn-clear" id="btnClear" onclick="clearResults()" disabled>
-                🗑️ Hapus Semua
-            </button>
-            <button class="btn btn-disconnect" id="btnDisconnect" onclick="disconnectVisor()" disabled>
-                ⛔ Disconnect
-            </button>
-        </div>
-
-        <!-- Scan Animation -->
-        <div class="scan-animation" id="scanAnimation">
-            <p style="color: #00d4ff;">⏳ Sedang membaca data dari visor...</p>
-            <div class="scan-bar">
-                <div class="scan-bar-fill"></div>
-            </div>
-        </div>
-
-        <!-- Results Panel -->
-        <div class="results-panel">
-            <div class="results-header">
-                <h3>📄 Hasil Scan</h3>
-                <span class="results-count" id="resultsCount">0 item</span>
-            </div>
-
-            <!-- Filter Bar -->
-            <div class="filter-bar">
-                <input type="text" id="filterInput" placeholder="🔎 Filter hasil scan..." oninput="filterResults()">
-                <select id="filterType" onchange="filterResults()">
-                    <option value="all">Semua Tipe</option>
-                    <option value="text">Text</option>
-                    <option value="nominal">Nominal</option>
-                </select>
-            </div>
-
-            <!-- Results List -->
-            <div class="results-list" id="resultsList">
-                <div class="empty-state" id="emptyState">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
-                    </svg>
-                    <p>Belum ada hasil scan</p>
-                    <small>Connect visor dan klik "Scan Sekarang" untuk memulai</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Log Panel -->
-        <div class="log-panel" id="logPanel">
-            <div class="log-entry info">
-                <span class="timestamp">[System]</span> Aplikasi siap digunakan. Connect visor untuk mulai scanning.
-            </div>
-        </div>
+  <!-- CONTROL PANEL -->
+  <div class="control-panel">
+    <div class="control-group">
+      <label>🌐 Bahasa OCR:</label>
+      <select id="langSelect">
+        <option value="eng">English</option>
+        <option value="ind">Indonesia</option>
+        <option value="eng+ind">English + Indonesia</option>
+      </select>
     </div>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast"></div>
+    <div class="control-group">
+      <label>🎨 Mode:</label>
+      <select id="modeSelect">
+        <option value="auto">Auto Detect</option>
+        <option value="light">Light Text (Dark BG)</option>
+        <option value="dark">Dark Text (Light BG)</option>
+      </select>
+    </div>
 
-    <script>
-        // Global Variables
-        let port = null;
-        let reader = null;
-        let writer = null;
-        let isConnected = false;
-        let scanResults = [];
-        let readLoopActive = false;
-        let buffer = '';
+    <button class="btn btn-primary" id="scanBtn">
+      🔍 SCAN SEKARANG
+    </button>
+  </div>
 
-        // DOM Elements
-        const statusBar = document.getElementById('statusBar');
-        const statusIndicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
-        const btnConnect = document.getElementById('btnConnect');
-        const btnScan = document.getElementById('btnScan');
-        const btnCopyAll = document.getElementById('btnCopyAll');
-        const btnClear = document.getElementById('btnClear');
-        const btnDisconnect = document.getElementById('btnDisconnect');
-        const resultsList = document.getElementById('resultsList');
-        const resultsCount = document.getElementById('resultsCount');
-        const emptyState = document.getElementById('emptyState');
-        const scanAnimation = document.getElementById('scanAnimation');
-        const logPanel = document.getElementById('logPanel');
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span class="status-text" id="statusText">✅ Siap - Klik SCAN untuk mulai</span>
+    <div class="progress-container" id="progressContainer">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
 
-        // Check Web Serial API support
-        if (!('serial' in navigator)) {
-            addLog('Web Serial API tidak didukung di browser ini. Gunakan Chrome/Edge versi terbaru.', 'error');
-            btnConnect.disabled = true;
-            btnConnect.textContent = '❌ Browser Tidak Support';
+  <!-- PREVIEW -->
+  <div class="preview-section">
+    <div class="section-title">📷 Preview Layar Visor</div>
+    <div class="preview-box" id="previewBox">
+      <div class="preview-placeholder">
+        Belum ada preview<br>
+        <small>Klik SCAN untuk capture layar</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-section">
+    <div class="section-title">📝 Hasil Scan Teks</div>
+    <div class="result-box" id="resultBox">Hasil scan akan muncul di sini...</div>
+  </div>
+
+  <!-- ACTION BAR -->
+  <div class="action-bar">
+    <button class="btn btn-secondary" id="copyBtn" disabled>📋 Copy Semua</button>
+    <button class="btn btn-secondary" id="exportBtn" disabled>💾 Export .txt</button>
+    <button class="btn btn-warning" id="clearBtn">🗑️ Clear</button>
+    <button class="btn btn-warning" id="historyBtn">📜 History</button>
+  </div>
+
+  <!-- INFO BAR -->
+  <div class="info-bar">
+    <span id="scanCount">Total Scan: 0</span>
+    <span id="charCount">Karakter: 0</span>
+  </div>
+</div>
+
+<!-- MODAL HISTORY -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal">
+    <h2>📜 History Scan</h2>
+    <div class="modal-content" id="historyContent">Belum ada history.</div>
+    <div class="modal-close">
+      <button class="btn btn-primary" onclick="closeHistory()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================
+// STATE MANAGEMENT
+// ============================================
+const state = {
+  scanResults: [],
+  history: JSON.parse(localStorage.getItem('visorHistory') || '[]'),
+  isScanning: false,
+  currentScreenshot: null
+};
+
+// ============================================
+// DOM ELEMENTS
+// ============================================
+const $ = id => document.getElementById(id);
+const scanBtn = $('scanBtn');
+const copyBtn = $('copyBtn');
+const exportBtn = $('exportBtn');
+const clearBtn = $('clearBtn');
+const historyBtn = $('historyBtn');
+const statusText = $('statusText');
+const progressContainer = $('progressContainer');
+const progressBar = $('progressBar');
+const previewBox = $('previewBox');
+const resultBox = $('resultBox');
+const scanCount = $('scanCount');
+const charCount = $('charCount');
+const langSelect = $('langSelect');
+const modeSelect = $('modeSelect');
+const toast = $('toast');
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function showToast(message, isError = false) {
+  toast.textContent = message;
+  toast.className = 'toast active' + (isError ? ' error' : '');
+  setTimeout(() => toast.classList.remove('active'), 3000);
+}
+
+function setStatus(message, type = 'success') {
+  statusText.textContent = message;
+  statusText.className = 'status-text ' + (type === 'error' ? 'error' : type === 'warning' ? 'warning' : '');
+}
+
+function updateProgress(percent) {
+  progressBar.style.width = percent + '%';
+}
+
+function showProgress(show) {
+  progressContainer.classList.toggle('active', show);
+}
+
+function formatTimestamp() {
+  const d = new Date();
+  return d.toLocaleString('id-ID', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+}
+
+function updateStats() {
+  scanCount.textContent = `Total Scan: ${state.scanResults.length}`;
+  const totalChars = state.scanResults.reduce((sum, r) => 
+    sum + r.text.replace(/\s/g, '').length, 0
+  );
+  charCount.textContent = `Karakter: ${totalChars}`;
+}
+
+// ============================================
+// IMAGE PRE-PROCESSING
+// ============================================
+function preprocessImage(canvas, mode) {
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  // Convert to grayscale
+  for (let i = 0; i < data.length; i += 4) {
+    const gray = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
+    data[i] = data[i+1] = data[i+2] = gray;
+  }
+
+  // Auto threshold (Otsu-like)
+  if (mode === 'auto' || mode === 'dark') {
+    const threshold = 128;
+    for (let i = 0; i < data.length; i += 4) {
+      const v = data[i] < threshold ? 0 : 255;
+      data[i] = data[i+1] = data[i+2] = v;
+    }
+  }
+
+  // Invert for light text on dark background
+  if (mode === 'light') {
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = 255 - data[i];
+      data[i+1] = 255 - data[i+1];
+      data[i+2] = 255 - data[i+2];
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
+// ============================================
+// MAIN SCAN FUNCTION
+// ============================================
+async function doScan() {
+  if (state.isScanning) return;
+  state.isScanning = true;
+  scanBtn.disabled = true;
+  scanBtn.innerHTML = '⏳ SCANNING...';
+  showProgress(true);
+  updateProgress(0);
+
+  try {
+    // 1. CAPTURE SCREEN
+    setStatus('⏳ Meminta izin capture layar...');
+    updateProgress(10);
+
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { cursor: 'never' },
+      audio: false
+    });
+
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    await video.play();
+
+    // Tunggu frame stabil
+    await new Promise(r => setTimeout(r, 300));
+
+    // 2. DRAW TO CANVAS
+    setStatus('⏳ Capture layar...');
+    updateProgress(25);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+
+    // Stop stream
+    stream.getTracks().forEach(t => t.stop());
+
+    // 3. SHOW PREVIEW
+    const dataUrl = canvas.toDataURL('image/png');
+    state.currentScreenshot = dataUrl;
+    previewBox.innerHTML = `<img src="${dataUrl}" alt="Preview">`;
+
+    // 4. PRE-PROCESS
+    setStatus('⏳ Pre-processing gambar...');
+    updateProgress(40);
+    const mode = modeSelect.value;
+    preprocessImage(canvas, mode);
+
+    // 5. OCR WITH TESSERACT
+    setStatus('⏳ Memproses OCR (Tesseract.js)...');
+    updateProgress(50);
+
+    const lang = langSelect.value;
+    const worker = await Tesseract.createWorker(lang, 1, {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          const pct = 50 + Math.round(m.progress * 45);
+          updateProgress(pct);
         }
+      }
+    });
 
-        // Connect to Visor
-        async function connectVisor() {
-            try {
-                addLog('Memulai koneksi ke visor...', 'info');
+    const { data: { text } } = await worker.recognize(canvas);
+    await worker.terminate();
 
-                port = await navigator.serial.requestPort();
+    updateProgress(100);
 
-                const baudRate = parseInt(document.getElementById('baudRate').value);
-                const dataBits = parseInt(document.getElementById('dataBits').value);
-                const stopBits = parseInt(document.getElementById('stopBits').value);
-                const parity = document.getElementById('parity').value;
-                const flowControl = document.getElementById('flowControl').value;
+    // 6. PROCESS RESULT
+    const extractedText = text.trim();
 
-                await port.open({
-                    baudRate: baudRate,
-                    dataBits: dataBits,
-                    stopBits: stopBits,
-                    parity: parity,
-                    flowControl: flowControl
-                });
+    if (extractedText) {
+      const timestamp = formatTimestamp();
+      const result = {
+        timestamp,
+        text: extractedText,
+        lines: extractedText.split('\n').filter(l => l.trim()),
+        screenshot: dataUrl
+      };
 
-                isConnected = true;
-                updateConnectionStatus(true);
-                addLog(`Terhubung ke visor! (Baud: ${baudRate}, Data: ${dataBits}, Stop: ${stopBits}, Parity: ${parity})`, 'success');
-                showToast('✅ Visor berhasil terhubung!');
+      state.scanResults.push(result);
+      state.history.push({
+        timestamp,
+        text: extractedText
+      });
 
-                // Start reading data
-                startReading();
+      // Save history to localStorage
+      localStorage.setItem('visorHistory', JSON.stringify(state.history.slice(-50)));
 
-            } catch (error) {
-                addLog(`Gagal koneksi: ${error.message}`, 'error');
-                showToast('❌ Gagal terhubung ke visor', true);
-            }
-        }
+      // Display result
+      displayResult(result);
 
-        // Disconnect from Visor
-        async function disconnectVisor() {
-            try {
-                readLoopActive = false;
+      // Enable buttons
+      copyBtn.disabled = false;
+      exportBtn.disabled = false;
 
-                if (reader) {
-                    await reader.cancel();
-                    reader = null;
-                }
+      updateStats();
+      setStatus(`✅ Scan berhasil! (${result.lines.length} baris teks)`);
+      showToast('Scan berhasil! ✅');
+    } else {
+      setStatus('⚠️ Tidak ada teks terdeteksi', 'warning');
+      showToast('Tidak ada teks terdeteksi', true);
+    }
 
-                if (writer) {
-                    await writer.close();
-                    writer = null;
-                }
+  } catch (err) {
+    console.error(err);
+    if (err.name === 'NotAllowedError') {
+      setStatus('❌ Izin capture ditolak', 'error');
+      showToast('Izin capture ditolak!', true);
+    } else {
+      setStatus(`❌ Error: ${err.message}`, 'error');
+      showToast(`Error: ${err.message}`, true);
+    }
+  } finally {
+    state.isScanning = false;
+    scanBtn.disabled = false;
+    scanBtn.innerHTML = '🔍 SCAN SEKARANG';
+    setTimeout(() => {
+      showProgress(false);
+      updateProgress(0);
+    }, 1000);
+  }
+}
 
-                if (port) {
-                    await port.close();
-                    port = null;
-                }
+// ============================================
+// DISPLAY RESULT
+// ============================================
+function displayResult(result) {
+  const separator = '='.repeat(50);
+  const html = `
+<span class="result-separator">${separator}</span>
+<span class="result-header">⏰ ${result.timestamp}</span>
+<span class="result-separator">${separator}</span>
+${result.text}
 
-                isConnected = false;
-                updateConnectionStatus(false);
-                addLog('Visor terputus.', 'info');
-                showToast('Visor telah disconnect');
+`;
 
-            } catch (error) {
-                addLog(`Error saat disconnect: ${error.message}`, 'error');
-            }
-        }
+  if (resultBox.textContent === 'Hasil scan akan muncul di sini...') {
+    resultBox.innerHTML = html;
+  } else {
+    resultBox.innerHTML += html;
+  }
 
-        // Start Reading Data from Visor
-        async function startReading() {
-            if (!port || !port.readable) return;
+  resultBox.scrollTop = resultBox.scrollHeight;
+}
 
-            readLoopActive = true;
-            const textDecoder = new TextDecoderStream();
-            const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+// ============================================
+// COPY FUNCTION
+// ============================================
+async function copyAll() {
+  if (!state.scanResults.length) return;
 
-            reader = textDecoder.readable.getReader();
+  const allText = state.scanResults.map(r => 
+    `[${r.timestamp}]\n${r.text}`
+  ).join('\n\n' + '='.repeat(50) + '\n\n');
 
-            try {
-                while (readLoopActive) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
+  try {
+    await navigator.clipboard.writeText(allText);
+    showToast('📋 Berhasil di-copy ke clipboard!');
+    setStatus('📋 Semua teks berhasil di-copy!');
+  } catch (err) {
+    // Fallback
+    const textarea = document.createElement('textarea');
+    textarea.value = allText;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showToast('📋 Berhasil di-copy!');
+  }
+}
 
-                    if (value) {
-                        buffer += value;
+// ============================================
+// EXPORT FUNCTION
+// ============================================
+function exportTxt() {
+  if (!state.scanResults.length) return;
 
-                        // Process complete lines
-                        let newlineIndex;
-                        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-                            const line = buffer.substring(0, newlineIndex).trim();
-                            buffer = buffer.substring(newlineIndex + 1);
+  let content = '='.repeat(50) + '\n';
+  content += 'VISOR SCANNER - HTML Edition\n';
+  content += 'Export: ' + formatTimestamp() + '\n';
+  content += '='.repeat(50) + '\n\n';
 
-                            if (line.length > 0) {
-                                processData(line);
-                            }
-                        }
-                    }
-                }
-            } catch (error) {
-                if (readLoopActive) {
-                    addLog(`Error membaca data: ${error.message}`, 'error');
-                }
-            }
-        }
+  state.scanResults.forEach(r => {
+    content += `[${r.timestamp}]\n`;
+    content += '-'.repeat(40) + '\n';
+    content += r.text + '\n\n';
+  });
 
-        // Process Data from Visor
-        function processData(data) {
-            const scanMode = document.getElementById('scanMode').value;
-            const isNominal = isNumericValue(data);
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `visor_scan_${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 
-            if (scanMode === 'all') {
-                addResult(data, isNominal ? 'nominal' : 'text');
-            } else if (scanMode === 'nominal' && isNominal) {
-                addResult(data, 'nominal');
-            } else if (scanMode === 'text' && !isNominal) {
-                addResult(data, 'text');
-            }
+  showToast('💾 File berhasil di-export!');
+  setStatus('💾 Export berhasil!');
+}
 
-            addLog(`Data diterima: "${data}"`, 'success');
-        }
+// ============================================
+// CLEAR FUNCTION
+// ============================================
+function clearResults() {
+  if (!state.scanResults.length) {
+    showToast('Tidak ada data untuk dihapus');
+    return;
+  }
+  if (!confirm('Hapus semua hasil scan?')) return;
 
-        // Check if value is numeric/nominal
-        function isNumericValue(value) {
-            const cleaned = value.replace(/[^0-9.,\-+]/g, '');
-            const num = parseFloat(cleaned.replace(',', '.'));
-            return !isNaN(num) && cleaned.length > 0;
-        }
+  state.scanResults = [];
+  resultBox.innerHTML = 'Hasil scan akan muncul di sini...';
+  copyBtn.disabled = true;
+  exportBtn.disabled = true;
+  updateStats();
+  showToast('🗑️ Hasil scan dihapus');
+  setStatus('🗑️ Hasil dihapus');
+}
 
-        // Add Result
-        function addResult(text, type) {
-            const result = {
-                id: Date.now() + Math.random(),
-                text: text,
-                type: type,
-                timestamp: new Date().toLocaleTimeString('id-ID')
-            };
+// ============================================
+// HISTORY FUNCTION
+// ============================================
+function showHistory() {
+  const modal = $('historyModal');
+  const content = $('historyContent');
 
-            scanResults.push(result);
-            renderResults();
-            updateButtons();
-        }
+  if (!state.history.length) {
+    content.textContent = 'Belum ada history scan.';
+  } else {
+    content.textContent = state.history.map((h, i) => 
+      `--- Scan #${i+1} [${h.timestamp}] ---\n${h.text}\n`
+    ).join('\n');
+  }
 
-        // Render Results
-        function renderResults() {
-            const filterText = document.getElementById('filterInput').value.toLowerCase();
-            const filterType = document.getElementById('filterType').value;
+  modal.classList.add('active');
+}
 
-            let filtered = scanResults.filter(r => {
-                const matchText = r.text.toLowerCase().includes(filterText);
-                const matchType = filterType === 'all' || r.type === filterType;
-                return matchText && matchType;
-            });
+function closeHistory() {
+  $('historyModal').classList.remove('active');
+}
 
-            if (filtered.length === 0) {
-                resultsList.innerHTML = `
-                    <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
-                        </svg>
-                        <p>${scanResults.length === 0 ? 'Belum ada hasil scan' : 'Tidak ada hasil yang cocok'}</p>
-                        <small>${scanResults.length === 0 ? 'Connect visor dan klik "Scan Sekarang" untuk memulai' : 'Coba ubah filter pencarian'}</small>
-                    </div>
-                `;
-            } else {
-                resultsList.innerHTML = filtered.map(r => `
-                    <div class="result-item" data-id="${r.id}">
-                        <div class="result-content">
-                            <div class="result-text">
-                                ${escapeHtml(r.text)}
-                                <span class="result-type ${r.type === 'nominal' ? 'type-nominal' : 'type-text'}">
-                                    ${r.type === 'nominal' ? '💰 Nominal' : '📝 Text'}
-                                </span>
-                            </div>
-                            <div class="result-meta">🕐 ${r.timestamp} | #${scanResults.indexOf(r) + 1}</div>
-                        </div>
-                        <div class="result-actions">
-                            <button class="btn-small btn-copy-item" onclick="copyItem('${escapeHtml(r.text).replace(/'/g, "\\'")}')">📋 Copy</button>
-                            <button class="btn-small btn-delete-item" onclick="deleteItem(${r.id})">✕</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
+// ============================================
+// EVENT LISTENERS
+// ============================================
+scanBtn.addEventListener('click', doScan);
+copyBtn.addEventListener('click', copyAll);
+exportBtn.addEventListener('click', exportTxt);
+clearBtn.addEventListener('click', clearResults);
+historyBtn.addEventListener('click', showHistory);
 
-            resultsCount.textContent = `${scanResults.length} item`;
-        }
+// Close modal on outside click
+$('historyModal').addEventListener('click', e => {
+  if (e.target.id === 'historyModal') closeHistory();
+});
 
-        // Filter Results
-        function filterResults() {
-            renderResults();
-        }
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') doScan();
+  if (e.key === 'Escape') closeHistory();
+});
 
-        // Start Manual Scan (Send command to visor)
-        async function startScan() {
-            if (!isConnected || !port) {
-                showToast('❌ Visor belum terhubung!', true);
-                return;
-            }
+// ============================================
+// INIT
+// ============================================
+window.addEventListener('load', () => {
+  setStatus('✅ Siap - Klik SCAN untuk mulai (Ctrl+Enter)');
+  updateStats();
+});
+</script>
 
-            scanAnimation.classList.add('active');
-            addLog('Mengirim perintah scan ke visor...', 'info');
-
-            try {
-                if (port.writable) {
-                    writer = port.writable.getWriter();
-                    const textEncoder = new TextEncoder();
-
-                    // Send scan command (common commands for visor devices)
-                    const commands = ['SCAN\r\n', 'READ\r\n', 'DUMP\r\n', 'GET ALL\r\n'];
-
-                    for (const cmd of commands) {
-                        await writer.write(textEncoder.encode(cmd));
-                        addLog(`Command dikirim: "${cmd.trim()}"`, 'info');
-                        await sleep(300);
-                    }
-
-                    writer.releaseLock();
-                }
-
-                // Also simulate reading from buffer
-                addLog('Menunggu data dari visor...', 'info');
-
-                setTimeout(() => {
-                    scanAnimation.classList.remove('active');
-                    if (scanResults.length === 0) {
-                        addLog('Tidak ada data baru dari visor. Pastikan visor mengirim data.', 'info');
-                        showToast('⏳ Menunggu data dari visor...');
-                    } else {
-                        showToast(`✅ Scan selesai! ${scanResults.length} data ditemukan.`);
-                    }
-                }, 3000);
-
-            } catch (error) {
-                scanAnimation.classList.remove('active');
-                addLog(`Error saat scan: ${error.message}`, 'error');
-                showToast('❌ Error saat scanning', true);
-            }
-        }
-
-        // Copy single item
-        function copyItem(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('📋 Teks berhasil dicopy!');
-            }).catch(() => {
-                // Fallback
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showToast('📋 Teks berhasil dicopy!');
-            });
-        }
-
-        // Copy all results
-        function copyAllResults() {
-            if (scanResults.length === 0) {
-                showToast('❌ Tidak ada data untuk dicopy', true);
-                return;
-            }
-
-            const allText = scanResults.map((r, i) =>
-                `${i + 1}. [${r.type.toUpperCase()}] ${r.text} (${r.timestamp})`
-            ).join('\n');
-
-            navigator.clipboard.writeText(allText).then(() => {
-                showToast(`📋 ${scanResults.length} data berhasil dicopy!`);
-                addLog(`Semua hasil (${scanResults.length} item) dicopy ke clipboard.`, 'success');
-            }).catch(() => {
-                const textarea = document.createElement('textarea');
-                textarea.value = allText;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showToast(`📋 ${scanResults.length} data berhasil dicopy!`);
-            });
-        }
-
-        // Delete single item
-        function deleteItem(id) {
-            scanResults = scanResults.filter(r => r.id !== id);
-            renderResults();
-            updateButtons();
-        }
-
-        // Clear all results
-        function clearResults() {
-            if (scanResults.length === 0) return;
-
-            if (confirm(`Hapus semua ${scanResults.length} hasil scan?`)) {
-                scanResults = [];
-                renderResults();
-                updateButtons();
-                addLog('Semua hasil scan dihapus.', 'info');
-                showToast('🗑️ Semua hasil dihapus');
-            }
-        }
-
-        // Update Connection Status UI
-        function updateConnectionStatus(connected) {
-            if (connected) {
-                statusBar.classList.remove('disconnected');
-                statusBar.classList.add('connected');
-                statusIndicator.classList.add('active');
-                statusText.textContent = 'Terhubung ke Visor - Siap scanning';
-                btnConnect.disabled = true;
-                btnScan.disabled = false;
-                btnDisconnect.disabled = false;
-            } else {
-                statusBar.classList.remove('connected');
-                statusBar.classList.add('disconnected');
-                statusIndicator.classList.remove('active');
-                statusText.textContent = 'Belum Terhubung - Klik "Connect Visor" untuk memulai';
-                btnConnect.disabled = false;
-                btnScan.disabled = true;
-                btnDisconnect.disabled = true;
-            }
-            updateButtons();
-        }
-
-        // Update button states
-        function updateButtons() {
-            btnCopyAll.disabled = scanResults.length === 0;
-            btnClear.disabled = scanResults.length === 0;
-        }
-
-        // Add log entry
-        function addLog(message, type = 'info') {
-            const time = new Date().toLocaleTimeString('id-ID');
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            entry.innerHTML = `<span class="timestamp">[${time}]</span> ${message}`;
-            logPanel.appendChild(entry);
-            logPanel.scrollTop = logPanel.scrollHeight;
-
-            // Keep only last 100 entries
-            while (logPanel.children.length > 100) {
-                logPanel.removeChild(logPanel.firstChild);
-            }
-        }
-
-        // Show toast notification
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast show ${isError ? 'error' : ''}`;
-
-            setTimeout(() => {
-                toast.className = 'toast';
-            }, 3000);
-        }
-
-        // Escape HTML
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Sleep utility
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // Handle port disconnect
-        if ('serial' in navigator) {
-            navigator.serial.addEventListener('disconnect', (e) => {
-                if (port === e.target) {
-                    isConnected = false;
-                    readLoopActive = false;
-                    updateConnectionStatus(false);
-                    addLog('Visor terputus secara tiba-tiba!', 'error');
-                    showToast('⚠️ Visor terputus!', true);
-                }
-            });
-        }
-
-        // Demo mode - for testing without actual device
-        function addDemoData() {
-            const demoData = [
-                { text: 'VISOR SYSTEM v2.1', type: 'text' },
-                { text: '1250.00', type: 'nominal' },
-                { text: 'SENSOR: ACTIVE', type: 'text' },
-                { text: '3500000', type: 'nominal' },
-                { text: 'TEMP: 45.2°C', type: 'text' },
-                { text: '75000', type: 'nominal' },
-                { text: 'STATUS: NORMAL', type: 'text' },
-                { text: '12500.50', type: 'nominal' },
-                { text: 'PRESSURE: 2.4 BAR', type: 'text' },
-                { text: '999000', type: 'nominal' },
-            ];
-
-            demoData.forEach((item, i) => {
-                setTimeout(() => {
-                    addResult(item.text, item.type);
-                }, i * 200);
-            });
-
-            showToast('📡 Demo data dimuat!');
-            addLog('Demo data ditambahkan untuk testing.', 'info');
-        }
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-                if (isConnected) startScan();
-            }
-            if (e.ctrlKey && e.key === 'c' && e.shiftKey) {
-                e.preventDefault();
-                copyAllResults();
-            }
-        });
-    </script>
 </body>
 </html>
