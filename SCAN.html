@@ -3,357 +3,415 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🖥️ Visor Scanner - HTML Edition</title>
+    <title>🔍 Visor Scanner - HTML OCR</title>
     
-    <!-- Tesseract.js untuk OCR -->
-    <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
+    <!-- Tesseract.js - OCR Library -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
     
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #1a1a2e;
+            color: #ffffff;
             min-height: 100vh;
-            color: #fff;
             padding: 20px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
         }
 
         /* Header */
         .header {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 12px;
             text-align: center;
-            padding: 30px 20px;
-            background: rgba(233, 69, 96, 0.1);
-            border-radius: 15px;
-            margin-bottom: 30px;
-            border: 2px solid #e94560;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
         .header h1 {
-            font-size: 2.5em;
             color: #e94560;
-            margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+            font-size: 2.2em;
+            margin-bottom: 5px;
         }
 
         .header p {
             color: #888;
-            font-size: 1.1em;
+            font-size: 0.95em;
         }
 
-        /* Control Panel */
-        .control-panel {
-            background: rgba(22, 33, 62, 0.8);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            border: 1px solid #0f3460;
-        }
-
-        .control-row {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .control-row:last-child {
-            margin-bottom: 0;
-        }
-
-        label {
-            font-weight: 600;
-            color: #00b4d8;
-            min-width: 120px;
-        }
-
-        select, input[type="file"] {
-            flex: 1;
-            min-width: 200px;
-            padding: 12px 15px;
-            border: 2px solid #0f3460;
+        /* Status Bar */
+        .status-bar {
+            background: #16213e;
+            padding: 12px 20px;
             border-radius: 8px;
-            background: #1a1a2e;
-            color: #fff;
-            font-size: 1em;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        select:hover, select:focus {
-            border-color: #e94560;
-            outline: none;
-        }
-
-        /* Buttons */
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #e94560, #c73652);
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #0f3460, #0a2647);
-            color: white;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(15, 52, 96, 0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #00b4d8, #0077b6);
-            color: white;
-        }
-
-        .btn-success:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 180, 216, 0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Preview Area */
-        .preview-section {
-            background: rgba(22, 33, 62, 0.8);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            border: 1px solid #0f3460;
-        }
-
-        .section-title {
-            font-size: 1.3em;
-            color: #e94560;
             margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 10px;
+            border-left: 4px solid #00ff88;
+        }
+
+        .status-bar.error {
+            border-left-color: #e94560;
+        }
+
+        .status-bar.loading {
+            border-left-color: #ffd60a;
+        }
+
+        #statusText {
+            flex: 1;
+            font-size: 0.95em;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #e94560;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #c73652;
+        }
+
+        .btn-secondary {
+            background: #0f3460;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #0a2647;
+        }
+
+        .btn-danger {
+            background: #533483;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #3d2563;
+        }
+
+        .btn-stop {
+            background: #dc2626;
+            color: white;
+        }
+
+        /* Settings */
+        .settings {
+            background: #16213e;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .settings label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .settings select, .settings input[type="range"] {
+            padding: 6px 10px;
+            background: #0a0a1a;
+            color: white;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        /* Preview Area */
+        .preview-section {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .preview-section h3 {
+            color: #e94560;
+            margin-bottom: 15px;
+            font-size: 1.1em;
         }
 
         .preview-container {
+            position: relative;
             background: #0a0a1a;
-            border-radius: 10px;
-            padding: 15px;
-            min-height: 200px;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 300px;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            overflow: hidden;
         }
 
-        .preview-container img {
+        #videoPreview {
             max-width: 100%;
             max-height: 400px;
-            border-radius: 5px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        #canvasPreview {
+            display: none;
+            max-width: 100%;
+            max-height: 400px;
         }
 
         .preview-placeholder {
             color: #555;
             text-align: center;
+            padding: 40px;
         }
 
-        .preview-placeholder svg {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 15px;
-            opacity: 0.3;
-        }
-
-        /* Results Area */
-        .results-section {
-            background: rgba(22, 33, 62, 0.8);
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid #0f3460;
-        }
-
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .stats {
-            display: flex;
-            gap: 20px;
-            font-size: 0.9em;
-            color: #888;
-        }
-
-        .stat-item {
-            background: rgba(15, 52, 96, 0.5);
-            padding: 8px 15px;
-            border-radius: 5px;
-        }
-
-        .stat-value {
-            color: #00ff88;
-            font-weight: bold;
-        }
-
-        .results-textarea {
-            width: 100%;
-            min-height: 300px;
-            background: #0a0a1a;
-            border: 2px solid #0f3460;
-            border-radius: 10px;
-            padding: 20px;
-            color: #00ff88;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 1em;
-            line-height: 1.6;
-            resize: vertical;
-            transition: border-color 0.3s;
-        }
-
-        .results-textarea:focus {
-            outline: none;
-            border-color: #e94560;
+        .preview-placeholder .icon {
+            font-size: 4em;
+            margin-bottom: 10px;
         }
 
         /* Progress Bar */
         .progress-container {
             display: none;
-            margin: 20px 0;
+            margin-top: 15px;
         }
 
         .progress-bar {
             width: 100%;
-            height: 30px;
+            height: 8px;
             background: #0a0a1a;
-            border-radius: 15px;
+            border-radius: 4px;
             overflow: hidden;
-            position: relative;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #e94560, #00b4d8);
+            background: linear-gradient(90deg, #e94560, #00ff88);
             width: 0%;
             transition: width 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.9em;
         }
 
         .progress-text {
             text-align: center;
-            margin-top: 10px;
+            margin-top: 8px;
+            font-size: 0.85em;
             color: #888;
         }
 
-        /* Status Messages */
-        .status-message {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            display: none;
+        /* Result Area */
+        .result-section {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
         }
 
-        .status-success {
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid #00ff88;
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-header h3 {
+            color: #e94560;
+            font-size: 1.1em;
+        }
+
+        .result-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        #resultText {
+            width: 100%;
+            min-height: 250px;
+            background: #0a0a1a;
             color: #00ff88;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.95em;
+            resize: vertical;
+            line-height: 1.6;
         }
 
-        .status-error {
-            background: rgba(233, 69, 96, 0.1);
-            border: 1px solid #e94560;
+        #resultText:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+
+        /* Info Bar */
+        .info-bar {
+            background: #16213e;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        /* History Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 25px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .modal-header h2 {
             color: #e94560;
         }
 
-        .status-info {
-            background: rgba(0, 180, 216, 0.1);
-            border: 1px solid #00b4d8;
+        .close-btn {
+            background: transparent;
+            color: white;
+            font-size: 1.5em;
+            padding: 5px 12px;
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .history-item {
+            background: #0a0a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #00ff88;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85em;
             color: #00b4d8;
+        }
+
+        .history-item-content {
+            color: #00ff88;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #00ff88;
+            color: #000;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: #e94560;
+            color: white;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.8em;
-            }
-
-            .control-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            label {
-                min-width: auto;
-                margin-bottom: 5px;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .results-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-        }
-
-        /* Loading Animation */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .loading {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        /* Hidden file input */
-        #fileInput {
-            display: none;
+            .header h1 { font-size: 1.5em; }
+            .control-panel { flex-direction: column; }
+            button { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -361,381 +419,405 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>🖥️ Visor Scanner</h1>
-            <p>Capture & Extract Text dari Layar dengan OCR</p>
+            <h1>🔍 VISOR SCANNER</h1>
+            <p>Capture layar & scan teks dengan OCR - Langsung di browser</p>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar" id="statusBar">
+            <span>✅</span>
+            <span id="statusText">Siap - Klik "Start Capture" untuk mulai</span>
+        </div>
+
+        <!-- Settings -->
+        <div class="settings">
+            <label>
+                🌐 Bahasa OCR:
+                <select id="langSelect">
+                    <option value="eng">English</option>
+                    <option value="ind">Indonesia</option>
+                    <option value="eng+ind">English + Indonesia</option>
+                </select>
+            </label>
+            <label>
+                🎯 Mode PSM:
+                <select id="psmSelect">
+                    <option value="3">Otomatis (Default)</option>
+                    <option value="6">Block teks seragam</option>
+                    <option value="11">Teks sparse</option>
+                    <option value="4">Kolom teks</option>
+                </select>
+            </label>
+            <label>
+                🔆 Kontras:
+                <input type="range" id="contrastRange" min="0.5" max="3" step="0.1" value="1.5">
+                <span id="contrastValue">1.5</span>
+            </label>
         </div>
 
         <!-- Control Panel -->
         <div class="control-panel">
-            <div class="control-row">
-                <label>📸 Sumber:</label>
-                <select id="sourceSelect">
-                    <option value="screen">📺 Full Screen</option>
-                    <option value="window"> Window/Application</option>
-                    <option value="file">📁 Upload Gambar</option>
-                </select>
-            </div>
-
-            <div class="control-row">
-                <label>🌐 Bahasa OCR:</label>
-                <select id="langSelect">
-                    <option value="eng">English</option>
-                    <option value="ind">Bahasa Indonesia</option>
-                    <option value="eng+ind">English + Indonesia</option>
-                </select>
-            </div>
-
-            <div class="control-row">
-                <label>️ Mode:</label>
-                <select id="modeSelect">
-                    <option value="auto">Auto Detect</option>
-                    <option value="text">Text Only</option>
-                    <option value="numbers">Numbers Only</option>
-                    <option value="alphanumeric">Alphanumeric</option>
-                </select>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn btn-primary" id="scanBtn" onclick="startScan()">
-                    🔍 Scan Sekarang
-                </button>
-                <button class="btn btn-secondary" id="copyBtn" onclick="copyToClipboard()" disabled>
-                     Copy Semua
-                </button>
-                <button class="btn btn-success" id="downloadBtn" onclick="downloadTxt()" disabled>
-                    💾 Download .txt
-                </button>
-                <button class="btn btn-secondary" onclick="clearResults()">
-                    🗑️ Clear
-                </button>
-            </div>
-
-            <!-- Progress Bar -->
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill">0%</div>
-                </div>
-                <div class="progress-text" id="progressText">Initializing...</div>
-            </div>
-
-            <!-- Status Messages -->
-            <div class="status-message status-info" id="statusInfo"></div>
-            <div class="status-message status-success" id="statusSuccess"></div>
-            <div class="status-message status-error" id="statusError"></div>
+            <button class="btn-primary" id="startCaptureBtn" onclick="startCapture()">
+                🎥 Start Capture
+            </button>
+            <button class="btn-stop" id="stopCaptureBtn" onclick="stopCapture()" style="display:none;">
+                ⏹️ Stop Capture
+            </button>
+            <button class="btn-primary" id="scanBtn" onclick="doScan()" disabled>
+                🔍 Scan Sekarang
+            </button>
+            <button class="btn-secondary" id="copyBtn" onclick="copyAll()" disabled>
+                📋 Copy Semua
+            </button>
+            <button class="btn-secondary" id="exportBtn" onclick="exportTxt()" disabled>
+                💾 Export .txt
+            </button>
+            <button class="btn-danger" id="historyBtn" onclick="showHistory()">
+                📜 History
+            </button>
+            <button class="btn-danger" id="clearBtn" onclick="clearResults()">
+                🗑️ Clear
+            </button>
         </div>
 
         <!-- Preview Section -->
         <div class="preview-section">
-            <div class="section-title">
-                📷 Preview Layar
-            </div>
-            <div class="preview-container" id="previewContainer">
-                <div class="preview-placeholder">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p>Klik "Scan Sekarang" untuk capture layar</p>
+            <h3>📷 Preview Layar</h3>
+            <div class="preview-container">
+                <video id="videoPreview" autoplay playsinline></video>
+                <canvas id="canvasPreview"></canvas>
+                <div class="preview-placeholder" id="previewPlaceholder">
+                    <div class="icon">🖥️</div>
+                    <p>Belum ada capture aktif</p>
+                    <p style="font-size: 0.85em; margin-top: 10px;">
+                        Klik "Start Capture" untuk memilih monitor/window
+                    </p>
                 </div>
             </div>
-            <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Memproses...</div>
+            </div>
         </div>
 
-        <!-- Results Section -->
-        <div class="results-section">
-            <div class="results-header">
-                <div class="section-title">
-                     Hasil Scan Teks
-                </div>
-                <div class="stats">
-                    <div class="stat-item">
-                        Total Scan: <span class="stat-value" id="scanCount">0</span>
-                    </div>
-                    <div class="stat-item">
-                        Karakter: <span class="stat-value" id="charCount">0</span>
-                    </div>
-                    <div class="stat-item">
-                        Baris: <span class="stat-value" id="lineCount">0</span>
-                    </div>
+        <!-- Result Section -->
+        <div class="result-section">
+            <div class="result-header">
+                <h3>📝 Hasil Scan Teks</h3>
+                <div class="result-stats">
+                    <span id="scanCount">Total Scan: 0</span>
+                    <span>|</span>
+                    <span id="charCount">Karakter: 0</span>
                 </div>
             </div>
-            <textarea class="results-textarea" id="resultsText" placeholder="Hasil scan akan muncul di sini..." readonly></textarea>
+            <textarea id="resultText" placeholder="Hasil scan akan muncul di sini...&#10;&#10;Anda juga bisa edit teks di sini sebelum di-copy."></textarea>
+        </div>
+
+        <!-- Info Bar -->
+        <div class="info-bar">
+            <span>💡 Tip: Pilih "Entire Screen" saat capture untuk scan visor/monitor</span>
+            <span id="versionInfo">v1.0 | Tesseract.js</span>
         </div>
     </div>
 
+    <!-- History Modal -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📜 History Scan</h2>
+                <button class="close-btn" onclick="closeHistory()">✕</button>
+            </div>
+            <div class="modal-body" id="historyBody">
+                <p style="color: #888; text-align: center; padding: 20px;">
+                    Belum ada history scan
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
     <script>
-        // Global variables
-        let scanHistory = [];
-        let currentImage = null;
-        let scanCounter = 0;
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        let mediaStream = null;
+        let videoElement = null;
+        let scanResults = [];
+        let history = [];
+        let tesseractWorker = null;
+        let isWorkerReady = false;
 
-        // Show status message
-        function showStatus(type, message) {
-            const infoEl = document.getElementById('statusInfo');
-            const successEl = document.getElementById('statusSuccess');
-            const errorEl = document.getElementById('statusError');
-            
-            // Hide all
-            infoEl.style.display = 'none';
-            successEl.style.display = 'none';
-            errorEl.style.display = 'none';
-            
-            // Show specific
-            const el = type === 'info' ? infoEl : type === 'success' ? successEl : errorEl;
-            el.textContent = message;
-            el.style.display = 'block';
-            
-            // Auto hide after 5 seconds
-            setTimeout(() => {
-                el.style.display = 'none';
-            }, 5000);
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        window.addEventListener('load', () => {
+            videoElement = document.getElementById('videoPreview');
+            initTesseract();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('contrastRange').addEventListener('input', (e) => {
+                document.getElementById('contrastValue').textContent = e.target.value;
+            });
         }
 
-        // Update progress bar
-        function updateProgress(percent, text) {
-            const container = document.getElementById('progressContainer');
-            const fill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
-            
-            container.style.display = 'block';
-            fill.style.width = percent + '%';
-            fill.textContent = Math.round(percent) + '%';
-            progressText.textContent = text;
-        }
-
-        // Hide progress
-        function hideProgress() {
-            document.getElementById('progressContainer').style.display = 'none';
-        }
-
-        // Start scan process
-        async function startScan() {
-            const source = document.getElementById('sourceSelect').value;
-            const lang = document.getElementById('langSelect').value;
-            const mode = document.getElementById('modeSelect').value;
-            
+        // ============================================
+        // TESSERACT INITIALIZATION
+        // ============================================
+        async function initTesseract() {
+            setStatus('⏳ Memuat Tesseract OCR...', 'loading');
             try {
-                document.getElementById('scanBtn').disabled = true;
-                
-                if (source === 'file') {
-                    document.getElementById('fileInput').click();
-                } else if (source === 'screen' || source === 'window') {
-                    await captureScreen(source === 'window');
-                }
-                
+                tesseractWorker = await Tesseract.createWorker(
+                    document.getElementById('langSelect').value,
+                    1,
+                    {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                updateProgress(m.progress * 100, `OCR: ${Math.round(m.progress * 100)}%`);
+                            }
+                        }
+                    }
+                );
+                isWorkerReady = true;
+                setStatus('✅ Tesseract OCR siap digunakan');
             } catch (error) {
-                showStatus('error', 'Error: ' + error.message);
-                document.getElementById('scanBtn').disabled = false;
+                setStatus('❌ Gagal memuat Tesseract: ' + error.message, 'error');
+                showToast('Gagal memuat OCR library', true);
             }
         }
 
-        // Capture screen using Screen Capture API
-        async function captureScreen(selectWindow = false) {
+        // ============================================
+        // SCREEN CAPTURE
+        // ============================================
+        async function startCapture() {
             try {
-                updateProgress(10, 'Memilih layar untuk di-capture...');
-                
-                const stream = await navigator.mediaDevices.getDisplayMedia({
+                // Request screen capture
+                mediaStream = await navigator.mediaDevices.getDisplayMedia({
                     video: {
-                        displaySurface: selectWindow ? 'window' : 'monitor',
-                        cursor: 'never'
+                        cursor: "never"
                     },
                     audio: false
                 });
-                
-                updateProgress(30, 'Capture layar...');
-                
-                // Get video track
-                const track = stream.getVideoTracks()[0];
-                const imageCapture = new ImageCapture(track);
-                
-                // Take snapshot
-                const bitmap = await imageCapture.grabFrame();
-                
-                // Create canvas
-                const canvas = document.createElement('canvas');
-                canvas.width = bitmap.width;
-                canvas.height = bitmap.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(bitmap, 0, 0);
-                
-                // Convert to blob
-                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                
-                // Stop stream
-                track.stop();
-                
-                updateProgress(50, 'Menampilkan preview...');
-                
-                // Display preview
-                displayPreview(canvas.toDataURL());
-                currentImage = canvas;
-                
-                updateProgress(60, 'Memproses OCR...');
-                
-                // Perform OCR
-                await performOCR(canvas);
-                
-                updateProgress(100, 'Scan selesai!');
-                setTimeout(hideProgress, 1000);
-                
-                showStatus('success', '✅ Scan berhasil! Teks telah diekstrak.');
-                
+
+                videoElement.srcObject = mediaStream;
+                videoElement.style.display = 'block';
+                document.getElementById('previewPlaceholder').style.display = 'none';
+                document.getElementById('startCaptureBtn').style.display = 'none';
+                document.getElementById('stopCaptureBtn').style.display = 'inline-flex';
+                document.getElementById('scanBtn').disabled = false;
+
+                setStatus('🎥 Capture aktif - Klik "Scan Sekarang" untuk OCR');
+
+                // Handle user stopping share via browser UI
+                mediaStream.getVideoTracks()[0].onended = () => {
+                    stopCapture();
+                };
+
             } catch (error) {
                 if (error.name === 'NotAllowedError') {
-                    showStatus('error', '❌ Izin capture layar ditolak. Silakan coba lagi.');
+                    setStatus('❌ Permission ditolak oleh user', 'error');
+                    showToast('Anda menolak akses screen capture', true);
                 } else {
-                    showStatus('error', '❌ Error capture: ' + error.message);
+                    setStatus('❌ Error: ' + error.message, 'error');
+                    showToast('Gagal memulai capture', true);
                 }
-                hideProgress();
-            } finally {
-                document.getElementById('scanBtn').disabled = false;
             }
         }
 
-        // Handle file upload
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                displayPreview(e.target.result);
-                
-                // Load image for OCR
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    currentImage = canvas;
-                    performOCR(canvas);
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+        function stopCapture() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            videoElement.srcObject = null;
+            videoElement.style.display = 'none';
+            document.getElementById('previewPlaceholder').style.display = 'block';
+            document.getElementById('startCaptureBtn').style.display = 'inline-flex';
+            document.getElementById('stopCaptureBtn').style.display = 'none';
+            document.getElementById('scanBtn').disabled = true;
+            setStatus('⏹️ Capture dihentikan');
         }
 
-        // Display preview
-        function displayPreview(dataUrl) {
-            const container = document.getElementById('previewContainer');
-            container.innerHTML = `<img src="${dataUrl}" alt="Preview">`;
-        }
+        // ============================================
+        // OCR SCAN
+        // ============================================
+        async function doScan() {
+            if (!isWorkerReady) {
+                showToast('Tesseract belum siap, tunggu sebentar...', true);
+                return;
+            }
 
-        // Perform OCR using Tesseract.js
-        async function performOCR(canvas) {
-            const lang = document.getElementById('langSelect').value;
-            const mode = document.getElementById('modeSelect').value;
-            
+            if (!mediaStream) {
+                showToast('Mulai capture terlebih dahulu', true);
+                return;
+            }
+
+            const scanBtn = document.getElementById('scanBtn');
+            scanBtn.disabled = true;
+            scanBtn.innerHTML = '⏳ Scanning...';
+            setStatus('⏳ Mengambil screenshot...', 'loading');
+            showProgress(0, 'Menyiapkan...');
+
             try {
-                updateProgress(70, 'Loading Tesseract...');
-                
-                const worker = await Tesseract.createWorker(lang);
-                
-                updateProgress(80, 'Recognizing text...');
-                
-                // Set configuration based on mode
-                let config = '';
-                if (mode === 'numbers') {
-                    config = '--psm 6 -c tessedit_char_whitelist=0123456789';
-                } else if (mode === 'alphanumeric') {
-                    config = '--psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                } else {
-                    config = '--psm 6';
-                }
-                
-                const result = await worker.recognize(canvas, {
-                    tessedit_pageseg_mode: mode === 'text' ? 6 : 3
-                });
-                
-                await worker.terminate();
-                
-                updateProgress(90, 'Memformat hasil...');
-                
-                // Process result
-                const text = result.data.text.trim();
-                
-                if (text) {
-                    // Add to history
-                    scanCounter++;
+                // 1. Capture frame dari video
+                const canvas = document.createElement('canvas');
+                const track = mediaStream.getVideoTracks()[0];
+                const settings = track.getSettings();
+                canvas.width = settings.width || videoElement.videoWidth;
+                canvas.height = settings.height || videoElement.videoHeight;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+                // 2. Image preprocessing (contrast enhancement)
+                const contrast = parseFloat(document.getElementById('contrastRange').value);
+                const processedCanvas = preprocessImage(canvas, contrast);
+
+                // Show preview of processed image
+                const previewCanvas = document.getElementById('canvasPreview');
+                previewCanvas.width = processedCanvas.width;
+                previewCanvas.height = processedCanvas.height;
+                previewCanvas.getContext('2d').drawImage(processedCanvas, 0, 0);
+                previewCanvas.style.display = 'block';
+                setTimeout(() => { previewCanvas.style.display = 'none'; }, 2000);
+
+                setStatus('⏳ Memproses OCR...', 'loading');
+                showProgress(10, 'Memulai OCR...');
+
+                // 3. Run OCR
+                const { data: { text } } = await tesseractWorker.recognize(processedCanvas);
+
+                const extractedText = text.trim();
+
+                if (extractedText) {
+                    // 4. Save result
                     const timestamp = new Date().toLocaleString('id-ID');
-                    scanHistory.push({
-                        timestamp,
-                        text,
-                        confidence: result.data.confidence
-                    });
-                    
-                    // Display results
-                    displayResults(text);
-                    updateStats();
-                    
-                    // Enable buttons
+                    const result = {
+                        timestamp: timestamp,
+                        text: extractedText,
+                        lines: extractedText.split('\n').filter(l => l.trim()),
+                        charCount: extractedText.replace(/\s/g, '').length
+                    };
+                    scanResults.push(result);
+                    history.push(result);
+
+                    // 5. Display result
+                    displayResult(result);
+
+                    // 6. Enable buttons
                     document.getElementById('copyBtn').disabled = false;
-                    document.getElementById('downloadBtn').disabled = false;
+                    document.getElementById('exportBtn').disabled = false;
+
+                    // 7. Update stats
+                    document.getElementById('scanCount').textContent = `Total Scan: ${scanResults.length}`;
+                    document.getElementById('charCount').textContent = `Karakter: ${result.charCount}`;
+
+                    setStatus(`✅ Scan berhasil! (${result.lines.length} baris, ${result.charCount} karakter)`);
+                    showToast(`Scan berhasil! ${result.lines.length} baris ditemukan`);
                 } else {
-                    showStatus('info', '⚠️ Tidak ada teks yang terdeteksi.');
+                    setStatus('⚠️ Tidak ada teks yang terdeteksi', 'error');
+                    showToast('Tidak ada teks terdeteksi', true);
                 }
-                
-                updateProgress(100, 'Selesai!');
-                
+
             } catch (error) {
-                showStatus('error', '❌ OCR Error: ' + error.message);
+                setStatus('❌ Error saat scan: ' + error.message, 'error');
+                showToast('Gagal melakukan scan', true);
                 console.error(error);
             } finally {
-                setTimeout(hideProgress, 1000);
+                scanBtn.disabled = false;
+                scanBtn.innerHTML = '🔍 Scan Sekarang';
+                hideProgress();
             }
         }
 
-        // Display results in textarea
-        function displayResults(text) {
-            const textarea = document.getElementById('resultsText');
-            const timestamp = new Date().toLocaleString('id-ID');
-            
-            const separator = '\n' + '='.repeat(50) + '\n';
-            const header = `⏰ ${timestamp}\n` + '='.repeat(50) + '\n';
-            
-            textarea.value += separator + header + text + '\n';
+        // ============================================
+        // IMAGE PREPROCESSING
+        // ============================================
+        function preprocessImage(sourceCanvas, contrast) {
+            const canvas = document.createElement('canvas');
+            canvas.width = sourceCanvas.width;
+            canvas.height = sourceCanvas.height;
+            const ctx = canvas.getContext('2d');
+
+            // Draw original
+            ctx.drawImage(sourceCanvas, 0, 0);
+
+            // Get image data
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            // Apply contrast + grayscale
+            for (let i = 0; i < data.length; i += 4) {
+                // Grayscale
+                const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+
+                // Contrast
+                const factor = (259 * (contrast * 100 + 255)) / (255 * (259 - contrast * 100));
+                let adjusted = factor * (gray - 128) + 128;
+
+                // Clamp
+                adjusted = Math.max(0, Math.min(255, adjusted));
+
+                data[i] = adjusted;
+                data[i+1] = adjusted;
+                data[i+2] = adjusted;
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            return canvas;
+        }
+
+        // ============================================
+        // DISPLAY & UTILITIES
+        // ============================================
+        function displayResult(result) {
+            const textarea = document.getElementById('resultText');
+            const separator = '='.repeat(50);
+            const newContent = `\n${separator}\n⏰ ${result.timestamp}\n${separator}\n${result.text}\n`;
+            textarea.value += newContent;
             textarea.scrollTop = textarea.scrollHeight;
         }
 
-        // Update statistics
-        function updateStats() {
-            document.getElementById('scanCount').textContent = scanCounter;
-            
-            const text = document.getElementById('resultsText').value;
-            const charCount = text.replace(/\s/g, '').length;
-            const lineCount = text.split('\n').length;
-            
-            document.getElementById('charCount').textContent = charCount;
-            document.getElementById('lineCount').textContent = lineCount;
-        }
+        function copyAll() {
+            const textarea = document.getElementById('resultText');
+            const text = textarea.value.trim();
 
-        // Copy to clipboard
-        function copyToClipboard() {
-            const textarea = document.getElementById('resultsText');
-            textarea.select();
-            document.execCommand('copy');
-            
-            showStatus('success', '📋 Teks berhasil di-copy ke clipboard!');
-            
-            // Deselect
-            window.getSelection().removeAllRanges();
-        }
-
-        // Download as TXT
-        function downloadTxt() {
-            const text = document.getElementById('resultsText').value;
-            if (!text.trim()) {
-                showStatus('error', '❌ Tidak ada teks untuk didownload.');
+            if (!text) {
+                showToast('Tidak ada teks untuk di-copy', true);
                 return;
             }
-            
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+            navigator.clipboard.writeText(text).then(() => {
+                setStatus('📋 Semua teks berhasil di-copy ke clipboard!');
+                showToast('Berhasil di-copy ke clipboard!');
+            }).catch(err => {
+                // Fallback
+                textarea.select();
+                document.execCommand('copy');
+                setStatus('📋 Teks di-copy (fallback)');
+                showToast('Berhasil di-copy!');
+            });
+        }
+
+        function exportTxt() {
+            const text = document.getElementById('resultText').value.trim();
+            if (!text) {
+                showToast('Tidak ada teks untuk di-export', true);
+                return;
+            }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
             const filename = `visor_scan_${timestamp}.txt`;
-            
-            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+
+            const content = `${'='.repeat(50)}\nVISOR SCANNER - Hasil Export\n${'='.repeat(50)}\n\n${text}`;
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
-            
             const a = document.createElement('a');
             a.href = url;
             a.download = filename;
@@ -743,59 +825,98 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
-            showStatus('success', `💾 File "${filename}" berhasil didownload!`);
+
+            setStatus(`💾 Export berhasil: ${filename}`);
+            showToast('File berhasil di-download!');
         }
 
-        // Clear results
         function clearResults() {
-            if (scanCounter === 0) {
-                showStatus('info', '️ Tidak ada hasil untuk dihapus.');
+            if (scanResults.length === 0) return;
+
+            if (confirm('Hapus semua hasil scan?')) {
+                scanResults = [];
+                document.getElementById('resultText').value = '';
+                document.getElementById('copyBtn').disabled = true;
+                document.getElementById('exportBtn').disabled = true;
+                document.getElementById('scanCount').textContent = 'Total Scan: 0';
+                document.getElementById('charCount').textContent = 'Karakter: 0';
+                setStatus('🗑️ Hasil scan dihapus');
+                showToast('Hasil dihapus');
+            }
+        }
+
+        function showHistory() {
+            if (history.length === 0) {
+                showToast('Belum ada history scan', true);
                 return;
             }
-            
-            if (confirm('️ Hapus semua hasil scan?')) {
-                document.getElementById('resultsText').value = '';
-                scanHistory = [];
-                scanCounter = 0;
-                updateStats();
-                
-                document.getElementById('copyBtn').disabled = true;
-                document.getElementById('downloadBtn').disabled = true;
-                
-                // Clear preview
-                document.getElementById('previewContainer').innerHTML = `
-                    <div class="preview-placeholder">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p>Klik "Scan Sekarang" untuk capture layar</p>
+
+            const body = document.getElementById('historyBody');
+            body.innerHTML = '';
+
+            history.slice().reverse().forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div class="history-item-header">
+                        <span>📌 Scan #${history.length - idx}</span>
+                        <span>⏰ ${item.timestamp}</span>
                     </div>
+                    <div class="history-item-content">${escapeHtml(item.text.substring(0, 500))}${item.text.length > 500 ? '...' : ''}</div>
                 `;
-                
-                showStatus('success', '🗑️ Hasil scan berhasil dihapus.');
-            }
+                body.appendChild(div);
+            });
+
+            document.getElementById('historyModal').classList.add('active');
         }
 
-        // Initialize
-        window.onload = function() {
-            showStatus('info', '✅ Aplikasi siap! Pilih sumber dan klik Scan.');
-        };
+        function closeHistory() {
+            document.getElementById('historyModal').classList.remove('active');
+        }
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            // Ctrl/Cmd + S = Scan
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                startScan();
-            }
-            // Ctrl/Cmd + C = Copy
-            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                if (!document.getElementById('copyBtn').disabled) {
-                    e.preventDefault();
-                    copyToClipboard();
-                }
-            }
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================
+        // UI HELPERS
+        // ============================================
+        function setStatus(message, type = 'success') {
+            const bar = document.getElementById('statusBar');
+            const text = document.getElementById('statusText');
+            bar.className = 'status-bar ' + (type === 'error' ? 'error' : type === 'loading' ? 'loading' : '');
+            text.textContent = message;
+        }
+
+        function showProgress(percent, text) {
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function updateProgress(percent, text) {
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function hideProgress() {
+            document.getElementById('progressContainer').style.display = 'none';
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show' + (isError ? ' error' : '');
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        // Close modal on outside click
+        document.getElementById('historyModal').addEventListener('click', (e) => {
+            if (e.target.id === 'historyModal') closeHistory();
         });
     </script>
 </body>
