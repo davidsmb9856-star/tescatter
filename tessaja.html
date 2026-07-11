@@ -1817,23 +1817,109 @@ html, body {
   align-items: center;
   gap: 14px;
   box-shadow: var(--shadow-glow);
-  animation: slideIn 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: toastSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   font-size: 13px;
   font-weight: 500;
   font-family: 'Inter', sans-serif;
   letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.toast::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+  animation: toastShine 2s ease-in-out;
+}
+
+@keyframes toastShine {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
 }
 
 .toast.success { border-left: 4px solid var(--neon-green); }
 .toast.error { border-left: 4px solid var(--neon-red); }
 .toast.info { border-left: 4px solid var(--neon-cyan); }
 .toast.warning { border-left: 4px solid var(--neon-yellow); }
+.toast.delete { 
+  border-left: 4px solid var(--neon-red);
+  background: linear-gradient(135deg, rgba(255, 62, 108, 0.15), var(--bg-tertiary));
+  animation: deleteToastIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
 
-.toast .icon { font-size: 20px; }
+@keyframes deleteToastIn {
+  0% { 
+    transform: translateX(150%) scale(0.8); 
+    opacity: 0;
+    rotate: 15deg;
+  }
+  50% {
+    transform: translateX(-10%) scale(1.05);
+    rotate: -3deg;
+  }
+  100% { 
+    transform: translateX(0) scale(1); 
+    opacity: 1;
+    rotate: 0deg;
+  }
+}
 
-@keyframes slideIn {
-  from { transform: translateX(130%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+@keyframes toastSlideIn {
+  from { 
+    transform: translateX(150%) scale(0.9); 
+    opacity: 0;
+  }
+  to { 
+    transform: translateX(0) scale(1); 
+    opacity: 1;
+  }
+}
+
+.toast .icon { 
+  font-size: 22px;
+  animation: iconPulse 0.6s ease-in-out;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+.toast.delete .icon {
+  animation: deleteIconShake 0.8s ease-in-out;
+}
+
+@keyframes deleteIconShake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-15deg) scale(1.2); }
+  50% { transform: rotate(15deg) scale(1.3); }
+  75% { transform: rotate(-10deg) scale(1.2); }
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-blue));
+  animation: progressShrink 3.5s linear forwards;
+  box-shadow: 0 0 10px var(--neon-cyan);
+}
+
+.toast.delete .toast-progress {
+  background: linear-gradient(90deg, var(--neon-red), var(--neon-pink));
+  box-shadow: 0 0 10px var(--neon-red);
+}
+
+@keyframes progressShrink {
+  from { width: 100%; }
+  to { width: 0%; }
 }
 
 @media (max-width: 900px) {
@@ -2307,7 +2393,7 @@ html, body {
   </div>
 </div>
 
-<!-- ScriptVault PIN Verify Modal - UPDATED: Direct PIN Input -->
+<!-- ScriptVault PIN Verify Modal -->
 <div class="overlay" id="pinVerifyOverlay" style="z-index:600">
   <div class="modal pin-modal">
     <div class="pin-icon"><i class="fas fa-lock"></i></div>
@@ -2807,7 +2893,7 @@ function pushHistory(script, entry) {
 function countAllHistory() { return scripts.reduce((acc, s) => acc + ((s.history && s.history.length) || 0), 0); }
 
 // ============================================
-// PIN VERIFICATION (UPDATED: Direct PIN Input with Better UX)
+// PIN VERIFICATION (UPDATED: clearer error messages)
 // ============================================
 function openPinVerify(action, callback) {
   if (!userPIN) { toast('⚠️ Setup PIN terlebih dahulu.', 'warning'); openPinSettings(); return; }
@@ -2866,7 +2952,7 @@ async function verifyPinAction() {
 }
 
 // ============================================
-// CLEAN & DELETE (REFACTORED: per-script operations with better notifications)
+// CLEAN & DELETE (REFACTORED: per-script operations)
 // ============================================
 async function forceClean() {
   if (!confirm('🐒 Clean Data\n\nHapus semua script tanpa nama & tanpa ID?\n\nLanjutkan?')) return;
@@ -2882,7 +2968,7 @@ async function forceClean() {
 function openEditor() { document.getElementById('editorOverlay').classList.add('show'); setTimeout(() => document.getElementById('sName').focus(), 100); }
 function closeEditor() { document.getElementById('editorOverlay').classList.remove('show'); }
 
-// Hapus script - PER SCRIPT dengan notifikasi keren
+// Hapus script - PER SCRIPT (bukan menimpa semua) - LANGSUNG TANPA PIN
 async function executeDelete(id) {
   if (!id) { toast('❌ Error: ID tidak valid', 'error'); return; }
   const idx = scripts.findIndex(s => s && s.id === id);
@@ -2892,13 +2978,12 @@ async function executeDelete(id) {
   const scriptName = script.name || 'Unnamed';
   const oldData = { ...script };
   
-  // Notifikasi proses dimulai
-  toast('🗑️ Memulai proses penghapusan...', 'info');
-  
   // Push history sebelum dihapus
   pushHistory(script, buildHistoryEntry('delete', scriptName, oldData, null));
   
   try {
+    toast('🗑️ Menghapus script...', 'delete');
+    
     // Update script dengan history terakhir
     await FIREBASE.save(script);
     
@@ -2920,12 +3005,7 @@ async function executeDelete(id) {
     if (editId === id) { editId = null; closeEditor(); }
     
     renderAll();
-    
-    // Notifikasi sukses dengan detail
-    toast(`✅ "${scriptName}" berhasil dihapus dari cloud`, 'success');
-    setTimeout(() => {
-      toast('📊 Histori penghapusan tercatat', 'info');
-    }, 500);
+    toast(`🗑️ "${scriptName}" berhasil dihapus!`, 'delete');
   } catch (e) {
     toast('❌ Gagal hapus: ' + e.message, 'error');
     scripts = await FIREBASE.load();
@@ -2933,25 +3013,21 @@ async function executeDelete(id) {
   }
 }
 
+// HAPUS LANGSUNG TANPA PIN - dengan konfirmasi
 function delS() {
   if (!editId) { toast('❌ Tidak ada script', 'error'); return; }
-  openPinVerify('delete', async () => { await executeDelete(editId); });
+  const s = scripts.find(x => x && x.id === editId);
+  const name = s ? s.name : 'Unnamed';
+  if (!confirm(`🗑️ Hapus Script?\n\n"${name}"\n\nScript akan dihapus permanen dari cloud.`)) return;
+  executeDelete(editId);
 }
 
-// Hapus cepat dari card (Dashboard & Script Saya) - dengan verifikasi PIN dan notifikasi keren
+// Hapus cepat dari card (Dashboard & Script Saya) - LANGSUNG TANPA PIN
 function quickDel(id) {
   const s = scripts.find(x => x && x.id === id);
-  if (!s) { toast('❌ Script tidak ditemukan', 'error'); return; }
-  
-  // Konfirmasi dengan detail script
-  const scriptName = s.name || 'Unnamed';
-  const scriptSize = s.code ? (s.code.length / 1024).toFixed(1) : '0';
-  
-  if (!confirm(`🗑️ HAPUS SCRIPT\n\n📝 Nama: ${scriptName}\n📦 Ukuran: ${scriptSize} KB\n\nYakin ingin menghapus script ini?\nTindakan ini tidak dapat dibatalkan!`)) {
-    return;
-  }
-  
-  openPinVerify('delete', async () => { await executeDelete(id); });
+  const name = s ? s.name : 'Unnamed';
+  if (!confirm(`🗑️ Hapus Script?\n\n"${name}"\n\nScript akan dihapus permanen dari cloud.`)) return;
+  executeDelete(id);
 }
 
 function buildCode(s) {
@@ -3374,13 +3450,36 @@ function openHistFromEditor() {
 function esc(t) { if (!t) return ''; return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function ago(d) { if (!d) return '-'; const s = (Date.now() - new Date(d).getTime()) / 1000; if (s < 60) return 'baru saja'; if (s < 3600) return Math.floor(s / 60) + 'm lalu'; if (s < 86400) return Math.floor(s / 3600) + 'j lalu'; if (s < 2592000) return Math.floor(s / 86400) + 'h lalu'; return new Date(d).toLocaleDateString('id-ID'); }
 function formatDate(iso) { if (!iso) return '-'; const d = new Date(iso); return d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }); }
+
+// ============================================
+// TOAST NOTIFICATION SYSTEM (ENHANCED)
+// ============================================
 function toast(msg, type = 'info') {
-  const w = document.getElementById('toasts'), el = document.createElement('div');
+  const w = document.getElementById('toasts');
+  const el = document.createElement('div');
   el.className = 'toast ' + type;
-  const iconMap = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-times-circle"></i>', info: '<i class="fas fa-info-circle"></i>', warning: '<i class="fas fa-exclamation-triangle"></i>' };
-  el.innerHTML = `<span class="icon">${iconMap[type] || ''}</span><span>${esc(msg)}</span>`;
+  
+  const iconMap = { 
+    success: '<i class="fas fa-check-circle"></i>', 
+    error: '<i class="fas fa-times-circle"></i>', 
+    info: '<i class="fas fa-info-circle"></i>', 
+    warning: '<i class="fas fa-exclamation-triangle"></i>',
+    delete: '<i class="fas fa-trash-alt"></i>'
+  };
+  
+  el.innerHTML = `
+    <span class="icon">${iconMap[type] || ''}</span>
+    <span>${esc(msg)}</span>
+    <div class="toast-progress"></div>
+  `;
+  
   w.appendChild(el);
-  setTimeout(() => { el.style.animation = 'slideIn 0.35s reverse'; setTimeout(() => el.remove(), 350); }, 3500);
+  
+  // Auto remove after 3.5 seconds
+  setTimeout(() => {
+    el.style.animation = 'toastSlideIn 0.35s reverse';
+    setTimeout(() => el.remove(), 350);
+  }, 3500);
 }
 
 // ============================================
