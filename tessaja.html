@@ -16,6 +16,7 @@
   --bg-tertiary: #1a1a25;
   --bg-card: #1e1e2a;
   --bg-hover: #252535;
+  
   --neon-cyan: #00d4ff;
   --neon-blue: #0099ff;
   --neon-purple: #7b2fff;
@@ -23,21 +24,27 @@
   --neon-green: #00ff9d;
   --neon-yellow: #ffd700;
   --neon-red: #ff3e6c;
+  
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
   --text-tertiary: #71717a;
   --text-muted: #52525b;
+  
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-normal: rgba(255, 255, 255, 0.12);
   --border-strong: rgba(255, 255, 255, 0.2);
+  --border-glow: rgba(0, 212, 255, 0.5);
+  
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.3);
+  
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
+  
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -1630,7 +1637,6 @@ html, body {
   font-weight: 600;
   font-family: 'Inter', sans-serif;
   letter-spacing: 1px;
-  text-shadow: 0 0 10px rgba(255, 62, 108, 0.5);
 }
 
 .history-detail { max-width: 800px; }
@@ -1811,23 +1817,109 @@ html, body {
   align-items: center;
   gap: 14px;
   box-shadow: var(--shadow-glow);
-  animation: slideIn 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: toastSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   font-size: 13px;
   font-weight: 500;
   font-family: 'Inter', sans-serif;
   letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.toast::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+  animation: toastShine 2s ease-in-out;
+}
+
+@keyframes toastShine {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
 }
 
 .toast.success { border-left: 4px solid var(--neon-green); }
 .toast.error { border-left: 4px solid var(--neon-red); }
 .toast.info { border-left: 4px solid var(--neon-cyan); }
 .toast.warning { border-left: 4px solid var(--neon-yellow); }
+.toast.delete { 
+  border-left: 4px solid var(--neon-red);
+  background: linear-gradient(135deg, rgba(255, 62, 108, 0.15), var(--bg-tertiary));
+  animation: deleteToastIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
 
-.toast .icon { font-size: 20px; }
+@keyframes deleteToastIn {
+  0% { 
+    transform: translateX(150%) scale(0.8); 
+    opacity: 0;
+    rotate: 15deg;
+  }
+  50% {
+    transform: translateX(-10%) scale(1.05);
+    rotate: -3deg;
+  }
+  100% { 
+    transform: translateX(0) scale(1); 
+    opacity: 1;
+    rotate: 0deg;
+  }
+}
 
-@keyframes slideIn {
-  from { transform: translateX(130%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+@keyframes toastSlideIn {
+  from { 
+    transform: translateX(150%) scale(0.9); 
+    opacity: 0;
+  }
+  to { 
+    transform: translateX(0) scale(1); 
+    opacity: 1;
+  }
+}
+
+.toast .icon { 
+  font-size: 22px;
+  animation: iconPulse 0.6s ease-in-out;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+.toast.delete .icon {
+  animation: deleteIconShake 0.8s ease-in-out;
+}
+
+@keyframes deleteIconShake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-15deg) scale(1.2); }
+  50% { transform: rotate(15deg) scale(1.3); }
+  75% { transform: rotate(-10deg) scale(1.2); }
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-blue));
+  animation: progressShrink 3.5s linear forwards;
+  box-shadow: 0 0 10px var(--neon-cyan);
+}
+
+.toast.delete .toast-progress {
+  background: linear-gradient(90deg, var(--neon-red), var(--neon-pink));
+  box-shadow: 0 0 10px var(--neon-red);
+}
+
+@keyframes progressShrink {
+  from { width: 100%; }
+  to { width: 0%; }
 }
 
 @media (max-width: 900px) {
@@ -1850,7 +1942,6 @@ html, body {
 <div class="grid-overlay"></div>
 <div class="scanline"></div>
 
-<!-- Auth Gate -->
 <div class="auth-gate" id="authGate">
   <div class="auth-box">
     <div class="auth-logo">🐒</div>
@@ -1863,7 +1954,6 @@ html, body {
   </div>
 </div>
 
-<!-- Loading -->
 <div class="loading" id="loading">
   <div class="loader-wrap">
     <div class="loader-ring"></div>
@@ -1874,7 +1964,6 @@ html, body {
   <small>SCRIPTVAULT × CYBER PORTAL v31.0</small>
 </div>
 
-<!-- App -->
 <div class="app" id="app">
   <aside class="sidebar">
     <div class="logo">
@@ -1938,7 +2027,6 @@ html, body {
       </div>
     </div>
 
-    <!-- Dashboard -->
     <div class="content show" id="section-dashboard">
       <div class="container">
         <div class="bento">
@@ -1973,7 +2061,6 @@ html, body {
       </div>
     </div>
 
-    <!-- My Scripts -->
     <div class="content" id="section-scripts">
       <div class="container">
         <div class="bento">
@@ -2008,7 +2095,6 @@ html, body {
       </div>
     </div>
 
-    <!-- History -->
     <div class="content" id="section-history">
       <div class="container">
         <div class="bento">
@@ -2043,7 +2129,6 @@ html, body {
       </div>
     </div>
 
-    <!-- Cyber Portal -->
     <div class="content" id="section-portal">
       <div class="container">
         <div class="clock-wrapper">
@@ -2210,7 +2295,6 @@ html, body {
       </div>
     </div>
 
-    <!-- Social Media -->
     <div class="content" id="section-social">
       <div class="container">
         <div class="section">
@@ -2241,7 +2325,6 @@ html, body {
   </main>
 </div>
 
-<!-- Editor Modal -->
 <div class="overlay" id="editorOverlay">
   <div class="modal">
     <div class="modal-header">
@@ -2272,29 +2355,45 @@ html, body {
   </div>
 </div>
 
-<!-- PIN Setup/Change Modal -->
+<!-- ScriptVault PIN Setup Modal (UPDATED: 2-step verification) -->
 <div class="overlay" id="pinSetupOverlay">
   <div class="modal" style="max-width:480px">
-    <div class="modal-header"><h3><span class="bar"></span><i class="fas fa-key"></i> <span id="pinModalTitle">PENGATURAN PIN</span></h3></div>
-    <p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin-bottom:20px">PIN ini akan melindungi script anda dari penghapusan atau edit oleh pengguna lain. PIN tersimpan di Firebase cloud.</p>
+    <div class="modal-header"><h3><span class="bar"></span><i class="fas fa-key"></i> PENGATURAN PIN VAULT</h3></div>
     
-    <!-- PIN Lama (hanya muncul jika user sudah punya PIN) -->
-    <div class="form-group" id="oldPinGroup" style="display:none">
-      <label>PIN Lama</label>
-      <input type="password" id="oldPinInput" placeholder="Masukkan PIN lama Anda" maxlength="10">
+    <!-- Step 1: Verifikasi PIN Lama (jika sudah ada) -->
+    <div id="pinOldStep">
+      <p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin-bottom:20px">
+        🔒 <b>Masukkan PIN lama Anda</b> untuk melanjutkan perubahan PIN. Langkah ini wajib untuk keamanan.
+      </p>
+      <div class="form-group">
+        <label>PIN Lama</label>
+        <input type="password" id="oldPinInput" placeholder="Masukkan PIN lama Anda" maxlength="10">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:24px">
+        <button class="btn btn-ghost" onclick="closePinSettings()" style="flex:1">Batal</button>
+        <button class="btn btn-primary" onclick="verifyOldPin()" style="flex:1"><i class="fas fa-check"></i> Verifikasi</button>
+      </div>
+      <div class="pin-error" id="oldPinError"></div>
     </div>
     
-    <div class="form-group"><label>PIN Baru (4-10 digit angka)</label><input type="password" id="newPinInput" placeholder="Masukkan PIN baru" maxlength="10"></div>
-    <div class="form-group"><label>Konfirmasi PIN Baru</label><input type="password" id="confirmPinInput" placeholder="Ulangi PIN baru" maxlength="10"></div>
-    <div class="form-helper">💡 Gunakan angka yang mudah diingat tapi sulit ditebak</div>
-    <div style="display:flex;gap:10px;margin-top:24px">
-      <button class="btn btn-ghost" onclick="closePinSettings()" style="flex:1">Batal</button>
-      <button class="btn btn-primary" onclick="savePin()" style="flex:1"><i class="fas fa-save"></i> Simpan PIN</button>
+    <!-- Step 2: Form PIN Baru -->
+    <div id="pinNewStep" style="display:none">
+      <p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin-bottom:20px">
+        PIN ini akan melindungi script anda dari penghapusan atau edit oleh pengguna lain. PIN tersimpan aman di cloud Firebase.
+      </p>
+      <div class="form-group"><label>PIN Baru (4-10 digit angka)</label><input type="password" id="newPinInput" placeholder="Masukkan PIN baru" maxlength="10"></div>
+      <div class="form-group"><label>Konfirmasi PIN</label><input type="password" id="confirmPinInput" placeholder="Ulangi PIN baru" maxlength="10"></div>
+      <div class="form-helper">💡 Gunakan angka yang mudah diingat tapi sulit ditebak</div>
+      <div style="display:flex;gap:10px;margin-top:24px">
+        <button class="btn btn-ghost" onclick="closePinSettings()" style="flex:1">Batal</button>
+        <button class="btn btn-primary" onclick="savePin()" style="flex:1"><i class="fas fa-save"></i> Simpan PIN</button>
+      </div>
+      <div class="pin-error" id="newPinError"></div>
     </div>
   </div>
 </div>
 
-<!-- PIN Verify Modal -->
+<!-- ScriptVault PIN Verify Modal -->
 <div class="overlay" id="pinVerifyOverlay" style="z-index:600">
   <div class="modal pin-modal">
     <div class="pin-icon"><i class="fas fa-lock"></i></div>
@@ -2309,7 +2408,6 @@ html, body {
   </div>
 </div>
 
-<!-- History Detail Modal -->
 <div class="overlay" id="histDetailOverlay" style="z-index:650">
   <div class="modal history-detail">
     <div class="modal-header">
@@ -2320,7 +2418,6 @@ html, body {
   </div>
 </div>
 
-<!-- TM Help Modal -->
 <div class="overlay" id="tmHelpOverlay" style="z-index:700">
   <div class="modal" style="max-width:560px">
     <div class="modal-header"><h3><span class="bar"></span>🐒 TAMPERMONKEY DIBLOKIR</h3></div>
@@ -2341,7 +2438,6 @@ html, body {
   </div>
 </div>
 
-<!-- Portal Settings Modal -->
 <div class="overlay" id="portalSettingsOverlay" style="z-index:800">
   <div class="modal" style="max-width:950px">
     <div class="modal-header">
@@ -2358,7 +2454,6 @@ html, body {
   </div>
 </div>
 
-<!-- Portal PIN Modal -->
 <div class="overlay" id="portalPinOverlay" style="z-index:850">
   <div class="modal pin-modal">
     <div class="pin-icon"><i class="fas fa-cog"></i></div>
@@ -2386,7 +2481,7 @@ html, body {
 
 <script>
 // ============================================
-// FIREBASE CONFIG
+// FIREBASE CONFIG (ScriptVault)
 // ============================================
 const firebaseConfig = {
   apiKey: "AIzaSyBExdIerKUOoOPZ9fOODSF4ZPJIUNci1bo",
@@ -2413,7 +2508,6 @@ const MAX_HISTORY = 30;
 let currentUser = null;
 let currentIP = 'unknown';
 let userPIN = null;
-let portalPIN = null;
 let scripts = [];
 let editId = null;
 let pendingAction = null;
@@ -2479,9 +2573,6 @@ const portalNames = {
 const DEFAULT_PORTAL_PIN = '1234';
 let currentPortalPinInput = '';
 
-// ============================================
-// PORTAL LINKS & PIN (FIREBASE)
-// ============================================
 function loadPortalLinks() {
   const saved = localStorage.getItem('scriptvaultPortalLinks');
   return saved ? JSON.parse(saved) : {...defaultPortalLinks};
@@ -2491,26 +2582,12 @@ function savePortalLinksData(links) {
   localStorage.setItem('scriptvaultPortalLinks', JSON.stringify(links));
 }
 
-// Load Portal PIN dari Firebase
-async function loadPortalPin() {
-  if (!currentUser) return;
-  try {
-    const snap = await db.ref(`portal_pins/${currentUser.uid}`).once('value');
-    portalPIN = snap.val() || DEFAULT_PORTAL_PIN;
-  } catch (e) { 
-    console.error('Load Portal PIN error:', e);
-    portalPIN = DEFAULT_PORTAL_PIN; 
-  }
+function loadPortalPin() {
+  return localStorage.getItem('scriptvaultPortalPin') || DEFAULT_PORTAL_PIN;
 }
 
-// Save Portal PIN ke Firebase
-async function savePortalPinData(pin) {
-  try {
-    await db.ref(`portal_pins/${currentUser.uid}`).set(pin);
-    portalPIN = pin;
-  } catch (e) {
-    console.error('Save Portal PIN error:', e);
-  }
+function savePortalPinData(pin) {
+  localStorage.setItem('scriptvaultPortalPin', pin);
 }
 
 function updatePortalLinks() {
@@ -2524,18 +2601,74 @@ function updatePortalLinks() {
 }
 
 // ============================================
-// FIREBASE HELPERS
+// FIREBASE HELPERS (REFACTORED: per-script operations)
 // ============================================
 function getUserScripts() {
   if (!currentUser) return [];
   return scripts.filter(s => s.ownerEmail === currentUser.email);
 }
 
+const FIREBASE = {
+  // Load semua script dari Firebase dengan auto-migration dari array ke object
+  load: async () => {
+    const snap = await db.ref('scripts').once('value');
+    const val = snap.val();
+    if (!val) return [];
+    
+    // Migration: jika data lama berupa array, konversi ke object
+    if (Array.isArray(val)) {
+      const obj = {};
+      val.filter(s => s && s.id).forEach(s => {
+        obj[s.id] = s;
+      });
+      // Simpan ulang dalam format object baru
+      if (Object.keys(obj).length > 0) {
+        await db.ref('scripts').set(obj);
+      } else {
+        await db.ref('scripts').remove();
+      }
+      return Object.values(obj);
+    }
+    
+    // Format baru: object dengan key = id
+    return Object.values(val).filter(s => s && s.id);
+  },
+  
+  // Simpan PER SCRIPT (bukan seluruh array) - mencegah race condition
+  save: async (script) => {
+    if (!script || !script.id) throw new Error('Script tidak valid');
+    await db.ref(`scripts/${script.id}`).set(script);
+  },
+  
+  // Hapus PER SCRIPT
+  delete: async (scriptId) => {
+    await db.ref(`scripts/${scriptId}`).remove();
+  },
+  
+  // Bersihkan script invalid (tanpa nama/ID)
+  cleanInvalid: async () => {
+    const snap = await db.ref('scripts').once('value');
+    const val = snap.val();
+    if (!val) return 0;
+    
+    let removed = 0;
+    const entries = Array.isArray(val) ? val : Object.values(val);
+    for (const s of entries) {
+      if (!s || !s.id || !s.name || s.name.trim() === '') {
+        if (s && s.id) {
+          await db.ref(`scripts/${s.id}`).remove();
+          removed++;
+        }
+      }
+    }
+    return removed;
+  }
+};
+
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     currentUser = { name: user.displayName || 'User', email: user.email, photo: user.photoURL || null, uid: user.uid };
     await loadUserPIN();
-    await loadPortalPin();
     renderUserCard();
     document.getElementById('loading').classList.add('hide');
     document.getElementById('app').classList.add('show');
@@ -2544,7 +2677,6 @@ auth.onAuthStateChanged(async (user) => {
   } else {
     currentUser = null;
     userPIN = null;
-    portalPIN = null;
     document.getElementById('loading').classList.add('hide');
     document.getElementById('authGate').classList.add('show');
     document.getElementById('app').classList.remove('show');
@@ -2558,7 +2690,6 @@ async function loginGoogle() {
     const user = result.user;
     currentUser = { name: user.displayName || 'User', email: user.email, photo: user.photoURL || null, uid: user.uid };
     await loadUserPIN();
-    await loadPortalPin();
     renderUserCard();
     document.getElementById('authGate').classList.remove('show');
     document.getElementById('app').classList.add('show');
@@ -2577,7 +2708,7 @@ async function loginGoogle() {
 function logoutUser() {
   if (!confirm(`Logout?\n\n👤 ${currentUser.name}\n📧 ${currentUser.email}`)) return;
   auth.signOut().then(() => {
-    currentUser = null; userPIN = null; portalPIN = null; scripts = [];
+    currentUser = null; userPIN = null; scripts = [];
     renderUserCard();
     document.getElementById('app').classList.remove('show');
     document.getElementById('authGate').classList.add('show');
@@ -2585,95 +2716,98 @@ function logoutUser() {
   }).catch(e => toast('❌ Gagal logout: ' + e.message, 'error'));
 }
 
-// Load User PIN dari Firebase
 async function loadUserPIN() {
   if (!currentUser) return;
   try {
     const snap = await db.ref(`user_pins/${currentUser.uid}`).once('value');
     userPIN = snap.val();
-  } catch (e) { 
-    console.error('Load PIN error:', e); 
-    userPIN = null; 
+  } catch (e) { console.error('Load PIN error:', e); userPIN = null; }
+}
+
+// ============================================
+// PIN SETTINGS (UPDATED: 2-step verification)
+// ============================================
+function openPinSettings() {
+  // Reset semua field
+  document.getElementById('newPinInput').value = '';
+  document.getElementById('confirmPinInput').value = '';
+  document.getElementById('oldPinInput').value = '';
+  document.getElementById('oldPinError').textContent = '';
+  document.getElementById('newPinError').textContent = '';
+  
+  if (userPIN) {
+    // User SUDAH punya PIN → tampilkan step verifikasi PIN lama dulu
+    document.getElementById('pinOldStep').style.display = 'block';
+    document.getElementById('pinNewStep').style.display = 'none';
+    document.getElementById('pinSetupOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('oldPinInput').focus(), 100);
+  } else {
+    // User BELUM punya PIN → langsung ke form PIN baru
+    document.getElementById('pinOldStep').style.display = 'none';
+    document.getElementById('pinNewStep').style.display = 'block';
+    document.getElementById('pinSetupOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('newPinInput').focus(), 100);
   }
 }
 
-// Save PIN dengan verifikasi PIN lama (jika sudah ada)
+function verifyOldPin() {
+  const oldPin = document.getElementById('oldPinInput').value;
+  const errEl = document.getElementById('oldPinError');
+  const input = document.getElementById('oldPinInput');
+  
+  if (!oldPin) {
+    errEl.textContent = '⚠️ Masukkan PIN lama terlebih dahulu';
+    input.classList.add('shake');
+    setTimeout(() => input.classList.remove('shake'), 450);
+    return;
+  }
+  
+  if (oldPin !== userPIN) {
+    errEl.textContent = '❌ PIN lama SALAH! Silakan coba lagi.';
+    input.classList.add('shake');
+    input.value = '';
+    setTimeout(() => {
+      input.classList.remove('shake');
+      input.focus();
+    }, 450);
+    return;
+  }
+  
+  // PIN lama BENAR → tampilkan form PIN baru
+  errEl.textContent = '';
+  document.getElementById('pinOldStep').style.display = 'none';
+  document.getElementById('pinNewStep').style.display = 'block';
+  toast('✅ PIN lama terverifikasi', 'success');
+  setTimeout(() => document.getElementById('newPinInput').focus(), 100);
+}
+
 async function savePin() {
-  const oldPinGroup = document.getElementById('oldPinGroup');
-  const oldPin = document.getElementById('oldPinInput').value.trim();
   const newPin = document.getElementById('newPinInput').value.trim();
   const confirmPin = document.getElementById('confirmPinInput').value.trim();
+  const errEl = document.getElementById('newPinError');
   
-  // Jika user sudah punya PIN, verifikasi PIN lama dulu
-  if (userPIN && oldPinGroup.style.display !== 'none') {
-    if (!oldPin) {
-      toast('❌ Masukkan PIN lama terlebih dahulu!', 'error');
-      return;
-    }
-    if (oldPin !== userPIN) {
-      toast('❌ PIN lama tidak sesuai! Silakan coba lagi.', 'error');
-      document.getElementById('oldPinInput').value = '';
-      document.getElementById('oldPinInput').focus();
-      return;
-    }
-  }
-  
-  // Validasi PIN baru
-  if (!newPin) { 
-    toast('❌ PIN baru tidak boleh kosong!', 'error'); 
-    return; 
-  }
-  if (!/^\d{4,10}$/.test(newPin)) { 
-    toast('❌ PIN harus 4-10 digit angka!', 'error'); 
-    return; 
-  }
-  if (newPin !== confirmPin) { 
-    toast('❌ Konfirmasi PIN baru tidak cocok!', 'error'); 
+  if (!newPin) { errEl.textContent = '⚠️ PIN tidak boleh kosong'; return; }
+  if (!/^\d{4,10}$/.test(newPin)) { errEl.textContent = '⚠️ PIN harus 4-10 digit angka'; return; }
+  if (newPin !== confirmPin) {
+    errEl.textContent = '❌ Konfirmasi PIN tidak cocok dengan PIN baru';
     document.getElementById('confirmPinInput').value = '';
-    return; 
+    return;
   }
   
   try {
-    toast('Menyimpan PIN ke Firebase...', 'info');
+    // Simpan PIN ke Firebase (bukan localStorage)
     await db.ref(`user_pins/${currentUser.uid}`).set(newPin);
     userPIN = newPin;
     closePinSettings();
-    toast('✅ PIN berhasil disimpan ke Firebase!', 'success');
+    toast('✅ PIN berhasil disimpan di cloud', 'success');
     renderUserCard();
-  } catch (e) { 
-    toast('❌ Gagal simpan PIN: ' + e.message, 'error'); 
+  } catch (e) {
+    errEl.textContent = '❌ Gagal simpan: ' + e.message;
   }
 }
 
-function openPinSettings() {
-  document.getElementById('oldPinInput').value = '';
-  document.getElementById('newPinInput').value = '';
-  document.getElementById('confirmPinInput').value = '';
-  
-  // Tampilkan/hide field PIN lama berdasarkan apakah user sudah punya PIN
-  const oldPinGroup = document.getElementById('oldPinGroup');
-  const pinModalTitle = document.getElementById('pinModalTitle');
-  
-  if (userPIN) {
-    oldPinGroup.style.display = 'block';
-    pinModalTitle.textContent = 'GANTI PIN';
-  } else {
-    oldPinGroup.style.display = 'none';
-    pinModalTitle.textContent = 'SETUP PIN BARU';
-  }
-  
-  document.getElementById('pinSetupOverlay').classList.add('show');
-  setTimeout(() => {
-    if (userPIN) {
-      document.getElementById('oldPinInput').focus();
-    } else {
-      document.getElementById('newPinInput').focus();
-    }
-  }, 100);
-}
-
-function closePinSettings() { 
-  document.getElementById('pinSetupOverlay').classList.remove('show'); 
+function closePinSettings() {
+  document.getElementById('pinSetupOverlay').classList.remove('show');
 }
 
 function showSection(sectionName, navEl) {
@@ -2730,21 +2864,6 @@ async function fetchIP() {
   document.getElementById('sIp').textContent = currentIP;
 }
 
-const FIREBASE = {
-  load: async () => {
-    const snap = await db.ref('scripts').once('value');
-    const val = snap.val();
-    if (!val) return [];
-    if (Array.isArray(val)) return val.filter(s => s && s.id);
-    return Object.values(val).filter(s => s && s.id);
-  },
-  save: async (scripts) => {
-    const clean = scripts.filter(s => s && s.id);
-    if (clean.length === 0) await db.ref('scripts').remove();
-    else await db.ref('scripts').set(clean);
-  }
-};
-
 function buildHistoryEntry(action, scriptName, oldData, newData) {
   let diff = null;
   if (oldData && newData && action === 'update') diff = calculateDiff(oldData.code || '', newData.code || '');
@@ -2774,27 +2893,26 @@ function pushHistory(script, entry) {
 function countAllHistory() { return scripts.reduce((acc, s) => acc + ((s.history && s.history.length) || 0), 0); }
 
 // ============================================
-// PIN VERIFICATION - Dengan pesan error yang jelas
+// PIN VERIFICATION (UPDATED: clearer error messages)
 // ============================================
 function openPinVerify(action, callback) {
-  if (!userPIN) { 
-    toast('⚠️ Anda belum memiliki PIN. Silakan setup PIN terlebih dahulu.', 'warning'); 
-    openPinSettings(); 
-    return; 
-  }
+  if (!userPIN) { toast('⚠️ Setup PIN terlebih dahulu.', 'warning'); openPinSettings(); return; }
   pendingAction = { type: action, callback: callback };
-  document.getElementById('pinVerifyDesc').textContent = action === 'delete' 
-    ? `Masukkan PIN Anda untuk menghapus script ini` 
-    : `Masukkan PIN Anda untuk mengedit script ini`;
+  const descMap = {
+    'delete': 'Masukkan PIN untuk menghapus script ini',
+    'edit': 'Masukkan PIN untuk mengedit script ini'
+  };
+  document.getElementById('pinVerifyDesc').textContent = descMap[action] || 'Masukkan PIN untuk melanjutkan';
   document.getElementById('pinVerifyInput').value = '';
   document.getElementById('pinVerifyErr').textContent = '';
   document.getElementById('pinVerifyOverlay').classList.add('show');
   setTimeout(() => document.getElementById('pinVerifyInput').focus(), 100);
 }
 
-function closePinVerify() { 
-  document.getElementById('pinVerifyOverlay').classList.remove('show'); 
-  pendingAction = null; 
+function closePinVerify() {
+  document.getElementById('pinVerifyOverlay').classList.remove('show');
+  document.getElementById('pinVerifyErr').textContent = '';
+  pendingAction = null;
 }
 
 async function verifyPinAction() {
@@ -2802,39 +2920,46 @@ async function verifyPinAction() {
   const errEl = document.getElementById('pinVerifyErr');
   const pin = input.value;
   
-  if (!pin) { 
-    errEl.textContent = '⚠️ Masukkan PIN terlebih dahulu!';
-    input.classList.add('shake'); 
-    setTimeout(() => input.classList.remove('shake'), 450); 
-    return; 
+  if (!pin) {
+    errEl.textContent = '⚠️ Masukkan PIN terlebih dahulu';
+    input.classList.add('shake');
+    setTimeout(() => input.classList.remove('shake'), 450);
+    return;
   }
   
-  if (pin !== userPIN) { 
+  if (pin !== userPIN) {
     errEl.textContent = '❌ PIN SALAH! Silakan coba lagi.';
-    input.classList.add('shake'); 
-    input.value = ''; 
-    setTimeout(() => { 
-      input.classList.remove('shake'); 
-      input.focus(); 
-    }, 450); 
-    return; 
+    input.classList.add('shake');
+    input.value = '';
+    setTimeout(() => {
+      input.classList.remove('shake');
+      input.focus();
+    }, 450);
+    return;
   }
   
-  // PIN benar
+  // PIN BENAR
   errEl.textContent = '';
   closePinVerify();
-  if (pendingAction && pendingAction.callback) await pendingAction.callback();
+  if (pendingAction && pendingAction.callback) {
+    try {
+      await pendingAction.callback();
+    } catch (e) {
+      toast('❌ Error: ' + e.message, 'error');
+    }
+  }
   pendingAction = null;
 }
 
+// ============================================
+// CLEAN & DELETE (REFACTORED: per-script operations)
+// ============================================
 async function forceClean() {
   if (!confirm('🐒 Clean Data\n\nHapus semua script tanpa nama & tanpa ID?\n\nLanjutkan?')) return;
   try {
     toast('Membersihkan data...', 'info');
-    const before = scripts.length;
-    scripts = scripts.filter(s => s && s.id && s.name && s.name.trim() !== '');
-    const removed = before - scripts.length;
-    await FIREBASE.save(scripts);
+    const removed = await FIREBASE.cleanInvalid();
+    scripts = await FIREBASE.load();
     renderAll();
     toast(`✅ ${removed} script dibersihkan!`, 'success');
   } catch (e) { toast('❌ Gagal: ' + e.message, 'error'); }
@@ -2843,57 +2968,66 @@ async function forceClean() {
 function openEditor() { document.getElementById('editorOverlay').classList.add('show'); setTimeout(() => document.getElementById('sName').focus(), 100); }
 function closeEditor() { document.getElementById('editorOverlay').classList.remove('show'); }
 
+// Hapus script - PER SCRIPT (bukan menimpa semua) - LANGSUNG TANPA PIN
 async function executeDelete(id) {
   if (!id) { toast('❌ Error: ID tidak valid', 'error'); return; }
   const idx = scripts.findIndex(s => s && s.id === id);
   if (idx === -1) { toast('❌ Script tidak ditemukan', 'error'); return; }
+  
   const script = scripts[idx];
   const scriptName = script.name || 'Unnamed';
   const oldData = { ...script };
+  
+  // Push history sebelum dihapus
   pushHistory(script, buildHistoryEntry('delete', scriptName, oldData, null));
+  
   try {
-    toast('Menghapus dari Firebase...', 'info');
-    await db.ref('deleted_history/' + id).set({ originalId: id, name: scriptName, deletedBy: currentUser.email, deletedAt: new Date().toISOString(), history: script.history || [] });
+    toast('🗑️ Menghapus script...', 'delete');
+    
+    // Update script dengan history terakhir
+    await FIREBASE.save(script);
+    
+    // Simpan ke deleted_history
+    await db.ref('deleted_history/' + id).set({
+      originalId: id,
+      name: scriptName,
+      deletedBy: currentUser.email,
+      deletedAt: new Date().toISOString(),
+      history: script.history || [],
+      lastCode: script.code || null
+    });
+    
+    // HAPUS PER SCRIPT dari Firebase
+    await FIREBASE.delete(id);
+    
+    // Update array lokal
     scripts.splice(idx, 1);
-    await FIREBASE.save(scripts);
     if (editId === id) { editId = null; closeEditor(); }
+    
     renderAll();
-    toast(`✅ "${scriptName}" berhasil dihapus`, 'success');
-  } catch (e) { toast('❌ Gagal hapus: ' + e.message, 'error'); scripts = await FIREBASE.load(); renderAll(); }
+    toast(`🗑️ "${scriptName}" berhasil dihapus!`, 'delete');
+  } catch (e) {
+    toast('❌ Gagal hapus: ' + e.message, 'error');
+    scripts = await FIREBASE.load();
+    renderAll();
+  }
 }
 
-function delS() { 
+// HAPUS LANGSUNG TANPA PIN - dengan konfirmasi
+function delS() {
   if (!editId) { toast('❌ Tidak ada script', 'error'); return; }
   const s = scripts.find(x => x && x.id === editId);
-  if (!s) return;
-  
-  // Jika owner, konfirmasi langsung tanpa PIN
-  if (s.ownerEmail === currentUser?.email) {
-    if (confirm(`Hapus script "${s.name}"?\n\nAnda adalah pemilik script ini.`)) {
-      executeDelete(editId);
-    }
-  } else {
-    // Bukan owner, butuh PIN
-    openPinVerify('delete', async () => { await executeDelete(editId); });
-  }
+  const name = s ? s.name : 'Unnamed';
+  if (!confirm(`🗑️ Hapus Script?\n\n"${name}"\n\nScript akan dihapus permanen dari cloud.`)) return;
+  executeDelete(editId);
 }
 
-// ============================================
-// QUICK DELETE - Owner skip PIN, non-owner butuh PIN
-// ============================================
-function quickDel(id) { 
+// Hapus cepat dari card (Dashboard & Script Saya) - LANGSUNG TANPA PIN
+function quickDel(id) {
   const s = scripts.find(x => x && x.id === id);
-  if (!s) return;
-  
-  // Jika owner, konfirmasi langsung tanpa PIN
-  if (s.ownerEmail === currentUser?.email) {
-    if (confirm(`Hapus script "${s.name}"?\n\nAnda adalah pemilik script ini.`)) {
-      executeDelete(id);
-    }
-  } else {
-    // Bukan owner, butuh PIN
-    openPinVerify('delete', async () => { await executeDelete(id); });
-  }
+  const name = s ? s.name : 'Unnamed';
+  if (!confirm(`🗑️ Hapus Script?\n\n"${name}"\n\nScript akan dihapus permanen dari cloud.`)) return;
+  executeDelete(id);
 }
 
 function buildCode(s) {
@@ -2979,15 +3113,12 @@ function init() {
     if (e.key === 'Tab') { e.preventDefault(); const t = e.target, s = t.selectionStart, en = t.selectionEnd; t.value = t.value.substring(0, s) + '  ' + t.value.substring(en); t.selectionStart = t.selectionEnd = s + 2; }
     if (e.key === 'Escape') closeEditor();
   });
-  document.getElementById('pinVerifyInput').addEventListener('keydown', e => { 
-    if (e.key === 'Enter') verifyPinAction(); 
-    if (e.key === 'Escape') closePinVerify(); 
-  });
+  document.getElementById('pinVerifyInput').addEventListener('keydown', e => { if (e.key === 'Enter') verifyPinAction(); if (e.key === 'Escape') closePinVerify(); });
+  document.getElementById('oldPinInput').addEventListener('keydown', e => { if (e.key === 'Enter') verifyOldPin(); });
   ['pinVerifyOverlay', 'editorOverlay', 'tmHelpOverlay', 'pinSetupOverlay', 'histDetailOverlay', 'portalSettingsOverlay', 'portalPinOverlay'].forEach(id => {
     document.getElementById(id).addEventListener('click', e => { if (e.target.id === id) document.getElementById(id).classList.remove('show'); });
   });
   
-  // Portal PIN inputs
   document.querySelectorAll('.portal-pin').forEach((input, index) => {
     input.addEventListener('input', (e) => {
       if (e.target.value.length === 1) {
@@ -3237,37 +3368,54 @@ function updateStats() {
   document.getElementById('lCnt').textContent = c ? c.split('\n').length : 0;
 }
 
+// Simpan script - PER SCRIPT (bukan seluruh array)
 async function saveS() {
   if (!userPIN) { toast('⚠️ Setup PIN terlebih dahulu', 'error'); return; }
   const name = document.getElementById('sName').value.trim();
   const author = document.getElementById('sAuthor').value.trim();
   const desc = document.getElementById('sDesc').value.trim();
   const code = document.getElementById('sCode').value;
+  
   if (!name) { toast('Nama wajib diisi', 'error'); return; }
   if (!code) { toast('Code kosong', 'error'); return; }
+  
   const now = new Date().toISOString();
+  let scriptToSave;
+  
   if (editId) {
     const i = scripts.findIndex(s => s && s.id === editId);
     if (i >= 0) {
       const oldData = { ...scripts[i] };
       scripts[i] = { ...scripts[i], name, author, desc, code, updated: now };
       pushHistory(scripts[i], buildHistoryEntry('update', name, oldData, scripts[i]));
+      scriptToSave = scripts[i];
     }
   } else {
-    const ns = { id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6), name, author, desc, code, created: now, updated: now, ownerEmail: currentUser.email, ownerName: currentUser.name, history: [] };
+    const ns = {
+      id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      name, author, desc, code,
+      created: now, updated: now,
+      ownerEmail: currentUser.email,
+      ownerName: currentUser.name,
+      history: []
+    };
     pushHistory(ns, buildHistoryEntry('create', name, null, ns));
     scripts.push(ns);
     editId = ns.id;
+    scriptToSave = ns;
   }
+  
   try {
     toast('Menyimpan ke Firebase...', 'info');
-    await FIREBASE.save(scripts);
+    await FIREBASE.save(scriptToSave); // Simpan PER SCRIPT
     document.getElementById('edTitle').textContent = name;
     document.getElementById('bDel').style.display = 'inline-flex';
     renderAll();
     toast('✅ Tersimpan di Firebase', 'success');
     setTimeout(() => { closeEditor(); }, 600);
-  } catch (e) { toast('❌ Gagal: ' + e.message, 'error'); }
+  } catch (e) {
+    toast('❌ Gagal: ' + e.message, 'error');
+  }
 }
 
 function quickCopy(id) {
@@ -3302,13 +3450,36 @@ function openHistFromEditor() {
 function esc(t) { if (!t) return ''; return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function ago(d) { if (!d) return '-'; const s = (Date.now() - new Date(d).getTime()) / 1000; if (s < 60) return 'baru saja'; if (s < 3600) return Math.floor(s / 60) + 'm lalu'; if (s < 86400) return Math.floor(s / 3600) + 'j lalu'; if (s < 2592000) return Math.floor(s / 86400) + 'h lalu'; return new Date(d).toLocaleDateString('id-ID'); }
 function formatDate(iso) { if (!iso) return '-'; const d = new Date(iso); return d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }); }
+
+// ============================================
+// TOAST NOTIFICATION SYSTEM (ENHANCED)
+// ============================================
 function toast(msg, type = 'info') {
-  const w = document.getElementById('toasts'), el = document.createElement('div');
+  const w = document.getElementById('toasts');
+  const el = document.createElement('div');
   el.className = 'toast ' + type;
-  const iconMap = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-times-circle"></i>', info: '<i class="fas fa-info-circle"></i>', warning: '<i class="fas fa-exclamation-triangle"></i>' };
-  el.innerHTML = `<span class="icon">${iconMap[type] || ''}</span><span>${esc(msg)}</span>`;
+  
+  const iconMap = { 
+    success: '<i class="fas fa-check-circle"></i>', 
+    error: '<i class="fas fa-times-circle"></i>', 
+    info: '<i class="fas fa-info-circle"></i>', 
+    warning: '<i class="fas fa-exclamation-triangle"></i>',
+    delete: '<i class="fas fa-trash-alt"></i>'
+  };
+  
+  el.innerHTML = `
+    <span class="icon">${iconMap[type] || ''}</span>
+    <span>${esc(msg)}</span>
+    <div class="toast-progress"></div>
+  `;
+  
   w.appendChild(el);
-  setTimeout(() => { el.style.animation = 'slideIn 0.35s reverse'; setTimeout(() => el.remove(), 350); }, 3500);
+  
+  // Auto remove after 3.5 seconds
+  setTimeout(() => {
+    el.style.animation = 'toastSlideIn 0.35s reverse';
+    setTimeout(() => el.remove(), 350);
+  }, 3500);
 }
 
 // ============================================
@@ -3335,13 +3506,13 @@ function clearPortalPin() {
   document.querySelector('.portal-pin[data-index="0"]').focus();
 }
 
-async function submitPortalPin() {
-  if (currentPortalPinInput === portalPIN) {
+function submitPortalPin() {
+  if (currentPortalPinInput === loadPortalPin()) {
     closePortalPin();
     showPortalSettingsForm();
     toast('✅ PIN Benar - Akses Diberikan', 'success');
   } else {
-    document.getElementById('portalPinError').textContent = '❌ PIN Salah! Silakan coba lagi.';
+    document.getElementById('portalPinError').textContent = '❌ PIN Salah!';
     clearPortalPin();
   }
 }
@@ -3378,13 +3549,11 @@ function showPortalSettingsForm() {
     form.appendChild(group);
   });
   
-  // PIN section
   const pinGroup = document.createElement('div');
   pinGroup.className = 'settings-panel';
   pinGroup.innerHTML = `<h3 class="settings-panel-title">GANTI PIN PORTAL</h3>
     <div class="input-wrapper"><label class="input-label">PIN Baru (4 digit)</label>
-    <input type="password" id="newPortalPinInput" class="input-field" maxlength="4" placeholder="1234"></div>
-    <div class="form-helper">💡 PIN Portal tersimpan di Firebase cloud</div>`;
+    <input type="password" id="newPortalPinInput" class="input-field" maxlength="4" placeholder="1234"></div>`;
   form.appendChild(pinGroup);
   
   document.getElementById('portalSettingsOverlay').classList.add('show');
@@ -3394,15 +3563,15 @@ function closePortalSettings() {
   document.getElementById('portalSettingsOverlay').classList.remove('show');
 }
 
-async function savePortalSettings() {
+function savePortalSettings() {
   const links = loadPortalLinks();
   document.querySelectorAll('#portalSettingsForm .input-field[data-menu-id]').forEach(input => {
     links[input.dataset.menuId] = input.value.trim();
   });
   const newPin = document.getElementById('newPortalPinInput');
   if (newPin && newPin.value.length === 4 && /^\d{4}$/.test(newPin.value)) {
-    await savePortalPinData(newPin.value);
-    toast('✅ PIN Portal diubah di Firebase!', 'success');
+    savePortalPinData(newPin.value);
+    toast('✅ PIN diubah!', 'success');
   }
   savePortalLinksData(links);
   updatePortalLinks();
