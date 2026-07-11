@@ -1,923 +1,829 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔍 Visor Scanner - HTML OCR</title>
-    
-    <!-- Tesseract.js - OCR Library -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🖥️ Visor Scanner - HTML Edition</title>
 
-        body {
-            background: #1a1a2e;
-            color: #ffffff;
-            min-height: 100vh;
-            padding: 20px;
-        }
+<!-- Tesseract.js dari CDN -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+  }
 
-        /* Header */
-        .header {
-            background: #16213e;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
+  body {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    min-height: 100vh;
+    color: #fff;
+    padding: 20px;
+  }
 
-        .header h1 {
-            color: #e94560;
-            font-size: 2.2em;
-            margin-bottom: 5px;
-        }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: rgba(26, 26, 46, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    border: 1px solid rgba(233, 69, 96, 0.2);
+  }
 
-        .header p {
-            color: #888;
-            font-size: 0.95em;
-        }
+  /* HEADER */
+  .header {
+    background: linear-gradient(90deg, #16213e, #0f3460);
+    padding: 25px;
+    text-align: center;
+    border-bottom: 3px solid #e94560;
+  }
 
-        /* Status Bar */
-        .status-bar {
-            background: #16213e;
-            padding: 12px 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-left: 4px solid #00ff88;
-        }
+  .header h1 {
+    font-size: 32px;
+    color: #e94560;
+    text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+    margin-bottom: 5px;
+  }
 
-        .status-bar.error {
-            border-left-color: #e94560;
-        }
+  .header p {
+    color: #aaa;
+    font-size: 14px;
+  }
 
-        .status-bar.loading {
-            border-left-color: #ffd60a;
-        }
+  /* CONTROL PANEL */
+  .control-panel {
+    padding: 20px;
+    background: rgba(15, 52, 96, 0.3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
 
-        #statusText {
-            flex: 1;
-            font-size: 0.95em;
-        }
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-        /* Control Panel */
-        .control-panel {
-            background: #16213e;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
+  .control-group label {
+    font-size: 14px;
+    color: #ccc;
+  }
 
-        button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
+  select, input[type="text"] {
+    background: #0a0a1a;
+    color: #00ff88;
+    border: 1px solid #0f3460;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s;
+  }
 
-        button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
+  select:hover, input[type="text"]:hover {
+    border-color: #e94560;
+  }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+  select:focus, input[type="text"]:focus {
+    border-color: #e94560;
+    box-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+  }
 
-        .btn-primary {
-            background: #e94560;
-            color: white;
-        }
+  /* BUTTONS */
+  .btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+  }
 
-        .btn-primary:hover:not(:disabled) {
-            background: #c73652;
-        }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
-        .btn-secondary {
-            background: #0f3460;
-            color: white;
-        }
+  .btn-primary {
+    background: linear-gradient(135deg, #e94560, #c73652);
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+  }
 
-        .btn-secondary:hover:not(:disabled) {
-            background: #0a2647;
-        }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(233, 69, 96, 0.6);
+  }
 
-        .btn-danger {
-            background: #533483;
-            color: white;
-        }
+  .btn-secondary {
+    background: linear-gradient(135deg, #0f3460, #0a2647);
+    box-shadow: 0 4px 15px rgba(15, 52, 96, 0.4);
+  }
 
-        .btn-danger:hover:not(:disabled) {
-            background: #3d2563;
-        }
+  .btn-secondary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15, 52, 96, 0.6);
+  }
 
-        .btn-stop {
-            background: #dc2626;
-            color: white;
-        }
+  .btn-warning {
+    background: linear-gradient(135deg, #533483, #3d2563);
+  }
 
-        /* Settings */
-        .settings {
-            background: #16213e;
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            align-items: center;
-        }
+  .btn-warning:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
 
-        .settings label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9em;
-        }
+  /* STATUS BAR */
+  .status-bar {
+    background: #16213e;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
 
-        .settings select, .settings input[type="range"] {
-            padding: 6px 10px;
-            background: #0a0a1a;
-            color: white;
-            border: 1px solid #333;
-            border-radius: 6px;
-            font-size: 0.9em;
-        }
+  .status-text {
+    color: #00ff88;
+  }
 
-        /* Preview Area */
-        .preview-section {
-            background: #16213e;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
+  .status-text.warning { color: #ffb400; }
+  .status-text.error { color: #e94560; }
 
-        .preview-section h3 {
-            color: #e94560;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
+  .progress-container {
+    width: 200px;
+    height: 6px;
+    background: #0a0a1a;
+    border-radius: 3px;
+    overflow: hidden;
+    display: none;
+  }
 
-        .preview-container {
-            position: relative;
-            background: #0a0a1a;
-            border-radius: 8px;
-            overflow: hidden;
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+  .progress-container.active { display: block; }
 
-        #videoPreview {
-            max-width: 100%;
-            max-height: 400px;
-            display: none;
-        }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #e94560, #00ff88);
+    width: 0%;
+    transition: width 0.3s;
+  }
 
-        #canvasPreview {
-            display: none;
-            max-width: 100%;
-            max-height: 400px;
-        }
+  /* PREVIEW AREA */
+  .preview-section {
+    padding: 20px;
+  }
 
-        .preview-placeholder {
-            color: #555;
-            text-align: center;
-            padding: 40px;
-        }
+  .section-title {
+    font-size: 16px;
+    color: #e94560;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-        .preview-placeholder .icon {
-            font-size: 4em;
-            margin-bottom: 10px;
-        }
+  .preview-box {
+    background: #0a0a1a;
+    border: 2px dashed #0f3460;
+    border-radius: 12px;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
 
-        /* Progress Bar */
-        .progress-container {
-            display: none;
-            margin-top: 15px;
-        }
+  .preview-box img {
+    max-width: 100%;
+    max-height: 300px;
+    display: block;
+  }
 
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #0a0a1a;
-            border-radius: 4px;
-            overflow: hidden;
-        }
+  .preview-placeholder {
+    color: #555;
+    font-size: 14px;
+    text-align: center;
+    padding: 40px;
+  }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #e94560, #00ff88);
-            width: 0%;
-            transition: width 0.3s;
-        }
+  /* RESULT AREA */
+  .result-section {
+    padding: 0 20px 20px;
+  }
 
-        .progress-text {
-            text-align: center;
-            margin-top: 8px;
-            font-size: 0.85em;
-            color: #888;
-        }
+  .result-box {
+    background: #0a0a1a;
+    border: 1px solid #0f3460;
+    border-radius: 12px;
+    min-height: 250px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 15px;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    color: #00ff88;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
 
-        /* Result Area */
-        .result-section {
-            background: #16213e;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
+  .result-box::-webkit-scrollbar {
+    width: 8px;
+  }
 
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+  .result-box::-webkit-scrollbar-track {
+    background: #0a0a1a;
+  }
 
-        .result-header h3 {
-            color: #e94560;
-            font-size: 1.1em;
-        }
+  .result-box::-webkit-scrollbar-thumb {
+    background: #0f3460;
+    border-radius: 4px;
+  }
 
-        .result-stats {
-            display: flex;
-            gap: 15px;
-            font-size: 0.85em;
-            color: #888;
-        }
+  .result-separator {
+    color: #e94560;
+    font-weight: bold;
+  }
 
-        #resultText {
-            width: 100%;
-            min-height: 250px;
-            background: #0a0a1a;
-            color: #00ff88;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 15px;
-            font-family: 'Consolas', monospace;
-            font-size: 0.95em;
-            resize: vertical;
-            line-height: 1.6;
-        }
+  .result-header {
+    color: #00b4d8;
+    font-weight: bold;
+  }
 
-        #resultText:focus {
-            outline: none;
-            border-color: #e94560;
-        }
+  /* ACTION BAR */
+  .action-bar {
+    padding: 15px 20px;
+    background: rgba(15, 52, 96, 0.3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
 
-        /* Info Bar */
-        .info-bar {
-            background: #16213e;
-            padding: 12px 20px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85em;
-            color: #888;
-        }
+  /* INFO BAR */
+  .info-bar {
+    padding: 10px 20px;
+    background: #0a0a1a;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+  }
 
-        /* History Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
 
-        .modal-overlay.active {
-            display: flex;
-        }
+  .modal-overlay.active { display: flex; }
 
-        .modal {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 25px;
-            width: 90%;
-            max-width: 700px;
-            max-height: 80vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+  .modal {
+    background: #1a1a2e;
+    border-radius: 15px;
+    padding: 25px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid #e94560;
+  }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #333;
-        }
+  .modal h2 {
+    color: #e94560;
+    margin-bottom: 15px;
+  }
 
-        .modal-header h2 {
-            color: #e94560;
-        }
+  .modal-content {
+    background: #0a0a1a;
+    padding: 15px;
+    border-radius: 8px;
+    color: #00ff88;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    max-height: 400px;
+    overflow-y: auto;
+  }
 
-        .close-btn {
-            background: transparent;
-            color: white;
-            font-size: 1.5em;
-            padding: 5px 12px;
-        }
+  .modal-close {
+    margin-top: 15px;
+    text-align: right;
+  }
 
-        .modal-body {
-            overflow-y: auto;
-            flex: 1;
-        }
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #00ff88;
+    color: #0a0a1a;
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+    transform: translateX(400px);
+    transition: transform 0.3s;
+    z-index: 2000;
+  }
 
-        .history-item {
-            background: #0a0a1a;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 3px solid #00ff88;
-        }
+  .toast.active { transform: translateX(0); }
+  .toast.error { background: #e94560; color: #fff; }
 
-        .history-item-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.85em;
-            color: #00b4d8;
-        }
-
-        .history-item-content {
-            color: #00ff88;
-            font-family: 'Consolas', monospace;
-            font-size: 0.9em;
-            white-space: pre-wrap;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        /* Toast Notification */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #00ff88;
-            color: #000;
-            padding: 15px 25px;
-            border-radius: 8px;
-            font-weight: bold;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            transform: translateX(400px);
-            transition: transform 0.3s;
-            z-index: 2000;
-        }
-
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        .toast.error {
-            background: #e94560;
-            color: white;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 1.5em; }
-            .control-panel { flex-direction: column; }
-            button { width: 100%; justify-content: center; }
-        }
-    </style>
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 24px; }
+    .control-panel { flex-direction: column; }
+    .btn { width: 100%; justify-content: center; }
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>🔍 VISOR SCANNER</h1>
-            <p>Capture layar & scan teks dengan OCR - Langsung di browser</p>
-        </div>
 
-        <!-- Status Bar -->
-        <div class="status-bar" id="statusBar">
-            <span>✅</span>
-            <span id="statusText">Siap - Klik "Start Capture" untuk mulai</span>
-        </div>
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <h1>🖥️ VISOR SCANNER</h1>
+    <p>Capture & OCR Screen - HTML Edition</p>
+  </div>
 
-        <!-- Settings -->
-        <div class="settings">
-            <label>
-                🌐 Bahasa OCR:
-                <select id="langSelect">
-                    <option value="eng">English</option>
-                    <option value="ind">Indonesia</option>
-                    <option value="eng+ind">English + Indonesia</option>
-                </select>
-            </label>
-            <label>
-                🎯 Mode PSM:
-                <select id="psmSelect">
-                    <option value="3">Otomatis (Default)</option>
-                    <option value="6">Block teks seragam</option>
-                    <option value="11">Teks sparse</option>
-                    <option value="4">Kolom teks</option>
-                </select>
-            </label>
-            <label>
-                🔆 Kontras:
-                <input type="range" id="contrastRange" min="0.5" max="3" step="0.1" value="1.5">
-                <span id="contrastValue">1.5</span>
-            </label>
-        </div>
-
-        <!-- Control Panel -->
-        <div class="control-panel">
-            <button class="btn-primary" id="startCaptureBtn" onclick="startCapture()">
-                🎥 Start Capture
-            </button>
-            <button class="btn-stop" id="stopCaptureBtn" onclick="stopCapture()" style="display:none;">
-                ⏹️ Stop Capture
-            </button>
-            <button class="btn-primary" id="scanBtn" onclick="doScan()" disabled>
-                🔍 Scan Sekarang
-            </button>
-            <button class="btn-secondary" id="copyBtn" onclick="copyAll()" disabled>
-                📋 Copy Semua
-            </button>
-            <button class="btn-secondary" id="exportBtn" onclick="exportTxt()" disabled>
-                💾 Export .txt
-            </button>
-            <button class="btn-danger" id="historyBtn" onclick="showHistory()">
-                📜 History
-            </button>
-            <button class="btn-danger" id="clearBtn" onclick="clearResults()">
-                🗑️ Clear
-            </button>
-        </div>
-
-        <!-- Preview Section -->
-        <div class="preview-section">
-            <h3>📷 Preview Layar</h3>
-            <div class="preview-container">
-                <video id="videoPreview" autoplay playsinline></video>
-                <canvas id="canvasPreview"></canvas>
-                <div class="preview-placeholder" id="previewPlaceholder">
-                    <div class="icon">🖥️</div>
-                    <p>Belum ada capture aktif</p>
-                    <p style="font-size: 0.85em; margin-top: 10px;">
-                        Klik "Start Capture" untuk memilih monitor/window
-                    </p>
-                </div>
-            </div>
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-text" id="progressText">Memproses...</div>
-            </div>
-        </div>
-
-        <!-- Result Section -->
-        <div class="result-section">
-            <div class="result-header">
-                <h3>📝 Hasil Scan Teks</h3>
-                <div class="result-stats">
-                    <span id="scanCount">Total Scan: 0</span>
-                    <span>|</span>
-                    <span id="charCount">Karakter: 0</span>
-                </div>
-            </div>
-            <textarea id="resultText" placeholder="Hasil scan akan muncul di sini...&#10;&#10;Anda juga bisa edit teks di sini sebelum di-copy."></textarea>
-        </div>
-
-        <!-- Info Bar -->
-        <div class="info-bar">
-            <span>💡 Tip: Pilih "Entire Screen" saat capture untuk scan visor/monitor</span>
-            <span id="versionInfo">v1.0 | Tesseract.js</span>
-        </div>
+  <!-- CONTROL PANEL -->
+  <div class="control-panel">
+    <div class="control-group">
+      <label>🌐 Bahasa OCR:</label>
+      <select id="langSelect">
+        <option value="eng">English</option>
+        <option value="ind">Indonesia</option>
+        <option value="eng+ind">English + Indonesia</option>
+      </select>
     </div>
 
-    <!-- History Modal -->
-    <div class="modal-overlay" id="historyModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>📜 History Scan</h2>
-                <button class="close-btn" onclick="closeHistory()">✕</button>
-            </div>
-            <div class="modal-body" id="historyBody">
-                <p style="color: #888; text-align: center; padding: 20px;">
-                    Belum ada history scan
-                </p>
-            </div>
-        </div>
+    <div class="control-group">
+      <label>🎨 Mode:</label>
+      <select id="modeSelect">
+        <option value="auto">Auto Detect</option>
+        <option value="light">Light Text (Dark BG)</option>
+        <option value="dark">Dark Text (Light BG)</option>
+      </select>
     </div>
 
-    <!-- Toast -->
-    <div class="toast" id="toast"></div>
+    <button class="btn btn-primary" id="scanBtn">
+      🔍 SCAN SEKARANG
+    </button>
+  </div>
 
-    <script>
-        // ============================================
-        // STATE MANAGEMENT
-        // ============================================
-        let mediaStream = null;
-        let videoElement = null;
-        let scanResults = [];
-        let history = [];
-        let tesseractWorker = null;
-        let isWorkerReady = false;
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span class="status-text" id="statusText">✅ Siap - Klik SCAN untuk mulai</span>
+    <div class="progress-container" id="progressContainer">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
 
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-        window.addEventListener('load', () => {
-            videoElement = document.getElementById('videoPreview');
-            initTesseract();
-            setupEventListeners();
-        });
+  <!-- PREVIEW -->
+  <div class="preview-section">
+    <div class="section-title">📷 Preview Layar Visor</div>
+    <div class="preview-box" id="previewBox">
+      <div class="preview-placeholder">
+        Belum ada preview<br>
+        <small>Klik SCAN untuk capture layar</small>
+      </div>
+    </div>
+  </div>
 
-        function setupEventListeners() {
-            document.getElementById('contrastRange').addEventListener('input', (e) => {
-                document.getElementById('contrastValue').textContent = e.target.value;
-            });
+  <!-- RESULT -->
+  <div class="result-section">
+    <div class="section-title">📝 Hasil Scan Teks</div>
+    <div class="result-box" id="resultBox">Hasil scan akan muncul di sini...</div>
+  </div>
+
+  <!-- ACTION BAR -->
+  <div class="action-bar">
+    <button class="btn btn-secondary" id="copyBtn" disabled>📋 Copy Semua</button>
+    <button class="btn btn-secondary" id="exportBtn" disabled>💾 Export .txt</button>
+    <button class="btn btn-warning" id="clearBtn">🗑️ Clear</button>
+    <button class="btn btn-warning" id="historyBtn">📜 History</button>
+  </div>
+
+  <!-- INFO BAR -->
+  <div class="info-bar">
+    <span id="scanCount">Total Scan: 0</span>
+    <span id="charCount">Karakter: 0</span>
+  </div>
+</div>
+
+<!-- MODAL HISTORY -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal">
+    <h2>📜 History Scan</h2>
+    <div class="modal-content" id="historyContent">Belum ada history.</div>
+    <div class="modal-close">
+      <button class="btn btn-primary" onclick="closeHistory()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================
+// STATE MANAGEMENT
+// ============================================
+const state = {
+  scanResults: [],
+  history: JSON.parse(localStorage.getItem('visorHistory') || '[]'),
+  isScanning: false,
+  currentScreenshot: null
+};
+
+// ============================================
+// DOM ELEMENTS
+// ============================================
+const $ = id => document.getElementById(id);
+const scanBtn = $('scanBtn');
+const copyBtn = $('copyBtn');
+const exportBtn = $('exportBtn');
+const clearBtn = $('clearBtn');
+const historyBtn = $('historyBtn');
+const statusText = $('statusText');
+const progressContainer = $('progressContainer');
+const progressBar = $('progressBar');
+const previewBox = $('previewBox');
+const resultBox = $('resultBox');
+const scanCount = $('scanCount');
+const charCount = $('charCount');
+const langSelect = $('langSelect');
+const modeSelect = $('modeSelect');
+const toast = $('toast');
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function showToast(message, isError = false) {
+  toast.textContent = message;
+  toast.className = 'toast active' + (isError ? ' error' : '');
+  setTimeout(() => toast.classList.remove('active'), 3000);
+}
+
+function setStatus(message, type = 'success') {
+  statusText.textContent = message;
+  statusText.className = 'status-text ' + (type === 'error' ? 'error' : type === 'warning' ? 'warning' : '');
+}
+
+function updateProgress(percent) {
+  progressBar.style.width = percent + '%';
+}
+
+function showProgress(show) {
+  progressContainer.classList.toggle('active', show);
+}
+
+function formatTimestamp() {
+  const d = new Date();
+  return d.toLocaleString('id-ID', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+}
+
+function updateStats() {
+  scanCount.textContent = `Total Scan: ${state.scanResults.length}`;
+  const totalChars = state.scanResults.reduce((sum, r) => 
+    sum + r.text.replace(/\s/g, '').length, 0
+  );
+  charCount.textContent = `Karakter: ${totalChars}`;
+}
+
+// ============================================
+// IMAGE PRE-PROCESSING
+// ============================================
+function preprocessImage(canvas, mode) {
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  // Convert to grayscale
+  for (let i = 0; i < data.length; i += 4) {
+    const gray = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
+    data[i] = data[i+1] = data[i+2] = gray;
+  }
+
+  // Auto threshold (Otsu-like)
+  if (mode === 'auto' || mode === 'dark') {
+    const threshold = 128;
+    for (let i = 0; i < data.length; i += 4) {
+      const v = data[i] < threshold ? 0 : 255;
+      data[i] = data[i+1] = data[i+2] = v;
+    }
+  }
+
+  // Invert for light text on dark background
+  if (mode === 'light') {
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = 255 - data[i];
+      data[i+1] = 255 - data[i+1];
+      data[i+2] = 255 - data[i+2];
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
+// ============================================
+// MAIN SCAN FUNCTION
+// ============================================
+async function doScan() {
+  if (state.isScanning) return;
+  state.isScanning = true;
+  scanBtn.disabled = true;
+  scanBtn.innerHTML = '⏳ SCANNING...';
+  showProgress(true);
+  updateProgress(0);
+
+  try {
+    // 1. CAPTURE SCREEN
+    setStatus('⏳ Meminta izin capture layar...');
+    updateProgress(10);
+
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { cursor: 'never' },
+      audio: false
+    });
+
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    await video.play();
+
+    // Tunggu frame stabil
+    await new Promise(r => setTimeout(r, 300));
+
+    // 2. DRAW TO CANVAS
+    setStatus('⏳ Capture layar...');
+    updateProgress(25);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+
+    // Stop stream
+    stream.getTracks().forEach(t => t.stop());
+
+    // 3. SHOW PREVIEW
+    const dataUrl = canvas.toDataURL('image/png');
+    state.currentScreenshot = dataUrl;
+    previewBox.innerHTML = `<img src="${dataUrl}" alt="Preview">`;
+
+    // 4. PRE-PROCESS
+    setStatus('⏳ Pre-processing gambar...');
+    updateProgress(40);
+    const mode = modeSelect.value;
+    preprocessImage(canvas, mode);
+
+    // 5. OCR WITH TESSERACT
+    setStatus('⏳ Memproses OCR (Tesseract.js)...');
+    updateProgress(50);
+
+    const lang = langSelect.value;
+    const worker = await Tesseract.createWorker(lang, 1, {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          const pct = 50 + Math.round(m.progress * 45);
+          updateProgress(pct);
         }
+      }
+    });
 
-        // ============================================
-        // TESSERACT INITIALIZATION
-        // ============================================
-        async function initTesseract() {
-            setStatus('⏳ Memuat Tesseract OCR...', 'loading');
-            try {
-                tesseractWorker = await Tesseract.createWorker(
-                    document.getElementById('langSelect').value,
-                    1,
-                    {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                updateProgress(m.progress * 100, `OCR: ${Math.round(m.progress * 100)}%`);
-                            }
-                        }
-                    }
-                );
-                isWorkerReady = true;
-                setStatus('✅ Tesseract OCR siap digunakan');
-            } catch (error) {
-                setStatus('❌ Gagal memuat Tesseract: ' + error.message, 'error');
-                showToast('Gagal memuat OCR library', true);
-            }
-        }
+    const { data: { text } } = await worker.recognize(canvas);
+    await worker.terminate();
 
-        // ============================================
-        // SCREEN CAPTURE
-        // ============================================
-        async function startCapture() {
-            try {
-                // Request screen capture
-                mediaStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                        cursor: "never"
-                    },
-                    audio: false
-                });
+    updateProgress(100);
 
-                videoElement.srcObject = mediaStream;
-                videoElement.style.display = 'block';
-                document.getElementById('previewPlaceholder').style.display = 'none';
-                document.getElementById('startCaptureBtn').style.display = 'none';
-                document.getElementById('stopCaptureBtn').style.display = 'inline-flex';
-                document.getElementById('scanBtn').disabled = false;
+    // 6. PROCESS RESULT
+    const extractedText = text.trim();
 
-                setStatus('🎥 Capture aktif - Klik "Scan Sekarang" untuk OCR');
+    if (extractedText) {
+      const timestamp = formatTimestamp();
+      const result = {
+        timestamp,
+        text: extractedText,
+        lines: extractedText.split('\n').filter(l => l.trim()),
+        screenshot: dataUrl
+      };
 
-                // Handle user stopping share via browser UI
-                mediaStream.getVideoTracks()[0].onended = () => {
-                    stopCapture();
-                };
+      state.scanResults.push(result);
+      state.history.push({
+        timestamp,
+        text: extractedText
+      });
 
-            } catch (error) {
-                if (error.name === 'NotAllowedError') {
-                    setStatus('❌ Permission ditolak oleh user', 'error');
-                    showToast('Anda menolak akses screen capture', true);
-                } else {
-                    setStatus('❌ Error: ' + error.message, 'error');
-                    showToast('Gagal memulai capture', true);
-                }
-            }
-        }
+      // Save history to localStorage
+      localStorage.setItem('visorHistory', JSON.stringify(state.history.slice(-50)));
 
-        function stopCapture() {
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-                mediaStream = null;
-            }
-            videoElement.srcObject = null;
-            videoElement.style.display = 'none';
-            document.getElementById('previewPlaceholder').style.display = 'block';
-            document.getElementById('startCaptureBtn').style.display = 'inline-flex';
-            document.getElementById('stopCaptureBtn').style.display = 'none';
-            document.getElementById('scanBtn').disabled = true;
-            setStatus('⏹️ Capture dihentikan');
-        }
+      // Display result
+      displayResult(result);
 
-        // ============================================
-        // OCR SCAN
-        // ============================================
-        async function doScan() {
-            if (!isWorkerReady) {
-                showToast('Tesseract belum siap, tunggu sebentar...', true);
-                return;
-            }
+      // Enable buttons
+      copyBtn.disabled = false;
+      exportBtn.disabled = false;
 
-            if (!mediaStream) {
-                showToast('Mulai capture terlebih dahulu', true);
-                return;
-            }
+      updateStats();
+      setStatus(`✅ Scan berhasil! (${result.lines.length} baris teks)`);
+      showToast('Scan berhasil! ✅');
+    } else {
+      setStatus('⚠️ Tidak ada teks terdeteksi', 'warning');
+      showToast('Tidak ada teks terdeteksi', true);
+    }
 
-            const scanBtn = document.getElementById('scanBtn');
-            scanBtn.disabled = true;
-            scanBtn.innerHTML = '⏳ Scanning...';
-            setStatus('⏳ Mengambil screenshot...', 'loading');
-            showProgress(0, 'Menyiapkan...');
+  } catch (err) {
+    console.error(err);
+    if (err.name === 'NotAllowedError') {
+      setStatus('❌ Izin capture ditolak', 'error');
+      showToast('Izin capture ditolak!', true);
+    } else {
+      setStatus(`❌ Error: ${err.message}`, 'error');
+      showToast(`Error: ${err.message}`, true);
+    }
+  } finally {
+    state.isScanning = false;
+    scanBtn.disabled = false;
+    scanBtn.innerHTML = '🔍 SCAN SEKARANG';
+    setTimeout(() => {
+      showProgress(false);
+      updateProgress(0);
+    }, 1000);
+  }
+}
 
-            try {
-                // 1. Capture frame dari video
-                const canvas = document.createElement('canvas');
-                const track = mediaStream.getVideoTracks()[0];
-                const settings = track.getSettings();
-                canvas.width = settings.width || videoElement.videoWidth;
-                canvas.height = settings.height || videoElement.videoHeight;
+// ============================================
+// DISPLAY RESULT
+// ============================================
+function displayResult(result) {
+  const separator = '='.repeat(50);
+  const html = `
+<span class="result-separator">${separator}</span>
+<span class="result-header">⏰ ${result.timestamp}</span>
+<span class="result-separator">${separator}</span>
+${result.text}
 
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+`;
 
-                // 2. Image preprocessing (contrast enhancement)
-                const contrast = parseFloat(document.getElementById('contrastRange').value);
-                const processedCanvas = preprocessImage(canvas, contrast);
+  if (resultBox.textContent === 'Hasil scan akan muncul di sini...') {
+    resultBox.innerHTML = html;
+  } else {
+    resultBox.innerHTML += html;
+  }
 
-                // Show preview of processed image
-                const previewCanvas = document.getElementById('canvasPreview');
-                previewCanvas.width = processedCanvas.width;
-                previewCanvas.height = processedCanvas.height;
-                previewCanvas.getContext('2d').drawImage(processedCanvas, 0, 0);
-                previewCanvas.style.display = 'block';
-                setTimeout(() => { previewCanvas.style.display = 'none'; }, 2000);
+  resultBox.scrollTop = resultBox.scrollHeight;
+}
 
-                setStatus('⏳ Memproses OCR...', 'loading');
-                showProgress(10, 'Memulai OCR...');
+// ============================================
+// COPY FUNCTION
+// ============================================
+async function copyAll() {
+  if (!state.scanResults.length) return;
 
-                // 3. Run OCR
-                const { data: { text } } = await tesseractWorker.recognize(processedCanvas);
+  const allText = state.scanResults.map(r => 
+    `[${r.timestamp}]\n${r.text}`
+  ).join('\n\n' + '='.repeat(50) + '\n\n');
 
-                const extractedText = text.trim();
+  try {
+    await navigator.clipboard.writeText(allText);
+    showToast('📋 Berhasil di-copy ke clipboard!');
+    setStatus('📋 Semua teks berhasil di-copy!');
+  } catch (err) {
+    // Fallback
+    const textarea = document.createElement('textarea');
+    textarea.value = allText;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showToast('📋 Berhasil di-copy!');
+  }
+}
 
-                if (extractedText) {
-                    // 4. Save result
-                    const timestamp = new Date().toLocaleString('id-ID');
-                    const result = {
-                        timestamp: timestamp,
-                        text: extractedText,
-                        lines: extractedText.split('\n').filter(l => l.trim()),
-                        charCount: extractedText.replace(/\s/g, '').length
-                    };
-                    scanResults.push(result);
-                    history.push(result);
+// ============================================
+// EXPORT FUNCTION
+// ============================================
+function exportTxt() {
+  if (!state.scanResults.length) return;
 
-                    // 5. Display result
-                    displayResult(result);
+  let content = '='.repeat(50) + '\n';
+  content += 'VISOR SCANNER - HTML Edition\n';
+  content += 'Export: ' + formatTimestamp() + '\n';
+  content += '='.repeat(50) + '\n\n';
 
-                    // 6. Enable buttons
-                    document.getElementById('copyBtn').disabled = false;
-                    document.getElementById('exportBtn').disabled = false;
+  state.scanResults.forEach(r => {
+    content += `[${r.timestamp}]\n`;
+    content += '-'.repeat(40) + '\n';
+    content += r.text + '\n\n';
+  });
 
-                    // 7. Update stats
-                    document.getElementById('scanCount').textContent = `Total Scan: ${scanResults.length}`;
-                    document.getElementById('charCount').textContent = `Karakter: ${result.charCount}`;
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `visor_scan_${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 
-                    setStatus(`✅ Scan berhasil! (${result.lines.length} baris, ${result.charCount} karakter)`);
-                    showToast(`Scan berhasil! ${result.lines.length} baris ditemukan`);
-                } else {
-                    setStatus('⚠️ Tidak ada teks yang terdeteksi', 'error');
-                    showToast('Tidak ada teks terdeteksi', true);
-                }
+  showToast('💾 File berhasil di-export!');
+  setStatus('💾 Export berhasil!');
+}
 
-            } catch (error) {
-                setStatus('❌ Error saat scan: ' + error.message, 'error');
-                showToast('Gagal melakukan scan', true);
-                console.error(error);
-            } finally {
-                scanBtn.disabled = false;
-                scanBtn.innerHTML = '🔍 Scan Sekarang';
-                hideProgress();
-            }
-        }
+// ============================================
+// CLEAR FUNCTION
+// ============================================
+function clearResults() {
+  if (!state.scanResults.length) {
+    showToast('Tidak ada data untuk dihapus');
+    return;
+  }
+  if (!confirm('Hapus semua hasil scan?')) return;
 
-        // ============================================
-        // IMAGE PREPROCESSING
-        // ============================================
-        function preprocessImage(sourceCanvas, contrast) {
-            const canvas = document.createElement('canvas');
-            canvas.width = sourceCanvas.width;
-            canvas.height = sourceCanvas.height;
-            const ctx = canvas.getContext('2d');
+  state.scanResults = [];
+  resultBox.innerHTML = 'Hasil scan akan muncul di sini...';
+  copyBtn.disabled = true;
+  exportBtn.disabled = true;
+  updateStats();
+  showToast('🗑️ Hasil scan dihapus');
+  setStatus('🗑️ Hasil dihapus');
+}
 
-            // Draw original
-            ctx.drawImage(sourceCanvas, 0, 0);
+// ============================================
+// HISTORY FUNCTION
+// ============================================
+function showHistory() {
+  const modal = $('historyModal');
+  const content = $('historyContent');
 
-            // Get image data
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
+  if (!state.history.length) {
+    content.textContent = 'Belum ada history scan.';
+  } else {
+    content.textContent = state.history.map((h, i) => 
+      `--- Scan #${i+1} [${h.timestamp}] ---\n${h.text}\n`
+    ).join('\n');
+  }
 
-            // Apply contrast + grayscale
-            for (let i = 0; i < data.length; i += 4) {
-                // Grayscale
-                const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+  modal.classList.add('active');
+}
 
-                // Contrast
-                const factor = (259 * (contrast * 100 + 255)) / (255 * (259 - contrast * 100));
-                let adjusted = factor * (gray - 128) + 128;
+function closeHistory() {
+  $('historyModal').classList.remove('active');
+}
 
-                // Clamp
-                adjusted = Math.max(0, Math.min(255, adjusted));
+// ============================================
+// EVENT LISTENERS
+// ============================================
+scanBtn.addEventListener('click', doScan);
+copyBtn.addEventListener('click', copyAll);
+exportBtn.addEventListener('click', exportTxt);
+clearBtn.addEventListener('click', clearResults);
+historyBtn.addEventListener('click', showHistory);
 
-                data[i] = adjusted;
-                data[i+1] = adjusted;
-                data[i+2] = adjusted;
-            }
+// Close modal on outside click
+$('historyModal').addEventListener('click', e => {
+  if (e.target.id === 'historyModal') closeHistory();
+});
 
-            ctx.putImageData(imageData, 0, 0);
-            return canvas;
-        }
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') doScan();
+  if (e.key === 'Escape') closeHistory();
+});
 
-        // ============================================
-        // DISPLAY & UTILITIES
-        // ============================================
-        function displayResult(result) {
-            const textarea = document.getElementById('resultText');
-            const separator = '='.repeat(50);
-            const newContent = `\n${separator}\n⏰ ${result.timestamp}\n${separator}\n${result.text}\n`;
-            textarea.value += newContent;
-            textarea.scrollTop = textarea.scrollHeight;
-        }
+// ============================================
+// INIT
+// ============================================
+window.addEventListener('load', () => {
+  setStatus('✅ Siap - Klik SCAN untuk mulai (Ctrl+Enter)');
+  updateStats();
+});
+</script>
 
-        function copyAll() {
-            const textarea = document.getElementById('resultText');
-            const text = textarea.value.trim();
-
-            if (!text) {
-                showToast('Tidak ada teks untuk di-copy', true);
-                return;
-            }
-
-            navigator.clipboard.writeText(text).then(() => {
-                setStatus('📋 Semua teks berhasil di-copy ke clipboard!');
-                showToast('Berhasil di-copy ke clipboard!');
-            }).catch(err => {
-                // Fallback
-                textarea.select();
-                document.execCommand('copy');
-                setStatus('📋 Teks di-copy (fallback)');
-                showToast('Berhasil di-copy!');
-            });
-        }
-
-        function exportTxt() {
-            const text = document.getElementById('resultText').value.trim();
-            if (!text) {
-                showToast('Tidak ada teks untuk di-export', true);
-                return;
-            }
-
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            const filename = `visor_scan_${timestamp}.txt`;
-
-            const content = `${'='.repeat(50)}\nVISOR SCANNER - Hasil Export\n${'='.repeat(50)}\n\n${text}`;
-
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            setStatus(`💾 Export berhasil: ${filename}`);
-            showToast('File berhasil di-download!');
-        }
-
-        function clearResults() {
-            if (scanResults.length === 0) return;
-
-            if (confirm('Hapus semua hasil scan?')) {
-                scanResults = [];
-                document.getElementById('resultText').value = '';
-                document.getElementById('copyBtn').disabled = true;
-                document.getElementById('exportBtn').disabled = true;
-                document.getElementById('scanCount').textContent = 'Total Scan: 0';
-                document.getElementById('charCount').textContent = 'Karakter: 0';
-                setStatus('🗑️ Hasil scan dihapus');
-                showToast('Hasil dihapus');
-            }
-        }
-
-        function showHistory() {
-            if (history.length === 0) {
-                showToast('Belum ada history scan', true);
-                return;
-            }
-
-            const body = document.getElementById('historyBody');
-            body.innerHTML = '';
-
-            history.slice().reverse().forEach((item, idx) => {
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
-                    <div class="history-item-header">
-                        <span>📌 Scan #${history.length - idx}</span>
-                        <span>⏰ ${item.timestamp}</span>
-                    </div>
-                    <div class="history-item-content">${escapeHtml(item.text.substring(0, 500))}${item.text.length > 500 ? '...' : ''}</div>
-                `;
-                body.appendChild(div);
-            });
-
-            document.getElementById('historyModal').classList.add('active');
-        }
-
-        function closeHistory() {
-            document.getElementById('historyModal').classList.remove('active');
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ============================================
-        // UI HELPERS
-        // ============================================
-        function setStatus(message, type = 'success') {
-            const bar = document.getElementById('statusBar');
-            const text = document.getElementById('statusText');
-            bar.className = 'status-bar ' + (type === 'error' ? 'error' : type === 'loading' ? 'loading' : '');
-            text.textContent = message;
-        }
-
-        function showProgress(percent, text) {
-            document.getElementById('progressContainer').style.display = 'block';
-            document.getElementById('progressFill').style.width = percent + '%';
-            document.getElementById('progressText').textContent = text;
-        }
-
-        function updateProgress(percent, text) {
-            document.getElementById('progressFill').style.width = percent + '%';
-            document.getElementById('progressText').textContent = text;
-        }
-
-        function hideProgress() {
-            document.getElementById('progressContainer').style.display = 'none';
-        }
-
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = 'toast show' + (isError ? ' error' : '');
-            setTimeout(() => {
-                toast.className = 'toast';
-            }, 3000);
-        }
-
-        // Close modal on outside click
-        document.getElementById('historyModal').addEventListener('click', (e) => {
-            if (e.target.id === 'historyModal') closeHistory();
-        });
-    </script>
 </body>
 </html>
