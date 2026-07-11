@@ -1,528 +1,1099 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visor Scanner - Text & Nominal Reader</title>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-  body {
-    background: #2b2b2b;
-    color: #e0e0e0;
-    min-height: 100vh;
-    padding: 20px;
-  }
-  .container {
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-  header {
-    text-align: center;
-    padding: 20px 0 30px;
-    border-bottom: 2px solid #444;
-    margin-bottom: 25px;
-  }
-  header h1 {
-    color: #4fc3f7;
-    font-size: 28px;
-    margin-bottom: 8px;
-  }
-  header p { color: #aaa; font-size: 14px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor Scanner - Text & Nominal Reader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  .panel {
-    background: #363636;
-    border: 1px solid #4a4a4a;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  }
-  .panel h2 {
-    color: #4fc3f7;
-    font-size: 18px;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-  .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
-  button {
-    background: linear-gradient(135deg, #4fc3f7, #2196f3);
-    color: white;
-    border: none;
-    padding: 12px 22px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(79,195,247,0.3);
-  }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.secondary { background: linear-gradient(135deg, #66bb6a, #43a047); }
-  button.warn { background: linear-gradient(135deg, #ffa726, #fb8c00); }
-  button.danger { background: linear-gradient(135deg, #ef5350, #e53935); }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
 
-  .status {
-    padding: 10px 14px;
-    border-radius: 6px;
-    margin-top: 12px;
-    font-size: 13px;
-    background: #2b2b2b;
-    border-left: 4px solid #4fc3f7;
-  }
-  .status.ok { border-left-color: #66bb6a; color: #a5d6a7; }
-  .status.err { border-left-color: #ef5350; color: #ef9a9a; }
-  .status.warn { border-left-color: #ffa726; color: #ffcc80; }
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #444;
+            margin-bottom: 30px;
+        }
 
-  .preview-area {
-    margin-top: 15px;
-    background: #1e1e1e;
-    border: 1px dashed #555;
-    border-radius: 8px;
-    min-height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    position: relative;
-  }
-  .preview-area img, .preview-area video {
-    max-width: 100%;
-    max-height: 400px;
-    display: block;
-  }
-  .preview-placeholder { color: #666; font-style: italic; }
+        header h1 {
+            font-size: 2.2em;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+            margin-bottom: 8px;
+        }
 
-  .progress {
-    width: 100%;
-    height: 8px;
-    background: #1e1e1e;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-top: 12px;
-    display: none;
-  }
-  .progress.active { display: block; }
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #4fc3f7, #2196f3);
-    width: 0%;
-    transition: width 0.3s;
-  }
+        header p {
+            color: #999;
+            font-size: 0.95em;
+        }
 
-  .result-box {
-    background: #1e1e1e;
-    border: 1px solid #4a4a4a;
-    border-radius: 8px;
-    padding: 15px;
-    margin-top: 12px;
-    min-height: 150px;
-    max-height: 400px;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-family: 'Consolas', monospace;
-    font-size: 13px;
-    line-height: 1.6;
-    color: #d0d0d0;
-  }
-  .result-box:empty::before {
-    content: "Hasil scan akan muncul di sini...";
-    color: #666;
-    font-style: italic;
-  }
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background-color: #3a3a3a;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #555;
+        }
 
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin-top: 15px;
-  }
-  .stat-card {
-    background: #2b2b2b;
-    padding: 12px;
-    border-radius: 6px;
-    text-align: center;
-    border: 1px solid #4a4a4a;
-  }
-  .stat-card .label { font-size: 11px; color: #888; text-transform: uppercase; }
-  .stat-card .value { font-size: 22px; color: #4fc3f7; font-weight: bold; margin-top: 4px; }
+        .status-bar.connected {
+            border-left-color: #4caf50;
+        }
 
-  .tabs { display: flex; gap: 5px; margin-bottom: 12px; border-bottom: 1px solid #4a4a4a; }
-  .tab {
-    padding: 8px 16px;
-    background: transparent;
-    color: #aaa;
-    border: none;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-    cursor: pointer;
-    font-size: 13px;
-  }
-  .tab.active { color: #4fc3f7; border-bottom-color: #4fc3f7; }
+        .status-bar.disconnected {
+            border-left-color: #f44336;
+        }
 
-  .nominal-highlight {
-    color: #ffd54f;
-    font-weight: bold;
-    background: rgba(255,213,79,0.1);
-    padding: 1px 4px;
-    border-radius: 3px;
-  }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #f44336;
+            animation: pulse 2s infinite;
+        }
 
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: #1e1e1e; }
-  ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-</style>
+        .status-indicator.active {
+            background-color: #4caf50;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .menu-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-connect {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            color: white;
+        }
+
+        .btn-connect:hover {
+            background: linear-gradient(135deg, #42a5f5, #2196f3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .btn-scan {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+            color: white;
+        }
+
+        .btn-scan:hover {
+            background: linear-gradient(135deg, #66bb6a, #4caf50);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background: linear-gradient(135deg, #ffa726, #ff9800);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: linear-gradient(135deg, #ef5350, #f44336);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn-disconnect {
+            background: linear-gradient(135deg, #9e9e9e, #757575);
+            color: white;
+        }
+
+        .btn-disconnect:hover {
+            background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .config-panel {
+            background-color: #3a3a3a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #4a4a4a;
+        }
+
+        .config-panel h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .config-item label {
+            font-size: 0.85em;
+            color: #aaa;
+            font-weight: 500;
+        }
+
+        .config-item select,
+        .config-item input {
+            padding: 10px 12px;
+            background-color: #2d2d2d;
+            border: 1px solid #555;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 0.9em;
+        }
+
+        .config-item select:focus,
+        .config-item input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .results-panel {
+            background-color: #3a3a3a;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #4a4a4a;
+            min-height: 300px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #4a4a4a;
+        }
+
+        .results-header h3 {
+            color: #00d4ff;
+            font-size: 1.1em;
+        }
+
+        .results-count {
+            background-color: #00d4ff;
+            color: #1a1a1a;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 700;
+        }
+
+        .results-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .results-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .results-list::-webkit-scrollbar-track {
+            background: #2d2d2d;
+            border-radius: 3px;
+        }
+
+        .results-list::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 3px;
+        }
+
+        .result-item {
+            background-color: #2d2d2d;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .result-item:hover {
+            border-color: #00d4ff;
+            background-color: #333;
+        }
+
+        .result-content {
+            flex: 1;
+        }
+
+        .result-text {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #fff;
+            word-break: break-all;
+        }
+
+        .result-meta {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .result-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .type-text {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .type-nominal {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-copy-item {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .btn-copy-item:hover {
+            background-color: #66bb6a;
+        }
+
+        .btn-delete-item {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn-delete-item:hover {
+            background-color: #ef5350;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .empty-state small {
+            color: #555;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+
+        .log-panel {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            border: 1px solid #333;
+        }
+
+        .log-entry {
+            padding: 3px 0;
+            color: #888;
+            border-bottom: 1px solid #222;
+        }
+
+        .log-entry .timestamp {
+            color: #666;
+            margin-right: 10px;
+        }
+
+        .log-entry.success {
+            color: #4caf50;
+        }
+
+        .log-entry.error {
+            color: #f44336;
+        }
+
+        .log-entry.info {
+            color: #2196f3;
+        }
+
+        .scan-animation {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .scan-animation.active {
+            display: block;
+        }
+
+        .scan-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #444;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .scan-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #4caf50);
+            border-radius: 2px;
+            animation: scanning 2s ease-in-out infinite;
+        }
+
+        @keyframes scanning {
+            0% { width: 0%; margin-left: 0; }
+            50% { width: 60%; margin-left: 20%; }
+            100% { width: 0%; margin-left: 100%; }
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            background-color: #2d2d2d;
+            border: 1px solid #555;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 0.9em;
+        }
+
+        .filter-bar input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .filter-bar select {
+            padding: 10px 15px;
+            background-color: #2d2d2d;
+            border: 1px solid #555;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.6em;
+            }
+
+            .menu-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .result-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <h1>⚡ Visor Scanner</h1>
-    <p>Capture & Scan Text / Nominal dari Layar Visor (OCR)</p>
-  </header>
+    <div class="container">
+        <header>
+            <h1>🔍 Visor Scanner</h1>
+            <p>Scan & Baca Text / Nominal dari Visor Device</p>
+        </header>
 
-  <!-- KONEK VISOR -->
-  <div class="panel">
-    <h2>🔌 Koneksi Visor</h2>
-    <div class="btn-group">
-      <button id="btnConnect" onclick="connectVisor()">📺 Capture Layar Visor</button>
-      <button id="btnCamera" class="secondary" onclick="connectCamera()">📷 Pakai Kamera (USB Visor)</button>
-      <button id="btnDisconnect" class="danger" onclick="disconnect()" disabled>⏹ Stop</button>
+        <!-- Status Bar -->
+        <div class="status-bar disconnected" id="statusBar">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span id="statusText">Belum Terhubung - Klik "Connect Visor" untuk memulai</span>
+        </div>
+
+        <!-- Configuration Panel -->
+        <div class="config-panel">
+            <h3>⚙️ Konfigurasi Serial Port</h3>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label>Baud Rate</label>
+                    <select id="baudRate">
+                        <option value="9600" selected>9600</option>
+                        <option value="19200">19200</option>
+                        <option value="38400">38400</option>
+                        <option value="57600">57600</option>
+                        <option value="115200">115200</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label>Data Bits</label>
+                    <select id="dataBits">
+                        <option value="7">7</option>
+                        <option value="8" selected>8</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label>Stop Bits</label>
+                    <select id="stopBits">
+                        <option value="1" selected>1</option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label>Parity</label>
+                    <select id="parity">
+                        <option value="none" selected>None</option>
+                        <option value="even">Even</option>
+                        <option value="odd">Odd</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label>Flow Control</label>
+                    <select id="flowControl">
+                        <option value="none" selected>None</option>
+                        <option value="hardware">Hardware</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label>Scan Mode</label>
+                    <select id="scanMode">
+                        <option value="all" selected>Semua (Text + Nominal)</option>
+                        <option value="text">Text Only</option>
+                        <option value="nominal">Nominal Only</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Buttons -->
+        <div class="menu-panel">
+            <button class="btn btn-connect" id="btnConnect" onclick="connectVisor()">
+                🔌 Connect Visor
+            </button>
+            <button class="btn btn-scan" id="btnScan" onclick="startScan()" disabled>
+                📡 Scan Sekarang
+            </button>
+            <button class="btn btn-copy" id="btnCopyAll" onclick="copyAllResults()" disabled>
+                📋 Copy Semua
+            </button>
+            <button class="btn btn-clear" id="btnClear" onclick="clearResults()" disabled>
+                🗑️ Hapus Semua
+            </button>
+            <button class="btn btn-disconnect" id="btnDisconnect" onclick="disconnectVisor()" disabled>
+                ⛔ Disconnect
+            </button>
+        </div>
+
+        <!-- Scan Animation -->
+        <div class="scan-animation" id="scanAnimation">
+            <p style="color: #00d4ff;">⏳ Sedang membaca data dari visor...</p>
+            <div class="scan-bar">
+                <div class="scan-bar-fill"></div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="results-panel">
+            <div class="results-header">
+                <h3>📄 Hasil Scan</h3>
+                <span class="results-count" id="resultsCount">0 item</span>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <input type="text" id="filterInput" placeholder="🔎 Filter hasil scan..." oninput="filterResults()">
+                <select id="filterType" onchange="filterResults()">
+                    <option value="all">Semua Tipe</option>
+                    <option value="text">Text</option>
+                    <option value="nominal">Nominal</option>
+                </select>
+            </div>
+
+            <!-- Results List -->
+            <div class="results-list" id="resultsList">
+                <div class="empty-state" id="emptyState">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+                    </svg>
+                    <p>Belum ada hasil scan</p>
+                    <small>Connect visor dan klik "Scan Sekarang" untuk memulai</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Panel -->
+        <div class="log-panel" id="logPanel">
+            <div class="log-entry info">
+                <span class="timestamp">[System]</span> Aplikasi siap digunakan. Connect visor untuk mulai scanning.
+            </div>
+        </div>
     </div>
-    <div id="statusConnect" class="status">Belum terhubung. Pilih metode koneksi di atas.</div>
-    <div class="preview-area" id="previewArea">
-      <span class="preview-placeholder">Preview layar visor akan muncul di sini...</span>
-    </div>
-  </div>
 
-  <!-- SCAN -->
-  <div class="panel">
-    <h2>🔍 Scan Text & Nominal</h2>
-    <div class="btn-group">
-      <button id="btnScan" onclick="startScan()" disabled>🚀 Mulai Scan</button>
-      <button id="btnRescan" class="warn" onclick="rescanLast()" disabled>🔄 Re-scan</button>
-      <button id="btnClear" class="danger" onclick="clearResult()">🗑️ Clear</button>
-    </div>
-    <div class="progress" id="progress">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
-    <div id="statusScan" class="status" style="display:none;"></div>
-  </div>
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
 
-  <!-- HASIL -->
-  <div class="panel">
-    <h2>📋 Hasil Scan</h2>
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('all', this)">Semua Text</button>
-      <button class="tab" onclick="switchTab('nominal', this)">Nominal Saja</button>
-      <button class="tab" onclick="switchTab('formatted', this)">Tampilan</button>
-    </div>
+    <script>
+        // Global Variables
+        let port = null;
+        let reader = null;
+        let writer = null;
+        let isConnected = false;
+        let scanResults = [];
+        let readLoopActive = false;
+        let buffer = '';
 
-    <div class="stats">
-      <div class="stat-card">
-        <div class="label">Kata</div>
-        <div class="value" id="statWords">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Nominal</div>
-        <div class="value" id="statNumbers">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Confidence</div>
-        <div class="value" id="statConf">0%</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Waktu</div>
-        <div class="value" id="statTime">0s</div>
-      </div>
-    </div>
+        // DOM Elements
+        const statusBar = document.getElementById('statusBar');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const btnConnect = document.getElementById('btnConnect');
+        const btnScan = document.getElementById('btnScan');
+        const btnCopyAll = document.getElementById('btnCopyAll');
+        const btnClear = document.getElementById('btnClear');
+        const btnDisconnect = document.getElementById('btnDisconnect');
+        const resultsList = document.getElementById('resultsList');
+        const resultsCount = document.getElementById('resultsCount');
+        const emptyState = document.getElementById('emptyState');
+        const scanAnimation = document.getElementById('scanAnimation');
+        const logPanel = document.getElementById('logPanel');
 
-    <div class="result-box" id="resultBox"></div>
-
-    <div class="btn-group" style="margin-top:15px;">
-      <button id="btnCopy" class="secondary" onclick="copyResult()">📋 Copy Semua</button>
-      <button id="btnCopyNominal" onclick="copyNominal()">💰 Copy Nominal</button>
-      <button id="btnDownload" class="warn" onclick="downloadResult()">💾 Download TXT</button>
-    </div>
-  </div>
-</div>
-
-<script>
-let stream = null;
-let lastImageData = null;
-let lastResult = { text: '', nominals: [], confidence: 0 };
-let currentTab = 'all';
-
-// ============ KONEK VISOR ============
-async function connectVisor() {
-  try {
-    setStatus('connect', 'Membuka pilihan screen capture... Pilih window/display visor Anda.', 'warn');
-    // Minta user memilih screen/window (visor yang tercolok biasanya muncul sebagai display/window)
-    stream = await navigator.mediaDevices.getDisplayMedia({
-      video: { cursor: "never" },
-      audio: false
-    });
-    showPreview(stream);
-    setStatus('connect', '✅ Terhubung ke layar visor. Klik "Mulai Scan" untuk membaca text.', 'ok');
-    document.getElementById('btnScan').disabled = false;
-    document.getElementById('btnDisconnect').disabled = false;
-    document.getElementById('btnConnect').disabled = true;
-
-    stream.getVideoTracks()[0].onended = () => disconnect();
-  } catch (err) {
-    setStatus('connect', '❌ Gagal connect: ' + err.message, 'err');
-  }
-}
-
-async function connectCamera() {
-  try {
-    setStatus('connect', 'Mencari kamera/USB visor...', 'warn');
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
-    });
-    showPreview(stream);
-    setStatus('connect', '✅ Kamera/USB visor terhubung. Klik "Mulai Scan".', 'ok');
-    document.getElementById('btnScan').disabled = false;
-    document.getElementById('btnDisconnect').disabled = false;
-    document.getElementById('btnCamera').disabled = true;
-  } catch (err) {
-    setStatus('connect', '❌ Gagal akses kamera: ' + err.message, 'err');
-  }
-}
-
-function showPreview(stream) {
-  const area = document.getElementById('previewArea');
-  area.innerHTML = '';
-  const video = document.createElement('video');
-  video.autoplay = true;
-  video.playsInline = true;
-  video.muted = true;
-  video.srcObject = stream;
-  area.appendChild(video);
-}
-
-function disconnect() {
-  if (stream) {
-    stream.getTracks().forEach(t => t.stop());
-    stream = null;
-  }
-  document.getElementById('previewArea').innerHTML = '<span class="preview-placeholder">Preview layar visor akan muncul di sini...</span>';
-  document.getElementById('btnScan').disabled = true;
-  document.getElementById('btnDisconnect').disabled = true;
-  document.getElementById('btnConnect').disabled = false;
-  document.getElementById('btnCamera').disabled = false;
-  setStatus('connect', 'Terputus. Silakan connect ulang.', 'warn');
-}
-
-// ============ SCAN OCR ============
-async function startScan() {
-  if (!stream) { alert('Connect ke visor dulu!'); return; }
-
-  const video = document.querySelector('#previewArea video');
-  if (!video) { alert('Video tidak ditemukan'); return; }
-
-  // Capture frame dari video
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0);
-  lastImageData = canvas.toDataURL('image/png');
-
-  await runOCR(canvas);
-}
-
-async function rescanLast() {
-  if (!lastImageData) { alert('Belum ada data scan sebelumnya'); return; }
-  const img = new Image();
-  img.src = lastImageData;
-  await new Promise(r => img.onload = r);
-  const canvas = document.createElement('canvas');
-  canvas.width = img.width;
-  canvas.height = img.height;
-  canvas.getContext('2d').drawImage(img, 0, 0);
-  await runOCR(canvas);
-}
-
-async function runOCR(canvas) {
-  const startTime = Date.now();
-  const progress = document.getElementById('progress');
-  const progressBar = document.getElementById('progressBar');
-  const statusScan = document.getElementById('statusScan');
-
-  progress.classList.add('active');
-  progressBar.style.width = '0%';
-  statusScan.style.display = 'block';
-  setStatus('scan', '🔄 Memproses OCR... Mohon tunggu.', 'warn');
-  document.getElementById('btnScan').disabled = true;
-
-  try {
-    const result = await Tesseract.recognize(canvas, 'eng+ind', {
-      logger: m => {
-        if (m.status === 'recognizing text') {
-          progressBar.style.width = Math.round(m.progress * 100) + '%';
+        // Check Web Serial API support
+        if (!('serial' in navigator)) {
+            addLog('Web Serial API tidak didukung di browser ini. Gunakan Chrome/Edge versi terbaru.', 'error');
+            btnConnect.disabled = true;
+            btnConnect.textContent = '❌ Browser Tidak Support';
         }
-        setStatus('scan', `⏳ ${m.status}... ${Math.round((m.progress||0)*100)}%`, 'warn');
-      }
-    });
 
-    const text = result.data.text.trim();
-    const confidence = Math.round(result.data.confidence);
-    const nominals = extractNominals(text);
-    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        // Connect to Visor
+        async function connectVisor() {
+            try {
+                addLog('Memulai koneksi ke visor...', 'info');
 
-    lastResult = { text, nominals, confidence };
+                port = await navigator.serial.requestPort();
 
-    document.getElementById('statWords').textContent = text.split(/\s+/).filter(w => w).length;
-    document.getElementById('statNumbers').textContent = nominals.length;
-    document.getElementById('statConf').textContent = confidence + '%';
-    document.getElementById('statTime').textContent = elapsed + 's';
+                const baudRate = parseInt(document.getElementById('baudRate').value);
+                const dataBits = parseInt(document.getElementById('dataBits').value);
+                const stopBits = parseInt(document.getElementById('stopBits').value);
+                const parity = document.getElementById('parity').value;
+                const flowControl = document.getElementById('flowControl').value;
 
-    renderResult();
-    document.getElementById('btnRescan').disabled = false;
+                await port.open({
+                    baudRate: baudRate,
+                    dataBits: dataBits,
+                    stopBits: stopBits,
+                    parity: parity,
+                    flowControl: flowControl
+                });
 
-    setStatus('scan', `✅ Scan selesai! Ditemukan ${nominals.length} nominal, confidence ${confidence}%.`, 'ok');
-  } catch (err) {
-    setStatus('scan', '❌ Error OCR: ' + err.message, 'err');
-  } finally {
-    progress.classList.remove('active');
-    document.getElementById('btnScan').disabled = false;
-  }
-}
+                isConnected = true;
+                updateConnectionStatus(true);
+                addLog(`Terhubung ke visor! (Baud: ${baudRate}, Data: ${dataBits}, Stop: ${stopBits}, Parity: ${parity})`, 'success');
+                showToast('✅ Visor berhasil terhubung!');
 
-function extractNominals(text) {
-  // Match angka: integer, desimal, dengan titik/koma ribuan, mata uang
-  const patterns = [
-    /Rp\s?[\d.,]+/gi,
-    /\$\s?[\d.,]+/g,
-    /€\s?[\d.,]+/g,
-    /\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?/g,  // 1.000.000 atau 1,000,000
-    /\d+[.,]\d+/g,                          // 123.45
-    /\b\d{4,}\b/g                            // 4 digit+
-  ];
-  const found = new Set();
-  patterns.forEach(p => {
-    const matches = text.match(p) || [];
-    matches.forEach(m => found.add(m.trim()));
-  });
-  return Array.from(found);
-}
+                // Start reading data
+                startReading();
 
-function renderResult() {
-  const box = document.getElementById('resultBox');
-  if (currentTab === 'all') {
-    box.textContent = lastResult.text || '(tidak ada text terdeteksi)';
-  } else if (currentTab === 'nominal') {
-    if (lastResult.nominals.length === 0) {
-      box.textContent = '(tidak ada nominal terdeteksi)';
-    } else {
-      box.innerHTML = lastResult.nominals.map(n => `<span class="nominal-highlight">${n}</span>`).join('\n');
-    }
-  } else if (currentTab === 'formatted') {
-    let html = '<strong style="color:#4fc3f7">📄 TEXT LENGKAP:</strong>\n';
-    html += (lastResult.text || '(kosong)') + '\n\n';
-    html += '<strong style="color:#ffd54f">💰 NOMINAL TERDETEKSI:</strong>\n';
-    if (lastResult.nominals.length) {
-      html += lastResult.nominals.map((n,i) => `${i+1}. ${n}`).join('\n');
-    } else {
-      html += '(tidak ada)';
-    }
-    html += `\n\n<strong style="color:#81c784">📊 STATISTIK:</strong>\n`;
-    html += `• Confidence: ${lastResult.confidence}%\n`;
-    html += `• Jumlah nominal: ${lastResult.nominals.length}`;
-    box.innerHTML = html;
-  }
-}
+            } catch (error) {
+                addLog(`Gagal koneksi: ${error.message}`, 'error');
+                showToast('❌ Gagal terhubung ke visor', true);
+            }
+        }
 
-function switchTab(tab, el) {
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  if (lastResult.text) renderResult();
-}
+        // Disconnect from Visor
+        async function disconnectVisor() {
+            try {
+                readLoopActive = false;
 
-// ============ COPY & DOWNLOAD ============
-function copyResult() {
-  let content = '';
-  if (currentTab === 'nominal') {
-    content = lastResult.nominals.join('\n');
-  } else {
-    content = lastResult.text;
-  }
-  copyToClipboard(content, 'Text berhasil di-copy!');
-}
+                if (reader) {
+                    await reader.cancel();
+                    reader = null;
+                }
 
-function copyNominal() {
-  if (lastResult.nominals.length === 0) {
-    alert('Tidak ada nominal untuk di-copy');
-    return;
-  }
-  copyToClipboard(lastResult.nominals.join('\n'), 'Nominal berhasil di-copy!');
-}
+                if (writer) {
+                    await writer.close();
+                    writer = null;
+                }
 
-function copyToClipboard(text, msg) {
-  if (!text) { alert('Tidak ada data untuk di-copy'); return; }
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('btnCopy');
-    const original = btn.innerHTML;
-    btn.innerHTML = '✅ ' + msg;
-    setTimeout(() => btn.innerHTML = original, 2000);
-  }).catch(() => {
-    // Fallback
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    alert(msg);
-  });
-}
+                if (port) {
+                    await port.close();
+                    port = null;
+                }
 
-function downloadResult() {
-  if (!lastResult.text) { alert('Belum ada hasil scan'); return; }
-  let content = `VISOR SCAN RESULT\n`;
-  content += `Tanggal: ${new Date().toLocaleString('id-ID')}\n`;
-  content += `Confidence: ${lastResult.confidence}%\n`;
-  content += `${'='.repeat(50)}\n\n`;
-  content += `TEXT:\n${lastResult.text}\n\n`;
-  content += `NOMINAL TERDETEKSI (${lastResult.nominals.length}):\n`;
-  content += lastResult.nominals.map((n,i) => `${i+1}. ${n}`).join('\n');
+                isConnected = false;
+                updateConnectionStatus(false);
+                addLog('Visor terputus.', 'info');
+                showToast('Visor telah disconnect');
 
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `visor-scan-${Date.now()}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+            } catch (error) {
+                addLog(`Error saat disconnect: ${error.message}`, 'error');
+            }
+        }
 
-function clearResult() {
-  lastResult = { text: '', nominals: [], confidence: 0 };
-  document.getElementById('resultBox').innerHTML = '';
-  document.getElementById('statWords').textContent = '0';
-  document.getElementById('statNumbers').textContent = '0';
-  document.getElementById('statConf').textContent = '0%';
-  document.getElementById('statTime').textContent = '0s';
-  document.getElementById('btnRescan').disabled = true;
-}
+        // Start Reading Data from Visor
+        async function startReading() {
+            if (!port || !port.readable) return;
 
-function setStatus(target, msg, type) {
-  const el = document.getElementById(target === 'connect' ? 'statusConnect' : 'statusScan');
-  el.textContent = msg;
-  el.className = 'status ' + (type || '');
-  if (target === 'scan') el.style.display = 'block';
-}
-</script>
+            readLoopActive = true;
+            const textDecoder = new TextDecoderStream();
+            const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+
+            reader = textDecoder.readable.getReader();
+
+            try {
+                while (readLoopActive) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    if (value) {
+                        buffer += value;
+
+                        // Process complete lines
+                        let newlineIndex;
+                        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+                            const line = buffer.substring(0, newlineIndex).trim();
+                            buffer = buffer.substring(newlineIndex + 1);
+
+                            if (line.length > 0) {
+                                processData(line);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                if (readLoopActive) {
+                    addLog(`Error membaca data: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Process Data from Visor
+        function processData(data) {
+            const scanMode = document.getElementById('scanMode').value;
+            const isNominal = isNumericValue(data);
+
+            if (scanMode === 'all') {
+                addResult(data, isNominal ? 'nominal' : 'text');
+            } else if (scanMode === 'nominal' && isNominal) {
+                addResult(data, 'nominal');
+            } else if (scanMode === 'text' && !isNominal) {
+                addResult(data, 'text');
+            }
+
+            addLog(`Data diterima: "${data}"`, 'success');
+        }
+
+        // Check if value is numeric/nominal
+        function isNumericValue(value) {
+            const cleaned = value.replace(/[^0-9.,\-+]/g, '');
+            const num = parseFloat(cleaned.replace(',', '.'));
+            return !isNaN(num) && cleaned.length > 0;
+        }
+
+        // Add Result
+        function addResult(text, type) {
+            const result = {
+                id: Date.now() + Math.random(),
+                text: text,
+                type: type,
+                timestamp: new Date().toLocaleTimeString('id-ID')
+            };
+
+            scanResults.push(result);
+            renderResults();
+            updateButtons();
+        }
+
+        // Render Results
+        function renderResults() {
+            const filterText = document.getElementById('filterInput').value.toLowerCase();
+            const filterType = document.getElementById('filterType').value;
+
+            let filtered = scanResults.filter(r => {
+                const matchText = r.text.toLowerCase().includes(filterText);
+                const matchType = filterType === 'all' || r.type === filterType;
+                return matchText && matchType;
+            });
+
+            if (filtered.length === 0) {
+                resultsList.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+                        </svg>
+                        <p>${scanResults.length === 0 ? 'Belum ada hasil scan' : 'Tidak ada hasil yang cocok'}</p>
+                        <small>${scanResults.length === 0 ? 'Connect visor dan klik "Scan Sekarang" untuk memulai' : 'Coba ubah filter pencarian'}</small>
+                    </div>
+                `;
+            } else {
+                resultsList.innerHTML = filtered.map(r => `
+                    <div class="result-item" data-id="${r.id}">
+                        <div class="result-content">
+                            <div class="result-text">
+                                ${escapeHtml(r.text)}
+                                <span class="result-type ${r.type === 'nominal' ? 'type-nominal' : 'type-text'}">
+                                    ${r.type === 'nominal' ? '💰 Nominal' : '📝 Text'}
+                                </span>
+                            </div>
+                            <div class="result-meta">🕐 ${r.timestamp} | #${scanResults.indexOf(r) + 1}</div>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-small btn-copy-item" onclick="copyItem('${escapeHtml(r.text).replace(/'/g, "\\'")}')">📋 Copy</button>
+                            <button class="btn-small btn-delete-item" onclick="deleteItem(${r.id})">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            resultsCount.textContent = `${scanResults.length} item`;
+        }
+
+        // Filter Results
+        function filterResults() {
+            renderResults();
+        }
+
+        // Start Manual Scan (Send command to visor)
+        async function startScan() {
+            if (!isConnected || !port) {
+                showToast('❌ Visor belum terhubung!', true);
+                return;
+            }
+
+            scanAnimation.classList.add('active');
+            addLog('Mengirim perintah scan ke visor...', 'info');
+
+            try {
+                if (port.writable) {
+                    writer = port.writable.getWriter();
+                    const textEncoder = new TextEncoder();
+
+                    // Send scan command (common commands for visor devices)
+                    const commands = ['SCAN\r\n', 'READ\r\n', 'DUMP\r\n', 'GET ALL\r\n'];
+
+                    for (const cmd of commands) {
+                        await writer.write(textEncoder.encode(cmd));
+                        addLog(`Command dikirim: "${cmd.trim()}"`, 'info');
+                        await sleep(300);
+                    }
+
+                    writer.releaseLock();
+                }
+
+                // Also simulate reading from buffer
+                addLog('Menunggu data dari visor...', 'info');
+
+                setTimeout(() => {
+                    scanAnimation.classList.remove('active');
+                    if (scanResults.length === 0) {
+                        addLog('Tidak ada data baru dari visor. Pastikan visor mengirim data.', 'info');
+                        showToast('⏳ Menunggu data dari visor...');
+                    } else {
+                        showToast(`✅ Scan selesai! ${scanResults.length} data ditemukan.`);
+                    }
+                }, 3000);
+
+            } catch (error) {
+                scanAnimation.classList.remove('active');
+                addLog(`Error saat scan: ${error.message}`, 'error');
+                showToast('❌ Error saat scanning', true);
+            }
+        }
+
+        // Copy single item
+        function copyItem(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('📋 Teks berhasil dicopy!');
+            }).catch(() => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('📋 Teks berhasil dicopy!');
+            });
+        }
+
+        // Copy all results
+        function copyAllResults() {
+            if (scanResults.length === 0) {
+                showToast('❌ Tidak ada data untuk dicopy', true);
+                return;
+            }
+
+            const allText = scanResults.map((r, i) =>
+                `${i + 1}. [${r.type.toUpperCase()}] ${r.text} (${r.timestamp})`
+            ).join('\n');
+
+            navigator.clipboard.writeText(allText).then(() => {
+                showToast(`📋 ${scanResults.length} data berhasil dicopy!`);
+                addLog(`Semua hasil (${scanResults.length} item) dicopy ke clipboard.`, 'success');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = allText;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast(`📋 ${scanResults.length} data berhasil dicopy!`);
+            });
+        }
+
+        // Delete single item
+        function deleteItem(id) {
+            scanResults = scanResults.filter(r => r.id !== id);
+            renderResults();
+            updateButtons();
+        }
+
+        // Clear all results
+        function clearResults() {
+            if (scanResults.length === 0) return;
+
+            if (confirm(`Hapus semua ${scanResults.length} hasil scan?`)) {
+                scanResults = [];
+                renderResults();
+                updateButtons();
+                addLog('Semua hasil scan dihapus.', 'info');
+                showToast('🗑️ Semua hasil dihapus');
+            }
+        }
+
+        // Update Connection Status UI
+        function updateConnectionStatus(connected) {
+            if (connected) {
+                statusBar.classList.remove('disconnected');
+                statusBar.classList.add('connected');
+                statusIndicator.classList.add('active');
+                statusText.textContent = 'Terhubung ke Visor - Siap scanning';
+                btnConnect.disabled = true;
+                btnScan.disabled = false;
+                btnDisconnect.disabled = false;
+            } else {
+                statusBar.classList.remove('connected');
+                statusBar.classList.add('disconnected');
+                statusIndicator.classList.remove('active');
+                statusText.textContent = 'Belum Terhubung - Klik "Connect Visor" untuk memulai';
+                btnConnect.disabled = false;
+                btnScan.disabled = true;
+                btnDisconnect.disabled = true;
+            }
+            updateButtons();
+        }
+
+        // Update button states
+        function updateButtons() {
+            btnCopyAll.disabled = scanResults.length === 0;
+            btnClear.disabled = scanResults.length === 0;
+        }
+
+        // Add log entry
+        function addLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('id-ID');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<span class="timestamp">[${time}]</span> ${message}`;
+            logPanel.appendChild(entry);
+            logPanel.scrollTop = logPanel.scrollHeight;
+
+            // Keep only last 100 entries
+            while (logPanel.children.length > 100) {
+                logPanel.removeChild(logPanel.firstChild);
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast show ${isError ? 'error' : ''}`;
+
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Sleep utility
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Handle port disconnect
+        if ('serial' in navigator) {
+            navigator.serial.addEventListener('disconnect', (e) => {
+                if (port === e.target) {
+                    isConnected = false;
+                    readLoopActive = false;
+                    updateConnectionStatus(false);
+                    addLog('Visor terputus secara tiba-tiba!', 'error');
+                    showToast('⚠️ Visor terputus!', true);
+                }
+            });
+        }
+
+        // Demo mode - for testing without actual device
+        function addDemoData() {
+            const demoData = [
+                { text: 'VISOR SYSTEM v2.1', type: 'text' },
+                { text: '1250.00', type: 'nominal' },
+                { text: 'SENSOR: ACTIVE', type: 'text' },
+                { text: '3500000', type: 'nominal' },
+                { text: 'TEMP: 45.2°C', type: 'text' },
+                { text: '75000', type: 'nominal' },
+                { text: 'STATUS: NORMAL', type: 'text' },
+                { text: '12500.50', type: 'nominal' },
+                { text: 'PRESSURE: 2.4 BAR', type: 'text' },
+                { text: '999000', type: 'nominal' },
+            ];
+
+            demoData.forEach((item, i) => {
+                setTimeout(() => {
+                    addResult(item.text, item.type);
+                }, i * 200);
+            });
+
+            showToast('📡 Demo data dimuat!');
+            addLog('Demo data ditambahkan untuk testing.', 'info');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                if (isConnected) startScan();
+            }
+            if (e.ctrlKey && e.key === 'c' && e.shiftKey) {
+                e.preventDefault();
+                copyAllResults();
+            }
+        });
+    </script>
 </body>
 </html>
