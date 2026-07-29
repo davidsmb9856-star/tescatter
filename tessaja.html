@@ -3,891 +3,1056 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Tote Board — Kalkulator Odds & Mines · v4</title>
+<title>PAPAN ODDS — Kalkulator Taruhan & Penjelasan Odds Minus/Plus</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,500&family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
- --ink:#08110f;--ink2:#0b1714;--panel:#0f1d19;--panel2:#13241f;--panel3:#19302a;
- --hair:rgba(225,236,228,.08);--hair2:rgba(225,236,228,.17);
- --gold:#e0a64f;--gold-d:#b9863f;--mint:#5fd6a0;--mint-d:#2f9e72;--rose:#e0607a;--teal:#4fb8b0;--lav:#a99ad6;
- --paper:#eef2f0;--paper2:#dfe6e2;--p-ink:#16241f;--p-ink2:#52635b;
- --txt:#e9efe9;--mut:#93a59b;--mut2:#5f7268;
- --serif:'Fraunces',Georgia,serif;--ui:'Space Grotesk',sans-serif;--body:'Manrope',sans-serif;--mono:'IBM Plex Mono',monospace;
- --r:14px;
-}
 *{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a111d; --panel:#121d30; --panel2:#16233a; --panel3:#0d1728;
+  --line:#223450; --line2:#2e4468;
+  --ink:#e9f0fa; --mut:#94a7c2; --dim:#647a99;
+  --gold:#f4b942; --gold2:#ffd479;
+  --green:#3fd68b; --red:#ff6169; --cyan:#5cc9ff;
+  --mono:'IBM Plex Mono',monospace; --disp:'Bebas Neue',sans-serif; --body:'Barlow',sans-serif;
+}
 html{scroll-behavior:smooth}
-::selection{background:var(--gold);color:var(--ink)}
-body{font-family:var(--body);background:var(--ink);color:var(--txt);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;
- background-image:radial-gradient(1200px 720px at 2% -12%,rgba(79,184,176,.12),transparent 58%),
-  radial-gradient(1000px 640px at 104% 2%,rgba(224,166,79,.09),transparent 55%),
-  linear-gradient(180deg,var(--ink2),var(--ink))}
-/* layered ambient */
-.fx{position:fixed;inset:0;z-index:0;pointer-events:none}
-.fx.grid{opacity:.5;background-image:linear-gradient(var(--hair) 1px,transparent 1px),linear-gradient(90deg,var(--hair) 1px,transparent 1px);
- background-size:50px 50px;mask:radial-gradient(circle at 50% 18%,#000,transparent 92%);animation:drift 30s linear infinite}
-@keyframes drift{to{background-position:0 50px}}
-.fx.noise{opacity:.05;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-.fx.glow{background:radial-gradient(420px 420px at 18% 30%,rgba(79,184,176,.10),transparent 60%),radial-gradient(460px 460px at 82% 64%,rgba(224,166,79,.08),transparent 60%);animation:breathe 9s ease-in-out infinite alternate}
-@keyframes breathe{from{opacity:.55;transform:scale(1)}to{opacity:1;transform:scale(1.08)}}
-.mote{position:fixed;z-index:0;width:3px;height:3px;border-radius:50%;background:var(--teal);opacity:.0;pointer-events:none;filter:blur(.3px);animation:float linear infinite}
-@keyframes float{0%{transform:translateY(20px);opacity:0}12%{opacity:.5}88%{opacity:.4}100%{transform:translateY(-110vh);opacity:0}}
-#prog{position:fixed;top:0;left:0;height:2px;width:0;z-index:70;background:linear-gradient(90deg,var(--teal),var(--gold),var(--rose));box-shadow:0 0 12px rgba(224,166,79,.6)}
-.wrap{max-width:1340px;margin:0 auto;padding:20px 18px 90px;position:relative;z-index:1}
+body{font-family:var(--body);background:var(--bg);color:var(--ink);line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(900px 480px at 88% -8%, rgba(92,201,255,.07), transparent 60%),
+  radial-gradient(760px 560px at -8% 42%, rgba(244,185,66,.05), transparent 60%),
+  linear-gradient(180deg,#0b1322,#0d1526 45%,#091020);}
+body::after{content:"";position:fixed;inset:0;z-index:-1;opacity:.38;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='400'%3E%3Cg fill='none' stroke='%231c2b45' stroke-width='1.4'%3E%3Crect x='20' y='20' width='520' height='360'/%3E%3Cpath d='M280 20v360'/%3E%3Ccircle cx='280' cy='200' r='70'/%3E%3Ccircle cx='280' cy='200' r='3' fill='%231c2b45'/%3E%3Crect x='20' y='110' width='90' height='180'/%3E%3Crect x='450' y='110' width='90' height='180'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:560px 400px;}
+::selection{background:var(--gold);color:#131313}
+.mono{font-family:var(--mono)}
+.g{color:var(--green)} .r{color:var(--red)} .y{color:var(--gold)}
 
-/* MASTHEAD */
-.mast{position:relative;border:1px solid var(--hair2);border-radius:6px;overflow:hidden;margin-bottom:0;
- background:linear-gradient(165deg,var(--panel2),var(--ink2));box-shadow:0 26px 70px rgba(0,0,0,.55)}
-.mast::before{content:"";position:absolute;inset:6px;border:1px solid var(--hair);border-radius:3px;pointer-events:none}
-.mast-bar{display:flex;justify-content:space-between;align-items:center;padding:9px 22px;border-bottom:1px solid var(--hair2);
- font-family:var(--mono);font-size:10.5px;letter-spacing:1.5px;color:var(--mut);text-transform:uppercase;
- background-image:radial-gradient(var(--hair2) 1px,transparent 1.4px);background-size:14px 14px}
-.mast-bar .live{display:flex;align-items:center;gap:8px;color:var(--mint);font-weight:700}
-.mast-bar .live .blip{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 0 rgba(95,214,160,.7);animation:blip 1.8s infinite}
-@keyframes blip{0%{box-shadow:0 0 0 0 rgba(95,214,160,.6)}70%{box-shadow:0 0 0 9px rgba(95,214,160,0)}100%{box-shadow:0 0 0 0 rgba(95,214,160,0)}}
-.mast-body{display:grid;grid-template-columns:1.55fr 1fr;gap:30px;padding:30px 34px 26px;position:relative}
-.mast-body::after{content:"";position:absolute;right:30px;top:24px;width:120px;height:120px;border:1px solid var(--hair);border-radius:50%;opacity:.5}
-.mast-body::before{content:"";position:absolute;right:74px;bottom:-46px;width:90px;height:90px;border:1px solid rgba(224,166,79,.25);border-radius:50%;opacity:.5}
-.kicker{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--teal);text-transform:uppercase;font-weight:600}
-h1{font-family:var(--serif);font-weight:900;font-size:clamp(38px,6.6vw,82px);line-height:.92;letter-spacing:-1.5px;margin:14px 0 14px;color:var(--txt)}
-h1 em{font-style:italic;font-weight:500;color:var(--gold)}
-h1 .amp{font-style:italic;font-weight:400;color:var(--teal)}
-.lede{color:var(--mut);font-size:14.5px;line-height:1.62;max-width:48ch;font-weight:500}
-.lede b{color:var(--txt);font-weight:700}
-.deck{display:flex;flex-direction:column;gap:14px;justify-content:center;position:relative;z-index:2}
-.board-mini{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--hair2);border:1px solid var(--hair2);border-radius:4px;overflow:hidden}
-.board-mini div{background:var(--panel);padding:12px 14px}
-.board-mini .k{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut2)}
-.board-mini .v{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--gold);margin-top:3px}
-.board-mini .v.mint{color:var(--mint)}
-.nomctl{display:flex;align-items:center;gap:11px;justify-content:flex-end}
-.nomctl .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut2)}
-.seg{display:inline-flex;border:1px solid var(--hair2);border-radius:4px;overflow:hidden;background:var(--ink2)}
-.seg button{font-family:var(--ui);font-size:10.5px;font-weight:600;letter-spacing:.5px;color:var(--mut);background:transparent;border:0;padding:8px 13px;cursor:pointer;transition:.18s;text-transform:uppercase}
-.seg button.on{background:var(--gold);color:var(--ink);font-weight:700}
-.seg button:hover:not(.on){color:var(--txt)}
-.deck .hint{font-size:10.5px;color:var(--mut2);text-align:right;line-height:1.5}
-.deck .hint b{color:var(--gold)}
+/* ---------- TICKER ---------- */
+.ticker{position:sticky;top:0;z-index:60;background:#070c15;border-bottom:1px solid var(--line);overflow:hidden;font-family:var(--mono);font-size:12.5px}
+.tk-in{display:flex;white-space:nowrap;width:max-content;animation:tk 46s linear infinite;padding:9px 0}
+.ticker:hover .tk-in{animation-play-state:paused}
+.tk-item{padding:0 24px;border-right:1px solid #182741;color:var(--mut)}
+.tk-item b{color:var(--ink);font-weight:600}
+.up{color:var(--green)} .dn{color:var(--red)} .gd{color:var(--gold)}
+@keyframes tk{to{transform:translateX(-50%)}}
 
-/* TICKER */
-.ticker{position:relative;border:1px solid var(--hair2);border-top:0;border-radius:0 0 6px 6px;overflow:hidden;background:var(--ink2);margin-bottom:22px}
-.ticker::before,.ticker::after{content:"";position:absolute;top:0;bottom:0;width:60px;z-index:3;pointer-events:none}
-.ticker::before{left:0;background:linear-gradient(90deg,var(--ink2),transparent)}
-.ticker::after{right:0;background:linear-gradient(270deg,var(--ink2),transparent)}
-.ticker-track{display:inline-flex;white-space:nowrap;animation:scroll 48s linear infinite;padding:9px 0}
-.ticker:hover .ticker-track{animation-play-state:paused}
-@keyframes scroll{to{transform:translateX(-50%)}}
-.tk{display:inline-flex;align-items:baseline;gap:8px;padding:0 22px;font-family:var(--mono);font-size:12px;border-right:1px solid var(--hair)}
-.tk b{color:var(--txt);font-weight:600}.tk em{font-style:normal;color:var(--gold);font-weight:700}
-.tk .up{color:var(--mint);font-size:9px}.tk .dn{color:var(--rose);font-size:9px}
+/* ---------- HEADER ---------- */
+.board{padding:60px 5vw 54px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(22,35,58,.55),rgba(10,17,29,0))}
+.board-grid{display:grid;grid-template-columns:1.2fr .9fr;gap:48px;max-width:1280px;margin:0 auto;align-items:center}
+.kicker{font-family:var(--mono);color:var(--gold);letter-spacing:.35em;font-size:12px;margin-bottom:14px}
+h1{font-family:var(--disp);font-size:clamp(58px,8vw,106px);line-height:.94;letter-spacing:.01em}
+h1 .alt{color:transparent;-webkit-text-stroke:1.5px var(--gold)}
+.lede{color:var(--mut);max-width:560px;margin-top:16px;font-size:15.5px}
+.meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.live{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;color:var(--mut);border:1px solid var(--line2);padding:6px 12px;border-radius:3px;background:rgba(18,29,48,.75)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.12}}
+.chip{font-family:var(--mono);font-size:11.5px;color:var(--cyan);border:1px solid var(--line2);padding:6px 12px;border-radius:3px}
+.mdemo{background:var(--panel);border:1px solid var(--line2);border-radius:6px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.mdemo-h{display:flex;justify-content:space-between;align-items:center;background:var(--panel2);padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--dim)}
+.mdemo-b{padding:18px 16px}
+.team{display:flex;justify-content:space-between;align-items:center;padding:8px 2px;font-weight:700;font-size:16px;letter-spacing:.04em}
+.team small{font-family:var(--mono);font-weight:400;font-size:10px;color:var(--dim);letter-spacing:.2em}
+.obtns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.obtn{font-family:var(--mono);font-weight:600;background:var(--panel2);border:1px solid var(--line2);color:var(--ink);padding:9px 8px;cursor:pointer;border-radius:4px;transition:.18s;text-align:center}
+.obtn small{display:block;font-size:9.5px;color:var(--dim);letter-spacing:.16em;margin-bottom:2px}
+.obtn:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.obtn.on{background:var(--gold);color:#161616;border-color:var(--gold)}
+.obtn.on small{color:#6b5420}
+.hdstake{display:flex;gap:8px;align-items:center;margin:10px 0}
+.hdstake label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--dim)}
+.hdstake input{flex:1;background:#0c1526;border:1px solid var(--line2);color:var(--ink);font-family:var(--mono);padding:9px 10px;border-radius:4px}
+.hdstake input:focus{outline:none;border-color:var(--gold)}
+#hdOut{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mut);border-top:1px dashed var(--line2);padding-top:12px}
 
-/* TAB RAIL + sliding indicator */
-.rail{position:relative;display:flex;gap:2px;overflow-x:auto;padding:0 2px;margin-bottom:26px;border-bottom:1px solid var(--hair2);scrollbar-width:thin;scrollbar-color:var(--hair2) transparent}
-.rail::-webkit-scrollbar{height:6px}.rail::-webkit-scrollbar-thumb{background:var(--hair2)}
-.rail-ind{position:absolute;bottom:-1px;height:2px;background:var(--gold);border-radius:2px;transition:left .35s cubic-bezier(.2,.8,.2,1),width .35s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 10px rgba(224,166,79,.6);z-index:2}
-.tab{flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:13px 16px 15px;background:transparent;border:0;
- color:var(--mut);font-family:var(--ui);font-weight:600;font-size:11.5px;letter-spacing:.6px;cursor:pointer;transition:.2s;white-space:nowrap;text-transform:uppercase;position:relative}
-.tab i{font-size:13px;color:var(--mut2);transition:.2s}
-.tab .ix{font-family:var(--mono);font-size:9px;color:var(--mut2);opacity:.6}
-.tab:hover{color:var(--txt)}
-.tab.on{color:var(--paper)}
-.tab.on i{color:var(--gold)}
-.tab.on::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:4px;height:4px;background:var(--gold);border-radius:50%}
+/* ---------- SECTIONS ---------- */
+section{max-width:1280px;margin:0 auto;padding:70px 5vw}
+.shead{display:flex;align-items:baseline;gap:16px;margin-bottom:6px}
+.snum{font-family:var(--mono);color:var(--gold);font-size:13px;border:1px solid var(--line2);padding:4px 10px;border-radius:3px}
+h2{font-family:var(--disp);font-size:clamp(34px,4.5vw,54px);letter-spacing:.02em}
+.srule{flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
+.ssub{color:var(--mut);max-width:760px;margin-bottom:34px}
 
-/* SECTIONS */
-.sec{display:none;animation:rise .45s cubic-bezier(.2,.7,.2,1)}.sec.on{display:block}
-@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-.rv{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}.rv.in{opacity:1;transform:none}
-.sec-head{display:flex;align-items:baseline;gap:14px;margin:2px 0 18px;padding-bottom:12px;border-bottom:1px solid var(--hair)}
-.sec-head .no{font-family:var(--mono);font-size:12px;color:var(--gold);font-weight:700}
-.sec-head h2{font-family:var(--serif);font-weight:700;font-size:clamp(22px,3vw,32px);letter-spacing:-.5px;color:var(--txt)}
-.sec-head h2 em{font-style:italic;color:var(--teal)}
-.sec-head .tag{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--mut2);text-transform:uppercase}
+/* cards dasar */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.ocard{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--red);padding:24px;border-radius:5px;transition:.25s}
+.ocard.plus{border-top-color:var(--green)}
+.ocard:hover{transform:translateY(-4px);border-color:var(--line2);box-shadow:0 16px 36px rgba(0,0,0,.4)}
+.ocard h3{font-family:var(--disp);font-size:26px;letter-spacing:.05em}
+.ocard .tag{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dim)}
+.bigex{font-family:var(--mono);font-size:clamp(26px,3vw,34px);font-weight:700;margin:12px 0 6px}
+.ocard p{color:var(--mut);font-size:14px}
+.fx{font-family:var(--mono);background:var(--panel3);border:1px solid var(--line);border-left:3px solid var(--gold);padding:11px 14px;font-size:13px;color:var(--gold2);margin:12px 0;border-radius:0 4px 4px 0}
+.tool{background:var(--panel2);border:1px solid var(--line2);padding:24px;border-radius:5px}
+.tool h3{font-family:var(--disp);font-size:24px;letter-spacing:.05em;margin-bottom:14px}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;margin-bottom:6px}
+.field input,.field select{width:100%;background:#0c1526;border:1px solid var(--line2);color:var(--ink);font-family:var(--mono);font-size:15px;padding:10px 12px;border-radius:4px;transition:.15s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(244,185,66,.14)}
+.prob{height:8px;background:#0c1526;border:1px solid var(--line);margin:8px 0 12px;overflow:hidden;border-radius:2px}
+.prob i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.r-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed #1d2c46;font-size:13.5px;color:var(--mut)}
+.r-row b{color:var(--ink);font-weight:600;text-align:right}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:14px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;text-align:left;padding:9px 12px;border-bottom:1px solid var(--line2)}
+td{padding:9px 12px;border-bottom:1px solid var(--line);color:var(--mut)}
+tbody tr{transition:.12s}
+tbody tr:hover td{background:rgba(92,201,255,.045);color:var(--ink)}
 
-.row-2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:14px}
-.row-2.eq{grid-template-columns:1fr 1fr}
-.row-3{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px;margin-bottom:14px}
-.panel{position:relative;background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--hair);border-radius:var(--r);padding:16px 17px;
- box-shadow:0 10px 26px rgba(0,0,0,.32);transition:transform .25s,border-color .25s,box-shadow .25s}
-.panel:hover{transform:translateY(-2px);border-color:var(--hair2);box-shadow:0 16px 36px rgba(0,0,0,.42)}
-.panel::after{content:"";position:absolute;top:9px;right:9px;width:6px;height:6px;border-top:1.5px solid var(--gold);border-right:1.5px solid var(--gold);opacity:.3}
-.lbl{display:block;font-family:var(--ui);font-size:10px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--teal);margin-bottom:9px}
-.inp{position:relative}
-.inp>i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--gold);font-family:var(--mono);font-weight:700;font-size:13px;font-style:normal}
-input,select{width:100%;padding:12px 13px;background:var(--ink2);border:1.5px solid var(--hair);border-radius:9px;color:var(--txt);
- font-weight:600;font-size:15px;font-family:var(--mono);transition:.18s}
-.inp>i+input{padding-left:38px}
-input:focus,select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(224,166,79,.14)}
-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%23e0a64f' stroke-width='2'%3E%3Cpath d='M4 7l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;cursor:pointer}
-select option{background:var(--panel2)}
-.rowx{display:flex;gap:9px;align-items:center}.rowx input{flex:1}.rowx .sep{color:var(--gold);font-family:var(--mono);font-weight:700}
-.note{font-size:11.5px;color:var(--mut2);line-height:1.55;margin-top:9px}
-.note b{color:var(--gold)}
+/* ---------- MINES / SLIP ---------- */
+.mn-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:26px;align-items:start}
+.slip{background:#0d1828;border:1px dashed #3d5680;font-family:var(--mono);border-radius:4px;overflow:hidden}
+.slip-h{background:#15243c;padding:12px 18px;font-size:11px;letter-spacing:.22em;color:var(--gold);border-bottom:1px dashed #3d5680;display:flex;justify-content:space-between}
+.slip-b{padding:16px 18px;font-size:13px;color:var(--mut)}
+.slip-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dotted #24375a}
+.slip-row b{color:var(--ink)}
+.slip-tot{display:flex;justify-content:space-between;padding:12px 0 4px;font-size:15px;font-weight:700;color:var(--gold2)}
+.barcode{height:32px;margin:12px 0 4px;background:repeating-linear-gradient(90deg,#c9d6ea 0 2px,transparent 2px 5px,#c9d6ea 5px 6px,transparent 6px 11px);opacity:.55}
+.steps{counter-reset:st;display:flex;flex-direction:column;gap:10px;margin:16px 0}
+.steps li{list-style:none;counter-increment:st;display:flex;gap:14px;color:var(--mut);font-size:14px}
+.steps li::before{content:counter(st,decimal-leading-zero);font-family:var(--mono);color:var(--gold);border:1px solid var(--line2);padding:2px 8px;height:fit-content;font-size:12px;border-radius:3px}
+.steps b{color:var(--ink)}
+.mn-row{display:grid;grid-template-columns:120px 1fr 1.4fr 34px;gap:10px;align-items:end;background:var(--panel3);border:1px solid var(--line);padding:12px;border-radius:4px;margin-bottom:10px}
+.m-res{display:flex;flex-direction:column;gap:2px;padding-bottom:4px}
+.m-stake{font-size:15px;font-weight:700;color:var(--gold2)}
+.m-info{font-size:11px;color:var(--dim);font-family:var(--mono)}
+.l-x{background:none;border:1px solid var(--line2);color:var(--dim);cursor:pointer;border-radius:4px;padding:8px 0;transition:.15s;height:fit-content}
+.l-x:hover{color:var(--red);border-color:var(--red)}
+.addbtn{background:none;border:1px dashed var(--line2);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:10px;cursor:pointer;border-radius:4px;width:100%;transition:.15s}
+.addbtn:hover{border-color:var(--cyan);background:rgba(92,201,255,.06)}
 
-/* COLD THERMAL SLIP */
-.slip{position:relative;background:var(--paper);color:var(--p-ink);border-radius:3px;margin:0 0 16px;font-family:var(--mono);
- box-shadow:0 14px 34px rgba(0,0,0,.5);overflow:hidden;transition:box-shadow .3s}
-.slip.flash{box-shadow:0 0 0 2px var(--gold),0 14px 34px rgba(0,0,0,.5)}
-.slip::before,.slip::after{content:"";position:absolute;left:0;right:0;height:7px;z-index:2;
- background:radial-gradient(circle at 6px 0,transparent 5px,var(--ink) 5.5px) 0 0/12px 7px repeat-x}
-.slip::before{top:-1px}.slip::after{bottom:-1px;transform:scaleY(-1)}
-.slip-top{display:flex;justify-content:space-between;align-items:center;padding:14px 20px 10px;border-bottom:1.5px dashed var(--p-ink2)}
-.slip-brand{font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:2px;color:var(--p-ink);display:flex;align-items:center;gap:8px;text-transform:uppercase}
-.slip-brand i{color:var(--mint-d)}
-.slip-meta{font-size:9.5px;letter-spacing:1.5px;color:var(--p-ink2);text-transform:uppercase}
-.slip-lines{padding:4px 20px;position:relative}
-.sl{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:9px 0;border-bottom:1px dotted var(--p-ink2)}
-.sl:last-child{border-bottom:0}
-.sl-mk{font-family:var(--body);font-size:13px;font-weight:700;color:var(--p-ink)}
-.sl-mk small{display:block;font-family:var(--mono);font-size:10px;color:var(--p-ink2);font-weight:500;margin-top:2px}
-.sl-vl{text-align:right;font-size:13.5px;font-weight:700;color:#1d6f86;white-space:nowrap}
-.sl-vl small{display:block;font-size:9.5px;color:var(--p-ink2);font-weight:500}
-.slip-totals{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1.5px dashed var(--p-ink2);border-bottom:1.5px dashed var(--p-ink2)}
-.slip-totals>div{padding:11px 14px;text-align:center;border-right:1px dotted var(--p-ink2)}
-.slip-totals>div:last-child{border-right:0}
-.slip-totals span{display:block;font-family:var(--ui);font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--p-ink2);font-weight:700}
-.slip-totals b{display:block;font-size:16px;font-weight:700;margin-top:4px}
-.slip-totals .t-bet{color:var(--p-ink)}.slip-totals .t-risk{color:#b23a52}.slip-totals .t-win{color:var(--mint-d)}
-.slip-note{padding:10px 20px 15px;font-family:var(--body);font-size:10.5px;line-height:1.55;color:var(--p-ink2)}
-.slip-note b{color:#b23a52}
-.stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-14deg);font-family:var(--mono);font-weight:700;
- font-size:34px;letter-spacing:4px;border:3px solid;padding:4px 16px;border-radius:6px;opacity:.16;pointer-events:none;text-transform:uppercase}
-.stamp.won{color:var(--mint-d);border-color:var(--mint-d)}
-.stamp.lost{color:#b23a52;border-color:#b23a52}
-.stamp.void{color:var(--p-ink2);border-color:var(--p-ink2)}
-
-/* BOARD CELLS (varied widths) */
-.board{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:14px;margin-bottom:16px}
-.board.q4{grid-template-columns:1.3fr 1fr 1fr 1.15fr}
-.stat{position:relative;border-radius:var(--r);padding:17px 16px 16px;border:1.5px solid;overflow:hidden;transition:transform .25s,box-shadow .25s}
-.stat:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.4)}
-.stat::after{content:"";position:absolute;top:9px;right:9px;width:6px;height:6px;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor;opacity:.3}
-.stat .k{font-family:var(--ui);font-size:9.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;opacity:.8;margin-bottom:9px;color:inherit}
-.stat .v{font-family:var(--mono);font-size:23px;font-weight:700;line-height:1.05;color:var(--txt)}
-.stat i.bg{position:absolute;right:-7px;bottom:-12px;font-size:58px;opacity:.07}
-.s-az{background:linear-gradient(150deg,rgba(79,184,176,.16),rgba(79,184,176,.03));border-color:rgba(79,184,176,.4);color:var(--teal)}
-.s-tl{background:linear-gradient(150deg,rgba(224,166,79,.15),rgba(224,166,79,.03));border-color:rgba(224,166,79,.4);color:var(--gold)}
-.s-gd{background:linear-gradient(150deg,rgba(224,166,79,.13),rgba(224,166,79,.03));border-color:rgba(224,166,79,.35);color:var(--gold)}
-.s-jd{background:linear-gradient(150deg,rgba(95,214,160,.16),rgba(95,214,160,.03));border-color:rgba(95,214,160,.42);color:var(--mint)}
-.s-cr{background:linear-gradient(150deg,rgba(224,96,122,.16),rgba(224,96,122,.03));border-color:rgba(224,96,122,.42);color:var(--rose)}
-.s-lv{background:linear-gradient(150deg,rgba(169,154,214,.16),rgba(169,154,214,.03));border-color:rgba(169,154,214,.4);color:var(--lav)}
-
-/* WORKSHEET */
-.work{position:relative;background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--hair);border-radius:var(--r);padding:18px;margin-top:18px}
-.work::before{content:"";position:absolute;top:9px;left:9px;width:6px;height:6px;border-top:1.5px solid var(--teal);border-left:1.5px solid var(--teal);opacity:.35}
-.work .hd{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:13px;padding-bottom:12px;border-bottom:1px solid var(--hair)}
-.work .hd h3{font-family:var(--ui);font-size:12px;font-weight:700;color:var(--teal);display:flex;gap:9px;align-items:center;letter-spacing:1px;text-transform:uppercase}
-.copy{position:relative;overflow:hidden;background:transparent;border:1.5px solid var(--gold);color:var(--gold);padding:8px 15px;border-radius:8px;font-family:var(--ui);font-weight:700;font-size:11px;cursor:pointer;display:flex;gap:7px;align-items:center;transition:.2s;letter-spacing:.5px;text-transform:uppercase}
-.copy:hover{background:rgba(224,166,79,.12)}.copy:active{transform:scale(.96)}.copy.ok{border-color:var(--mint);color:var(--mint)}
-.ripple{position:absolute;border-radius:50%;background:rgba(224,166,79,.4);transform:scale(0);animation:rip .6s ease-out;pointer-events:none}
-@keyframes rip{to{transform:scale(3.2);opacity:0}}
-pre.out{background:var(--ink);border:1px dashed var(--hair2);border-radius:10px;padding:18px;font-family:var(--mono);font-size:12.5px;line-height:1.8;color:#cdd9c9;white-space:pre-wrap;word-break:break-word}
-
-/* EXPLAIN + CARA */
-.two{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:18px}
-.block{position:relative;background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--hair);border-radius:var(--r);padding:20px 22px}
-.block::after{content:"";position:absolute;bottom:9px;right:9px;width:6px;height:6px;border-bottom:1.5px solid var(--gold);border-right:1.5px solid var(--gold);opacity:.3}
-.block h3{font-family:var(--serif);font-weight:700;font-size:19px;display:flex;gap:10px;align-items:center;margin-bottom:8px;letter-spacing:-.3px}
-.block h3 i{font-size:14px}
-.block h3.az{color:var(--teal)}.block h3.gd{color:var(--gold)}
-.block .desc{color:var(--mut);font-size:13px;line-height:1.66;margin-bottom:15px;font-weight:500}
-.block .desc::first-letter{font-family:var(--serif);font-weight:900;font-size:1.5em;color:var(--gold);float:left;line-height:.8;margin:3px 6px 0 0}
-.rules{display:flex;flex-direction:column;gap:8px}
-.rule{display:grid;grid-template-columns:auto 1fr;gap:11px;background:rgba(225,236,228,.03);border:1px solid var(--hair);border-left:3px solid var(--teal);border-radius:8px;padding:10px 13px;transition:.2s}
-.rule:hover{background:rgba(225,236,228,.06);transform:translateX(3px)}
-.rule:nth-child(4n+2){border-left-color:var(--gold)}.rule:nth-child(4n+3){border-left-color:var(--mint)}.rule:nth-child(4n){border-left-color:var(--lav)}
-.rule .ic{color:var(--gold);font-size:11px;margin-top:3px}
-.rule b{display:block;font-family:var(--ui);color:var(--txt);font-size:12px;margin-bottom:2px;letter-spacing:.2px}
-.rule span{color:var(--mut);font-size:11.5px;line-height:1.5}
-.formula{margin-top:14px;background:var(--ink);border:1px solid rgba(224,166,79,.3);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--gold);line-height:1.6}
-.steps{position:relative;padding-left:6px}
-.steps::before{content:"";position:absolute;left:17px;top:8px;bottom:8px;width:2px;background:repeating-linear-gradient(var(--teal) 0 5px,transparent 5px 9px)}
-.step{position:relative;padding:0 0 15px 42px}
-.step:last-child{padding-bottom:0}
-.step .node{position:absolute;left:6px;top:-1px;width:24px;height:24px;border-radius:50%;background:var(--ink2);border:2px solid var(--teal);
- color:var(--teal);font-family:var(--mono);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.step:nth-child(even) .node{border-color:var(--gold);color:var(--gold)}
-.step .t{font-family:var(--ui);font-size:12.5px;font-weight:700;color:var(--txt);margin-bottom:2px}
-.step .d{font-size:11.5px;color:var(--mut);line-height:1.55}
-
-/* LEGS */
-.legs{display:flex;flex-direction:column;gap:11px;margin-bottom:12px}
-.leg{position:relative;background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--hair);border-left:3px solid var(--gold);border-radius:12px;padding:14px 15px}
-.leg .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
-.leg .top b{color:var(--gold);font-family:var(--ui);font-size:12px;display:flex;gap:8px;align-items:center;letter-spacing:.4px}
-.del{background:rgba(224,96,122,.12);border:1px solid rgba(224,96,122,.5);color:var(--rose);border-radius:7px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--ui)}
-.del:hover{background:var(--rose);color:#fff}
-.lgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
-.lgrid label{font-family:var(--ui);font-size:9.5px;font-weight:700;color:var(--mut2);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:5px}
-.pseg{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-.pseg label{display:flex;align-items:center;justify-content:center;padding:9px 3px;border:1.5px solid var(--hair);border-radius:7px;font-family:var(--ui);font-size:9.5px;font-weight:700;color:var(--mut2);cursor:pointer;text-align:center;margin:0;transition:.15s}
-.pseg input{display:none}
-.pseg input:checked+label.w{background:rgba(95,214,160,.16);border-color:var(--mint);color:var(--mint)}
-.pseg input:checked+label.h{background:rgba(224,166,79,.14);border-color:var(--gold);color:var(--gold)}
-.pseg input:checked+label.l{background:rgba(224,96,122,.14);border-color:var(--rose);color:var(--rose)}
-.pseg input:checked+label.v{background:rgba(147,165,155,.14);border-color:var(--mut);color:var(--mut)}
-.addbtn{position:relative;overflow:hidden;width:100%;padding:13px;background:transparent;border:1.5px dashed var(--hair2);border-radius:10px;color:var(--teal);font-family:var(--ui);font-weight:700;cursor:pointer;display:flex;gap:9px;justify-content:center;align-items:center;font-size:12px;transition:.2s;letter-spacing:.6px;text-transform:uppercase}
-.addbtn:hover{background:rgba(79,184,176,.08);border-style:solid;border-color:var(--teal)}
-
-/* MINES */
-.range{display:flex;align-items:center;gap:12px}
-.range input[type=range]{flex:1;accent-color:var(--gold);height:4px}
-.range .val{font-family:var(--mono);font-weight:700;color:var(--gold);min-width:50px;text-align:right;transition:transform .15s}
-.range .val.pop{transform:scale(1.25)}
-.mgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:330px;margin:6px auto 0}
-.tile{aspect-ratio:1;border-radius:9px;border:1.5px solid var(--hair2);background:var(--panel3);display:flex;align-items:center;justify-content:center;
- font-size:18px;cursor:pointer;transition:transform .4s,background .3s,border-color .3s;color:transparent;font-weight:900}
-.tile:hover{border-color:var(--gold);transform:translateY(-2px) scale(1.03)}
-.tile.safe{background:linear-gradient(140deg,rgba(95,214,160,.34),rgba(95,214,160,.10));border-color:var(--mint);color:var(--mint);transform:rotateY(360deg)}
-.mtable{width:100%;border-collapse:collapse;margin-top:12px;font-family:var(--mono);font-size:11.5px}
-.mtable th,.mtable td{padding:8px 9px;border-bottom:1px solid var(--hair);text-align:right}
-.mtable th{color:var(--teal);font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;font-family:var(--ui)}
-.mtable td:first-child,.mtable th:first-child{text-align:center}
-.mtable tr.now{background:rgba(224,166,79,.13)}.mtable tr.now td{color:var(--gold);font-weight:700}
-.mcomp{width:100%;border-collapse:collapse;margin-top:6px;font-family:var(--mono);font-size:12px}
-.mcomp th,.mcomp td{padding:9px 10px;border-bottom:1px solid var(--hair);text-align:right}
-.mcomp th{color:var(--teal);font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;font-family:var(--ui)}
-.mcomp td:first-child,.mcomp th:first-child{text-align:left}
-.mcomp tr.hl td{color:var(--mint);font-weight:700}
-
-/* CONVERTER */
-.cvout{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:11px}
-.cv{background:var(--ink);border:1px solid var(--hair);border-radius:9px;padding:12px;position:relative}
-.cv::after{content:"";position:absolute;top:7px;right:7px;width:5px;height:5px;border-top:1.5px solid var(--teal);border-right:1.5px solid var(--teal);opacity:.3}
-.cv .t{font-family:var(--ui);font-size:9px;color:var(--mut2);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:6px}
-.cv .n{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--teal)}
-.callout{margin-top:13px;border:1px solid rgba(224,166,79,.4);background:rgba(224,166,79,.07);border-radius:10px;padding:14px 16px;font-size:12.5px;line-height:1.7;color:#f0dcb6}
-.callout b{color:var(--gold)}.callout.j{border-color:rgba(95,214,160,.4);background:rgba(95,214,160,.07);color:#cdeede}.callout.j b{color:var(--mint)}
-.preset{display:inline-flex;gap:8px;align-items:center;background:rgba(79,184,176,.1);border:1px solid var(--teal);color:var(--teal);
- border-radius:8px;padding:9px 14px;font-family:var(--ui);font-size:11px;font-weight:700;cursor:pointer;margin-top:11px;letter-spacing:.4px;text-transform:uppercase;transition:.2s}
-.preset:hover{background:rgba(79,184,176,.2);transform:translateY(-1px)}
-
-.colophon{margin-top:40px;padding-top:20px;border-top:1px solid var(--hair2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
- font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--mut2);text-transform:uppercase}
-.colophon b{color:var(--gold)}
-
-@media(max-width:900px){
- .mast-body{grid-template-columns:1fr;gap:20px}
- .nomctl{justify-content:flex-start}.deck .hint{text-align:left}
- .row-2,.row-2.eq,.row-3,.board,.board.q4,.two{grid-template-columns:1fr}
- .pseg{grid-template-columns:repeat(3,1fr)}.mast-bar{flex-wrap:wrap;gap:6px}
+/* ---------- KALKULATOR ---------- */
+.calcwrap{display:grid;grid-template-columns:270px 1fr;gap:24px;align-items:start}
+.cnav{position:sticky;top:52px;display:flex;flex-direction:column;gap:2px;background:var(--panel);border:1px solid var(--line);padding:10px;border-radius:5px}
+.cnav .nl{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--dim);padding:6px 12px 10px}
+.cnav a,.cnav button{display:flex;gap:12px;align-items:baseline;text-align:left;background:none;border:none;border-left:2px solid transparent;color:var(--mut);font-family:var(--body);font-weight:600;font-size:13px;padding:8px 12px;cursor:pointer;transition:.15s;text-decoration:none;border-radius:0 3px 3px 0}
+.cnav i{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.cnav a:hover,.cnav button:hover{color:var(--ink);background:rgba(92,201,255,.05);transform:translateX(3px)}
+.cnav button.active{color:var(--gold);border-left-color:var(--gold);background:rgba(244,185,66,.07)}
+.cnav button.active i{color:var(--gold)}
+.calc{display:none;background:var(--panel);border:1px solid var(--line);padding:32px;position:relative;overflow:hidden;border-radius:5px}
+.calc.active{display:block;animation:pin .4s cubic-bezier(.2,.8,.2,1)}
+@keyframes pin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.calc::before{content:attr(data-num);position:absolute;right:14px;top:-30px;font-family:var(--disp);font-size:160px;color:rgba(92,201,255,.05);line-height:1;pointer-events:none}
+.calc h3{font-family:var(--disp);font-size:32px;letter-spacing:.03em}
+.calc .en{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.22em;text-transform:uppercase}
+.desc{color:var(--mut);margin:14px 0;max-width:780px;font-size:14.5px}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px}
+.cin{display:flex;flex-direction:column;gap:13px}
+.cout{background:var(--panel3);border:1px solid var(--line);padding:20px;border-radius:4px;align-self:start}
+.cout h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;color:var(--dim);margin-bottom:12px}
+.cout.flash{animation:fl .5s}
+@keyframes fl{0%{box-shadow:0 0 0 0 rgba(244,185,66,.35)}100%{box-shadow:0 0 0 16px rgba(244,185,66,0)}}
+.r-big{font-family:var(--mono);font-size:29px;font-weight:700;margin:12px 0 4px}
+.r-note{font-size:12.5px;color:var(--dim);margin-top:12px;border-top:1px solid var(--line);padding-top:10px;line-height:1.55}
+.r-note b{color:var(--gold2)}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;background:#0c1526;border:1px solid var(--line2);color:var(--mut);font-family:var(--mono);font-size:12.5px;padding:9px 4px;cursor:pointer;border-radius:4px;transition:.15s}
+.seg button:hover{color:var(--ink);border-color:var(--cyan)}
+.seg button.on{background:var(--gold);border-color:var(--gold);color:#151515;font-weight:700}
+.note{border:1px solid rgba(244,185,66,.3);background:rgba(244,185,66,.06);padding:13px 15px;font-size:13px;color:#e6d8ae;margin-top:18px;border-radius:4px}
+.note b{color:var(--gold2)}
+.bdg{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:3px;letter-spacing:.06em;white-space:nowrap}
+.b-win{background:rgba(63,214,139,.14);color:var(--green);border:1px solid rgba(63,214,139,.35)}
+.b-hw{background:rgba(63,214,139,.07);color:#8fe7bb;border:1px solid rgba(63,214,139,.2)}
+.b-push{background:rgba(148,167,194,.1);color:var(--mut);border:1px solid var(--line2)}
+.b-hl{background:rgba(255,97,105,.07);color:#ff9ba1;border:1px solid rgba(255,97,105,.22)}
+.b-lose{background:rgba(255,97,105,.14);color:var(--red);border:1px solid rgba(255,97,105,.4)}
+.scen{margin-top:18px}
+.scen h5{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--dim);margin-bottom:8px}
+.leg{display:grid;grid-template-columns:1.4fr 110px 150px 100px 34px;gap:8px;align-items:end;background:var(--panel3);border:1px solid var(--line);padding:10px;border-radius:4px;margin-bottom:8px}
+.l-dec{font-size:13px;color:var(--cyan);padding:10px 0 2px}
+.htgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.htc{background:var(--panel3);border:1px solid var(--line);padding:12px 8px;text-align:center;border-radius:4px;transition:.15s}
+.htc:hover{border-color:var(--gold);transform:translateY(-2px)}
+.htc b{font-family:var(--disp);font-size:20px;letter-spacing:.08em;display:block}
+.htc span{font-family:var(--mono);font-size:11.5px;color:var(--gold)}
+.htc small{display:block;font-size:10px;color:var(--dim);font-family:var(--mono)}
+.rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
+.rv.in{opacity:1;transform:none}
+footer{border-top:1px solid var(--line);padding:34px 5vw;text-align:center;color:var(--dim);font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;background:#080d17}
+footer b{color:var(--gold)}
+@media(max-width:1020px){
+  .board-grid,.duo,.cgrid,.tgrid,.mn-grid{grid-template-columns:1fr}
+  .calcwrap{grid-template-columns:1fr}
+  .cnav{position:static;flex-direction:row;overflow-x:auto;gap:4px}
+  .cnav .nl{display:none}
+  .cnav a,.cnav button{white-space:nowrap;border-left:none;border-bottom:2px solid transparent}
+  .cnav button.active{border-bottom-color:var(--gold)}
+  .leg{grid-template-columns:1fr 1fr;gap:10px}
 }
 </style>
 </head>
 <body>
-<div class="fx grid"></div><div class="fx glow"></div><div class="fx noise"></div>
-<div id="prog"></div>
-<div class="wrap">
 
-<header class="mast">
-  <div class="mast-bar">
-    <span class="live"><span class="blip"></span> MARKET OPEN</span>
-    <span>VOL. IV · EDISI ODDS &amp; MINES</span>
-    <span id="clock">--:--:--</span>
-  </div>
-  <div class="mast-body">
+<!-- ══════════ TICKER ODDS BERJALAN ══════════ -->
+<div class="ticker"><div class="tk-in" id="tkIn">
+  <span class="tk-item"><b class="up">● LIVE 23'</b> GARUDA FC vs RAJAWALI FC &nbsp;·&nbsp; 1 <span class="dn">−1.33</span> · X <span class="up">+2.85</span> · 2 <span class="up">+3.40</span></span>
+  <span class="tk-item"><b class="up">● LIVE 61'</b> BENTENG FC vs SAKTI FC &nbsp;·&nbsp; 1 <span class="dn">−1.42</span> · X <span class="up">+2.60</span> · 2 <span class="up">+3.10</span></span>
+  <span class="tk-item">ELANG FC vs HARIMAU FC &nbsp;·&nbsp; 1 <span class="up">+1.10</span> · X <span class="up">+2.30</span> · 2 <span class="dn">−1.55</span></span>
+  <span class="tk-item">KANCIL FC vs GAJAH FC &nbsp;·&nbsp; 1 <span class="up">+2.05</span> · X <span class="up">+2.15</span> · 2 <span class="dn">−1.20</span></span>
+  <span class="tk-item"><span class="gd">O/U 2.5</span> OVER <span class="dn">−1.05</span> · UNDER <span class="dn">−1.05</span></span>
+  <span class="tk-item"><span class="gd">PARLAY POPULER</span> 3 LEGS × <span class="up">7.46</span></span>
+</div></div>
+
+<!-- ══════════ HEADER / PAPAN SKOR ══════════ -->
+<header class="board">
+  <div class="board-grid">
     <div>
-      <div class="kicker">The Tote Board · Betting Engine</div>
-      <h1>Kalkulator <em>Odds</em><br><span class="amp">&amp;</span> <em>Mines</em></h1>
-      <p class="lede">Papan perhitungan lengkap untuk <b>16 pasar</b> — tiap jenis dengan rumus step‑by‑step, penjelasan, cara pasang, dan <b>replika slip bandar</b>. Mines memakai probabilitas kombinatorik provably‑fair.</p>
+      <div class="kicker">SPORTSBOOK MATH LAB · ODDS FORMAT INDO/MALAY</div>
+      <h1>PAPAN <span class="alt">ODDS</span><br>KALKULATOR TARUHAN</h1>
+      <p class="lede">Semua perhitungan odds <b class="r">minus (−)</b> dan <b class="g">plus (+)</b> dihitung akurat — dari 1X2 sampai Mix Parlay. 14 pasar punya menu & kalkulatornya masing-masing, lengkap dengan rumus, contoh angka, dan tabel skenario.</p>
+      <div class="meta-row">
+        <span class="live"><span class="dot"></span><span id="clock">—</span></span>
+        <span class="chip">14 PASAR</span>
+        <span class="chip">RUMUS AKURAT</span>
+        <span class="chip">HANDICAP ¼ &amp; ¾</span>
+      </div>
     </div>
-    <div class="deck">
-      <div class="board-mini">
-        <div><div class="k">Mines House Edge</div><div class="v" id="h-he">1.0%</div></div>
-        <div><div class="k">Pasar Aktif</div><div class="v mint">16 / 16</div></div>
-      </div>
-      <div class="nomctl">
-        <span class="lab">Kotak Nominal =</span>
-        <div class="seg" id="nomSeg">
-          <button class="on" data-m="risk">Modal / Risk</button>
-          <button data-m="towin">To‑Win</button>
+    <div class="mdemo">
+      <div class="mdemo-h"><span>DEMO PAPAN ODDS</span><span class="gd">FT · 1X2</span></div>
+      <div class="mdemo-b">
+        <div class="team">GARUDA FC <small>HOME</small></div>
+        <div class="team">RAJAWALI FC <small>AWAY</small></div>
+        <div class="obtns">
+          <button class="obtn on" data-o="-1.33" data-lbl="1 (HOME)"><small>1</small>−1.33</button>
+          <button class="obtn" data-o="2.85" data-lbl="X (SERI)"><small>X</small>+2.85</button>
+          <button class="obtn" data-o="3.40" data-lbl="2 (AWAY)"><small>2</small>+3.40</button>
         </div>
+        <div class="hdstake"><label>TARUHAN RP</label><input id="hdS" value="13300"></div>
+        <div id="hdOut"></div>
       </div>
-      <div class="hint">Mode <b>To‑Win</b> meniru slip odds negatif (kotak = target profit → “sebenarnya” membengkak).</div>
     </div>
   </div>
 </header>
 
-<div class="ticker"><div class="ticker-track" id="tickerTrack"></div></div>
-<nav class="rail" id="rail"><span class="rail-ind" id="railInd"></span></nav>
-<div id="root"></div>
+<main>
 
-<div class="colophon">
-  <span>Set by <b>Fraunces</b> · <b>Space Grotesk</b> · <b>IBM Plex Mono</b></span>
-  <span>Rumus standar industri · Decimal / Indonesian / American / Malay / HK / Fractional</span>
-  <span>© The Tote Board · <b>v4</b></span>
-</div>
-</div>
+<!-- ══════════ 01 · DASAR ODDS MINUS & PLUS ══════════ -->
+<section id="dasar">
+  <div class="shead rv"><span class="snum">01</span><h2>DASAR ODDS — MINUS &amp; PLUS</h2><span class="srule"></span></div>
+  <p class="ssub rv">Format odds Indonesia/Malaysia memakai tanda <b>minus (−)</b> untuk unggulan (favorite) dan <b>plus (+)</b> untuk non-unggulan (underdog). Dua-duanya dihitung dengan rumus berbeda — pahami ini dulu sebelum masuk ke 14 pasar.</p>
+
+  <div class="duo">
+    <div class="ocard rv">
+      <span class="tag">ODDS MINUS · UNGGULAN · "YANG MEMBAYAR"</span>
+      <h3>ODDS −1.33</h3>
+      <div class="bigex r">−1.33</div>
+      <p>Artinya: untuk setiap <b>Rp 10.000</b> kemenangan yang ingin Anda dapatkan, Anda <b>harus membayar / mempertaruhkan Rp 13.300</b>. Semakin kecil angka minusnya (mis. −1.10), semakin berat unggulan → semakin besar yang harus dibayar.</p>
+      <div class="fx">UNTUNG = TARUHAN ÷ |odds| &nbsp;→&nbsp; 13.300 ÷ 1,33 = 10.000</div>
+      <p>Menang → terima <b class="g">Rp 23.300</b> (modal 13.300 + untung 10.000). Kalah → hilang <b class="r">Rp 13.300</b>. Peluang implisit: <b class="y">57,08%</b> · desimal: <b>1.7519</b>.</p>
+    </div>
+    <div class="ocard plus rv">
+      <span class="tag">ODDS PLUS · NON-UNGGULAN · "YANG DIBAYAR"</span>
+      <h3>ODDS +1.85</h3>
+      <div class="bigex g">+1.85</div>
+      <p>Artinya: setiap taruhan <b>Rp 10.000</b> menghasilkan keuntungan <b>Rp 18.500</b> jika menang. Semakin besar angka plusnya, semakin besar bayaran — karena peluang menangnya lebih kecil.</p>
+      <div class="fx">UNTUNG = TARUHAN × odds &nbsp;→&nbsp; 10.000 × 1,85 = 18.500</div>
+      <p>Menang → terima <b class="g">Rp 28.500</b> (modal 10.000 + untung 18.500). Kalah → hilang <b class="r">Rp 10.000</b>. Peluang implisit: <b class="y">35,09%</b> · desimal: <b>2.8500</b>.</p>
+    </div>
+  </div>
+
+  <div class="tgrid rv">
+    <div class="tool" data-calc="conv">
+      <h3>KONVERTER ODDS</h3>
+      <div class="cin">
+        <div class="field"><label>Odds Indo (contoh: -1.33 / +1.85)</label><input id="cvO" value="-1.33"></div>
+        <div class="field"><label>Nominal taruhan (Rp)</label><input id="cvS" value="10000"></div>
+        <div class="cout" id="cvOut"></div>
+      </div>
+    </div>
+    <div class="tool" data-calc="convr">
+      <h3>PELUANG → ODDS WAJAR</h3>
+      <div class="cin">
+        <div class="field"><label>Peluang kejadian (%)</label><input id="rvP" value="57.08"></div>
+        <div class="cout" id="rvOut"></div>
+        <div class="r-note">Odds pasar hampir selalu <b>lebih buruk</b> dari odds wajar — selisihnya adalah <b>margin bandar</b> (keuntungan operator).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rv" style="margin-top:22px">
+    <table>
+      <thead><tr><th>Odds Indo</th><th>Desimal</th><th>Peluang Implisit</th><th>Untung per Rp 10.000</th><th>Total Diterima</th></tr></thead>
+      <tbody>
+        <tr><td class="mono r">−1.50</td><td class="mono">1.6667</td><td class="mono">60,00%</td><td class="mono g">6.667</td><td class="mono">16.667</td></tr>
+        <tr><td class="mono r">−1.33</td><td class="mono">1.7519</td><td class="mono">57,08%</td><td class="mono g">7.519</td><td class="mono">17.519</td></tr>
+        <tr><td class="mono r">−1.20</td><td class="mono">1.8333</td><td class="mono">54,55%</td><td class="mono g">8.333</td><td class="mono">18.333</td></tr>
+        <tr><td class="mono r">−1.10</td><td class="mono">1.9091</td><td class="mono">52,38%</td><td class="mono g">9.091</td><td class="mono">19.091</td></tr>
+        <tr><td class="mono">±1.00 (even)</td><td class="mono">2.0000</td><td class="mono">50,00%</td><td class="mono g">10.000</td><td class="mono">20.000</td></tr>
+        <tr><td class="mono g">+1.25</td><td class="mono">2.2500</td><td class="mono">44,44%</td><td class="mono g">12.500</td><td class="mono">22.500</td></tr>
+        <tr><td class="mono g">+1.50</td><td class="mono">2.5000</td><td class="mono">40,00%</td><td class="mono g">15.000</td><td class="mono">25.000</td></tr>
+        <tr><td class="mono g">+1.85</td><td class="mono">2.8500</td><td class="mono">35,09%</td><td class="mono g">18.500</td><td class="mono">28.500</td></tr>
+        <tr><td class="mono g">+2.60</td><td class="mono">3.6000</td><td class="mono">27,78%</td><td class="mono g">26.000</td><td class="mono">36.000</td></tr>
+        <tr><td class="mono g">+3.40</td><td class="mono">4.4000</td><td class="mono">22,73%</td><td class="mono g">34.000</td><td class="mono">44.000</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════ 02 · ODDS MINES (MINUS) — DETAIL PEMBAYARAN ══════════ -->
+<section id="mines">
+  <div class="shead rv"><span class="snum">02</span><h2>ODDS MINES — DETAIL PEMBAYARAN</h2><span class="srule"></span></div>
+  <p class="ssub rv">"Odds mines" = odds <b>MINUS (−)</b>. Pada odds minus, angka menunjukkan <b>berapa yang harus Anda bayar</b> untuk memenangkan 1 unit. Rumus kuncinya: <b class="y mono">BAYAR = |odds| × TARGET MENANG</b>.</p>
+
+  <div class="mn-grid">
+    <div class="rv">
+      <div class="slip">
+        <div class="slip-h"><span>SLIP PEMBAYARAN — ODDS MINUS</span><span>CONTOH</span></div>
+        <div class="slip-b">
+          <div class="slip-row"><span>Target menang / taruhan</span><b>Rp 10.000</b></div>
+          <div class="slip-row"><span>Taruhan A · odds −1.33<br><small>1,33 × 10.000</small></span><b>Bayar Rp 13.300</b></div>
+          <div class="slip-row"><span>Taruhan B · odds −1.42<br><small>1,42 × 10.000</small></span><b>Bayar Rp 14.200</b></div>
+          <div class="slip-tot"><span>TOTAL HARUS DIBAYAR</span><span>Rp 27.500</span></div>
+          <div class="slip-row"><span>Jika A menang → diterima</span><b class="g">Rp 23.300</b></div>
+          <div class="slip-row"><span>Jika B menang → diterima</span><b class="g">Rp 24.200</b></div>
+          <div class="slip-row"><span>Jika keduanya menang</span><b class="g">Rp 47.500 (untung 20.000)</b></div>
+          <div class="barcode"></div>
+        </div>
+      </div>
+      <ol class="steps">
+        <li><span>Tentukan <b>target menang</b> — di contoh ini Rp 10.000 per taruhan.</span></li>
+        <li><span>Odds <b>−1.33</b> → bayar <b>1,33 × 10.000 = Rp 13.300</b>. Menang: terima 13.300 + 10.000 = <b>23.300</b>.</span></li>
+        <li><span>Odds <b>−1.42</b> → bayar <b>1,42 × 10.000 = Rp 14.200</b>. Menang: terima 14.200 + 10.000 = <b>24.200</b>.</span></li>
+        <li><span>Memasang keduanya sekaligus → total yang harus dibayar <b>13.300 + 14.200 = Rp 27.500</b>.</span></li>
+        <li><span>Risiko maksimal jika semua kalah = <b>Rp 27.500</b> (seluruh stake hangus).</span></li>
+      </ol>
+    </div>
+
+    <div class="rv">
+      <div class="tool" data-calc="mines">
+        <h3>SIMULATOR PEMBAYARAN ODDS MINUS</h3>
+        <p style="color:var(--mut);font-size:13px;margin-bottom:14px">Tambah odds minus & target menang — sistem menghitung berapa yang harus dibayar per taruhan, totalnya, dan semua skenario hasil.</p>
+        <div id="mnRows"></div>
+        <button class="addbtn" id="mnAdd" type="button">+ TAMBAH TARUHAN MINUS</button>
+        <div class="cout" id="mnOut" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 03 · KALKULATOR 14 PASAR ══════════ -->
+<section id="pasar">
+  <div class="shead rv" id="calcTop"><span class="snum">03</span><h2>KALKULATOR — SEMUA TIPE TARUHAN</h2><span class="srule"></span></div>
+  <p class="ssub rv">Setiap jenis perhitungan punya menunya masing-masing. Pilih pasar di panel kiri — semua hasil dihitung <b>live</b> saat Anda mengetik.</p>
+
+  <div class="calcwrap">
+    <nav class="cnav rv">
+      <span class="nl">MENU PERHITUNGAN</span>
+      <a href="#dasar"><i>↑</i>Dasar Odds</a>
+      <a href="#mines"><i>↑</i>Odds Mines</a>
+      <button class="active" data-t="p1x2"><i>01</i>1X2 (FH·SH·FT)</button>
+      <button data-t="pah"><i>02</i>Asian Handicap</button>
+      <button data-t="pcs"><i>03</i>Correct Score</button>
+      <button data-t="pdc"><i>04</i>Double Chance</button>
+      <button data-t="pfts"><i>05</i>First to Start</button>
+      <button data-t="phtft"><i>06</i>HT / FT</button>
+      <button data-t="pmp"><i>07</i>Mix Parlay</button>
+      <button data-t="pbb"><i>08</i>Bet Builder</button>
+      <button data-t="pml"><i>09</i>Money Line / H2H</button>
+      <button data-t="png"><i>10</i>Next Goal</button>
+      <button data-t="poe"><i>11</i>Odd / Even</button>
+      <button data-t="prt"><i>12</i>Outright</button>
+      <button data-t="pov"><i>13</i>Over / Under</button>
+      <button data-t="ppb"><i>14</i>Period Betting</button>
+    </nav>
+
+    <div id="panels">
+
+      <!-- 01 · 1X2 -->
+      <article class="calc active" id="p1x2" data-num="01" data-calc="p1x2">
+        <span class="en">1X2 — FIRST HALF · SECOND HALF · FULL TIME</span>
+        <h3>1X2 (BABAK PERTAMA, BABAK KEDUA &amp; BABAK PENUH)</h3>
+        <p class="desc">Tebak hasil akhir: <b>1</b> = tuan rumah menang, <b>X</b> = seri, <b>2</b> = tamu menang. Tersedia untuk <b>First Half</b> (hanya gol menit 0–45+), <b>Second Half</b> (hanya gol menit 46–90+, skor dianggap 0–0 saat turun minum), dan <b>Full Time</b> (90 menit + injury time, <i>tanpa</i> extra time).</p>
+        <div class="fx">PLUS: Untung = taruhan × odds &nbsp;·&nbsp; MINUS: Untung = taruhan ÷ |odds| &nbsp;·&nbsp; Desimal: plus → 1+odds, minus → 1+1/|odds|</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Periode pasar</label>
+              <div class="seg" data-for="x2period"><button type="button" data-v="FH">FH (0–45')</button><button type="button" data-v="SH">SH (46–90')</button><button type="button" data-v="FT" class="on">FT (90')</button></div>
+              <input type="hidden" id="x2period" value="FT"></div>
+            <div class="field"><label>Odds 1 (Home)</label><input id="x2o1" value="-1.33"></div>
+            <div class="field"><label>Odds X (Seri)</label><input id="x2ox" value="2.85"></div>
+            <div class="field"><label>Odds 2 (Away)</label><input id="x2o2" value="3.40"></div>
+            <div class="field"><label>Pilihan Anda</label>
+              <div class="seg" data-for="x2pick"><button type="button" data-v="1" class="on">1</button><button type="button" data-v="X">X</button><button type="button" data-v="2">2</button></div>
+              <input type="hidden" id="x2pick" value="1"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="x2s" value="13300"></div>
+          </div>
+          <div class="cout" id="x2out"></div>
+        </div>
+        <div class="note"><b>CATATAN:</b> contoh default — pilih 1 @ −1.33 dengan taruhan Rp 13.300 → untung tepat <b>Rp 10.000</b>, total diterima Rp 23.300. Margin 3 arah pasar ini ≈ 5,78%.</div>
+      </article>
+
+      <!-- 02 · ASIAN HANDICAP -->
+      <article class="calc" id="pah" data-num="02" data-calc="pah">
+        <span class="en">ASIAN HANDICAP (SPREAD)</span>
+        <h3>HANDICAP ASIA (SPREAD / VOOR)</h3>
+        <p class="desc">Tim kuat memberi "voor" gol ke tim lemah sehingga peluang jadi seimbang. Line <b>bulat</b> (−1.0) bisa <i>push</i> (uang kembali); line <b>¼</b> (−0.25, −1.25) dan <b>¾</b> (−0.75) bisa menang/kalah setengah. Margin = (gol tim Anda + line) − gol lawan.</p>
+        <div class="fx">Menang penuh: untung standar odds · Menang ½: untung ÷ 2 · Push: modal balik · Kalah ½: rugi setengah taruhan</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Line handicap tim Anda (contoh -0.75)</label><input id="ahL" value="-0.75" step="0.25"></div>
+            <div class="field"><label>Odds tim Anda</label><input id="ahO" value="-1.02"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="ahS" value="10200"></div>
+            <div class="field"><label>Skor akhir — gol tim Anda</label><input id="ahMy" value="2"></div>
+            <div class="field"><label>Skor akhir — gol lawan</label><input id="ahOp" value="0"></div>
+          </div>
+          <div class="cout" id="ahOut"></div>
+        </div>
+        <div class="scen"><h5>TABEL SKENARIO — LINE <span class="ahline"></span> (UNTUK TARUHAN DI ATAS)</h5><div id="ahScen"></div></div>
+        <div class="note"><b>ARTI LINE:</b> −0.5 harus menang · −1.0 menang selisih 2+ (selisih 1 = push) · −0.75 menang selisih 2+ penuh, selisih 1 = menang ½ · +0.75 boleh kalah 1 gol masih menang ½ · +1.25 boleh kalah 1 gol masih menang ½, kalah 2 gol = kalah ½.</div>
+      </article>
+
+      <!-- 03 · CORRECT SCORE -->
+      <article class="calc" id="pcs" data-num="03" data-calc="pcs">
+        <span class="en">CORRECT SCORE — FH · SH · FT</span>
+        <h3>TEBAK SKOR (BABAK PERTAMA, KEDUA &amp; PENUH)</h3>
+        <p class="desc">Tebak skor akhir secara <b>tepat</b> (contoh FT 2-1). Odds biasanya plus besar karena peluang kecil. FH = skor saat turun minum; SH = hanya gol babak kedua (skor 0–0 baru); FT = skor 90 menit. Salah satu digit meleset = taruhan kalah.</p>
+        <div class="fx">Untung = taruhan × odds (plus) · Peluang implisit = 1 ÷ (1 + odds)</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Periode</label>
+              <div class="seg" data-for="csperiod"><button type="button" data-v="FH">FH</button><button type="button" data-v="SH">SH</button><button type="button" data-v="FT" class="on">FT</button></div>
+              <input type="hidden" id="csperiod" value="FT"></div>
+            <div class="field"><label>Skor tebakan (display)</label><input id="csScore" value="2-1"></div>
+            <div class="field"><label>Odds skor tersebut</label><input id="csO" value="8.50"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="csS" value="5000"></div>
+          </div>
+          <div class="cout" id="csOut"></div>
+        </div>
+        <div class="note"><b>CONTOH:</b> FT 2-1 @ +8.50, taruhan Rp 5.000 → untung <b>Rp 42.500</b>, diterima Rp 47.500. Peluang implisit hanya 10,53% — itulah kenapa bayarannya besar.</div>
+      </article>
+
+      <!-- 04 · DOUBLE CHANCE -->
+      <article class="calc" id="pdc" data-num="04" data-calc="pdc">
+        <span class="en">DOUBLE CHANCE — FH · SH · FT</span>
+        <h3>KESEMPATAN GANDA (1X · 12 · X2)</h3>
+        <p class="desc">Satu taruhan menutup <b>2 dari 3</b> hasil: <b>1X</b> (home menang atau seri), <b>12</b> (salah satu menang), <b>X2</b> (away menang atau seri). Peluang gabungan = jumlah peluang implisit keduanya; odds wajar = 1 ÷ peluang gabungan.</p>
+        <div class="fx">p(1X) = p1 + pX · Odds wajar = 1 ÷ p(1X) · lalu konversi ke Indo</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Odds 1</label><input id="dc1" value="-1.33"></div>
+            <div class="field"><label>Odds X</label><input id="dcx" value="2.85"></div>
+            <div class="field"><label>Odds 2</label><input id="dc2" value="3.40"></div>
+            <div class="field"><label>Pilih kombinasi</label>
+              <div class="seg" data-for="dcpick"><button type="button" data-v="1X" class="on">1X</button><button type="button" data-v="12">12</button><button type="button" data-v="X2">X2</button></div>
+              <input type="hidden" id="dcpick" value="1X"></div>
+            <div class="field"><label>Odds DC yang ditawarkan (kosong = pakai odds wajar)</label><input id="dco" value="" placeholder="mis. -4.50"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="dcS" value="10000"></div>
+          </div>
+          <div class="cout" id="dcOut"></div>
+        </div>
+        <div class="note"><b>CONTOH:</b> dari 1 −1.33 (57,08%) + X +2.85 (25,97%) → p(1X) = 83,05% → odds wajar ≈ <b>−4.90</b>. Artinya DC untuk unggulan berat bayarannya kecil: taruhan Rp 10.000 hanya untung ±Rp 2.040.</div>
+      </article>
+
+      <!-- 05 · FIRST TO START -->
+      <article class="calc" id="pfts" data-num="05" data-calc="pfts">
+        <span class="en">FIRST TO START</span>
+        <h3>PERTAMA UNTUK MULAI</h3>
+        <p class="desc">Menebak tim mana yang <b>memulai lebih dulu</b> (kick-off / servis pertama / possession awal). Pasar 2 arah dengan peluang mendekati 50/50, sehingga odds biasanya minus kecil di kedua sisi — bandar mengambil margin dari situ.</p>
+        <div class="fx">Margin = (1÷d₁ + 1÷d₂ − 1) × 100%</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Odds Tim A</label><input id="fta" value="-1.08"></div>
+            <div class="field"><label>Odds Tim B</label><input id="ftb" value="-1.02"></div>
+            <div class="field"><label>Pilihan</label>
+              <div class="seg" data-for="ftpick"><button type="button" data-v="A" class="on">TIM A</button><button type="button" data-v="B">TIM B</button></div>
+              <input type="hidden" id="ftpick" value="A"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="fts" value="10800"></div>
+          </div>
+          <div class="cout" id="ftOut"></div>
+        </div>
+        <div class="note"><b>CONTOH:</b> −1.08 / −1.02 → margin bandar ≈ <b>2,45%</b>. Taruhan Rp 10.800 pada A @ −1.08 → untung Rp 10.000 jika A memulai duluan.</div>
+      </article>
+
+      <!-- 06 · HT/FT -->
+      <article class="calc" id="phtft" data-num="06" data-calc="phtft">
+        <span class="en">HALF TIME / FULL TIME</span>
+        <h3>BABAK 1 / BABAK PENUH (HT/FT)</h3>
+        <p class="desc">Tebak <b>kombinasi</b>: hasil saat turun minum <b>DAN</b> hasil akhir 90 menit. Ada 9 kombinasi (1/1, 1/X, 1/2, X/1, X/X, X/2, 2/1, 2/X, 2/2). Keduanya harus tepat — meleset satu saja = kalah. Karena peluang gabungan kecil, oddsnya besar.</p>
+        <div class="fx">Peluang kombinasi ≈ p(HT) × p(FT | HT) · Untung = taruhan × odds</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Hasil Half Time</label>
+              <select id="hfHT"><option value="1">1 — Home unggul</option><option value="X" selected>X — Seri</option><option value="2">2 — Away unggul</option></select></div>
+            <div class="field"><label>Hasil Full Time</label>
+              <select id="hfFT"><option value="1" selected>1 — Home menang</option><option value="X">X — Seri</option><option value="2">2 — Away menang</option></select></div>
+            <div class="field"><label>Odds kombinasi</label><input id="hfO" value="4.20"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="hfS" value="5000"></div>
+          </div>
+          <div class="cout" id="hfOut"></div>
+        </div>
+        <div class="htgrid">
+          <div class="htc"><b>1/1</b><span>+2.10</span><small>paling sering terjadi</small></div>
+          <div class="htc"><b>1/X</b><span>+8.00</span><small>home unggul lalu disamakan</small></div>
+          <div class="htc"><b>1/2</b><span>+11.00</span><small>comeback away — langka</small></div>
+          <div class="htc"><b>X/1</b><span>+4.20</span><small>home menang di babak 2</small></div>
+          <div class="htc"><b>X/X</b><span>+4.50</span><small>seri sampai akhir</small></div>
+          <div class="htc"><b>X/2</b><span>+6.50</span><small>away memecah kebuntuan</small></div>
+          <div class="htc"><b>2/1</b><span>+13.00</span><small>comeback home — paling langka</small></div>
+          <div class="htc"><b>2/X</b><span>+9.00</span><small>away unggul lalu terkejar</small></div>
+          <div class="htc"><b>2/2</b><span>+3.80</span><small>away unggul sejak awal</small></div>
+        </div>
+      </article>
+
+      <!-- 07 · MIX PARLAY -->
+      <article class="calc" id="pmp" data-num="07" data-calc="pmp">
+        <span class="en">TARUHAN BERGANDA (MIX PARLAY)</span>
+        <h3>MIX PARLAY</h3>
+        <p class="desc">Gabungkan minimal 2 pilihan (leg) lintas pertandingan dengan satu taruhan. Odds desimal tiap leg <b>dikalikan</b>. Semua leg harus benar — satu kalah, seluruh parlay gugur. Leg push dihitung ×1, menang ½ = 1+(d−1)/2, kalah ½ = ×0,5.</p>
+        <div class="fx">Odds total = d₁ × d₂ × … × dₙ · Untung = taruhan × (odds total − 1)</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div id="mpLegs"></div>
+            <button class="addbtn" id="mpAdd" type="button">+ TAMBAH LEG</button>
+            <div class="field"><label>Taruhan parlay (Rp)</label><input id="mpS" value="5000"></div>
+          </div>
+          <div class="cout" id="mpOut"></div>
+        </div>
+        <div class="note"><b>LEGENDA STATUS:</b> <span class="bdg b-win">MENANG</span> <span class="bdg b-hw">MENANG ½</span> <span class="bdg b-push">PUSH ×1</span> <span class="bdg b-hl">KALAH ½ ×0,5</span> <span class="bdg b-lose">KALAH → PARLAY GUGUR</span>. Ubah status leg untuk melihat efeknya ke perkalian.</div>
+      </article>
+
+      <!-- 08 · BET BUILDER -->
+      <article class="calc" id="pbb" data-num="08" data-calc="pbb">
+        <span class="en">BET BUILDER (SAME GAME MULTI)</span>
+        <h3>BET BUILDER</h3>
+        <p class="desc">Seperti parlay, tetapi <b>semua leg dari satu pertandingan yang sama</b> (mis. home menang + Over 2.5 + kedua tim mencetak gol). Matematika sama — odds desimal dikalikan — namun karena antar-leg bisa <b>berkorelasi</b>, bandar menyesuaikan odds dan beberapa kombinasi diblokir.</p>
+        <div class="fx">Odds builder = d₁ × d₂ × … (dengan penyesuaian korelasi dari bandar)</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div id="bbLegs"></div>
+            <button class="addbtn" id="bbAdd" type="button">+ TAMBAH LEG (LAGA YANG SAMA)</button>
+            <div class="field"><label>Taruhan (Rp)</label><input id="bbS" value="5000"></div>
+          </div>
+          <div class="cout" id="bbOut"></div>
+        </div>
+        <div class="note"><b>CATATAN KORELASI:</b> "Home menang + Over 2.5" sering saling terkait (home menang besar). Karena itu odds builder biasanya sedikit lebih rendah daripada hasil kali murni — margin ekstra untuk risiko korelasi.</div>
+      </article>
+
+      <!-- 09 · MONEY LINE / H2H -->
+      <article class="calc" id="pml" data-num="09" data-calc="pml">
+        <span class="en">MONEY LINE / HEAD TO HEAD — TO WIN MATCH</span>
+        <h3>MONEY LINE / HEAD TO HEAD</h3>
+        <p class="desc">Pasar 2 arah <b>tanpa opsi seri</b> — umum di basket, tenis, dan bulu tangkis; pada sepak bola piala biasanya termasuk extra time/adu penalti (atau seri = push/uang kembali). Break-even win rate = peluang implisit pilihan Anda.</p>
+        <div class="fx">Break-even = 1 ÷ desimal × 100% · Margin = Σ(1÷d) − 1</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Odds A</label><input id="mla" value="-1.42"></div>
+            <div class="field"><label>Odds B</label><input id="mlb" value="1.25"></div>
+            <div class="field"><label>Pilihan</label>
+              <div class="seg" data-for="mlpick"><button type="button" data-v="A" class="on">A</button><button type="button" data-v="B">B</button></div>
+              <input type="hidden" id="mlpick" value="A"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="mls" value="14200"></div>
+          </div>
+          <div class="cout" id="mlOut"></div>
+        </div>
+        <div class="note"><b>CONTOH:</b> A @ −1.42 butuh menang ≥ <b>58,68%</b> dari waktu agar impas jangka panjang. Taruhan Rp 14.200 → untung Rp 10.000.</div>
+      </article>
+
+      <!-- 10 · NEXT GOAL -->
+      <article class="calc" id="png" data-num="10" data-calc="png">
+        <span class="en">NEXT GOAL</span>
+        <h3>NEXT GOAL (GOL BERIKUTNYA)</h3>
+        <p class="desc">Tebak tim mana yang mencetak <b>gol berikutnya</b>. Skor saat ini tidak dihitung — hanya gol selanjutnya yang menentukan. Opsi "Tanpa Gol" menang jika tidak ada gol lagi sampai laga usai (termasuk skor 0-0 sejak awal).</p>
+        <div class="fx">3 arah: 1 (home) · 2 (away) · X (tanpa gol lagi) · Margin = Σ(1÷d) − 1</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Odds 1 (home cetak gol berikutnya)</label><input id="ng1" value="-1.05"></div>
+            <div class="field"><label>Odds X (tanpa gol lagi)</label><input id="ngx" value="3.20"></div>
+            <div class="field"><label>Odds 2 (away cetak gol berikutnya)</label><input id="ng2" value="2.10"></div>
+            <div class="field"><label>Pilihan</label>
+              <div class="seg" data-for="ngpick"><button type="button" data-v="1" class="on">1</button><button type="button" data-v="X">X</button><button type="button" data-v="2">2</button></div>
+              <input type="hidden" id="ngpick" value="1"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="ngs" value="10500"></div>
+          </div>
+          <div class="cout" id="ngOut"></div>
+        </div>
+        <div class="note"><b>ATURAN:</b> gol bunuh diri biasanya dihitung untuk tim yang mendapat gol. Pasar langsung (live) — odds bergerak cepat setiap menit.</div>
+      </article>
+
+      <!-- 11 · ODD/EVEN -->
+      <article class="calc" id="poe" data-num="11" data-calc="poe">
+        <span class="en">ODD/EVEN — TOTAL GOALS · FIRST HALF</span>
+        <h3>GANJIL / GENAP (TOTAL GOL)</h3>
+        <p class="desc">Tebak apakah <b>total gol</b> (FT atau FH, tergantung pasar) berjumlah ganjil atau genap. Penting: <b>0 gol dihitung GENAP</b> (0 adalah bilangan genap). Peluang nyaris 50/50, jadi kedua sisi biasanya odds minus kecil.</p>
+        <div class="fx">Genap: 0, 2, 4, 6 … · Ganjil: 1, 3, 5 … · Untung = taruhan ÷ |odds| (karena minus)</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Odds GANJIL (odd)</label><input id="oeO" value="-1.04"></div>
+            <div class="field"><label>Odds GENAP (even)</label><input id="oeE" value="-1.06"></div>
+            <div class="field"><label>Pilihan</label>
+              <div class="seg" data-for="oepick"><button type="button" data-v="GANJIL" class="on">GANJIL</button><button type="button" data-v="GENAP">GENAP</button></div>
+              <input type="hidden" id="oepick" value="GANJIL"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="oeS" value="10400"></div>
+          </div>
+          <div class="cout" id="oeOut"></div>
+        </div>
+        <div class="note"><b>CONTOH:</b> −1.04 / −1.06 → margin ≈ <b>4,06%</b>. Taruhan Rp 10.400 pada GANJIL → untung Rp 10.000 (skor akhir mis. 2-1 = 3 gol = ganjil ✓).</div>
+      </article>
+
+      <!-- 12 · OUTRIGHT -->
+      <article class="calc" id="prt" data-num="12" data-calc="prt">
+        <span class="en">OUTRIGHT</span>
+        <h3>OUTRIGHT (JUARA TURNAMEN/LIGA)</h3>
+        <p class="desc">Tebak <b>juara akhir</b> sebuah kompetisi. Odds biasanya plus besar karena banyak pesaing dan uang tertahan sampai musim/turnamen selesai. Peluang implisit semua peserta jika dijumlahkan akan melebihi 100% — kelebihannya adalah margin bandar.</p>
+        <div class="fx">Untung = taruhan × odds · Peluang juara implisit = 1 ÷ (1 + odds)</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Tim pilihan (display)</label><input id="orTeam" value="GARUDA FC"></div>
+            <div class="field"><label>Odds juara</label><input id="orO" value="5.50"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="orS" value="10000"></div>
+          </div>
+          <div class="cout" id="orOut"></div>
+        </div>
+        <div class="note"><b>ATURAN:</b> diselesaikan saat trofi dipastikan; aturan <i>dead-heat</i> (pembagian) bisa berlaku jika gelar dibagi dua tim. Banyak operator menawarkan <i>cash out</i> sebelum selesai.</div>
+      </article>
+
+      <!-- 13 · OVER/UNDER -->
+      <article class="calc" id="pov" data-num="13" data-calc="pov">
+        <span class="en">OVER/UNDER — TOTAL GOALS · FH · SH · FT</span>
+        <h3>ATAS / BAWAH (TOTAL GOL)</h3>
+        <p class="desc">Tebak total gol di atas atau di bawah line. Line <b>½</b> (2.5) hanya menang/kalah penuh; line <b>bulat</b> (3.0) bisa push; line <b>¼</b> (2.25, 2.75) bisa menang/kalah setengah. FH hanya gol babak 1; SH hanya gol babak 2 (dihitung dari 0-0).</p>
+        <div class="fx">Line 2.75 = setengah di 2.5 + setengah di 3.0 · Line 2.25 = setengah di 2.0 + setengah di 2.5</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Periode</label>
+              <div class="seg" data-for="ovperiod"><button type="button" data-v="FH">FH</button><button type="button" data-v="SH">SH</button><button type="button" data-v="FT" class="on">FT</button></div>
+              <input type="hidden" id="ovperiod" value="FT"></div>
+            <div class="field"><label>Line (kelipatan 0.25)</label><input id="ovL" value="2.5" step="0.25"></div>
+            <div class="field"><label>Sisi</label>
+              <div class="seg" data-for="ovside"><button type="button" data-v="O" class="on">OVER (ATAS)</button><button type="button" data-v="U">UNDER (BAWAH)</button></div>
+              <input type="hidden" id="ovside" value="O"></div>
+            <div class="field"><label>Odds</label><input id="ovO" value="-1.05"></div>
+            <div class="field"><label>Taruhan (Rp)</label><input id="ovS" value="10500"></div>
+            <div class="field"><label>Total gol akhir (periode tsb)</label><input id="ovG" value="3"></div>
+          </div>
+          <div class="cout" id="ovOut"></div>
+        </div>
+        <div class="scen"><h5>TABEL SKENARIO — LINE <span class="ovline"></span></h5><div id="ovScen"></div></div>
+      </article>
+
+      <!-- 14 · PERIOD BETTING -->
+      <article class="calc" id="ppb" data-num="14" data-calc="ppb">
+        <span class="en">PERIOD BETTING</span>
+        <h3>TARUHAN BERPERIODE</h3>
+        <p class="desc">Taruhan pada <b>potongan waktu tertentu</b> (10 menit pertama, babak 1, babak 2, dst). Aturan emas: skor dianggap <b>0–0 di awal periode</b> — hanya gol/hasil <i>di dalam periode itu</i> yang dihitung. Gol sebelum atau sesudahnya tidak relevan.</p>
+        <div class="fx">Contoh: laga berakhir 3-2, tapi babak 2 saja 1-0 → pasar SH "home menang" = MENANG</div>
+        <div class="cgrid">
+          <div class="cin">
+            <div class="field"><label>Periode</label>
+              <select id="pbP"><option>10 Menit Pertama</option><option>20 Menit Pertama</option><option selected>Babak Pertama (0–45')</option><option>Babak Kedua (46–90')</option></select></div>
+            <div class="field"><label>Jenis pasar</label>
+              <select id="pbM"><option value="1x2" selected>1X2 Periode</option><option value="ou">Over/Under Periode</option></select></div>
+            <div id="pb1x2box" style="display:flex;flex-direction:column;gap:13px">
+              <div class="field"><label>Odds 1</label><input id="pb1" value="-1.20"></div>
+              <div class="field"><label>Odds X</label><input id="pbx" value="3.10"></div>
+              <div class="field"><label>Odds 2</label><input id="pb2" value="3.80"></div>
+              <div class="field"><label>Pilihan</label>
+                <div class="seg" data-for="pbpick"><button type="button" data-v="1" class="on">1</button><button type="button" data-v="X">X</button><button type="button" data-v="2">2</button></div>
+                <input type="hidden" id="pbpick" value="1"></div>
+              <div class="field"><label>Taruhan (Rp)</label><input id="pbS" value="12000"></div>
+            </div>
+            <div id="pboubox" style="display:none;flex-direction:column;gap:13px">
+              <div class="field"><label>Line O/U periode</label><input id="pbL" value="1.5" step="0.25"></div>
+              <div class="field"><label>Sisi</label>
+                <div class="seg" data-for="pbside"><button type="button" data-v="O" class="on">OVER</button><button type="button" data-v="U">UNDER</button></div>
+                <input type="hidden" id="pbside" value="O"></div>
+              <div class="field"><label>Odds</label><input id="pbO" value="-1.15"></div>
+              <div class="field"><label>Taruhan (Rp)</label><input id="pbS2" value="11500"></div>
+              <div class="field"><label>Jumlah gol DALAM periode itu</label><input id="pbG" value="2"></div>
+            </div>
+          </div>
+          <div class="cout" id="pbOut"></div>
+        </div>
+        <div class="note"><b>CONTOH SH:</b> Over 1.5 babak 2 @ −1.15, taruhan Rp 11.500, gol babak 2 = 2 → menang Rp 10.000. Skor babak pertama 3-0 tidak dihitung sama sekali.</div>
+      </article>
+
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <p><b>PAPAN ODDS</b> · MEDIA EDUKASI MATEMATIKA TARUHAN — BUKAN SITUS JUDI</p>
+  <p style="margin-top:8px">18+ · BERMAIN BERTANGGUNG JAWAB · SEMUA ANGKA ADALAH CONTOH PERHITUNGAN</p>
+</footer>
 
 <script>
-/* ============ UTIL ============ */
+/* ═══════════ MESIN ODDS ═══════════ */
 const $=id=>document.getElementById(id);
-const rnd=(n,d=2)=>{n=+n;if(!isFinite(n))return 0;const f=10**d;return Math.round(n*f)/f};
-const IDR=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Math.round(n||0));
-const pct=n=>(n*100).toFixed(2)+'%';
-const num=id=>{const v=parseFloat($(id).value);return isFinite(v)?v:0};
-const txt=id=>($(id)?.value||'').trim();
-let NOM='risk';
-function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a||1}
-function frac(q){if(q<=0)return '0/1';let n=Math.round(q*1000),d=1000,g=gcd(n,d);return (n/g)+'/'+(d/g)}
-function C(n,k){if(k<0||k>n)return 0;let r=1;for(let i=0;i<k;i++)r=r*(n-i)/(i+1);return r}
-function fromDec(d){d=Math.max(1.0001,d);const q=d-1;return{decimal:d,fractional:frac(q),
- american:q>=1?'+'+rnd(q*100,1):'-'+rnd(100/q,1),indonesian:q>=1?'+'+rnd(q,3):'-'+rnd(1/q,3),
- malay:q>=1?'+'+rnd(q,3):'-'+rnd(q/d,3),hongkong:'+'+rnd(q,3),implied:1/d}}
-function toDec(v,fmt){v=parseFloat(String(v).replace('+',''));if(!isFinite(v))return null;
- switch(fmt){case 'decimal':return v;case 'hongkong':return 1+v;
-  case 'fractional':{const p=String(v).split('/');return 1+(+p[0])/(+p[1]||1)}
-  case 'american':return v>0?1+v/100:1+100/Math.abs(v);
-  case 'indonesian':return v>0?1+v:1+1/Math.abs(v);
-  case 'malay':return v>0?1+v:1/(1+v)}return null}
-function interpret(nominal,dec){dec=Math.max(1.0001,dec);
- if(NOM==='risk')return{risk:nominal,towin:rnd(nominal*(dec-1),0)};
- return{towin:nominal,risk:rnd(nominal/(dec-1),0)}}
-function setV(id,val,fmt){const el=$(id);if(!el)return;const old=parseFloat(el.dataset.raw||'0');el.dataset.raw=val;
- const isTxt=typeof val==='string'&&isNaN(parseFloat(val));
- if(isTxt){el.textContent=val;return}
- const t0=performance.now(),dur=420;
- function fr(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3),cur=old+(val-old)*e;
-  el.textContent=fmt==='idr'?IDR(cur):fmt==='x'?cur.toFixed(3)+'×':fmt==='pct'?pct(cur):cur.toFixed(fmt||2);
-  if(k<1)requestAnimationFrame(fr)}requestAnimationFrame(fr)}
-function setResult(id,profit){const el=$(id)?.closest('.stat');if(!el)return;
- el.className='stat '+(profit>0?'s-jd':profit<0?'s-cr':'s-gd')}
-function flash(el){if(!el)return;el.classList.add('flash');clearTimeout(el._ft);el._ft=setTimeout(()=>el.classList.remove('flash'),320)}
-function ripple(e,el){const r=el.getBoundingClientRect();const s=document.createElement('span');s.className='ripple';
- const d=Math.max(r.width,r.height);s.style.width=s.style.height=d+'px';s.style.left=(e.clientX-r.left-d/2)+'px';s.style.top=(e.clientY-r.top-d/2)+'px';
- el.appendChild(s);setTimeout(()=>s.remove(),600)}
-function popVal(id){const el=$(id);if(!el)return;el.classList.add('pop');clearTimeout(el._pt);el._pt=setTimeout(()=>el.classList.remove('pop'),160)}
+const num=id=>{const el=$(id);if(!el)return 0;const n=parseFloat(String(el.value).trim().replace(',','.'));return isNaN(n)?0:n;};
+const num2=v=>{const n=parseFloat(String(v).trim().replace(',','.'));return isNaN(n)?0:n;};
+const txt=id=>{const el=$(id);return el?el.value:'';};
+const dec=o=>o<0?1+1/Math.abs(o):1+o;                 // indo → desimal
+const probOf=o=>1/dec(o);                             // peluang implisit
+const profitWin=(o,s)=>o<0?s/Math.abs(o):s*o;         // untung jika menang
+const fmt=n=>{if(!isFinite(n))return'—';return (Math.round(n*100)/100).toLocaleString('id-ID',{maximumFractionDigits:2});};
+const rp=n=>'Rp '+fmt(Math.abs(n));
+const pct=p=>(p*100).toFixed(2).replace('.',',')+'%';
+const sgn=o=>o>0?'+'+fmt(o):fmt(o);
+const flash=el=>{if(!el)return;el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');};
 
-/* ============ SLIP (cold thermal) — opts:{mode,parlayStake,parlayTot,stamp} ============ */
-function buildSlip(lines,opts){
- opts=opts||{};const mode=opts.mode||'sum';
- let totBet=0,totRisk=0,totWin=0,rows='';
- if(mode==='parlay'){
-   const stake=opts.parlayStake||0;totBet=stake;totRisk=stake;const tot=opts.parlayTot||1;totWin=rnd(stake*(tot-1),0);
-   lines.forEach(l=>{rows+='<div class="sl"><div class="sl-mk">'+l.mk+'<small>'+(l.sub||'')+' · '+(l.status||'')+'</small></div><div class="sl-vl">'+l.oddtxt+'<small>eff odd</small></div></div>'});
- }else{
-   lines.forEach(l=>{const dec=Math.max(1.0001,l.dec);const it=interpret(l.nominal,dec);totBet+=l.nominal;totRisk+=it.risk;totWin+=it.towin;
-     rows+='<div class="sl"><div class="sl-mk">'+l.mk+'<small>'+(l.sub||'')+' · odd '+l.oddtxt+' · '+(NOM==='risk'?'kotak=modal':'kotak=to‑win')+'</small></div><div class="sl-vl">'+IDR(l.nominal)+'<small>'+(NOM==='risk'?'modal':'to‑win')+'</small></div></div>'});
- }
- const stamp=opts.stamp?(' <div class="stamp '+opts.stamp+'">'+opts.stamp+'</div>'):'';
- const note=mode==='parlay'
-   ?'Parlay: satu modal, semua leg wajib menang. “Sebenarnya” = modal (tidak membengkak).'
-   :'<b>Total Taruhan</b> = jumlah angka di kotak. <b>Sebenarnya</b> = total RISK yang ditahan saldo. <b>Potensi</b> = total TO‑WIN bila semua menang. Pada odds negatif + mode To‑Win, “sebenarnya” > “potensi” (sisi favorit) — persis slip Anda.';
- return '<figure class="slip"><div class="slip-top"><span class="slip-brand"><i class="fas fa-receipt"></i> TOTE · SLIP</span><span class="slip-meta">'+(mode==='parlay'?'PARLAY':'SINGLE')+' · PRE‑SETTLEMENT</span></div>'+
-   '<div class="slip-lines">'+rows+stamp+'</div>'+
-   '<div class="slip-totals"><div><span>Total Taruhan</span><b class="t-bet">'+IDR(totBet)+'</b></div>'+
-   '<div><span>Sebenarnya</span><b class="t-risk">'+IDR(totRisk)+'</b></div>'+
-   '<div><span>Potensi Menang</span><b class="t-win">'+IDR(totWin)+'</b></div></div>'+
-   '<p class="slip-note">'+note+'</p></figure>';
+const badgeF=f=>f===1?'<span class="bdg b-win">MENANG</span>':f===.5?'<span class="bdg b-hw">MENANG ½</span>':f===0?'<span class="bdg b-push">PUSH / BALIK</span>':f===-.5?'<span class="bdg b-hl">KALAH ½</span>':'<span class="bdg b-lose">KALAH</span>';
+
+/* hasil handicap: line L, margin m = golTim + L − golLawan */
+function ahFactor(L,m){
+  const q=Math.abs((L*2)%1)>1e-9;
+  const one=l=>{const d=m+l;return d>0?1:d===0?0:-1;};
+  return q?(one(L-.25)+one(L+.25))/2:one(L);
+}
+/* hasil over/under */
+function ouFactor(L,g,side){
+  const q=Math.abs((L*2)%1)>1e-9;
+  const one=l=>{const d=side==='O'?g-l:l-g;return d>0?1:d===0?0:-1;};
+  return q?(one(L-.25)+one(L+.25))/2:one(L);
+}
+function payoutFromFactor(o,s,f){
+  if(f===0)return{profit:0,ret:s};
+  const full=profitWin(o,s);
+  if(f===1)return{profit:full,ret:s+full};
+  if(f===.5)return{profit:full/2,ret:s+full/2};
+  if(f===-.5)return{profit:-s/2,ret:s/2};
+  return{profit:-s,ret:0};
+}
+const legFactor=(d,st)=>st==='win'?d:st==='halfwin'?1+(d-1)/2:st==='push'?1:st==='halflose'?0.5:0;
+const stLbl={halfwin:'menang ½',push:'push',halflose:'kalah ½',lose:'kalah'};
+
+/* output dasar untuk taruhan tunggal */
+function baseOut(o,stake,foot){
+  if(!o||!stake)return'<div class="r-note">Isi odds dan nominal taruhan untuk melihat perhitungan.</div>';
+  const d=dec(o),pr=probOf(o),p=profitWin(o,stake),ret=stake+p,minus=o<0;
+  return `
+  <div class="r-row"><span>Odds terpilih</span><b class="mono ${minus?'r':'g'}">${sgn(o)}</b></div>
+  <div class="r-row"><span>Format desimal</span><b class="mono">${d.toFixed(4)}</b></div>
+  <div class="r-row"><span>Peluang implisit</span><b class="mono y">${pct(pr)}</b></div>
+  <div class="prob"><i style="width:${(pr*100).toFixed(1)}%"></i></div>
+  <div class="r-row"><span>Taruhan (yang dibayar)</span><b class="mono">${rp(stake)}</b></div>
+  <div class="r-row"><span>${minus?'Untung = '+fmt(stake)+' ÷ '+fmt(Math.abs(o)):'Untung = '+fmt(stake)+' × '+fmt(o)}</span><b class="mono g">+${fmt(p)}</b></div>
+  <div class="r-big g">+${rp(p)}</div>
+  <div class="r-row"><span>Diterima jika menang (modal + untung)</span><b class="mono">${rp(ret)}</b></div>
+  <div class="r-row"><span>Jika kalah, hangus</span><b class="mono r">−${rp(stake)}</b></div>
+  ${foot?`<div class="r-note">${foot}</div>`:''}`;
+}
+function threeWayHTML(o1,ox,o2,stake,pick,extra){
+  const o={'1':o1,'X':ox,'2':o2}[pick]??o1;
+  const m=probOf(o1)+probOf(ox)+probOf(o2)-1;
+  return baseOut(o,stake,`Margin bandar 3 arah: <b class="y">${pct(m)}</b> · Peluang: 1=${pct(probOf(o1))} · X=${pct(probOf(ox))} · 2=${pct(probOf(o2))}${extra||''}`);
+}
+function twoWayHTML(oa,ob,stake,pick,extra){
+  const o=pick==='B'?ob:oa;
+  const m=probOf(oa)+probOf(ob)-1;
+  return baseOut(o,stake,`Margin bandar: <b class="y">${pct(m)}</b> · Peluang A=${pct(probOf(oa))} · B=${pct(probOf(ob))}${extra||''}`);
 }
 
-/* ============ WORKSHEET TEXT ============ */
-function sheet(title,blocks){let s='═'.repeat(46)+'\n  '+title+'\n'+'═'.repeat(46)+'\n\n';
- blocks.forEach(b=>{if(b.h)s+='── '+b.h+' '+'─'.repeat(Math.max(2,42-b.h.length))+'\n';(b.l||[]).forEach(x=>s+='  '+x+'\n');s+='\n'});return s.trim()}
-
-/* ============ META ============ */
-const META={
-x12:{t:'1X2 — Match Odds',d:'Taruhan hasil waktu normal (90’ + injury time, BUKAN extra time / adu penalti). Tiga opsi saling eksklusif.',
- rules:[['1 — Home Win','Tuan rumah menang'],['X — Draw','Skor imbang'],['2 — Away Win','Tamu menang'],['Tanpa ½ / Push','Hanya menang atau kalah penuh'],['Extra Time','Tidak dihitung di 1X2 standar']],
- formula:'Total Hasil = Risk × Odd   ·   Profit = Total Hasil − Risk',
- cara:['Pilih pertandingan & pasar 1X2—(FT / FH / SH).','Pilih 1, X, atau 2.','Lihat odds decimal; cek implied prob di Konverter.','Masukkan nominal—(pahami mode RISK vs TO‑WIN di masthead).','Konfirmasi—taruhan terkunci pada odds saat pasang.','Settlement: hanya menang/kalah penuh setelah waktu normal.'],margin:true},
-hdp:{t:'Asian Handicap (Spread)',d:'Line bertanda memberi keunggulan/kerugian gol virtual pada sisi pilihan. Line bulat bisa PUSH; ½ tidak ada push; ¼ & ¾ dipecah dua → memunculkan Menang/Kalah ½.',
- rules:[['Line bulat (0, 1, 2…)','Selisih = line → PUSH'],['Line ½','Selalu menang/kalah penuh'],['Line ¼','Seri di sisi −0.25 → Menang ½'],['Line ¾','Menang 1 gol di sisi −0.75 → Menang ½'],['Odds negatif','Sisi favorit → risk > to‑win']],
- formula:'Mng: R×Odd · Mng½: R×((Odd−1)/2+1) · Klh½: R×0.5 · Push: R×1',
- cara:['Pilih sisi (Home/Away) & baca line bertanda—seperti di slip (mis. Home −0.5).','Masukkan odds decimal—(atau konversi dari Indo/American).','Isi skor akhir—hasil dihitung otomatis (atau set manual).','Perhatikan: line ¼ & ¾ otomatis memunculkan hasil setengah.','Cek slip: pada odds negatif + mode To‑Win, “sebenarnya” membengkak.','Settlement mengikuti skor + line (metode pecah‑quarter).']},
-cs:{t:'Correct Score (Tebak Skor)',d:'Menebak skor akhir dengan TEPAT. Probabilitas per skor kecil → odds tinggi. Opsi AOS menampung skor di luar daftar.',
- rules:[['Skor persis','Menang HANYA bila skor identik'],['Odds tinggi','Umumnya 6.00 – 50.00+'],['AOS','Menang bila skor tak terdaftar'],['Seri kecil','0‑0 & 1‑1 paling sering muncul']],
- formula:'Total Hasil = Risk × Odd  (skor meleset = 0)',
- cara:['Pilih periode (FH/SH/FT).','Pilih skor tebakan (atau AOS).','Masukkan odds & nominal.','Set hasil: menang hanya jika skor akhir persis.','Settlement: bandingkan skor aktual vs tebakan.']},
-dc:{t:'Double Chance (Kesempatan Ganda)',d:'Mencakup 2 dari 3 hasil → peluang menang naik, odds turun dibanding 1X2.',
- rules:[['1X','Home menang ATAU seri'],['X2','Seri ATAU Away menang'],['12','Ada pemenang (bukan seri)'],['Odds < 1X2','Karena 2 hasil tercakup']],
- formula:'Total Hasil = Risk × Odd',
- cara:['Pilih kombinasi 1X / X2 / 12.','Masukkan odds (lebih kecil dari 1X2 padanannya).','Set hasil; menang bila salah satu dari dua kondisi terpenuhi.']},
-fts:{t:'First To Start (Kick‑off)',d:'Menebak tim yang melakukan kick‑off pertama. Ditentukan undian wasit → peluang ~50:50, odds ≈ 2.00.',
- rules:[['Acak','Lempar koin sebelum laga'],['Odds ≈ 2.00','Peluang ~50%'],['Pre‑match','Jarang tersedia live']],
- formula:'Total Hasil = Risk × Odd',
- cara:['Pilih Home atau Away untuk kick‑off.','Masukkan odds (biasanya ~1.95–2.00).','Set hasil menang/kalah.']},
-htft:{t:'Half Time / Full Time',d:'Menebak hasil babak pertama DAN akhir sekaligus. 9 kombinasi; kedua hasil wajib tepat → odds jauh lebih tinggi.',
- rules:[['1/1','Home unggul HT & menang FT'],['X/2','Seri HT, Away menang FT'],['2/1','Away unggul HT, Home comeback'],['9 kombinasi','(1/X/2) × (1/X/2)'],['Odds tinggi','≈ prob HT × prob FT bersyarat']],
- formula:'Total Hasil = Risk × Odd  (kedua hasil wajib tepat)',
- cara:['Pilih hasil HT dan hasil FT.','Kombinasi comeback (2/1, 1/2) ber‑odds paling besar.','Set hasil; menang hanya bila KEDUANYA tepat.']},
-parlay:{t:'Taruhan Berganda (Mix Parlay)',d:'Beberapa pertandingan dalam satu tiket. Mendukung status per tim: Menang, Menang ½, Kalah ½, Void, dan Kalah Penuh (1 kalah penuh = tiket hangus).',
- rules:[['Menang','Odd tetap'],['Menang ½','((Odd−1)÷2)+1'],['Kalah ½','Odd × 0.50'],['Void / Seri','Odd = 1.00'],['Kalah Penuh','Seluruh tiket = 0']],
- formula:'Total Odds = ∏ Odd Efektif   ·   Hasil = Modal × Total Odds',
- cara:['Tambahkan minimal 2–3 tim.','Isi odds tiap tim.','Set status hasil tiap tim—(jangan lupa opsi KALAH untuk simulasi rugi).','Total odds = perkalian odd efektif.','Satu tim kalah penuh → seluruh tiket hangus.']},
-bb:{t:'Bet Builder (1 Pertandingan)',d:'Menggabungkan beberapa pasar DALAM satu pertandingan yang sama. Semua leg wajib benar.',
- rules:[['Contoh','Tim A menang + Over 2.5 + Tim A first goal'],['Total Odds','Perkalian semua leg'],['Risiko','1 leg salah = hangus']],
- formula:'Total Odds = ∏ Odd   ·   Hasil = Modal × Total Odds',
- cara:['Tambahkan beberapa leg dari pertandingan yang sama.','Isi odds & set menang/kalah per leg.','Semua leg harus menang agar tiket cair.']},
-ml:{t:'Money Line / Head to Head',d:'Format American Odds untuk pemenang laga. Negatif = favorit (pasang lebih untuk profit 100), positif = underdog.',
- rules:[['+150','Profit 150 per 100 (Dec 2.50)'],['−200','Pasang 200 untuk profit 100 (Dec 1.50)'],['Konversi','+A→1+A/100 ; −A→1+100/|A|']],
- formula:'Decimal = 1+(A/100 bila +) atau 1+(100/|A| bila −)',
- cara:['Masukkan American odds (mis. −150 atau +180).','Alat mengonversi ke decimal & menghitung risk/to‑win.','Set menang/kalah.']},
-ng:{t:'Next Goal',d:'Menebak pencetak gol berikutnya (live). Ada opsi No More Goals. Odds bergerak real‑time.',
- rules:[['Home Next','Tuan rumah cetak gol berikut'],['Away Next','Tamu cetak gol berikut'],['No Goal','Tak ada gol lagi'],['Live','Odds dinamis']],
- formula:'Total Hasil = Risk × Odd (terkunci saat pasang)',
- cara:['Pilih Home / Away / No More Goal.','Perhatikan odds live berubah.','Konfirmasi untuk mengunci odds saat itu.']},
-oe:{t:'Odd / Even (Ganjil / Genap)',d:'Menebak paritas total gol. 0 gol = GENAP. Odds ≈ 2.00.',
- rules:[['ODD','1,3,5,7,…'],['EVEN','0,2,4,6,…'],['Periode','FT & FH']],
- formula:'Total Hasil = Risk × Odd',
- cara:['Pilih ODD atau EVEN.','Masukkan total gol → paritas dievaluasi otomatis.','Set periode (FT/FH).']},
-or:{t:'Outright (Juara / Top Scorer)',d:'Pemenang turnamen/liga atau pencetak gol terbanyak. Diselesaikan akhir kompetisi. Perhatikan Dead Heat.',
- rules:[['Juara','Finis #1 akhir musim'],['Top Scorer','Gol terbanyak'],['Dead Heat','Seri → stake & profit dibagi'],['Settlement','Akhir kompetisi']],
- formula:'Hasil = Risk × Odd   ·   Dead Heat: hasil ÷ jumlah pemenang',
- cara:['Pilih pasar (juara / top scorer).','Isi odds & nominal.','Bila ada seri, isi jumlah pemenang Dead Heat (>1).','Perhitungan otomatis membagi stake & profit.']},
-ou:{t:'Over / Under (Atas / Bawah)',d:'Total gol di atas/bawah line. Line bulat bisa PUSH; ¼ & ¾ memunculkan hasil setengah pada total gol tertentu.',
- rules:[['O/U 2.5','Over ≥3, Under ≤2'],['O/U 2.25','2 gol → Over Klh½, Under Mng½'],['O/U 2.75','3 gol → Over Mng½, Under Klh½'],['O/U 2.0','2 gol = PUSH'],['Line s/d 10','Tersedia']],
- formula:'Total Hasil = Risk × Odd Efektif',
- cara:['Pilih Over/Under & line.','Isi total gol → hasil (win/½/push/lose) dihitung otomatis.','Periksa aturan ¼ & ¾ di penjelasan.']},
-pd:{t:'Period Betting (Berperiode)',d:'Taruhan pada rentang menit tertentu (0‑15 … 76‑90). Hanya kejadian di rentang itu yang dihitung.',
- rules:[['Rentang tertutup','Hanya event di menit tsb'],['Odds dinamis','Mengikuti momentum'],['Contoh','Gol/kartu/corner per 15 menit']],
- formula:'Total Hasil = Risk × Odd  (periode terpilih)',
- cara:['Pilih rentang waktu.','Pilih pasar (gol/kartu/dll) & odds.','Hanya kejadian di rentang itu yang menentukan hasil.']},
-mines:{t:'Mines — Probabilitas Kombinatorik',d:'Grid 25 tile, M bom. Multiplier = kebalikan peluang selamat membuka K tile, dipotong house edge. TIDAK pernah membayar di atas fair multiplier.',
- rules:[['Fair Mult','= 1 / P(selamat)'],['Actual','= Fair × (1 − HE)'],['P(selamat)','= C(25−M,K) / C(25,K)'],['Tdk bayar lebih','Actual < Fair selalu'],['Aturan cash‑out','Lanjut bila P(aman)×Mult(K+1) > Mult(K)']],
- formula:'Multiplier = [ C(25,K) / C(25−M,K) ] × (1 − HE)',
- cara:['Tentukan jumlah bom (M)—makin banyak, multiplier & risiko naik.','Masukkan modal (= Total Taruhan = risiko Anda).','Konfirmasi → grid terkunci, bom diacak (provably fair).','Klik tile satu per satu; tiap tile aman menaikkan multiplier sesuai tabel.','Pantau P(tile aman berikut) & aturan cash‑out di panel.','Putuskan: CASH‑OUT (amankan profit) atau LANJUT (potensi naik, peluang turun).','Kena bom sebelum cash‑out → modal hangus. Cash‑out → Total Hasil = modal × multiplier.','Catatan: di Mines “sebenarnya” = modal (tidak membengkak) karena multiplier > 1 → Anda selalu underdog.']},
-conv:{t:'Konverter Odds + Replika Slip',d:'Konversi 6 format odds & decoder slip 2‑baris yang mereproduksi persis slip Anda (−1.33 & −1.42 @10.000 → sebenarnya 27.500, potensi 20.000).',
- rules:[['Indo −1.33','= Decimal 1.752'],['Risk vs To‑Win','Odds negatif: kotak sering = to‑win'],['Implied','= 1 / Decimal'],['Overround','Σ implied > 100% = margin']],
- formula:'toDec: IDO −x→1+1/x · MAL −x→1/(1+x) · AM −x→1+100/x',
- cara:['Pilih format & ketik odds → lihat 6 format + implied prob.','Untuk meniru slip: pakai decoder 2‑baris di bawah, mode To‑Win.','Klik “Muat contoh slip” untuk mengisi −1.33 & −1.42 @10.000.','Periksa: per‑line risk 13.300 & 14.200 → total 27.500; potensi 20.000.']}
+/* ═══════════ KALKULATOR PER PANEL ═══════════ */
+const F={};
+F.conv=()=>{
+  const o=num('cvO'),s=num('cvS')||10000;
+  if(!o){$('cvOut').innerHTML='<div class="r-note">Masukkan odds, contoh −1.33 atau +1.85</div>';return;}
+  const d=dec(o),pr=probOf(o),p=profitWin(o,s);
+  $('cvOut').innerHTML=`
+  <div class="r-row"><span>Jenis odds</span><b class="${o<0?'r':'g'}">${o<0?'MINUS — unggulan':'PLUS — non-unggulan'}</b></div>
+  <div class="r-row"><span>Desimal (Eropa)</span><b class="mono">${d.toFixed(4)}</b></div>
+  <div class="r-row"><span>Peluang implisit</span><b class="mono y">${pct(pr)}</b></div>
+  <div class="prob"><i style="width:${(pr*100).toFixed(1)}%"></i></div>
+  <div class="r-row"><span>Untung jika menang (taruhan ${rp(s)})</span><b class="mono g">+${rp(p)}</b></div>
+  <div class="r-row"><span>Total diterima</span><b class="mono">${rp(s+p)}</b></div>`;
+  flash($('cvOut'));
 };
-function explainHTML(id){const m=META[id];if(!m)return'';
- return '<div class="block rv"><h3 class="az"><i class="fas fa-circle-info"></i> '+m.t+'</h3><div class="desc">'+m.d+'</div>'+
-  '<div class="rules">'+m.rules.map(r=>'<div class="rule"><i class="fas fa-angle-right ic"></i><div><b>'+r[0]+'</b><span>'+r[1]+'</span></div></div>').join('')+'</div>'+
-  '<div class="formula">📐 '+m.formula+'</div></div>'}
-function caraHTML(id){const m=META[id];if(!m)return'';
- return '<div class="block rv"><h3 class="gd"><i class="fas fa-list-ol"></i> Cara Pasang</h3>'+
-  '<div class="steps">'+m.cara.map((c,i)=>{const p=c.split('—');return '<div class="step"><div class="node">'+(i+1)+'</div><div class="t">'+p[0]+'</div>'+(p[1]?'<div class="d">'+p[1]+'</div>':'')+'</div>'}).join('')+'</div></div>'}
-
-/* ============ GENERIC SINGLE ============ */
-function singleShell(id,extra){return `
- <div class="row-2 rv">
-   <div class="panel"><label class="lbl">Nominal (kotak)</label><div class="inp"><i>Rp</i><input type="number" id="${id}-stake" value="100000" min="1000" step="1000" oninput="R('${id}')"></div></div>
-   <div class="panel"><label class="lbl">Odd (Decimal)</label><div class="inp"><i>×</i><input type="number" id="${id}-odd" value="1.90" step="0.01" min="1.01" oninput="R('${id}')"></div></div>
- </div>
- ${extra||''}
- <div class="panel rv" style="margin-bottom:14px"><label class="lbl">Hasil Taruhan</label>
-   <select id="${id}-result" onchange="R('${id}')"><option value="win">✅ Menang</option><option value="lose">❌ Kalah</option></select></div>
- <div id="${id}-slip"></div>
- <div class="board rv">
-   <div class="stat s-az"><i class="fas fa-percent bg"></i><div class="k">Odd · Implied</div><div class="v" id="${id}-v-odd">-</div></div>
-   <div class="stat s-tl"><i class="fas fa-sack-dollar bg"></i><div class="k">Total Hasil</div><div class="v" id="${id}-v-ret">-</div></div>
-   <div class="stat s-jd"><i class="fas fa-wallet bg"></i><div class="k">Profit / Rugi</div><div class="v" id="${id}-v-prof">-</div></div>
- </div>`}
-function singleCalc(id,cfg){
- const nominal=Math.max(1000,num(id+'-stake')),odd=Math.max(1.01,num(id+'-odd')),res=$(id+'-result').value;
- const it=interpret(nominal,odd),risk=it.risk,towin=it.towin,im=fromDec(odd);
- const ret=res==='win'?rnd(risk*odd,0):0, prof=ret-risk;
- const sub=(cfg.sub?cfg.sub():'');
- $(id+'-slip').innerHTML=buildSlip([{mk:cfg.mk||META[id].t,sub:sub,dec:odd,oddtxt:odd.toFixed(2)+(NOM==='towin'&&odd<2?' · fav':''),nominal:nominal}],{mode:'sum',stamp:res==='win'?'won':'lost'});
- flash($(id+'-slip').firstElementChild);
- setV(id+'-v-odd',odd.toFixed(2)+' · '+pct(im.implied),'txt');setV(id+'-v-ret',ret,'idr');setV(id+'-v-prof',prof,'idr');setResult(id+'-v-prof',prof);
- const ex=cfg.steps?cfg.steps({risk,odd,res,im,nominal}):[];
- $(id+'-out').textContent=sheet('PERHITUNGAN '+META[id].t.toUpperCase(),[
-  {h:'INPUT',l:['Pasar          : '+META[id].t,'Kotak Nominal  : '+IDR(nominal)+'  (mode '+NOM.toUpperCase()+')','Risk (di‑risk) : '+IDR(risk),'To‑Win (profit): '+IDR(towin),'Odd Decimal    : '+odd.toFixed(2)+'  ·  Indo '+im.indonesian+'  ·  Am '+im.american,'Implied Prob   : '+pct(im.implied),'Hasil          : '+(res==='win'?'MENANG':'KALAH')]},
-  ...ex,
-  {h:'LANGKAH',l:res==='win'?['Step 1 — Total Hasil = Risk × Odd','= '+IDR(risk)+' × '+odd.toFixed(2)+' = '+IDR(ret),'Step 2 — Profit = Total Hasil − Risk','= '+IDR(ret)+' − '+IDR(risk)+' = '+IDR(prof),'Step 3 — Profit % = '+pct(prof/risk)]:['Step 1 — Prediksi salah → Total Hasil = 0','Step 2 — Rugi = −Risk = '+IDR(prof)+' (100% dari risk)']},
-  {h:'HASIL AKHIR',l:['Status         : '+(res==='win'?'MENANG':'KALAH'),'Total Hasil    : '+IDR(ret),'Profit / Rugi  : '+IDR(prof)]}
- ]);
-}
-
-/* ============ SPECIAL CALC ============ */
-const CALC={
-hdp(){
- const nominal=Math.max(1000,num('hdp-stake')),odd=Math.max(1.01,num('hdp-odd'));
- const side=txt('hdp-side'),line=num('hdp-line'),sh=num('hdp-sh'),sa=num('hdp-sa'),mode=txt('hdp-mode');
- const it=interpret(nominal,odd),risk=it.risk,im=fromDec(odd);
- function lr(L){const adj=(side==='home'?sh:sa)+L,opp=(side==='home'?sa:sh),d=adj-opp;return d>1e-9?'win':d<-1e-9?'lose':'push'}
- let fp=Math.round(((Math.abs(line)%1)+1)%1*100);
- let res;
- if(mode!=='auto')res=mode;
- else if(fp===25||fp===75){const a=lr(line-0.25),b=lr(line+0.25),s=new Set([a,b]);
-   res=s.size===1?a:(s.has('win')&&s.has('push'))?'win-half':(s.has('push')&&s.has('lose'))?'lose-half':(s.has('win')&&s.has('lose'))?'win-half':a}
- else res=lr(line);
- const em={win:odd,'win-half':((odd-1)/2+1),push:1,'lose-half':0.5,lose:0};
- const nm={win:'MENANG PENUH','win-half':'MENANG 1/2',push:'PUSH','lose-half':'KALAH 1/2',lose:'KALAH PENUH'};
- const eff=em[res],ret=rnd(risk*eff,0),prof=ret-risk;
- const adj=(side==='home'?sh:sa)+line,opp=(side==='home'?sa:sh);
- const stmp=res==='push'?'void':(eff>1?'won':(eff===0?'lost':'void'));
- $('hdp-slip').innerHTML=buildSlip([{mk:'HDP '+(side==='home'?'Home':'Away'),sub:(line>0?'+':'')+line+' · skor '+sh+'-'+sa,dec:odd,oddtxt:odd.toFixed(2),nominal:nominal,status:nm[res]}],{mode:'sum',stamp:stmp});
- flash($('hdp-slip').firstElementChild);
- setV('hdp-v-eff',eff.toFixed(3),'txt');setV('hdp-v-ret',ret,'idr');setV('hdp-v-prof',prof,'idr');setResult('hdp-v-prof',prof);
- $('hdp-out').textContent=sheet('PERHITUNGAN ASIAN HANDICAP',[
-  {h:'INPUT',l:['Sisi / Line    : '+side.toUpperCase()+' '+(line>0?'+':'')+line,'Skor           : Home '+sh+' - Away '+sa,'Skor disetel   : '+rnd(adj,2)+' vs '+opp+' → selisih '+rnd(adj-opp,2),'Kotak / Risk   : '+IDR(nominal)+' / '+IDR(risk)+'  ('+NOM.toUpperCase()+')','Odd / Indo     : '+odd.toFixed(2)+' / '+im.indonesian,'Hasil          : '+nm[res]+(mode==='auto'?' (otomatis)':' (manual)')]},
-  {h:'ATURAN LINE '+line,l:[fp===0?'Bulat → PUSH bila selisih = line':fp===50?'½ → tidak ada push':fp===25?'¼ → pecah 50% di '+(line-0.25)+' & '+(line+0.25):'¾ → pecah 50% di '+(line-0.25)+' & '+(line+0.25),'Odd efektif    : '+nm[res]+' → '+eff.toFixed(3)]},
-  {h:'LANGKAH',l:['Step 1 — Odd Efektif = '+eff.toFixed(3),'Step 2 — Total Hasil = '+IDR(risk)+' × '+eff.toFixed(3)+' = '+IDR(ret),'Step 3 — Profit/Rugi = '+IDR(ret)+' − '+IDR(risk)+' = '+IDR(prof)]},
-  {h:'HASIL',l:['Status: '+nm[res],'Total Hasil: '+IDR(ret),'Profit/Rugi: '+IDR(prof)]}
- ]);
-},
-ou(){
- const nominal=Math.max(1000,num('ou-stake')),odd=Math.max(1.01,num('ou-odd'));
- const ch=txt('ou-choice'),L=num('ou-line'),G=num('ou-goals'),it=interpret(nominal,odd),risk=it.risk,im=fromDec(odd);
- const fp=Math.round(((L%1)+1)%1*100);let ov,un;
- if(G>L){ov='win';un='lose'}else if(G<L){ov='lose';un='win'}else{ov='push';un='push'}
- if(fp===25&&G===Math.floor(L)){ov='lose-half';un='win-half'}
- if(fp===75&&G===Math.floor(L)+1){ov='win-half';un='lose-half'}
- const res=ch==='over'?ov:un;
- const em={win:odd,'win-half':((odd-1)/2+1),push:1,'lose-half':0.5,lose:0};
- const nm={win:'MENANG PENUH','win-half':'MENANG 1/2',push:'PUSH','lose-half':'KALAH 1/2',lose:'KALAH PENUH'};
- const eff=em[res],ret=rnd(risk*eff,0),prof=ret-risk;
- const stmp=res==='push'?'void':(eff>1?'won':(eff===0?'lost':'void'));
- $('ou-slip').innerHTML=buildSlip([{mk:ch.toUpperCase()+' '+L,sub:G+' gol · '+txt('ou-period'),dec:odd,oddtxt:odd.toFixed(2),nominal:nominal,status:nm[res]}],{mode:'sum',stamp:stmp});
- flash($('ou-slip').firstElementChild);
- setV('ou-v-eff',eff.toFixed(3),'txt');setV('ou-v-ret',ret,'idr');setV('ou-v-prof',prof,'idr');setResult('ou-v-prof',prof);
- $('ou-out').textContent=sheet('PERHITUNGAN OVER / UNDER',[
-  {h:'INPUT',l:['Pilihan / Line : '+ch.toUpperCase()+' '+L+' · '+txt('ou-period'),'Total Gol      : '+G,'Kotak / Risk   : '+IDR(nominal)+' / '+IDR(risk)+'  ('+NOM.toUpperCase()+')','Odd / Implied  : '+odd.toFixed(2)+' / '+pct(im.implied)]},
-  {h:'ATURAN LINE '+L,l:[fp===0?'Bulat → PUSH bila total = '+L:fp===50?'½ → selalu menang/kalah penuh':fp===25?'¼ → '+Math.floor(L)+' gol: Over Klh½, Under Mng½':'¾ → '+(Math.floor(L)+1)+' gol: Over Mng½, Under Klh½','Evaluasi       : '+G+' vs '+L+' → '+nm[res]]},
-  {h:'LANGKAH',l:['Step 1 — Odd Efektif = '+eff.toFixed(3),'Step 2 — Total Hasil = '+IDR(risk)+' × '+eff.toFixed(3)+' = '+IDR(ret),'Step 3 — Profit/Rugi = '+IDR(prof)]},
-  {h:'HASIL',l:['Status: '+nm[res],'Total Hasil: '+IDR(ret),'Profit/Rugi: '+IDR(prof)]}
- ]);
-},
-oe(){
- const nominal=Math.max(1000,num('oe-stake')),odd=Math.max(1.01,num('oe-odd')),ch=txt('oe-choice'),G=num('oe-goals');
- const it=interpret(nominal,odd),risk=it.risk,im=fromDec(odd),par=G%2===0?'even':'odd',res=ch===par?'win':'lose';
- const ret=res==='win'?rnd(risk*odd,0):0,prof=ret-risk;
- $('oe-slip').innerHTML=buildSlip([{mk:(ch==='odd'?'ODD':'EVEN')+' · '+txt('oe-period'),sub:G+' gol = '+(par==='even'?'GENAP':'GANJIL'),dec:odd,oddtxt:odd.toFixed(2),nominal:nominal,status:res==='win'?'MENANG':'KALAH'}],{mode:'sum',stamp:res==='win'?'won':'lost'});
- flash($('oe-slip').firstElementChild);
- setV('oe-v-odd',odd.toFixed(2),'txt');setV('oe-v-ret',ret,'idr');setV('oe-v-prof',prof,'idr');setResult('oe-v-prof',prof);
- $('oe-out').textContent=sheet('PERHITUNGAN ODD / EVEN',[
-  {h:'INPUT',l:['Pilihan        : '+ch.toUpperCase(),'Total Gol      : '+G+' → '+(par==='even'?'GENAP':'GANJIL'),'Kotak / Risk   : '+IDR(nominal)+' / '+IDR(risk)+'  ('+NOM.toUpperCase()+')','Odd / Implied  : '+odd.toFixed(2)+' / '+pct(im.implied)]},
-  {h:'LANGKAH',l:res==='win'?['Step 1 — Paritas cocok → Total Hasil = '+IDR(risk)+' × '+odd.toFixed(2)+' = '+IDR(ret),'Step 2 — Profit = '+IDR(prof)]:['Step 1 — Paritas tidak cocok → 0','Step 2 — Rugi = '+IDR(prof)]},
-  {h:'HASIL',l:['Status: '+(res==='win'?'MENANG':'KALAH'),'Total Hasil: '+IDR(ret),'Profit/Rugi: '+IDR(prof)]}
- ]);
-},
-ml(){
- const nominal=Math.max(1000,num('ml-stake')),res=txt('ml-result');
- const d=toDec($('ml-amer').value,'american')||1.01,c=fromDec(d),fav=d<2;
- const risk=NOM==='risk'?nominal:rnd(nominal/(d-1),0), towin=NOM==='risk'?rnd(nominal*(d-1),0):nominal;
- const ret=res==='win'?rnd(risk*d,0):0,prof=ret-risk;
- $('ml-slip').innerHTML=buildSlip([{mk:'Money Line',sub:$('ml-amer').value+' → Dec '+d.toFixed(2)+(fav?' (favorit)':' (underdog)'),dec:d,oddtxt:d.toFixed(2),nominal:nominal,status:res==='win'?'MENANG':'KALAH'}],{mode:'sum',stamp:res==='win'?'won':'lost'});
- flash($('ml-slip').firstElementChild);
- setV('ml-v-dec',d.toFixed(2),'txt');setV('ml-v-towin',towin,'idr');setV('ml-v-ret',ret,'idr');setV('ml-v-prof',prof,'idr');setResult('ml-v-prof',prof);
- $('ml-out').textContent=sheet('PERHITUNGAN MONEY LINE',[
-  {h:'KONVERSI',l:['American       : '+$('ml-amer').value,'Decimal        : '+d.toFixed(3),'Indonesian     : '+c.indonesian+'  ·  Malay '+c.malay,'Implied Prob   : '+pct(c.implied)+(fav?' → FAVORIT':' → UNDERDOG')]},
-  {h:'RISK vs TO‑WIN (mode '+NOM.toUpperCase()+')',l:['Angka di kotak : '+IDR(nominal)+'  (= '+(NOM==='risk'?'RISK':'TO‑WIN')+')','Risk           : '+IDR(risk),'To‑Win         : '+IDR(towin),fav?'Favorit: risk > to‑win (wajar, bukan penalti).':'Underdog: to‑win > risk (peluang menang lebih kecil).']},
-  {h:'LANGKAH',l:res==='win'?['Step 1 — Return = Risk × Dec = '+IDR(risk)+' × '+d.toFixed(3)+' = '+IDR(rnd(risk*d,0)),'Step 2 — Profit = '+IDR(prof)]:['Step 1 — Kalah → 0','Step 2 — Rugi = '+IDR(prof)]},
-  {h:'HASIL',l:['Status: '+(res==='win'?'MENANG':'KALAH'),'Return: '+IDR(ret),'Profit/Rugi: '+IDR(prof)]}
- ]);
-},
-or(){
- const nominal=Math.max(1000,num('or-stake')),odd=Math.max(1.01,num('or-odd')),res=$('or-result').value;
- const dh=Math.max(1,Math.round(num('or-dh'))),it=interpret(nominal,odd),risk=it.risk,im=fromDec(odd);
- const effRisk=risk/dh, ret=res==='win'?rnd(effRisk*odd,0):0, prof=ret-risk;
- $('or-slip').innerHTML=buildSlip([{mk:txt('or-pick'),sub:'Dead Heat ÷'+dh,dec:odd,oddtxt:odd.toFixed(2),nominal:nominal,status:res==='win'?'MENANG':'KALAH'}],{mode:'sum',stamp:res==='win'?'won':'lost'});
- flash($('or-slip').firstElementChild);
- setV('or-v-odd',odd.toFixed(2),'txt');setV('or-v-ret',ret,'idr');setV('or-v-prof',prof,'idr');setResult('or-v-prof',prof);
- $('or-out').textContent=sheet('PERHITUNGAN OUTRIGHT',[
-  {h:'INPUT',l:['Pasar          : '+txt('or-pick'),'Kotak / Risk   : '+IDR(nominal)+' / '+IDR(risk)+'  ('+NOM.toUpperCase()+')','Odd / Implied  : '+odd.toFixed(2)+' / '+pct(im.implied),'Dead Heat      : '+dh+' pemenang → risk efektif = '+IDR(risk)+' ÷ '+dh+' = '+IDR(effRisk)]},
-  {h:'LANGKAH',l:res==='win'?['Step 1 — Risk efektif = Risk ÷ DH = '+IDR(effRisk),'Step 2 — Return = '+IDR(effRisk)+' × '+odd.toFixed(2)+' = '+IDR(ret),'Step 3 — Profit = Return − Risk(asli) = '+IDR(ret)+' − '+IDR(risk)+' = '+IDR(prof)]:['Step 1 — Tidak juara → 0','Step 2 — Rugi = '+IDR(prof)]},
-  {h:'HASIL',l:['Status: '+(res==='win'?'MENANG':'KALAH'),'Return: '+IDR(ret),'Profit/Rugi: '+IDR(prof)]}
- ]);
-},
-parlay(){
- const stake=Math.max(1000,num('parlay-stake')),legs=[...document.querySelectorAll('#parlay-legs .leg')];
- if(!legs.length){$('parlay-out').textContent='Tambahkan minimal 1 tim.';$('parlay-slip').innerHTML='';return}
- let tot=1,det=[],lines=[],allVoid=true,anyLose=false;
- const nm={full:'MENANG',half:'MNG ½','lose-half':'KLH ½',void:'VOID',lose:'KALAH'};
- legs.forEach((l,i)=>{const o=Math.max(1.01,parseFloat(l.querySelector('.pl-odd').value)||1.01);
-   const st=l.querySelector('input[name=pl-'+l.dataset.n+']:checked').value;
-   let eff=st==='full'?o:st==='half'?((o-1)/2+1):st==='lose-half'?(o*0.5):st==='lose'?0:1;
-   tot*=eff;if(st!=='void')allVoid=false;if(st==='lose')anyLose=true;
-   det.push('Tim '+(i+1)+': '+o.toFixed(2)+' ['+nm[st]+'] → eff '+eff.toFixed(3));
-   lines.push({mk:'Tim #'+(i+1),sub:'odd '+o.toFixed(2),dec:o,oddtxt:eff.toFixed(3),nominal:o,status:nm[st]})});
- const ret=rnd(stake*tot,0),prof=ret-stake;
- const stmp=anyLose?'lost':(allVoid?'void':(prof>0?'won':'lost'));
- $('parlay-slip').innerHTML=buildSlip(lines,{mode:'parlay',parlayStake:stake,parlayTot:tot,stamp:stmp});
- flash($('parlay-slip').firstElementChild);
- setV('parlay-v-odd',tot.toFixed(3),'txt');setV('parlay-v-ret',ret,'idr');setV('parlay-v-prof',prof,'idr');setResult('parlay-v-prof',prof);
- $('parlay-out').textContent=sheet('PERHITUNGAN MIX PARLAY',[
-  {h:'INPUT',l:['Modal          : '+IDR(stake)+'  (= Total Taruhan = Sebenarnya)','Jumlah Tim     : '+legs.length]},
-  {h:'ODD EFEKTIF PER TIM',l:det},
-  {h:'LANGKAH',l:['Rumus: Mng½=((o−1)/2+1) · Klh½=o×0.5 · Void=1 · Kalah=0','Step 1 — Total Odds = '+tot.toFixed(4),'Step 2 — Total Hasil = '+IDR(stake)+' × '+tot.toFixed(4)+' = '+IDR(ret),'Step 3 — Profit/Rugi = '+IDR(prof)]},
-  {h:'HASIL',l:['Total Odds: '+tot.toFixed(3),'Total Hasil: '+IDR(ret),'Profit/Rugi: '+IDR(prof)]}
- ]);
-},
-bb(){
- const stake=Math.max(1000,num('bb-stake')),legs=[...document.querySelectorAll('#bb-legs .leg')];
- if(!legs.length){$('bb-out').textContent='Tambahkan minimal 1 leg.';$('bb-slip').innerHTML='';return}
- let tot=1,det=[],win=true,lines=[];
- legs.forEach((l,i)=>{const o=Math.max(1.01,parseFloat(l.querySelector('.bb-odd').value)||1.01);const r=l.querySelector('.bb-res').value;if(r==='lose')win=false;tot*=o;det.push('Leg '+(i+1)+': '+o.toFixed(2)+' → '+(r==='win'?'MENANG':'KALAH'));lines.push({mk:'Leg #'+(i+1),sub:'odd '+o.toFixed(2),dec:o,oddtxt:o.toFixed(2),nominal:o,status:r==='win'?'MENANG':'KALAH'})});
- const ret=win?rnd(stake*tot,0):0,prof=ret-stake;
- $('bb-slip').innerHTML=buildSlip(lines,{mode:'parlay',parlayStake:stake,parlayTot:tot,stamp:win?'won':'lost'});
- flash($('bb-slip').firstElementChild);
- setV('bb-v-odd',tot.toFixed(3),'txt');setV('bb-v-ret',ret,'idr');setV('bb-v-prof',prof,'idr');setResult('bb-v-prof',prof);
- $('bb-out').textContent=sheet('PERHITUNGAN BET BUILDER',[
-  {h:'INPUT',l:['Modal          : '+IDR(stake),'Leg (1 laga)   : '+legs.length]},
-  {h:'DETAIL LEG',l:det},
-  {h:'LANGKAH',l:['Step 1 — Total Odds = '+tot.toFixed(4),'Step 2 — Semua menang? '+(win?'YA':'TIDAK → hangus'),'Step 3 — Hasil = '+IDR(ret),'Step 4 — Profit/Rugi = '+IDR(prof)]},
-  {h:'HASIL',l:['Total Odds: '+tot.toFixed(3),'Total Hasil: '+IDR(ret),'Profit/Rugi: '+IDR(prof)]}
- ]);
-},
-mines(){
- const stake=Math.max(1000,num('mn-stake'));let M=num('mn-mines'),K=num('mn-k'),he=num('mn-he')/100;
- const safe=25-M;if(K>safe)K=safe;$('mn-k').max=safe;
- $('mn-mines-v').textContent=M;$('mn-k-v').textContent=K;$('mn-he-v').textContent=(he*100).toFixed(1)+'%';$('h-he').textContent=(he*100).toFixed(1)+'%';
- const probK=K===0?1:C(safe,K)/C(25,K),fairK=K===0?1:1/probK,multK=rnd(fairK*(1-he),4);
- const ret=rnd(stake*multK,0),prof=ret-stake;
- const pNext=safe-K>0?(safe-K)/(25-K):0;
- const probK1=K+1<=safe?C(safe,K+1)/C(25,K+1):0,fairK1=probK1>0?1/probK1:0,multK1=rnd(fairK1*(1-he),4);
- const evCash=ret, evNext=rnd(pNext*stake*multK1-evCash,0), goOn=(pNext*multK1)>multK;
- const g=$('mn-grid');g.innerHTML='';
- for(let i=0;i<25;i++){const t=document.createElement('div');t.className='tile'+(i<K?' safe':'');t.textContent=i<K?'◆':'';
-  t.onclick=()=>{const cur=num('mn-k');$('mn-k').value=i<cur?i:(i+1>safe?safe:i+1);popVal('mn-k-v');R('mines')};g.appendChild(t)}
- let rows='<tr><th>Tile</th><th>P(selamat)</th><th>Fair</th><th>Actual</th><th>Cash‑out</th></tr>';
- for(let k=0;k<=Math.min(safe,12);k++){const pk=k===0?1:C(safe,k)/C(25,k),fk=k===0?1:1/pk,ak=rnd(fk*(1-he),4);
-  rows+='<tr class="'+(k===K?'now':'')+'"><td>'+k+'</td><td>'+pct(pk)+'</td><td>'+fk.toFixed(3)+'×</td><td>'+ak.toFixed(3)+'×</td><td>'+IDR(stake*ak)+'</td></tr>'}
- if(safe>12)rows+='<tr><td>…</td><td colspan="4" style="text-align:center;color:var(--mut2)">s/d '+safe+' tile</td></tr>';
- $('mn-table').innerHTML=rows;
- $('mn-slip').innerHTML=buildSlip([{mk:'Mines · '+M+' bom',sub:K+' tile terbuka · mult '+multK.toFixed(3)+'×',dec:multK,oddtxt:multK.toFixed(3)+'×',nominal:stake,status:'CASH‑OUT'}],{mode:'sum',stamp:K>0?'won':''});
- flash($('mn-slip').firstElementChild);
- setV('mn-v-mult',multK,'x');setV('mn-v-ret',ret,'idr');setV('mn-v-prof',prof,'idr');setV('mn-v-prob',probK,'pct');
- setV('mn-v-fair',fairK,'x');setV('mn-v-next',pNext,'pct');setV('mn-v-ev',evNext,'idr');
- $('mn-v-rec').textContent=K===0?'Buka tile':K>=safe?'Selesai':goOn?'Lanjut (EV+)':'Cash Out';
- setResult('mn-v-prof',prof);setResult('mn-v-ev',evNext);
- // margin comparison table
- const cmp=[['Mines 3💣 K=3',0.6696,1.493,1.478,1.0],['Mines 5💣 K=5',0.2918,3.427,3.393,1.0],['Mines 24💣 K=1',0.04,25.0,24.75,1.0],['Sports 1X2 (50%)',0.5,2.0,1.90,5.0],['Sports Parlay',0.12,8.33,7.50,10.0]];
- let cr='<tr><th>Pasar</th><th>P menang</th><th>Fair</th><th>Dibayar</th><th>Margin</th></tr>';
- cmp.forEach((r,i)=>{cr+='<tr class="'+(i<3?'hl':'')+'"><td>'+r[0]+'</td><td>'+pct(r[1])+'</td><td>'+r[2].toFixed(2)+'×</td><td>'+r[3].toFixed(2)+'×</td><td>'+r[4].toFixed(1)+'%</td></tr>'});
- $('mn-comp').innerHTML=cr;
- $('mines-out').textContent=sheet('PERHITUNGAN MINES',[
-  {h:'PARAMETER',l:['Grid 25 · Mines M = '+M+' · aman = '+safe,'Tile terbuka K = '+K+'  ·  House Edge = '+(he*100).toFixed(1)+'%','Modal = Total Taruhan = Risiko = '+IDR(stake)]},
-  {h:'RUMUS KOMBINATORIK',l:['C(n,k)=n!/(k!(n−k)!)','P(selamat s/d K) = C('+safe+','+K+')/C(25,'+K+') = '+pct(probK),'Fair Multiplier  = 1/P = '+fairK.toFixed(4)+'×','Actual Multiplier= Fair×(1−HE) = '+fairK.toFixed(4)+'×'+(1-he).toFixed(3)+' = '+multK.toFixed(4)+'×']},
-  {h:'CASH‑OUT SEKARANG',l:['Total Hasil = Modal × Mult = '+IDR(stake)+' × '+multK.toFixed(4)+' = '+IDR(ret),'Profit      = '+IDR(ret)+' − '+IDR(stake)+' = '+IDR(prof)]},
-  {h:'KEPUTUSAN TILE BERIKUTNYA (K → K+1)',l:['P(tile aman)   = ('+(safe-K)+')/(25-'+K+') = '+pct(pNext),'Mult bila K+1  = '+multK1.toFixed(4)+'×','Cash‑out kini  = '+IDR(evCash),'Exp return klik= '+pNext.toFixed(4)+' × '+IDR(stake*multK1)+' = '+IDR(rnd(pNext*stake*multK1,0)),'Selisih vs cash‑out = '+IDR(evNext),'Aturan: lanjut bila P(aman)×Mult(K+1) > Mult(K) → '+(pNext*multK1).toFixed(3)+' vs '+multK.toFixed(3)+' = '+(goOn?'LANJUT':'CASH‑OUT')]},
-  {h:'CATATAN',l:['Mines TIDAK pernah membayar di atas Fair (selisih = house edge).','“Sebenarnya” di Mines = modal (tidak membengkak) — Anda selalu underdog.']}
- ]);
-},
-conv(){
- const d=toDec($('cv-val').value,$('cv-fmt').value);
- if(!d||d<=1){$('cv-out2').innerHTML='<div class="cv"><div class="n" style="color:var(--rose)">Input tak valid</div></div>';return}
- const c=fromDec(d);
- $('cv-out2').innerHTML=[['Decimal',c.decimal.toFixed(3)],['Fractional',c.fractional],['American',c.american],['Indonesian',c.indonesian],['Malay',c.malay],['Hong Kong',c.hongkong],['Implied',pct(c.implied)]].map(x=>'<div class="cv"><div class="t">'+x[0]+'</div><div class="n">'+x[1]+'</div></div>').join('');
- let tr=0,tt=0,rows='',bn=0;
- for(let i=1;i<=2;i++){const od=toDec($('cv-o'+i).value,$('cv-f'+i).value)||1.01;const nm=Math.max(0,num('cv-n'+i));
-   const dec=Math.max(1.0001,od);const tw=nm,rk=rnd(nm/(dec-1),0);tr+=rk;tt+=tw;bn+=nm;
-   rows+='<div class="sl"><div class="sl-mk">Line '+i+'<small>odd '+$('cv-o'+i).value+' ('+($('cv-f'+i).value)+') · Dec '+dec.toFixed(3)+'</small></div><div class="sl-vl">'+IDR(nm)+'<small>to‑win → risk '+IDR(rk)+'</small></div></div>'}
- $('cv-dec-slip').innerHTML='<figure class="slip"><div class="slip-top"><span class="slip-brand"><i class="fas fa-receipt"></i> REPLIKA SLIP ANDA</span><span class="slip-meta">MODE TO‑WIN · 2 LINE</span></div>'+
-   '<div class="slip-lines">'+rows+'</div>'+
-   '<div class="slip-totals"><div><span>Total Taruhan</span><b class="t-bet">'+IDR(bn)+'</b></div>'+
-   '<div><span>Sebenarnya</span><b class="t-risk">'+IDR(tr)+'</b></div>'+
-   '<div><span>Potensi Menang</span><b class="t-win">'+IDR(tt)+'</b></div></div>'+
-   '<p class="slip-note">Kotak = <b>to‑win</b> (konvensi odds negatif). “Sebenarnya” = Σ risk = Σ (to‑win ÷ (Dec−1)). Dengan −1.33 & −1.42 @10.000 → 13.300 + 14.200 = <b>27.500</b>, potensi <b>20.000</b> — persis slip Anda.</p></figure>';
- flash($('cv-dec-slip').firstElementChild);
- const neg=d<2;
- $('cv-decode').className='callout '+(neg?'':'j');
- $('cv-decode').innerHTML=neg
-  ?'<b>🔎 Odds negatif (spt −1.33 / −1.42):</b> kotak nominal = <b>to‑win</b>. Maka “sebenarnya” (risk) = to‑win × |Indo|, lebih BESAR dari “potensi” (to‑win) karena Anda mengambil sisi <b>favorit</b> (prob > 50%). Bukan salah hitung — itu harga bermain aman.'
-  :'<b>✅ Odds ≥ 2.00 (underdog):</b> risk ≤ to‑win; tidak ada pembengkakan “sebenarnya”.';
- $('conv-out').textContent=sheet('KONVERSI ODDS',[{h:'HASIL',l:['Input '+$('cv-fmt').value+' = '+$('cv-val').value,'Decimal = '+d.toFixed(3),'Implied = '+pct(c.implied)]}]);
-}
+F.convr=()=>{
+  const p=num('rvP');
+  if(p<=0||p>=100){$('rvOut').innerHTML='<div class="r-note">Peluang harus di antara 0 dan 100.</div>';return;}
+  const d=100/p,indo=d>=2?d-1:-(1/(d-1));
+  $('rvOut').innerHTML=`
+  <div class="r-row"><span>Desimal wajar</span><b class="mono">${d.toFixed(4)}</b></div>
+  <div class="r-row"><span>Odds Indo wajar</span><b class="mono y">${indo>0?'+':''}${indo.toFixed(2).replace('.',',')}</b></div>`;
+  flash($('rvOut'));
 };
 
-/* ============ BUILD UI ============ */
-const OU_OPTS=[0.5,1,1.5,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.5,5,5.5,6,7,8,9,10].map(v=>'<option '+(v==2.5?'selected':'')+'>'+v+'</option>').join('');
-const TYPES=[
- {id:'x12',n:'1X2',ic:'fa-futbol',shell:()=>'<div class="sec-head rv"><span class="no">01</span><h2>1X2 <em>Match Odds</em></h2><span class="tag">FH · SH · FT</span></div>'+singleShell('x12',`<div class="row-2 eq rv">
-   <div class="panel"><label class="lbl">Pilihan</label><select id="x12-pick" onchange="R('x12')"><option>1 — Home Win</option><option>X — Draw</option><option>2 — Away Win</option></select></div>
-   <div class="panel"><label class="lbl">Periode</label><select id="x12-period" onchange="R('x12')"><option>Full Time</option><option>First Half</option><option>Second Half</option></select></div></div>
-   <div class="panel rv" id="x12-margin" style="margin-bottom:14px"><label class="lbl">Cek Margin Pasar (opsional — isi odds 1, X, 2)</label>
-   <div class="row-3" style="margin:0"><div class="inp"><input id="x12-m1" value="2.10" step="0.01" oninput="R('x12')"></div><div class="inp"><input id="x12-mx" value="3.40" step="0.01" oninput="R('x12')"></div><div class="inp"><input id="x12-m2" value="3.60" step="0.01" oninput="R('x12')"></div></div>
-   <div class="note" id="x12-mout"></div></div>`),
-   calc:()=>singleCalc('x12',{mk:'1X2 · '+txt('x12-pick'),sub:txt('x12-period'),steps:()=>{
-     const m=[num('x12-m1'),num('x12-mx'),num('x12-m2')];const im=m.filter(x=>x>1).map(x=>1/x);const sum=im.reduce((a,b)=>a+b,0);
-     $('x12-mout').innerHTML='Implied: 1='+pct(im[0]||0)+' · X='+pct(im[1]||0)+' · 2='+pct(im[2]||0)+' → Σ = <b style="color:var(--gold)">'+pct(sum)+'</b> · Margin (overround) = <b style="color:var(--rose)">'+pct(Math.max(0,sum-1))+'</b> (selisih di atas 100% = keuntungan bandar).';
-     return[{h:'KONTEKS',l:['Pilihan: '+txt('x12-pick)+' · '+txt('x12-period'),'1X2 hanya menang/kalah penuh — tanpa ½ atau push.']}]} })},
- {id:'hdp',n:'HANDICAP',ic:'fa-scale-balanced',shell:()=>`<div class="sec-head rv"><span class="no">02</span><h2>Asian <em>Handicap</em></h2><span class="tag">Spread</span></div>
-   <div class="row-2 rv"><div class="panel"><label class="lbl">Nominal (kotak)</label><div class="inp"><i>Rp</i><input type="number" id="hdp-stake" value="100000" min="1000" step="1000" oninput="R('hdp')"></div></div>
-   <div class="panel"><label class="lbl">Odd (Decimal)</label><div class="inp"><i>×</i><input type="number" id="hdp-odd" value="1.90" step="0.01" min="1.01" oninput="R('hdp')"></div></div></div>
-   <div class="row-2 eq rv"><div class="panel"><label class="lbl">Sisi</label><select id="hdp-side" onchange="R('hdp')"><option value="home">Home</option><option value="away">Away</option></select></div>
-   <div class="panel"><label class="lbl">Line HDP (bertanda spt slip)</label><input type="number" id="hdp-line" value="-0.5" step="0.25" oninput="R('hdp')"></div></div>
-   <div class="panel rv" style="margin-bottom:14px"><div class="row-2 eq" style="margin:0">
-     <div><label class="lbl">Skor Akhir (H - A)</label><div class="rowx"><input id="hdp-sh" type="number" min="0" value="2" oninput="R('hdp')"><span class="sep">-</span><input id="hdp-sa" type="number" min="0" value="1" oninput="R('hdp')"></div></div>
-     <div><label class="lbl">Mode Hasil</label><select id="hdp-mode" onchange="R('hdp')"><option value="auto">Otomatis dari skor</option><option value="win">Menang Penuh</option><option value="win-half">Menang 1/2</option><option value="push">Push</option><option value="lose-half">Kalah 1/2</option><option value="lose">Kalah Penuh</option></select></div></div></div>
-   <div id="hdp-slip"></div>
-   <div class="board rv"><div class="stat s-az"><i class="fas fa-percent bg"></i><div class="k">Odd Efektif</div><div class="v" id="hdp-v-eff">-</div></div>
-   <div class="stat s-tl"><i class="fas fa-sack-dollar bg"></i><div class="k">Total Hasil</div><div class="v" id="hdp-v-ret">-</div></div>
-   <div class="stat s-jd"><i class="fas fa-wallet bg"></i><div class="k">Profit / Rugi</div><div class="v" id="hdp-v-prof">-</div></div></div>`,calc:()=>CALC.hdp()},
- {id:'cs',n:'CORRECT SCORE',ic:'fa-bullseye',shell:()=>'<div class="sec-head rv"><span class="no">03</span><h2>Correct <em>Score</em></h2><span class="tag">Tebak Skor</span></div>'+singleShell('cs',`<div class="row-2 eq rv">
-   <div class="panel"><label class="lbl">Skor Tebakan</label><div class="rowx"><input id="cs-h" type="number" min="0" value="2" oninput="R('cs')"><span class="sep">-</span><input id="cs-a" type="number" min="0" value="1" oninput="R('cs')"></div></div>
-   <div class="panel"><label class="lbl">Periode</label><select id="cs-period" onchange="R('cs')"><option>Full Time</option><option>First Half</option><option>Second Half</option></select></div></div>`),
-   calc:()=>singleCalc('cs',{mk:'Correct Score '+num('cs-h')+'-'+num('cs-a'),sub:txt('cs-period'),steps:()=>[{h:'KONTEKS',l:['Skor wajib persis '+num('cs-h')+'-'+num('cs-a')+' · '+txt('cs-period')]}]})},
- {id:'dc',n:'DOUBLE CHANCE',ic:'fa-shield-halved',shell:()=>'<div class="sec-head rv"><span class="no">04</span><h2>Double <em>Chance</em></h2><span class="tag">Kesempatan Ganda</span></div>'+singleShell('dc',`<div class="row-2 eq rv">
-   <div class="panel"><label class="lbl">Kombinasi</label><select id="dc-pick" onchange="R('dc')"><option>1X — Home/Draw</option><option>X2 — Draw/Away</option><option>12 — Home/Away</option></select></div>
-   <div class="panel"><label class="lbl">Periode</label><select id="dc-period" onchange="R('dc')"><option>Full Time</option><option>First Half</option><option>Second Half</option></select></div></div>`),
-   calc:()=>singleCalc('dc',{mk:'Double Chance · '+txt('dc-pick'),sub:txt('dc-period')})},
- {id:'fts',n:'FIRST START',ic:'fa-flag',shell:()=>'<div class="sec-head rv"><span class="no">05</span><h2>First <em>To Start</em></h2><span class="tag">Kick‑off</span></div>'+singleShell('fts',`<div class="panel rv" style="margin-bottom:14px"><label class="lbl">Tim Kick‑off</label><select id="fts-pick" onchange="R('fts')"><option>Home</option><option>Away</option></select></div>`),
-   calc:()=>singleCalc('fts',{mk:'First To Start · '+txt('fts-pick'),sub:'kick‑off'})},
- {id:'htft',n:'HT / FT',ic:'fa-hourglass-half',shell:()=>'<div class="sec-head rv"><span class="no">06</span><h2>Half Time <em>/ Full Time</em></h2><span class="tag">9 Kombinasi</span></div>'+singleShell('htft',`<div class="row-2 eq rv">
-   <div class="panel"><label class="lbl">Hasil HT</label><select id="htft-ht" onchange="R('htft')"><option>1 — Home</option><option>X — Draw</option><option>2 — Away</option></select></div>
-   <div class="panel"><label class="lbl">Hasil FT</label><select id="htft-ft" onchange="R('htft')"><option>1 — Home</option><option>X — Draw</option><option>2 — Away</option></select></div></div>`),
-   calc:()=>singleCalc('htft',{mk:'HT/FT · '+txt('htft-ht')+'/'+txt('htft-ft'),sub:'kedua hasil wajib tepat'})},
- {id:'parlay',n:'MIX PARLAY',ic:'fa-layer-group',shell:()=>`<div class="sec-head rv"><span class="no">07</span><h2>Mix <em>Parlay</em></h2><span class="tag">Berganda</span></div>
-   <div class="panel rv" style="margin-bottom:14px"><label class="lbl">Modal Taruhan</label><div class="inp"><i>Rp</i><input type="number" id="parlay-stake" value="100000" min="1000" step="1000" oninput="R('parlay')"></div></div>
-   <div class="legs" id="parlay-legs"></div><button class="addbtn rv" onclick="addLeg('parlay',event)"><i class="fas fa-plus"></i> Tambah Tim</button>
-   <div id="parlay-slip" style="margin-top:14px"></div>
-   <div class="board rv"><div class="stat s-az"><i class="fas fa-percent bg"></i><div class="k">Total Odds</div><div class="v" id="parlay-v-odd">-</div></div>
-   <div class="stat s-tl"><i class="fas fa-sack-dollar bg"></i><div class="k">Total Hasil</div><div class="v" id="parlay-v-ret">-</div></div>
-   <div class="stat s-jd"><i class="fas fa-wallet bg"></i><div class="k">Profit / Rugi</div><div class="v" id="parlay-v-prof">-</div></div></div>`,calc:()=>CALC.parlay()},
- {id:'bb',n:'BET BUILDER',ic:'fa-screwdriver-wrench',shell:()=>`<div class="sec-head rv"><span class="no">08</span><h2>Bet <em>Builder</em></h2><span class="tag">1 Pertandingan</span></div>
-   <div class="panel rv" style="margin-bottom:14px"><label class="lbl">Modal Taruhan</label><div class="inp"><i>Rp</i><input type="number" id="bb-stake" value="100000" min="1000" step="1000" oninput="R('bb')"></div></div>
-   <div class="legs" id="bb-legs"></div><button class="addbtn rv" onclick="addLeg('bb',event)"><i class="fas fa-plus"></i> Tambah Leg</button>
-   <div id="bb-slip" style="margin-top:14px"></div>
-   <div class="board rv"><div class="stat s-az"><i class="fas fa-percent bg"></i><div class="k">Total Odds</div><div class="v" id="bb-v-odd">-</div></div>
-   <div class="stat s-tl"><i class="fas fa-sack-dollar bg"></i><div class="k">Total Hasil</div><div class="v" id="bb-v-ret">-</div></div>
-   <div class="stat s-jd"><i class="fas fa-wallet bg"></i><div class="k">Profit / Rugi</div><div class="v" id="bb-v-prof">-</div></div></div>`,calc:()=>CALC.bb()},
- {id:'ml',n:'MONEY LINE',ic:'fa-dollar-sign',shell:()=>`<div class="sec-head rv"><span class="no">09</span><h2>Money <em>Line</em></h2><span class="tag">Head to Head</span></div>
-   <div class="row-2 rv"><div class="panel"><label class="lbl">Nominal (kotak)</label><div class="inp"><i>Rp</i><input type="number" id="ml-stake" value="100000" min="1000" step="1000" oninput="R('ml')"></div></div>
-   <div class="panel"><label class="lbl">American Odds</label><input type="text" id="ml-amer" value="-150" oninput="R('ml')"></div></div>
-   <div class="panel rv" style="margin-bottom:14px"><label class="lbl">Hasil</label><select id="ml-result" onchange="R('ml')"><option value="win">Menang</option><option value="lose">Kalah</option></select></div>
-   <div id="ml-slip"></div>
-   <div class="board q4 rv"><div class="stat s-az"><div class="k">Decimal</div><div class="v" id="ml-v-dec">-</div></div>
-   <div class="stat s-lv"><div class="k">To‑Win</div><div class="v" id="ml-v-towin">-</div></div>
-   <div class="stat s-tl"><div class="k">Return</div><div class="v" id="ml-v-ret">-</div></div>
-   <div class="stat s-jd"><div class="k">Profit/Rugi</div><div class="v" id="ml-v-prof">-</div></div></div>`,calc:()=>CALC.ml()},
- {id:'ng',n:'NEXT GOAL',ic:'fa-arrow-right-to-bracket',shell:()=>'<div class="sec-head rv"><span class="no">10</span><h2>Next <em>Goal</em></h2><span class="tag">Live</span></div>'+singleShell('ng',`<div class="panel rv" style="margin-bottom:14px"><label class="lbl">Pilihan</label><select id="ng-pick" onchange="R('ng')"><option>Home — Next Goal</option><option>Away — Next Goal</option><option>No More Goals</option></select></div>`),
-   calc:()=>singleCalc('ng',{mk:'Next Goal · '+txt('ng-pick'),sub:'live odds terkunci'})},
- {id:'oe',n:'ODD / EVEN',ic:'fa-shuffle',shell:()=>`<div class="sec-head rv"><span class="no">11</span><h2>Odd <em>/ Even</em></h2><span class="tag">Ganjil / Genap</span></div>
-   <div class="row-2 rv"><div class="panel"><label class="lbl">Nominal (kotak)</label><div class="inp"><i>Rp</i><input type="number" id="oe-stake" value="100000" min="1000" step="1000" oninput="R('oe')"></div></div>
-   <div class="panel"><label class="lbl">Odd (Decimal)</label><div class="inp"><i>×</i><input type="number" id="oe-odd" value="1.95" step="0.01" min="1.01" oninput="R('oe')"></div></div></div>
-   <div class="row-2 eq rv"><div class="panel"><label class="lbl">Pilihan</label><select id="oe-choice" onchange="R('oe')"><option value="odd">ODD (Ganjil)</option><option value="even">EVEN (Genap)</option></select></div>
-   <div class="panel"><label class="lbl">Total Gol</label><input type="number" id="oe-goals" value="3" min="0" oninput="R('oe')"></div></div>
-   <div class="panel rv" style="margin-bottom:14px"><label class="lbl">Periode</label><select id="oe-period" onchange="R('oe')"><option>Full Time</option><option>First Half</option></select></div>
-   <div id="oe-slip"></div>
-   <div class="board rv"><div class="stat s-az"><i class="fas fa-percent bg"></i><div class="k">Odd</div><div class="v" id="oe-v-odd">-</div></div>
-   <div class="stat s-tl"><i class="fas fa-sack-dollar bg"></i><div class="k">Total Hasil</div><div class="v" id="oe-v-ret">-</div></div>
-   <div class="stat s-jd"><i class="fas fa-wallet bg"></i><div class="k">Profit / Rugi</div><div class="v" id="oe-v-prof">-</div></div></div>`,calc:()=>CALC.oe()},
- {id:'or',n:'OUTRIGHT',ic:'fa-trophy',shell:()=>`<div class="sec-head rv"><span class="no">12</span><h2>Out<em>right</em></h2><span class="tag">Juara / Top Scorer</span></div>
-   <div class="row-2 rv"><div class="panel"><label class="lbl">Nominal (kotak)</label><div class="inp"><i>Rp</i><input type="number" id="or-stake" value="100000" min="1000" step="1000" oninput="R('or')"></div></div>
-   <div class="panel"><label class="lbl">Odd (Decimal)</label><div class="inp"><i>×</i><input type="number" id="or-odd" value="6.50" step="0.01" min="1.01" oninput="R('or')"></div></div></div>
-   <div class="row-2 eq rv"><div class="panel"><label class="lbl">Pasar</label><select id="or-pick" onchange="R('or')"><option>Juara Liga/Turnamen</option><option>Top Scorer</option><option>Pemenang H2H</option></select></div>
-   <div class="panel"><label class="lbl">Dead Heat (pemenang seri)</label><input type="number" id="or-dh" value="1" min="1" oninput="R('or')"></div></div>
-   <div class="panel rv" style="margin-bottom:14px"><label class="lbl">Hasil</label><select id="or-result" onchange="R('or')"><option value="win">Juara / Menang</option><option value="lose">Tidak</option></select></div>
-   <div id="or-slip"></div>
-   <div class="board rv"><div class="stat s-az"><i class="fas fa-percent bg"></i><div class="k">Odd</div><div class="v" id="or-v-odd">-</div></div>
-   <div class="stat s-tl"><i class="fas fa-sack-dollar bg"></i><div class="k">Total Hasil</div><div class="v" id="or-v-ret">-</div></div>
-   <div class="stat s-jd"><i class="fas fa-wallet bg"></i><div class="k">Profit / Rugi</div><div class="v" id="or-v-prof">-</div></div></div>`,calc:()=>CALC.or()},
- {id:'ou',n:'OVER / UNDER',ic:'fa-chart-line',shell:()=>`<div class="sec-head rv"><span class="no">13</span><h2>Over <em>/ Under</em></h2><span class="tag">Atas / Bawah</span></div>
-   <div class="row-2 rv"><div class="panel"><label class="lbl">Nominal (kotak)</label><div class="inp"><i>Rp</i><input type="number" id="ou-stake" value="100000" min="1000" step="1000" oninput="R('ou')"></div></div>
-   <div class="panel"><label class="lbl">Odd (Decimal)</label><div class="inp"><i>×</i><input type="number" id="ou-odd" value="1.95" step="0.01" min="1.01" oninput="R('ou')"></div></div></div>
-   <div class="row-2 eq rv"><div class="panel"><label class="lbl">Pilihan</label><select id="ou-choice" onchange="R('ou')"><option value="over">OVER</option><option value="under">UNDER</option></select></div>
-   <div class="panel"><label class="lbl">Line</label><select id="ou-line" onchange="R('ou')">${OU_OPTS}</select></div></div>
-   <div class="row-2 eq rv" style="margin-bottom:14px"><div class="panel"><label class="lbl">Total Gol</label><input type="number" id="ou-goals" value="3" min="0" oninput="R('ou')"></div>
-   <div class="panel"><label class="lbl">Periode</label><select id="ou-period" onchange="R('ou')"><option>Full Time</option><option>First Half</option><option>Second Half</option></select></div></div>
-   <div id="ou-slip"></div>
-   <div class="board rv"><div class="stat s-az"><i class="fas fa-percent bg"></i><div class="k">Odd Efektif</div><div class="v" id="ou-v-eff">-</div></div>
-   <div class="stat s-tl"><i class="fas fa-sack-dollar bg"></i><div class="k">Total Hasil</div><div class="v" id="ou-v-ret">-</div></div>
-   <div class="stat s-jd"><i class="fas fa-wallet bg"></i><div class="k">Profit / Rugi</div><div class="v" id="ou-v-prof">-</div></div></div>`,calc:()=>CALC.ou()},
- {id:'pd',n:'PERIOD',ic:'fa-clock',shell:()=>'<div class="sec-head rv"><span class="no">14</span><h2>Period <em>Betting</em></h2><span class="tag">Berperiode</span></div>'+singleShell('pd',`<div class="panel rv" style="margin-bottom:14px"><label class="lbl">Rentang Waktu</label><select id="pd-pick" onchange="R('pd')"><option>0–15 menit</option><option>16–30 menit</option><option>31–45 menit</option><option>46–60 menit</option><option>61–75 menit</option><option>76–90 menit</option></select></div>`),
-   calc:()=>singleCalc('pd',{mk:'Period · '+txt('pd-pick'),sub:'hanya event di rentang ini'})},
- {id:'mines',n:'MINES',ic:'fa-bomb',shell:()=>`<div class="sec-head rv"><span class="no">15</span><h2>Mines <em>Engine</em></h2><span class="tag">Provably‑fair</span></div>
-   <div class="row-2 rv"><div class="panel"><label class="lbl">Modal Taruhan</label><div class="inp"><i>Rp</i><input type="number" id="mn-stake" value="100000" min="1000" step="1000" oninput="R('mines')"></div></div>
-   <div class="panel"><label class="lbl">House Edge (%)</label><div class="range"><input type="range" id="mn-he" min="0" max="5" step="0.1" value="1" oninput="popVal('mn-he-v');R('mines')"><span class="val" id="mn-he-v">1.0%</span></div></div></div>
-   <div class="row-2 eq rv"><div class="panel"><label class="lbl">Jumlah Mines (1–24)</label><div class="range"><input type="range" id="mn-mines" min="1" max="24" value="3" oninput="popVal('mn-mines-v');R('mines')"><span class="val" id="mn-mines-v">3</span></div></div>
-   <div class="panel"><label class="lbl">Tile Terbuka (K)</label><div class="range"><input type="range" id="mn-k" min="0" max="24" value="3" oninput="popVal('mn-k-v');R('mines')"><span class="val" id="mn-k-v">3</span></div></div></div>
-   <div class="panel rv" style="margin-bottom:14px"><label class="lbl">Grid 5×5 — klik untuk buka/tutup tile</label><div class="mgrid" id="mn-grid"></div>
-   <div class="note" style="text-align:center">◆ tile aman terbuka · 💣 disembunyikan · jumlah terbuka = K</div></div>
-   <div id="mn-slip"></div>
-   <div class="board q4 rv"><div class="stat s-tl"><div class="k">Multiplier</div><div class="v" id="mn-v-mult">-</div></div>
-   <div class="stat s-gd"><div class="k">Total Hasil</div><div class="v" id="mn-v-ret">-</div></div>
-   <div class="stat s-jd"><div class="k">Profit</div><div class="v" id="mn-v-prof">-</div></div>
-   <div class="stat s-lv"><div class="k">P(selamat)</div><div class="v" id="mn-v-prob">-</div></div></div>
-   <div class="board q4 rv"><div class="stat s-az"><div class="k">Fair Mult</div><div class="v" id="mn-v-fair">-</div></div>
-   <div class="stat s-az"><div class="k">P(tile aman)</div><div class="v" id="mn-v-next">-</div></div>
-   <div class="stat s-gd"><div class="k">EV vs cash‑out</div><div class="v" id="mn-v-ev">-</div></div>
-   <div class="stat s-jd"><div class="k">Saran</div><div class="v" id="mn-v-rec" style="font-size:14px">-</div></div></div>
-   <div class="panel rv"><label class="lbl">Tabel Multiplier per Tile</label><div style="overflow-x:auto"><table class="mtable" id="mn-table"></table></div></div>
-   <div class="panel rv" style="margin-top:14px"><label class="lbl">Bukti: Mines vs Sports — siapa potong lebih besar?</label><div style="overflow-x:auto"><table class="mcomp" id="mn-comp"></table></div>
-   <div class="note">Baris hijau = Mines (margin ≈ house edge 1%). Baris biasa = sports (margin 5–10%). <b>Mines membayar LEBIH DEKAT ke peluang wajar</b>, tapi tetap tidak pernah di atasnya.</div></div>`,calc:()=>CALC.mines()},
- {id:'conv',n:'KONVERTER',ic:'fa-right-left',shell:()=>`<div class="sec-head rv"><span class="no">16</span><h2>Konverter <em>Odds</em></h2><span class="tag">+ Replika Slip</span></div>
-   <div class="row-2 rv"><div class="panel"><label class="lbl">Nilai Odds</label><input type="text" id="cv-val" value="-1.33" oninput="R('conv')"></div>
-   <div class="panel"><label class="lbl">Format Input</label><select id="cv-fmt" onchange="R('conv')"><option value="indonesian">Indonesian</option><option value="decimal">Decimal</option><option value="american">American</option><option value="malay">Malay</option><option value="hongkong">Hong Kong</option><option value="fractional">Fractional</option></select></div></div>
-   <div class="panel rv" style="margin-bottom:14px"><div class="cvout" id="cv-out2"></div>
-   <div class="note">Implied prob di atas belum memotong margin. Σ implied semua opsi di satu pasar biasanya > 100%.</div></div>
-   <div class="panel rv" style="margin-bottom:14px"><label class="lbl">Decoder Slip 2‑Line (konvensi to‑win, spt slip Anda)</label>
-   <div class="row-2 eq" style="margin:6px 0 0"><div><label class="lbl" style="margin-bottom:5px">Line 1 · odds / format / nominal</label><div class="rowx"><input id="cv-o1" value="-1.33" oninput="R('conv')"><select id="cv-f1" onchange="R('conv')" style="max-width:110px"><option value="indonesian">Indo</option><option value="decimal">Dec</option><option value="american">Am</option></select><input id="cv-n1" type="number" value="10000" oninput="R('conv')"></div></div>
-   <div><label class="lbl" style="margin-bottom:5px">Line 2 · odds / format / nominal</label><div class="rowx"><input id="cv-o2" value="-1.42" oninput="R('conv')"><select id="cv-f2" onchange="R('conv')" style="max-width:110px"><option value="indonesian">Indo</option><option value="decimal">Dec</option><option value="american">Am</option></select><input id="cv-n2" type="number" value="10000" oninput="R('conv')"></div></div></div>
-   <button class="preset" onclick="loadPreset()"><i class="fas fa-wand-magic-sparkles"></i> Muat contoh slip (−1.33 & −1.42 @10.000)</button>
-   <div id="cv-dec-slip" style="margin-top:12px"></div>
-   <div class="callout" id="cv-decode"></div></div>`,calc:()=>CALC.conv()}
-];
+/* ODDS MINES */
+function mnRow(o,t){
+  const div=document.createElement('div');div.className='mn-row';
+  div.innerHTML=`
+  <div class="field"><label>Odds (minus)</label><input class="m-odds" value="${o}"></div>
+  <div class="field"><label>Target menang (Rp)</label><input class="m-target" value="${t}"></div>
+  <div class="m-res"><span class="m-stake mono">—</span><span class="m-info"></span></div>
+  <button class="l-x" type="button" title="hapus">✕</button>`;
+  div.querySelector('.l-x').onclick=()=>{div.remove();$('mnRows').dispatchEvent(new Event('input',{bubbles:true}));};
+  return div;
+}
+F.mines=()=>{
+  const rows=[...document.querySelectorAll('#mnRows .mn-row')];
+  let tot=0,totT=0,items=[];
+  rows.forEach(r=>{
+    let o=num2(r.querySelector('.m-odds').value);const t=num2(r.querySelector('.m-target').value);
+    if(o>0)o=-o;
+    const stake=Math.abs(o)*t;
+    r.querySelector('.m-stake').textContent='Bayar: '+rp(stake);
+    r.querySelector('.m-info').textContent=`|${fmt(Math.abs(o))}| × ${fmt(t)} = ${fmt(stake)} · desimal ${dec(o).toFixed(4)} · peluang ${pct(probOf(o))}`;
+    tot+=stake;totT+=t;items.push({o,t,stake});
+  });
+  const sc=items.map((it,i)=>{
+    const net=(it.stake+it.t)-tot;
+    return `<div class="r-row"><span>Hanya taruhan #${i+1} menang (odds ${fmt(it.o)})</span><b class="mono ${net>=0?'g':'r'}">${net>=0?'+':'−'}${rp(net)}</b></div>`;
+  }).join('');
+  $('mnOut').innerHTML=`
+  <div class="r-row"><span>TOTAL HARUS DIBAYAR (${items.length} taruhan)</span><b class="mono y" style="font-size:18px">${rp(tot)}</b></div>
+  <div class="r-row"><span>Semua menang → total diterima</span><b class="mono g">${rp(tot+totT)}</b></div>
+  <div class="r-row"><span>Semua menang → untung bersih</span><b class="mono g">+${rp(totT)}</b></div>
+  ${sc}
+  <div class="r-row"><span>Semua kalah → rugi</span><b class="mono r">−${rp(tot)}</b></div>
+  <div class="r-note"><b>RUMUS: BAYAR = |odds| × TARGET MENANG.</b> Odds minus berarti Anda membayar lebih besar daripada target kemenangan — itulah harga memegang unggulan (peluang &gt; 50%).</div>`;
+  flash($('mnOut'));
+};
 
-/* legs */
-let LSEQ=0;
-function addLeg(type,ev){LSEQ++;const n=LSEQ,box=$(type+'-legs'),el=document.createElement('div');el.className='leg';el.dataset.n=n;
- if(ev)ripple(ev,ev.currentTarget);
- if(type==='parlay')el.innerHTML='<div class="top"><b><i class="fas fa-futbol"></i> TIM #'+(box.children.length+1)+'</b><button class="del" onclick="this.closest(\'.leg\').remove();R(\'parlay\')"><i class="fas fa-trash"></i></button></div>'+
-   '<div class="lgrid"><div><label>Odd</label><input class="pl-odd" type="number" step="0.01" min="1.01" value="1.90" oninput="R(\'parlay\')"></div>'+
-   '<div style="grid-column:1/-1"><label>Hasil</label><div class="pseg">'+
-     '<input type="radio" name="pl-'+n+'" id="pl'+n+'a" value="full" checked onchange="R(\'parlay\')"><label for="pl'+n+'a" class="w">MENANG</label>'+
-     '<input type="radio" name="pl-'+n+'" id="pl'+n+'b" value="half" onchange="R(\'parlay\')"><label for="pl'+n+'b" class="h">MNG ½</label>'+
-     '<input type="radio" name="pl-'+n+'" id="pl'+n+'c" value="lose-half" onchange="R(\'parlay\')"><label for="pl'+n+'c" class="l">KLH ½</label>'+
-     '<input type="radio" name="pl-'+n+'" id="pl'+n+'d" value="void" onchange="R(\'parlay\')"><label for="pl'+n+'d" class="v">VOID</label>'+
-     '<input type="radio" name="pl-'+n+'" id="pl'+n+'e" value="lose" onchange="R(\'parlay\')"><label for="pl'+n+'e" class="l">KALAH</label></div></div></div>';
- else el.innerHTML='<div class="top"><b><i class="fas fa-puzzle-piece"></i> LEG #'+(box.children.length+1)+'</b><button class="del" onclick="this.closest(\'.leg\').remove();R(\'bb\')"><i class="fas fa-trash"></i></button></div>'+
-   '<div class="lgrid"><div><label>Odd</label><input class="bb-odd" type="number" step="0.01" min="1.01" value="1.80" oninput="R(\'bb\')"></div>'+
-   '<div><label>Hasil</label><select class="bb-res" onchange="R(\'bb\')"><option value="win">Menang</option><option value="lose">Kalah</option></select></div></div>';
- box.appendChild(el);R(type)}
-function loadPreset(){$('cv-o1').value='-1.33';$('cv-f1').value='indonesian';$('cv-n1').value=10000;$('cv-o2').value='-1.42';$('cv-f2').value='indonesian';$('cv-n2').value=10000;R('conv')}
+/* 01 1X2 */
+F.p1x2=()=>{
+  const per=txt('x2period')||'FT';
+  const lbl={FH:'Babak Pertama (menit 0–45+)',SH:'Babak Kedua (menit 46–90+, skor mulai 0–0)',FT:'Full Time 90 menit + injury time'}[per];
+  $('x2out').innerHTML=threeWayHTML(num('x2o1'),num('x2ox'),num('x2o2'),num('x2s'),txt('x2pick')||'1',`<br>Pasar: <b class="y">${lbl}</b>.`);
+  flash($('x2out'));
+};
+/* 02 ASIAN HANDICAP */
+function scenAH(L,o,s){
+  const md={3:'Menang selisih 3+',2:'Menang selisih 2',1:'Menang selisih 1',0:'Seri','-1':'Kalah selisih 1','-2':'Kalah selisih 2','-3':'Kalah selisih 3+'};
+  let h='<table><thead><tr><th>Hasil tim Anda</th><th>Hasil taruhan</th><th>Untung / Rugi</th></tr></thead><tbody>';
+  [3,2,1,0,-1,-2,-3].forEach(m=>{
+    const f=ahFactor(L,m),p=payoutFromFactor(o,s,f);
+    h+=`<tr><td>${md[m]}</td><td>${badgeF(f)}</td><td class="mono ${p.profit>0?'g':p.profit<0?'r':''}">${p.profit>0?'+':''}${rp(p.profit)}</td></tr>`;
+  });
+  return h+'</tbody></table>';
+}
+F.pah=()=>{
+  const L=num('ahL'),o=num('ahO'),s=num('ahS'),my=num('ahMy'),op=num('ahOp');
+  const m=my-op,f=ahFactor(L,m),pay=payoutFromFactor(o,s,f);
+  const expl=f===1?'taruhan <b class="g">MENANG PENUH</b>':f===.5?'setengah taruhan menang, setengah dikembalikan':f===0?'margin pas di line → <b class="y">PUSH</b>, modal kembali utuh':f===-.5?'setengah taruhan kalah, setengah dikembalikan':'taruhan <b class="r">KALAH PENUH</b>';
+  $('ahOut').innerHTML=`
+  <div class="r-row"><span>Line handicap</span><b class="mono y">${L>0?'+':''}${fmt(L)}</b></div>
+  <div class="r-row"><span>Skor ${fmt(my)} − ${fmt(op)} → margin (+line)</span><b class="mono">${(m+L)>0?'+':''}${fmt(m+L)}</b></div>
+  <div class="r-row"><span>Odds ${sgn(o)} → desimal</span><b class="mono">${dec(o).toFixed(4)}</b></div>
+  <div class="r-row"><span>Taruhan</span><b class="mono">${rp(s)}</b></div>
+  <div class="r-row"><span>Hasil</span><b>${badgeF(f)}</b></div>
+  <div class="r-big ${pay.profit>0?'g':pay.profit<0?'r':'y'}">${pay.profit>0?'+':pay.profit<0?'−':''}${rp(pay.profit)}</div>
+  <div class="r-row"><span>Uang kembali</span><b class="mono">${rp(pay.ret)}</b></div>
+  <div class="r-note">${expl}. Perhitungan memakai odds ${sgn(o)} (${o<0?'minus — Anda membayar lebih besar sebagai pemegang voor':'plus — Anda menerima voor'}).`;
+  $('ahOut').innerHTML+='</div>';
+  document.querySelectorAll('.ahline').forEach(e=>e.textContent=(L>0?'+':'')+fmt(L));
+  $('ahScen').innerHTML=scenAH(L,o,s);
+  flash($('ahOut'));
+};
+/* 03 CORRECT SCORE */
+F.pcs=()=>{
+  const o=num('csO'),s=num('csS'),sc=txt('csScore')||'—',per=txt('csperiod')||'FT';
+  $('csOut').innerHTML=baseOut(o,s,`Skor tebakan: <b class="y">${sc}</b> (${per}). Peluang implisit skor ini tepat: <b class="y">${pct(probOf(o))}</b> — makin langka skornya, makin besar odds plus-nya.`);
+  flash($('csOut'));
+};
+/* 04 DOUBLE CHANCE */
+F.pdc=()=>{
+  const o1=num('dc1'),ox=num('dcx'),o2=num('dc2'),s=num('dcS'),pick=txt('dcpick')||'1X';
+  if(!o1||!ox||!o2){$('dcOut').innerHTML='<div class="r-note">Isi ketiga odds 1X2.</div>';return;}
+  const p1=probOf(o1),px=probOf(ox),p2=probOf(o2);
+  const pDC={'1X':p1+px,'12':p1+p2,'X2':px+p2}[pick];
+  const fairD=1/pDC,fairIndo=fairD>=2?fairD-1:-(1/(fairD-1));
+  const off=num('dco'),useO=off!==0?off:fairIndo;
+  const d=dec(useO),p=profitWin(useO,s);
+  $('dcOut').innerHTML=`
+  <div class="r-row"><span>Kombinasi</span><b class="mono y">${pick}</b></div>
+  <div class="r-row"><span>Peluang gabungan</span><b class="mono">${pct(pDC)}</b></div>
+  <div class="prob"><i style="width:${(pDC*100).toFixed(1)}%"></i></div>
+  <div class="r-row"><span>Desimal wajar</span><b class="mono">${fairD.toFixed(4)}</b></div>
+  <div class="r-row"><span>Odds Indo wajar</span><b class="mono y">${fairIndo>0?'+':''}${fairIndo.toFixed(2).replace('.',',')}</b></div>
+  <div class="r-row"><span>Odds dipakai ${off!==0?'(ditawarkan)':'(wajar)'}</span><b class="mono">${sgn(useO)}</b></div>
+  <div class="r-row"><span>Taruhan</span><b class="mono">${rp(s)}</b></div>
+  <div class="r-big g">+${rp(p)}</div>
+  <div class="r-row"><span>Diterima jika menang</span><b class="mono">${rp(s+p)}</b></div>
+  <div class="r-note">Peluang ${pick} = jumlah peluang implisit dua hasil yang dicakup. Odds pasar biasanya lebih buruk dari odds wajar di atas (selisih = margin).</div>`;
+  flash($('dcOut'));
+};
+/* 05 FIRST TO START */
+F.pfts=()=>{
+  $('ftOut').innerHTML=twoWayHTML(num('fta'),num('ftb'),num('fts'),txt('ftpick')||'A','<br>Pasar hampir 50/50 — keuntungan bandar datang dari odds minus di kedua sisi.');
+  flash($('ftOut'));
+};
+/* 06 HT/FT */
+F.phtft=()=>{
+  const ht=$('hfHT').value,ft=$('hfFT').value,o=num('hfO'),s=num('hfS');
+  $('hfOut').innerHTML=baseOut(o,s,`Kombinasi: <b class="y">${ht}/${ft}</b> — saat turun minum harus <b>${ht}</b> DAN akhir 90 menit harus <b>${ft}</b>. Salah satu meleset = taruhan kalah penuh.`);
+  flash($('hfOut'));
+};
+/* 07 & 08 PARLAY / BUILDER */
+let legSeq=0;
+function legRow(d){
+  const div=document.createElement('div');div.className='leg';
+  div.innerHTML=`
+  <div class="field"><label>Pilihan / pertandingan</label><input class="l-name" value="${d.n}"></div>
+  <div class="field"><label>Odds (indo)</label><input class="l-odds" value="${d.o}"></div>
+  <div class="field"><label>Status hasil</label><select class="l-st">
+    <option value="win">Menang penuh</option><option value="halfwin">Menang ½</option>
+    <option value="push">Seri / push</option><option value="halflose">Kalah ½</option>
+    <option value="lose">Kalah</option></select></div>
+  <div class="field"><label>Faktor pengali</label><div class="l-dec mono">—</div></div>
+  <button class="l-x" type="button" title="hapus leg">✕</button>`;
+  div.querySelector('.l-st').value=d.st;
+  div.querySelector('.l-x').onclick=()=>{const box=div.parentElement;div.remove();box.closest('.calc').dispatchEvent(new Event('input',{bubbles:true}));};
+  return div;
+}
+function parlayCalc(legsId,stakeId,outId,mode){
+  const rows=[...document.querySelectorAll('#'+legsId+' .leg')];
+  let total=1,steps=[],dead=false;
+  rows.forEach(r=>{
+    const o=num2(r.querySelector('.l-odds').value),st=r.querySelector('.l-st').value,d=dec(o),f=legFactor(d,st);
+    if(f===0)dead=true;
+    total*=f;
+    r.querySelector('.l-dec').textContent=f===0?'0 ✕ gugur':f.toFixed(4);
+    steps.push(`<span class="mono">${d.toFixed(4)}</span>${st!=='win'?`<span style="color:var(--dim)"> (${stLbl[st]} → ${f.toFixed(4)})</span>`:''}`);
+  });
+  const s=num(stakeId),profit=s*(total-1),ret=s*total;
+  $(outId).innerHTML=`
+  <div class="r-row"><span>Perkalian desimal</span><b style="font-size:11.5px">${steps.join(' × ')||'—'}</b></div>
+  <div class="r-row"><span>Odds total parlay</span><b class="mono y" style="font-size:17px">${dead?'0 — GUGUR':total.toFixed(4)}</b></div>
+  <div class="r-row"><span>Taruhan</span><b class="mono">${rp(s)}</b></div>
+  ${dead?`<div class="r-big r">−${rp(s)}</div><div class="r-row"><span>Ada leg kalah → seluruh parlay gugur</span><b class="mono r">HANGUS</b></div>`
+       :`<div class="r-big g">+${rp(profit)}</div><div class="r-row"><span>Diterima jika semua leg benar</span><b class="mono">${rp(ret)}</b></div>`}
+  <div class="r-note">${mode==='bb'?'Bet builder: semua leg dari laga yang sama; odds di atas adalah hasil kali murni — operator biasanya memberi odds sedikit lebih rendah karena korelasi.':'Parlay: minimal 2 leg, semua harus benar. Push tidak mematikan parlay (faktor ×1), kalah ½ hanya mengalikan ×0,5.'}</div>`;
+  flash($(outId));
+}
+F.pmp=()=>parlayCalc('mpLegs','mpS','mpOut','mp');
+F.pbb=()=>parlayCalc('bbLegs','bbS','bbOut','bb');
+/* 09 MONEY LINE */
+F.pml=()=>{
+  const oa=num('mla'),ob=num('mlb'),pick=txt('mlpick')||'A';
+  const o=pick==='B'?ob:oa;
+  $('mlOut').innerHTML=twoWayHTML(oa,ob,num('mls'),pick,`<br>Break-even win rate pilihan Anda: <b class="y">${pct(probOf(o))}</b> — Anda harus menang lebih sering dari persentase ini agar untung jangka panjang.`);
+  flash($('mlOut'));
+};
+/* 10 NEXT GOAL */
+F.png=()=>{
+  $('ngOut').innerHTML=threeWayHTML(num('ng1'),num('ngx'),num('ng2'),num('ngs'),txt('ngpick')||'1','<br>X di pasar ini = <b>tidak ada gol lagi</b> sampai laga selesai (bukan seri skor akhir).');
+  flash($('ngOut'));
+};
+/* 11 ODD/EVEN */
+F.poe=()=>{
+  const oo=num('oeO'),oe=num('oeE'),pick=txt('oepick')||'GANJIL';
+  const o=pick==='GENAP'?oe:oo,m=probOf(oo)+probOf(oe)-1;
+  $('oeOut').innerHTML=baseOut(o,pick==='GENAP'?num('oeS'):num('oeS'),`Margin: <b class="y">${pct(m)}</b>. Ingat: 0 gol (0-0) dihitung <b>GENAP</b>.`);
+  flash($('oeOut'));
+};
+/* 12 OUTRIGHT */
+F.prt=()=>{
+  const o=num('orO'),s=num('orS'),t=txt('orTeam')||'—';
+  $('orOut').innerHTML=baseOut(o,s,`Tim: <b class="y">${t}</b> · Peluang juara implisit: <b class="y">${pct(probOf(o))}</b>. Outright baru diselesaikan saat juara dipastikan di akhir kompetisi.`);
+  flash($('orOut'));
+};
+/* 13 OVER/UNDER */
+function scenOU(L,o,s){
+  let h='<table><thead><tr><th>Total gol</th><th>OVER '+(L>0?'+':'')+fmt(L)+'</th><th>UNDER '+fmt(L)+'</th></tr></thead><tbody>';
+  for(let g=0;g<=6;g++){
+    h+=`<tr><td class="mono">${g}${g===6?'+':''} gol</td><td>${badgeF(ouFactor(L,g,'O'))}</td><td>${badgeF(ouFactor(L,g,'U'))}</td></tr>`;
+  }
+  return h+'</tbody></table>';
+}
+F.pov=()=>{
+  const L=num('ovL'),side=txt('ovside')||'O',o=num('ovO'),s=num('ovS'),g=num('ovG');
+  const f=ouFactor(L,g,side),pay=payoutFromFactor(o,s,f);
+  const q=Math.abs((L*2)%1)>1e-9;
+  const tipe=q?`line ¼ — setengah taruhan di ${fmt(L-.25)}, setengah di ${fmt(L+.25)}`:(L%1===0?'line bulat — hasil pas = push (modal balik)':'line ½ — hanya menang/kalah penuh');
+  $('ovOut').innerHTML=`
+  <div class="r-row"><span>Line &amp; sisi</span><b class="mono y">${side==='O'?'OVER':'UNDER'} ${fmt(L)}</b></div>
+  <div class="r-row"><span>Jenis line</span><b style="font-size:12px">${tipe}</b></div>
+  <div class="r-row"><span>Total gol: ${fmt(g)}</span><b>${badgeF(f)}</b></div>
+  <div class="r-row"><span>Odds ${sgn(o)} → desimal</span><b class="mono">${dec(o).toFixed(4)}</b></div>
+  <div class="r-row"><span>Taruhan</span><b class="mono">${rp(s)}</b></div>
+  <div class="r-big ${pay.profit>0?'g':pay.profit<0?'r':'y'}">${pay.profit>0?'+':pay.profit<0?'−':''}${rp(pay.profit)}</div>
+  <div class="r-row"><span>Uang kembali</span><b class="mono">${rp(pay.ret)}</b></div>
+  <div class="r-note">Periode: <b>${txt('ovperiod')||'FT'}</b> — hanya gol pada periode itu yang dihitung (SH mulai dari 0–0).</div>`;
+  document.querySelectorAll('.ovline').forEach(e=>e.textContent=fmt(L));
+  $('ovScen').innerHTML=scenOU(L,o,s);
+  flash($('ovOut'));
+};
+/* 14 PERIOD BETTING */
+F.ppb=()=>{
+  const m=$('pbM').value;
+  $('pb1x2box').style.display=m==='1x2'?'flex':'none';
+  $('pboubox').style.display=m==='ou'?'flex':'none';
+  const per=$('pbP').value;
+  if(m==='1x2'){
+    $('pbOut').innerHTML=threeWayHTML(num('pb1'),num('pbx'),num('pb2'),num('pbS'),txt('pbpick')||'1',`<br>Periode: <b class="y">${per}</b> — skor dianggap 0–0 di awal periode; hanya hasil dalam periode ini yang dihitung.`);
+  }else{
+    const L=num('pbL'),side=txt('pbside')||'O',o=num('pbO'),s=num('pbS2'),g=num('pbG');
+    const f=ouFactor(L,g,side),pay=payoutFromFactor(o,s,f);
+    $('pbOut').innerHTML=`
+    <div class="r-row"><span>Periode</span><b class="mono y">${per}</b></div>
+    <div class="r-row"><span>${side==='O'?'OVER':'UNDER'} ${fmt(L)} · gol dalam periode: ${fmt(g)}</span><b>${badgeF(f)}</b></div>
+    <div class="r-row"><span>Taruhan</span><b class="mono">${rp(s)}</b></div>
+    <div class="r-big ${pay.profit>0?'g':pay.profit<0?'r':'y'}">${pay.profit>0?'+':pay.profit<0?'−':''}${rp(pay.profit)}</div>
+    <div class="r-row"><span>Uang kembali</span><b class="mono">${rp(pay.ret)}</b></div>
+    <div class="r-note">Gol di luar periode <b>tidak dihitung</b>. Contoh: skor FT 3-2 tapi babak 2 saja 0-2 → Under 1.5 SH menang.</div>`;
+  }
+  flash($('pbOut'));
+};
 
-/* build */
-const rail=$('rail'),root=$('root'),ind=$('railInd');
-function moveInd(tab){if(!tab)return;ind.style.left=tab.offsetLeft+'px';ind.style.width=tab.offsetWidth+'px'}
-TYPES.forEach((t,i)=>{
- const b=document.createElement('button');b.className='tab'+(i===0?' on':'');b.innerHTML='<i class="fas '+t.ic+'"></i><span>'+t.n+'</span><span class="ix">'+String(i+1).padStart(2,'0')+'</span>';
- b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');moveInd(b);
-  document.querySelectorAll('.sec').forEach(x=>x.classList.remove('on'));$(t.id+'-sec').classList.add('on');R(t.id);observe();window.scrollTo({top:0,behavior:'smooth'})};
- rail.appendChild(b);
- const sec=document.createElement('div');sec.className='sec'+(i===0?' on':'');sec.id=t.id+'-sec';
- sec.innerHTML=t.shell()+
-  '<div class="work rv"><div class="hd"><h3><i class="fas fa-list-check"></i> Rincian Perhitungan Step‑by‑Step</h3>'+
-   '<button class="copy" onclick="copyOut(\''+t.id+'\',this,event)"><i class="fas fa-copy"></i> Salin</button></div><pre class="out" id="'+t.id+'-out">Memuat…</pre></div>'+
-   '<div class="two">'+explainHTML(t.id)+caraHTML(t.id)+'</div>'+
-  (t.id==='mines'?'<div class="block rv" style="margin-top:16px"><h3 class="gd"><i class="fas fa-triangle-exclamation"></i> Apakah Mines membayar LEBIH dari odds biasa?</h3>'+
-   '<div class="desc"><b style="color:var(--mint)">TIDAK.</b> Mines selalu membayar <b>di bawah</b> fair multiplier — selisihnya adalah house edge. Justru sports betting (1X2/parlay) punya margin bandar yang sering LEBIH BESAR (5–10%) dibanding mines (1–4%). Angka multiplier besar (mis. 24×) bukan “kemurahan hati”, melainkan cerminan probabilitas selamat yang sangat kecil.</div>'+
-   '<div class="rules">'+
-     '<div class="rule"><i class="fas fa-angle-right ic"></i><div><b>Mines 3 bom, K=3</b><span>P selamat ≈ 66.96% → Fair 1.493× → dibayar ≈ 1.47× (HE 1%)</span></div></div>'+
-     '<div class="rule"><i class="fas fa-angle-right ic"></i><div><b>Mines 24 bom, K=1</b><span>P selamat 4% → Fair 25.00× → dibayar ≈ 24.75×</span></div></div>'+
-     '<div class="rule"><i class="fas fa-angle-right ic"></i><div><b>Sports 1X2 50%</b><span>Fair 2.00 → sering diberi 1.90 (margin ≈ 5%)</span></div></div>'+
-     '<div class="rule"><i class="fas fa-angle-right ic"></i><div><b>Expected Value</b><span>EV = P×payout − 1 → selalu negatif (rumah selalu unggul jangka panjang)</span></div></div>'+
-   '</div></div>':'');
- root.appendChild(sec);
+/* ═══════════ IKAT SEMUA ═══════════ */
+document.querySelectorAll('[data-calc]').forEach(el=>{
+  const fn=F[el.dataset.calc];if(!fn)return;
+  el.addEventListener('input',fn);fn();
 });
-function R(id){const t=TYPES.find(x=>x.id===id);if(t)t.calc()}
-function copyOut(id,btn,ev){if(ev)ripple(ev,btn);navigator.clipboard.writeText($(id+'-out').innerText).then(()=>{const o=btn.innerHTML;btn.classList.add('ok');btn.innerHTML='<i class="fas fa-check"></i> Tersalin';setTimeout(()=>{btn.classList.remove('ok');btn.innerHTML=o},1500)})}
-
-/* nominal toggle */
-$('nomSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
- $('nomSeg').querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');NOM=b.dataset.m;TYPES.forEach(t=>R(t.id))});
-
-/* ticker */
-(function(){const mk=[['ARS vs CHE','1.85','up'],['MCI vs LIV','2.10','dn'],['RMA vs BAR','2.40','up'],['PSG vs BAY','1.95','dn'],['JUV vs MIL','3.20','up'],['OVER 2.5','1.72','up'],['HDP -0.5','1.90','dn'],['BTTS YES','1.65','up'],['MINES 3💣','1.47','up'],['CS 2-1','7.50','dn'],['1X2 DRAW','3.40','up'],['ODD GOALS','1.98','dn']];
- let h='';for(let r=0;r<2;r++)mk.forEach(m=>{h+='<span class="tk"><b>'+m[0]+'</b><em>'+m[1]+'</em><i class="'+m[2]+'">'+(m[2]==='up'?'▲':'▼')+'</i></span>'});
- $('tickerTrack').innerHTML=h})();
-
-/* clock */
-(function(){function u(){const d=new Date();const p=n=>String(n).padStart(2,'0');$('clock').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())+' WIB'}u();setInterval(u,1000)})();
-
-/* motes */
-(function(){for(let i=0;i<16;i++){const m=document.createElement('div');m.className='mote';
- m.style.left=Math.random()*100+'vw';m.style.top=(100+Math.random()*20)+'vh';
- const dur=14+Math.random()*16;m.style.animationDuration=dur+'s';m.style.animationDelay=(-Math.random()*dur)+'s';
- const sz=2+Math.random()*2.5;m.style.width=m.style.height=sz+'px';m.style.background=Math.random()>.5?'var(--teal)':'var(--gold)';
- document.body.appendChild(m)}})();
-
-/* scroll progress + reveal */
-let io;
-function observe(){if(!io)io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target)}}),{threshold:.07});
- document.querySelectorAll('.sec.on .rv:not(.in)').forEach(el=>io.observe(el))}
-window.addEventListener('scroll',()=>{const h=document.documentElement;const p=h.scrollTop/(h.scrollHeight-h.clientHeight||1);$('prog').style.width=(p*100)+'%'},{passive:true});
-window.addEventListener('resize',()=>{const a=document.querySelector('.tab.on');moveInd(a)});
-
-/* init */
-window.addEventListener('load',()=>{addLeg('parlay');addLeg('parlay');addLeg('parlay');addLeg('bb');addLeg('bb');
- TYPES.forEach(t=>R(t.id));observe();requestAnimationFrame(()=>moveInd(document.querySelector('.tab.on')))});
+/* segmen tombol */
+document.querySelectorAll('.seg').forEach(seg=>{
+  seg.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+    const inp=$(seg.dataset.for);
+    if(inp){inp.value=b.dataset.v;inp.dispatchEvent(new Event('input',{bubbles:true}));}
+  });
+});
+/* nav pasar */
+document.querySelectorAll('.cnav button[data-t]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.cnav button').forEach(x=>x.classList.toggle('active',x===b));
+    document.querySelectorAll('.calc').forEach(p=>p.classList.toggle('active',p.id===b.dataset.t));
+    if(innerWidth<1020)$('calcTop').scrollIntoView({behavior:'smooth'});
+  });
+});
+/* parlay default */
+$('mpLegs').appendChild(legRow({n:'GARUDA FC — Menang (1)',o:'-1.33',st:'win'}));
+$('mpLegs').appendChild(legRow({n:'Laga B — Over 2.5',o:'1.50',st:'win'}));
+$('mpLegs').appendChild(legRow({n:'TIM C — Menang',o:'-1.42',st:'win'}));
+$('mpAdd').onclick=()=>{$('mpLegs').appendChild(legRow({n:'Leg baru',o:'-1.10',st:'win'}));F.pmp();};
+$('bbLegs').appendChild(legRow({n:'Garuda FC menang',o:'-1.33',st:'win'}));
+$('bbLegs').appendChild(legRow({n:'Over 2.5 gol (laga sama)',o:'-1.10',st:'win'}));
+$('bbLegs').appendChild(legRow({n:'Kedua tim mencetak gol — YA',o:'1.20',st:'win'}));
+$('bbAdd').onclick=()=>{$('bbLegs').appendChild(legRow({n:'Leg builder baru',o:'1.50',st:'win'}));F.pbb();};
+F.pmp();F.pbb();
+/* mines default = contoh pengguna */
+$('mnRows').appendChild(mnRow('-1.33','10000'));
+$('mnRows').appendChild(mnRow('-1.42','10000'));
+$('mnAdd').onclick=()=>{$('mnRows').appendChild(mnRow('-1.25','10000'));F.mines();};
+F.mines();
+/* demo header */
+const hdBtns=document.querySelectorAll('.obtn');
+function hd(){
+  const b=document.querySelector('.obtn.on'),o=parseFloat(b.dataset.o),s=num('hdS');
+  const p=profitWin(o,s);
+  $('hdOut').innerHTML=`<span>Pilih <b class="y">${b.dataset.lbl}</b> @ ${sgn(o)} · taruhan ${rp(s)}</span>
+  <span class="mono g">Jika menang: +${rp(p)} → terima ${rp(s+p)}</span>
+  <span class="mono" style="color:var(--dim)">Peluang implisit ${pct(probOf(o))} · desimal ${dec(o).toFixed(4)}</span>`;
+}
+hdBtns.forEach(b=>b.addEventListener('click',()=>{hdBtns.forEach(x=>x.classList.toggle('on',x===b));hd();}));
+$('hdS').addEventListener('input',hd);hd();
+/* jam live */
+const days=['MINGGU','SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU'];
+const mons=['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+setInterval(()=>{const d=new Date();
+  $('clock').textContent=`${days[d.getDay()]}, ${d.getDate()} ${mons[d.getMonth()]} ${d.getFullYear()} · ${d.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',second:'2-digit'})} WIB`;
+},1000);
+/* ticker gandakan agar loop mulus */
+$('tkIn').innerHTML+=$('tkIn').innerHTML;
+/* scroll reveal */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.08});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
 </script>
 </body>
 </html>
