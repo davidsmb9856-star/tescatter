@@ -3,224 +3,266 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Papan Jadwal Shift — Editor Operasional</title>
+<title>Editor Jadwal Shift — Customer Service</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#0f1c30; --ink2:#16263f; --paper:#eef1f5; --card:#fff; --line:#d7dee8; --mut:#5b6b80;
+  --ink:#0f1c30; --ink2:#16263f; --paper:#eef1f5; --card:#ffffff;
+  --line:#d7dee8; --mut:#5b6b80;
   --amber:#ffb424; --amber-d:#8a5a00;
-  --pagi:#ffb424; --pagi-t:#2a1c00; --malam:#24406e; --malam-t:#dce7ff;
-  --off:#c3ccd7; --off-t:#3d4a5c; --cuti:#2f9e6e; --cuti-t:#fff;
+  --pagi:#ffb424; --pagi-t:#2a1c00;
+  --malam:#24406e; --malam-t:#dce7ff;
+  --off:#c3ccd7;  --off-t:#3d4a5c;
+  --cuti:#2f9e6e; --cuti-t:#ffffff;
   --grp-cs:#ffb424; --grp-kks:#6f9fe8; --grp-ks:#43b8a4;
   --mono:'IBM Plex Mono',ui-monospace,monospace;
   --sans:'IBM Plex Sans',system-ui,sans-serif;
   --disp:'Anton',Impact,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{
-  font-family:var(--sans);color:var(--ink);min-height:100vh;
+  font-family:var(--sans); color:var(--ink); min-height:100vh;
   background:
     radial-gradient(1100px 520px at 88% -10%, rgba(255,180,36,.16), transparent 60%),
     radial-gradient(900px 520px at -8% 100%, rgba(36,64,110,.10), transparent 60%),
     linear-gradient(rgba(16,29,46,.045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(16,29,46,.045) 1px, transparent 1px),
     var(--paper);
-  background-size:auto,auto,26px 26px,26px 26px,auto;background-attachment:fixed;
+  background-size:auto,auto,26px 26px,26px 26px,auto;
+  background-attachment:fixed;
 }
-.wrap{max-width:1480px;margin:0 auto;padding:26px 22px 60px}
-button{font-family:inherit}
+.wrap{max-width:1460px;margin:0 auto;padding:26px 22px 60px}
 
-/* ===== MASTHEAD ===== */
+/* ============ MASTHEAD ============ */
 .mast{position:relative;overflow:hidden;background:var(--ink);color:#fff;border:1px solid #223450;
-  border-radius:14px;padding:28px 32px 30px;display:flex;flex-wrap:wrap;gap:26px;
+  border-radius:14px;padding:30px 32px 30px;display:flex;flex-wrap:wrap;gap:26px;
   align-items:flex-end;justify-content:space-between;box-shadow:0 18px 44px -18px rgba(15,28,48,.55)}
 .mast::before{content:"";position:absolute;inset:0;pointer-events:none;
   background:repeating-linear-gradient(-55deg, rgba(255,255,255,.028) 0 2px, transparent 2px 14px)}
-.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--amber);
+.mast::after{content:"SHIFT";position:absolute;right:-10px;bottom:-52px;font-family:var(--disp);
+  font-size:190px;line-height:1;color:rgba(255,255,255,.045);letter-spacing:6px;pointer-events:none}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--amber);
   display:flex;align-items:center;gap:10px;margin-bottom:12px;text-transform:uppercase}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--amber);position:relative;flex:none}
 .dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--amber);
   opacity:.7;animation:pulse 1.8s ease-out infinite}
 @keyframes pulse{0%{transform:scale(.4);opacity:.8}100%{transform:scale(1.5);opacity:0}}
-h1{font-family:var(--disp);font-weight:400;font-size:clamp(2rem,4.4vw,3.4rem);line-height:.95;
-  letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.monthnav{display:flex;align-items:stretch;gap:0}
-.marr{background:#1b2f4e;border:1px solid #2c4368;color:var(--amber);font-size:1.5rem;width:42px;
-  cursor:pointer;transition:background .15s,color .15s;font-family:var(--mono)}
-.marr:first-child{border-radius:8px 0 0 8px}.marr:last-child{border-radius:0 8px 8px 0}
-.marr:hover{background:var(--amber);color:var(--ink)}
-.mblock{background:var(--amber);color:var(--ink);padding:6px 18px 8px;text-align:center;
-  transform:rotate(-1.2deg);box-shadow:4px 4px 0 rgba(0,0,0,.35);min-width:190px}
-.mblock b{display:block;font-family:var(--disp);font-weight:400;font-size:clamp(1.5rem,3vw,2.3rem);line-height:1}
-.mblock span{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.3em}
-.mjump{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
-.mjump select,.mjump button{font-family:var(--mono);font-size:11px;letter-spacing:.1em;background:#1b2f4e;
-  color:#dbe6ff;border:1px solid #2c4368;border-radius:7px;padding:7px 10px;cursor:pointer;transition:all .15s}
-.mjump select:hover,.mjump button:hover{border-color:var(--amber);color:var(--amber)}
-.mast-sub{margin-top:12px;color:#a9bad4;font-size:13.5px;max-width:620px}
+h1{font-family:var(--disp);font-weight:400;font-size:clamp(2.3rem,5.2vw,4rem);line-height:.95;
+  letter-spacing:.5px;text-transform:uppercase}
+h1 .mo{display:inline-block;background:var(--amber);color:var(--ink);padding:.04em .18em .08em;
+  transform:rotate(-1.6deg) translateY(-2px);margin-left:.12em;box-shadow:4px 4px 0 rgba(0,0,0,.35)}
+@keyframes flipIn{0%{transform:rotate(-1.6deg) translateY(-2px) scaleY(0);opacity:0}
+  100%{transform:rotate(-1.6deg) translateY(-2px) scaleY(1);opacity:1}}
+.mo.flip{animation:flipIn .5s cubic-bezier(.2,.9,.3,1.25)}
+.mast-sub{margin-top:12px;color:#a9bad4;font-size:13.5px;max-width:600px;line-height:1.55}
 .mast-sub b{color:#fff}
 .mast-right{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap;position:relative;z-index:1}
 .mcard{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.14);border-radius:10px;
-  padding:12px 16px;min-width:168px}
+  padding:12px 16px;min-width:172px}
 .mcard .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:#8fa3c2;text-transform:uppercase}
 .mcard b{display:block;font-family:var(--mono);font-size:1.7rem;font-weight:700;color:var(--amber);
-  margin-top:4px;font-variant-numeric:tabular-nums}
+  letter-spacing:.04em;margin-top:4px;font-variant-numeric:tabular-nums}
 .mcard span.d{font-size:11.5px;color:#c6d3e8}
 .mcard.start b{font-size:1rem;line-height:1.4;color:#fff}
 .mcard.start .go{color:#7ef0b2}
-.savechip{align-self:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:#7ee2b0;
-  border:1px solid rgba(126,226,176,.4);border-radius:999px;padding:6px 12px;transition:all .3s}
-.savechip.flash{background:rgba(47,158,110,.35);transform:scale(1.06)}
 .printbtn{align-self:center;background:var(--amber);color:var(--ink);border:none;cursor:pointer;
   font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
   padding:14px 20px;border-radius:10px;box-shadow:4px 4px 0 rgba(0,0,0,.4);transition:transform .15s,box-shadow .15s}
 .printbtn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 rgba(0,0,0,.45)}
+.printbtn:active{transform:translate(1px,1px);box-shadow:2px 2px 0 rgba(0,0,0,.4)}
 .hazard{height:10px;background:repeating-linear-gradient(-45deg,var(--amber) 0 16px,var(--ink) 16px 32px);
   position:absolute;left:0;right:0;bottom:0}
 
-/* ===== STATS + SPOT ===== */
-.grid-top{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr)) minmax(290px,1.5fr);gap:14px;margin-top:20px}
-.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;position:relative;
-  overflow:hidden;transition:transform .2s,box-shadow .2s}
+/* ============ TOOLBAR ============ */
+.toolbar{margin-top:20px;background:var(--ink);border:1px solid #223450;border-radius:12px;
+  padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  box-shadow:0 14px 32px -18px rgba(15,28,48,.5)}
+.tgroup{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tbtn{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;background:#16263f;
+  color:#c6d3e8;border:1px solid #31456b;border-radius:8px;padding:9px 13px;cursor:pointer;
+  transition:all .15s;text-transform:uppercase}
+.tbtn:hover:not(:disabled){border-color:var(--amber);color:#fff;transform:translateY(-1px)}
+.tbtn:disabled{opacity:.3;cursor:not-allowed}
+.tbtn.title{font-size:13px;font-weight:700;color:#fff;background:#1b2f4e;min-width:170px}
+.tbtn.amber{background:var(--amber);color:var(--ink);border-color:var(--amber);font-weight:700}
+.tbtn.amber:hover{color:var(--ink);border-color:#fff}
+.tbtn.danger:hover{border-color:#ff7b6b;color:#ff9d8a}
+.tsep{width:1px;height:26px;background:#31456b;flex:none}
+.savechip{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:#8fa3c2;
+  border:1px dashed #31456b;border-radius:999px;padding:6px 12px;transition:all .3s;white-space:nowrap}
+.savechip.busy{color:var(--amber);border-color:var(--amber)}
+.savechip.ok{color:#7ef0b2;border-color:#2f9e6e}
+.switch{display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none}
+.switch input{display:none}
+.track{width:44px;height:23px;border-radius:999px;background:#31456b;border:1px solid #46608f;
+  position:relative;transition:background .2s;flex:none}
+.knob{position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#c6d3e8;
+  transition:all .2s cubic-bezier(.3,1.4,.5,1)}
+.switch input:checked + .track{background:var(--amber);border-color:var(--amber)}
+.switch input:checked + .track .knob{left:23px;background:var(--ink)}
+.swlab{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.18em;color:#c6d3e8;transition:color .2s}
+.switch input:checked ~ .swlab{color:var(--amber)}
+.brushes{display:none;flex-wrap:wrap;align-items:center;gap:6px}
+body.editing .brushes{display:flex}
+.blab{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--amber);margin-right:2px}
+.bchip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;font-weight:700;
+  letter-spacing:.08em;background:#16263f;color:#c6d3e8;border:1px solid #31456b;border-radius:7px;
+  padding:6px 10px;cursor:pointer;transition:all .15s}
+.bchip:hover{transform:translateY(-1px);border-color:#5b7bb0;color:#fff}
+.bchip.on{background:var(--amber);color:var(--ink);border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,180,36,.25)}
+.bhint{font-family:var(--mono);font-size:9px;color:#8fa3c2;letter-spacing:.05em;width:100%;margin-top:2px}
+
+/* ============ MANAGER BULAN ============ */
+.manager{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.manager.open{max-height:460px;margin-top:12px}
+.manager-in{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+  box-shadow:0 12px 28px -18px rgba(15,28,48,.4)}
+.manager-in h3{font-family:var(--disp);font-weight:400;font-size:1rem;letter-spacing:.08em;
+  text-transform:uppercase;border-left:4px solid var(--amber);padding-left:10px;margin-bottom:10px}
+.mrow{display:flex;align-items:center;gap:12px;padding:9px 10px;border-bottom:1px dashed #e4e9f0;
+  border-left:3px solid transparent;transition:background .15s}
+.mrow:hover{background:#f6f8fb}
+.mrow.cur{background:rgba(255,180,36,.09);border-left-color:var(--amber)}
+.mrow b{font-size:13px}
+.mrow span{font-family:var(--mono);font-size:10px;color:var(--mut)}
+.mrow div{margin-left:auto;display:flex;gap:6px}
+.mbtn{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;border:1px solid var(--line);
+  background:#fff;color:var(--mut);border-radius:6px;padding:5px 10px;cursor:pointer;transition:all .15s}
+.mbtn:hover{border-color:var(--ink);color:var(--ink)}
+.mbtn.del:hover{border-color:#d64533;color:#d64533}
+.mactions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+
+/* ============ STATS + SPOT ============ */
+.grid-top{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr)) minmax(280px,1.5fr);gap:14px;margin-top:18px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+  position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
 .tile:hover{transform:translateY(-3px);box-shadow:0 12px 26px -14px rgba(15,28,48,.35)}
 .tile::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ink)}
-.tile.t-cs::after{background:var(--grp-cs)}.tile.t-kks::after{background:var(--grp-kks)}
-.tile.t-ks::after{background:var(--grp-ks)}.tile.t-all::after{background:var(--amber)}
+.tile.t-cs::after{background:var(--grp-cs)} .tile.t-kks::after{background:var(--grp-kks)}
+.tile.t-ks::after{background:var(--grp-ks)} .tile.t-all::after{background:var(--amber)}
 .tile .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--mut);text-transform:uppercase}
-.tile b{display:block;font-family:var(--disp);font-size:2.4rem;line-height:1.1;margin-top:6px;transition:all .3s}
+.tile b{display:block;font-family:var(--disp);font-size:2.5rem;line-height:1.05;margin-top:6px;font-variant-numeric:tabular-nums}
 .tile i{font-style:normal;font-size:11px;color:var(--mut)}
 .dist-bar{display:flex;height:16px;border-radius:5px;overflow:hidden;margin-top:12px;background:#e6ebf2}
-.dist-bar span{display:block;height:100%;width:0;transition:width .8s cubic-bezier(.2,.8,.2,1)}
-.dist-bar .bp{background:var(--pagi)}.dist-bar .bm{background:var(--malam)}
-.dist-bar .bo{background:#9fb0c4}.dist-bar .bl{background:var(--cuti)}
+.dist-bar span{display:block;height:100%;width:0;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.dist-bar .bp{background:var(--pagi)} .dist-bar .bm{background:var(--malam)}
+.dist-bar .bo{background:#9fb0c4} .dist-bar .bl{background:var(--cuti)}
 .dist-leg{display:flex;flex-wrap:wrap;gap:10px;margin-top:9px;font-family:var(--mono);font-size:10px;color:var(--mut)}
 .dist-leg em{font-style:normal;font-weight:700;color:var(--ink)}
 .dist-leg .k{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
-.spot{background:var(--ink);color:#fff;border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;border:1px solid #223450}
+.spot{background:var(--ink);color:#fff;border-radius:12px;padding:16px 18px;position:relative;
+  overflow:hidden;border:1px solid #223450}
 .spot::before{content:"";position:absolute;right:-30px;top:-40px;width:150px;height:150px;border-radius:50%;
   background:radial-gradient(circle,rgba(255,180,36,.25),transparent 70%)}
 .spot-head{display:flex;justify-content:space-between;align-items:center}
 .spot-head .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;color:var(--amber)}
-.spot-nav button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;width:26px;height:26px;
-  border-radius:6px;cursor:pointer;font-size:14px;line-height:1;transition:background .15s}
+.spot-nav button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;
+  width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1;transition:background .15s}
 .spot-nav button:hover{background:var(--amber);color:var(--ink)}
 .spot-date{display:flex;align-items:center;gap:14px;margin:10px 0 12px}
-.spot-date b{font-family:var(--disp);font-size:3.2rem;line-height:1;color:var(--amber)}
-.spot-date .m{font-family:var(--mono);font-size:10px;letter-spacing:.28em;color:#8fa3c2}
-.spot-date strong{display:block;font-size:1.1rem}
+.spot-date b{font-family:var(--disp);font-size:3.4rem;line-height:1;color:var(--amber)}
+.spot-date .m{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:#8fa3c2}
+.spot-date strong{display:block;font-size:1.15rem}
 .spot-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .schip{border-radius:8px;padding:7px 6px;text-align:center;border:1px solid rgba(255,255,255,.14);transition:transform .15s}
 .schip:hover{transform:translateY(-2px)}
-.schip b{display:block;font-family:var(--mono);font-size:1.1rem}
-.schip span{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase}
-.schip.sp{background:rgba(255,180,36,.16)}.schip.sp b{color:var(--amber)}
-.schip.sm{background:rgba(90,130,200,.2)}.schip.sm b{color:#a9c4f5}
-.schip.so{background:rgba(255,255,255,.07)}.schip.so b{color:#c3ccd7}
-.schip.sl{background:rgba(47,158,110,.2)}.schip.sl b{color:#7ee2b0}
-.spot-apply{margin-top:12px;border-top:1px dashed rgba(255,255,255,.18);padding-top:10px}
-.spot-apply .lab{font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;color:#8fa3c2;display:block;margin-bottom:7px}
-.apchip{font-family:var(--mono);font-size:9px;font-weight:700;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);
-  color:#dbe6ff;border-radius:5px;padding:4px 8px;cursor:pointer;margin:2px;transition:all .15s}
-.apchip:hover{background:var(--amber);color:var(--ink);border-color:var(--amber);transform:translateY(-1px)}
+.schip b{display:block;font-family:var(--mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.schip span{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase}
+.schip.sp{background:rgba(255,180,36,.16)} .schip.sp b{color:var(--amber)}
+.schip.sm{background:rgba(90,130,200,.20)} .schip.sm b{color:#a9c4f5}
+.schip.so{background:rgba(255,255,255,.07)} .schip.so b{color:#c3ccd7}
+.schip.sl{background:rgba(47,158,110,.20)} .schip.sl b{color:#7ee2b0}
+.spot-hint{margin-top:11px;font-size:11px;color:#8fa3c2;line-height:1.5}
 
-/* ===== CONTROLS ===== */
-.controls{position:sticky;top:10px;z-index:60;margin-top:20px;background:var(--card);border:1px solid var(--line);
-  border-radius:12px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;
+/* ============ CONTROLS ============ */
+.controls{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:12px 16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;
   box-shadow:0 10px 26px -16px rgba(15,28,48,.35)}
-.modeseg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
-.modebtn{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.12em;padding:9px 13px;
-  background:#fff;border:none;color:var(--mut);cursor:pointer;transition:all .15s;text-transform:uppercase}
-.modebtn.on{background:var(--ink);color:var(--amber)}
-.legend{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.lchip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;font-weight:700;
-  letter-spacing:.06em;border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;
-  cursor:pointer;transition:all .15s}
-.lchip:hover{border-color:var(--ink);transform:translateY(-1px)}
-.lchip.pick{border-color:var(--ink);box-shadow:0 0 0 2px var(--amber);transform:translateY(-1px)}
-.sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
-.sw.p{background:var(--pagi)}.sw.m{background:var(--malam)}.sw.o{background:var(--off)}.sw.l{background:var(--cuti)}
-.sw.x{background:linear-gradient(135deg,var(--off) 50%,var(--pagi) 50%)}
-.sw.c{background:linear-gradient(135deg,var(--pagi) 50%,var(--malam) 50%)}
-.sw.e{background:#fff;border:1.5px dashed #9fb0c4}
-.sw.wk{background:repeating-linear-gradient(90deg,#f4d7d7 0 3px,#fff 3px 6px)}
-.search{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;background:#f2f5f9;border:1px solid var(--line);
-  border-radius:9px;padding:9px 12px;transition:border-color .15s,box-shadow .15s}
+.search{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:#f2f5f9;
+  border:1px solid var(--line);border-radius:9px;padding:9px 12px;transition:border-color .15s,box-shadow .15s}
 .search:focus-within{border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,180,36,.25)}
 .search span{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--mut)}
 .search input{border:none;background:none;outline:none;font-family:var(--mono);font-size:13px;flex:1;color:var(--ink)}
 .tabs{display:flex;gap:6px}
 .tab{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
-  border:1px solid var(--line);background:#fff;color:var(--mut);padding:9px 14px;border-radius:9px;cursor:pointer;transition:all .15s}
+  border:1px solid var(--line);background:#fff;color:var(--mut);padding:9px 14px;border-radius:9px;
+  cursor:pointer;transition:all .15s}
 .tab:hover{border-color:var(--ink);color:var(--ink)}
 .tab.on{background:var(--ink);color:var(--amber);border-color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lchip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;font-weight:600;
+  letter-spacing:.08em;border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;transition:all .15s}
+.lchip[data-k]{cursor:pointer}
+.lchip[data-k]:hover{border-color:var(--ink);transform:translateY(-1px)}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.sw.p{background:var(--pagi)} .sw.m{background:var(--malam)} .sw.o{background:var(--off)}
+.sw.l{background:var(--cuti)}
+.sw.x{background:linear-gradient(135deg,var(--off) 50%,var(--pagi) 50%)}
+.sw.c{background:linear-gradient(135deg,var(--pagi) 50%,var(--malam) 50%)}
+.sw.wk{background:repeating-linear-gradient(90deg,#f4d7d7 0 3px,#fff 3px 6px)}
 
-/* ===== BOARD ===== */
-.board-card{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;
-  box-shadow:0 22px 50px -28px rgba(15,28,48,.4)}
+/* ============ TABLE ============ */
+.board-card{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:14px;
+  overflow:hidden;box-shadow:0 22px 50px -28px rgba(15,28,48,.4);transition:box-shadow .3s,border-color .3s}
+body.editing .board-card{border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,180,36,.22),0 22px 50px -28px rgba(15,28,48,.4)}
 .board-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
-  padding:13px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fbfcfe,#f4f7fa)}
-.board-head h2{font-family:var(--disp);font-weight:400;font-size:1.2rem;letter-spacing:.06em;text-transform:uppercase}
-.board-head h2 em{font-style:normal;color:var(--amber-d)}
-.bh-right{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.abtn{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:7px;padding:7px 10px;cursor:pointer;
-  transition:all .15s}
-.abtn:hover{border-color:var(--ink);transform:translateY(-1px);box-shadow:2px 2px 0 rgba(15,28,48,.2)}
-.abtn.pri{background:var(--ink);color:var(--amber);border-color:var(--ink)}
-.abtn.pri:hover{background:#1b2f4e}
-.abtn.warn:hover{border-color:#c0392b;color:#c0392b}
-.bh-sep{width:1px;height:22px;background:var(--line);margin:0 4px}
-.hintline{width:100%;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--mut);margin-top:2px}
-.hintline b{color:var(--amber-d)}
+  padding:14px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fbfcfe,#f4f7fa)}
+.board-head h2{font-family:var(--disp);font-weight:400;font-size:1.25rem;letter-spacing:.06em;text-transform:uppercase}
+.board-head .mono{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase}
+#editBadge{display:none;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.2em;
+  background:var(--amber);color:var(--ink);border-radius:5px;padding:4px 9px;animation:blink 1.6s infinite}
+body.editing #editBadge{display:inline-block}
+@keyframes blink{50%{opacity:.55}}
 .table-wrap{overflow:auto;max-height:72vh;position:relative}
-table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:12px;user-select:none}
-thead th{position:sticky;top:0;z-index:30;background:var(--ink);color:#c6d3e8;font-family:var(--mono);font-weight:600;
-  font-size:10px;padding:8px 4px;border-bottom:2px solid var(--amber);text-align:center;min-width:56px;cursor:pointer;
-  transition:background .15s,color .15s}
+table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:12px}
+thead th{position:sticky;top:0;z-index:30;background:var(--ink);color:#c6d3e8;font-family:var(--mono);
+  font-weight:600;font-size:10px;letter-spacing:.06em;padding:8px 4px;border-bottom:2px solid var(--amber);
+  text-align:center;min-width:56px;cursor:pointer;user-select:none;transition:background .15s,color .15s}
 thead th:hover{background:#1b2f4e;color:#fff}
 thead th .dow{display:block;font-size:8.5px;letter-spacing:.14em;color:#8fa3c2;text-transform:uppercase}
 thead th .num{display:block;font-size:14px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
 thead th.sun .dow,thead th.sun .num{color:#ff9d8a}
-thead th.wknd{background:#152741}thead th.wknd:hover{background:#1e3557}
-thead th.sel{background:var(--amber)}thead th.sel .num,thead th.sel .dow{color:var(--ink)}
-thead th.today{box-shadow:inset 0 -4px 0 #2f9e6e}
+thead th.wknd{background:#152741}
+thead th.wknd:hover{background:#1e3557}
+thead th.sel{background:var(--amber)} thead th.sel .num,thead th.sel .dow{color:var(--ink)}
 thead th.c-grp,thead th.c-name{text-align:left;z-index:40;cursor:default}
 thead th.c-grp{left:0;min-width:54px;width:54px}
-thead th.c-name{left:54px;min-width:236px;width:236px}
+thead th.c-name{left:54px;min-width:224px;width:224px}
 thead th.c-sum{right:0;z-index:40;min-width:150px;cursor:default}
 thead th.ch{background:#2a4370;color:#fff}
-td{border-bottom:1px solid #e8edf3;border-right:1px solid #eef2f6;padding:5px 4px;text-align:center;vertical-align:middle;background:#fff}
-tr.row:nth-child(4n+3) td{background:#f8fafc}
+
+td{border-bottom:1px solid #e8edf3;border-right:1px solid #eef2f6;padding:5px 4px;text-align:center;
+  vertical-align:middle;background:#fff}
+tr:nth-child(even) td{background:#f8fafc}
 td.c-grp{position:sticky;left:0;z-index:12;min-width:54px;width:54px;background:inherit}
-td.c-name{position:sticky;left:54px;z-index:12;min-width:236px;width:236px;text-align:left;padding:5px 8px 5px 8px;
-  background:inherit;box-shadow:2px 0 0 rgba(15,28,48,.06)}
-td.c-sum{position:sticky;right:0;z-index:12;background:inherit;box-shadow:-2px 0 0 rgba(15,28,48,.06);white-space:nowrap;padding:5px 8px}
-.badge{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.08em;padding:3px 7px;border-radius:5px;
-  cursor:pointer;transition:transform .15s}
-.badge:hover{transform:scale(1.12)}
-.badge.cs{background:rgba(255,180,36,.2);color:var(--amber-d);border:1px solid rgba(255,180,36,.5)}
-.badge.kks{background:rgba(111,159,232,.16);color:#2f5ea8;border:1px solid rgba(111,159,232,.5)}
-.badge.ks{background:rgba(67,184,164,.14);color:#0f7263;border:1px solid rgba(67,184,164,.5)}
-.nmrow{display:flex;align-items:center;gap:6px}
-.nmrow .no{font-family:var(--mono);font-size:9px;color:#a5b2c4;width:16px;text-align:right;flex:none}
-.nmin{flex:1;min-width:0;border:none;background:transparent;font-family:var(--sans);font-size:11.5px;font-weight:600;
-  color:var(--ink);outline:none;border-bottom:1.5px solid transparent;padding:2px 1px;transition:all .15s;letter-spacing:.02em}
-.nmin:hover{border-bottom-color:#c9d4e2}
-.nmin:focus{border-bottom-color:var(--amber);background:#fff8e8}
-.acts{display:flex;gap:3px;opacity:0;transition:opacity .15s;flex:none}
-tr.row:hover .acts{opacity:1}
-.ract{width:20px;height:20px;border:1px solid var(--line);background:#fff;border-radius:5px;font-size:10px;cursor:pointer;
-  color:var(--mut);line-height:1;transition:all .12s}
+td.c-name{position:sticky;left:54px;z-index:12;min-width:224px;width:224px;text-align:left;
+  padding:6px 10px 6px 8px;background:inherit;box-shadow:2px 0 0 rgba(15,28,48,.06)}
+td.c-sum{position:sticky;right:0;z-index:12;background:inherit;box-shadow:-2px 0 0 rgba(15,28,48,.06);
+  white-space:nowrap;padding:5px 8px}
+.badge{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.08em;padding:3px 7px;
+  border-radius:5px;display:inline-block;background:#e8edf3;color:var(--mut);border:1px solid var(--line)}
+.badge.cs{background:rgba(255,180,36,.2);color:var(--amber-d);border-color:rgba(255,180,36,.5)}
+.badge.kks{background:rgba(111,159,232,.16);color:#2f5ea8;border-color:rgba(111,159,232,.5)}
+.badge.ks{background:rgba(67,184,164,.14);color:#0f7263;border-color:rgba(67,184,164,.5)}
+.nm{display:flex;align-items:center;gap:8px}
+.nm .no{font-family:var(--mono);font-size:9px;color:#a5b2c4;width:18px;text-align:right;flex:none}
+.nm b{font-size:11.5px;font-weight:600;letter-spacing:.02em;line-height:1.25}
+body.editing .nm b{cursor:text;border-bottom:1px dashed var(--amber)}
+input.rename{font-family:var(--mono);font-size:11.5px;font-weight:600;width:150px;padding:3px 6px;
+  border:1.5px solid var(--amber);border-radius:5px;outline:none}
+.ract-wrap{margin-left:auto;display:none;gap:4px;flex:none}
+body.editing .ract-wrap{display:inline-flex}
+.ract{width:21px;height:21px;line-height:1;border-radius:5px;border:1px solid var(--line);background:#fff;
+  color:var(--mut);cursor:pointer;font-size:10px;transition:all .15s}
 .ract:hover{border-color:var(--ink);color:var(--ink);transform:translateY(-1px)}
-.ract.del:hover{border-color:#c0392b;color:#c0392b}
-.ract.del.arm{background:#c0392b;color:#fff;border-color:#c0392b;width:auto;padding:0 5px;font-family:var(--mono);font-size:8px}
-td.sh{font-family:var(--mono);font-size:8.6px;font-weight:700;letter-spacing:.04em;min-width:56px;line-height:1.3;
-  transition:opacity .2s,filter .2s,box-shadow .12s}
-body.mode-cycle td.sh{cursor:pointer}
-body.mode-brush td.sh{cursor:cell}
-td.sh:hover{box-shadow:inset 0 0 0 2px var(--ink);z-index:5}
+.ract.del:hover{border-color:#d64533;color:#d64533}
+
+td.sh{font-family:var(--mono);font-size:8.6px;font-weight:700;letter-spacing:.04em;min-width:56px;
+  line-height:1.3;cursor:default;user-select:none;transition:opacity .2s,filter .2s,box-shadow .15s}
+body.editing td.sh{cursor:crosshair}
 td.sh.p{background:var(--pagi);color:var(--pagi-t)}
 td.sh.m{background:var(--malam);color:var(--malam-t)}
 td.sh.o{background:var(--off);color:var(--off-t)}
@@ -228,73 +270,74 @@ td.sh.l{background:var(--cuti);color:var(--cuti-t);
   background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.14) 0 5px,transparent 5px 10px)}
 td.sh.x{background:linear-gradient(135deg,var(--off) 50%,var(--pagi) 50%);color:var(--ink)}
 td.sh.c{background:linear-gradient(135deg,var(--pagi) 50%,var(--malam) 50%);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4)}
-td.sh.e{color:#c1ccd9}
+td.sh:hover{filter:brightness(1.12);z-index:5;box-shadow:inset 0 0 0 2px var(--ink)}
 td.ch{box-shadow:inset 0 -3px 0 var(--amber)}
+td.sh.ch{filter:brightness(1.15)}
 td.sel{box-shadow:inset 0 0 0 2px var(--amber)}
 td.sh.sel{box-shadow:inset 0 0 0 2px var(--ink)}
-td.today{box-shadow:inset 0 3px 0 #2f9e6e}
-tr.band td{background:var(--ink2);color:#fff;text-align:left;padding:8px 14px;font-family:var(--mono);font-size:10.5px;
-  font-weight:700;letter-spacing:.22em;text-transform:uppercase;border-bottom:2px solid var(--amber);position:sticky;left:0}
-tr.band em{font-style:normal;color:var(--amber)}
-tr.band small{font-weight:400;letter-spacing:.1em;color:#8fa3c2;margin-left:10px}
-.bandadd{float:right;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.14em;background:transparent;
-  border:1px solid rgba(255,180,36,.5);color:var(--amber);border-radius:5px;padding:3px 9px;cursor:pointer;transition:all .15s}
-.bandadd:hover{background:var(--amber);color:var(--ink)}
-.sc{display:inline-block;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin:1px}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.3)}100%{transform:scale(1)}}
+td.pop{animation:pop .22s ease;position:relative;z-index:8}
+
+tr.band td{background:var(--ink2);color:#fff;text-align:left;padding:8px 14px;font-family:var(--mono);
+  font-size:10.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;border-bottom:2px solid var(--amber)}
+tr.band td em{font-style:normal;color:var(--amber)}
+tr.band td small{font-weight:400;letter-spacing:.1em;color:#8fa3c2;margin-left:10px}
+
+.sc{display:inline-block;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;
+  border-radius:4px;margin:1px}
 .sc.p{background:rgba(255,180,36,.22);color:var(--amber-d)}
 .sc.m{background:rgba(36,64,110,.12);color:var(--malam)}
 .sc.o{background:rgba(90,110,135,.14);color:#4a5a6e}
 .sc.l{background:rgba(47,158,110,.16);color:#177a52}
+
 tfoot td{position:sticky;bottom:0;z-index:20;background:var(--ink);color:#fff;border-top:2px solid var(--amber);
   border-bottom:none;font-family:var(--mono)}
 tfoot td.covlab{text-align:left;padding:8px 12px;font-size:9.5px;letter-spacing:.2em;left:0}
 tfoot td.cov{padding:5px 2px;min-width:56px}
 tfoot td.cov b{display:block;font-size:10.5px;font-variant-numeric:tabular-nums}
-tfoot td.cov b.fp{color:var(--amber)}tfoot td.cov b.fm{color:#a9c4f5}
+tfoot td.cov b.fp{color:var(--amber)} tfoot td.cov b.fm{color:#a9c4f5}
 tfoot td.cov.sel{box-shadow:inset 0 0 0 2px var(--amber)}
+
+tr.addrow{display:none}
+body.editing tr.addrow{display:table-row}
+tr.addrow td{background:#fff8e8!important;border-top:2px dashed var(--amber);text-align:left;padding:8px 10px}
+.add-inner{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-family:var(--mono);font-size:11px;
+  font-weight:700;letter-spacing:.12em;color:var(--amber-d)}
+.add-inner select,.add-inner input{font-family:var(--mono);font-size:12px;font-weight:500;padding:7px 10px;
+  border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
+.add-inner input{min-width:260px}
+.add-inner button{background:var(--ink);color:var(--amber);border:none;border-radius:7px;padding:8px 14px;
+  font-family:var(--mono);font-weight:700;letter-spacing:.1em;cursor:pointer;transition:transform .15s}
+.add-inner button:hover{transform:translateY(-1px)}
+.add-inner .hint{font-weight:400;color:var(--mut);letter-spacing:.04em}
+
 tr.dim td{opacity:.14;filter:grayscale(.6)}
-tr.hid{display:none}
-tbody tr{animation:rise .45s both}
-@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+tr.off{display:none}
+td,tr{transition:opacity .25s}
+tbody tr[data-i]{animation:rise .5s both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
 body[class*="hl-"] td.sh{opacity:.15;filter:grayscale(.7)}
 body.hl-p td.sh.p,body.hl-m td.sh.m,body.hl-o td.sh.o,
 body.hl-x td.sh.x,body.hl-c td.sh.c,body.hl-l td.sh.l{opacity:1;filter:none;box-shadow:inset 0 0 0 2px var(--ink)}
-.empty{padding:56px 24px;text-align:center}
-.empty h3{font-family:var(--disp);font-weight:400;font-size:1.8rem;letter-spacing:.05em;text-transform:uppercase;color:#b9c5d4}
-.empty p{color:var(--mut);font-size:13px;margin:10px 0 20px}
-.empty .abtn{font-size:11px;padding:11px 16px;margin:0 4px}
 
 /* tooltip */
 #tip{position:fixed;z-index:200;pointer-events:none;background:var(--ink);color:#fff;border:1px solid #2c4368;
-  border-left:4px solid var(--amber);border-radius:8px;padding:9px 12px;font-size:11.5px;max-width:250px;opacity:0;
-  transform:translateY(4px);transition:opacity .12s,transform .12s;box-shadow:0 14px 30px -10px rgba(0,0,0,.5)}
+  border-left:4px solid var(--amber);border-radius:8px;padding:9px 12px;font-size:11.5px;max-width:250px;
+  opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s;
+  box-shadow:0 14px 30px -10px rgba(0,0,0,.5)}
 #tip.show{opacity:1;transform:none}
-#tip b{display:block;font-size:12px}
+#tip b{display:block;font-size:12px;letter-spacing:.03em}
 #tip span{display:block;font-family:var(--mono);font-size:9.5px;color:#8fa3c2;margin:3px 0 6px;letter-spacing:.08em}
-#tip em{font-style:normal;font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;display:inline-block}
-#tip em.p{background:var(--pagi);color:var(--pagi-t)}#tip em.m{background:var(--malam);color:var(--malam-t)}
-#tip em.o{background:var(--off);color:var(--off-t)}#tip em.l{background:var(--cuti);color:#fff}
+#tip em{font-style:normal;font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;
+  border-radius:4px;display:inline-block}
+#tip em.p{background:var(--pagi);color:var(--pagi-t)} #tip em.m{background:var(--malam);color:var(--malam-t)}
+#tip em.o{background:var(--off);color:var(--off-t)} #tip em.l{background:var(--cuti);color:#fff}
 #tip em.x{background:linear-gradient(135deg,var(--off) 50%,var(--pagi) 50%);color:var(--ink)}
 #tip em.c{background:linear-gradient(135deg,var(--pagi) 50%,var(--malam) 50%);color:#fff}
-#tip em.e{background:#2a3a55;color:#8fa3c2}
 #tip small{display:block;margin-top:6px;color:#a9bad4;font-size:10.5px}
 
-/* modal */
-.overlay{position:fixed;inset:0;background:rgba(10,18,32,.6);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
-.overlay.open{display:flex}
-.modal{background:#fff;border-radius:14px;border-top:6px solid var(--amber);width:min(430px,100%);padding:24px 26px;
-  box-shadow:0 30px 70px -20px rgba(0,0,0,.5);animation:mup .25s cubic-bezier(.2,.9,.3,1.2)}
-@keyframes mup{from{transform:translateY(24px) scale(.97);opacity:0}to{transform:none;opacity:1}}
-.modal h3{font-family:var(--disp);font-weight:400;font-size:1.35rem;letter-spacing:.05em;text-transform:uppercase;margin-bottom:16px}
-.modal label{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--mut);text-transform:uppercase;margin:12px 0 5px}
-.modal input,.modal select{width:100%;font-family:var(--mono);font-size:13px;padding:10px 12px;border:1px solid var(--line);
-  border-radius:8px;background:#f7f9fc;color:var(--ink);outline:none;transition:all .15s}
-.modal input:focus,.modal select:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,180,36,.25);background:#fff}
-.modal .mrow2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.mbtns{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
-.mbtns .abtn{padding:10px 16px;font-size:10.5px}
-
-/* bottom */
+/* ============ BOTTOM ============ */
 .bottom{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:22px}
 .notes{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
 .notes h3{font-family:var(--disp);font-weight:400;font-size:1rem;letter-spacing:.08em;text-transform:uppercase;
@@ -302,78 +345,134 @@ body.hl-x td.sh.x,body.hl-c td.sh.c,body.hl-l td.sh.l{opacity:1;filter:none;box-
 .notes ul{list-style:none}
 .notes li{font-size:12px;color:#3d4a5c;padding:5px 0;border-bottom:1px dashed #e4e9f0;display:flex;gap:8px}
 .notes li:last-child{border:none}
-.notes li b{font-family:var(--mono);font-size:10px;font-weight:700;min-width:96px;color:var(--ink)}
-.sign{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.notes li b{font-family:var(--mono);font-size:10px;font-weight:700;min-width:96px;color:var(--ink);flex:none}
+.sign{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;
+  display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .sign .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--mut);text-transform:uppercase}
 .sign b{display:block;font-size:12.5px;margin-top:4px}
 .sign .line{display:block;height:44px;border-bottom:1.5px dashed #b9c5d4;margin-top:6px}
 .sign small{font-family:var(--mono);font-size:9px;color:#a5b2c4;letter-spacing:.1em}
-footer{margin-top:26px;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:#8b99ac;text-transform:uppercase}
+footer{margin-top:26px;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  color:#8b99ac;text-transform:uppercase}
 footer b{color:var(--ink)}
 
-@media (max-width:1080px){.grid-top{grid-template-columns:repeat(2,1fr)}.tile.dist,.spot{grid-column:span 2}.bottom{grid-template-columns:1fr}}
-@media (max-width:640px){.wrap{padding:14px 10px 40px}.mast{padding:22px 18px}.controls{position:static}}
+@media (max-width:1080px){
+  .grid-top{grid-template-columns:repeat(2,1fr)}
+  .tile.dist,.spot{grid-column:span 2}
+  .bottom{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .wrap{padding:14px 10px 40px}
+  .mast{padding:22px 18px 26px}
+  .grid-top{grid-template-columns:1fr 1fr}
+}
+
+/* ============ PRINT ============ */
 @media print{
   body{background:#fff}
-  .controls,.mast-right,.spot,.printbtn,#tip,.abtn,.acts,.bandadd,.hintline,.modeseg,.overlay,.mjump,.savechip{display:none!important}
+  .toolbar,.manager,.controls,.mast-right,#tip,footer .noprint,#editBadge{display:none!important}
+  .ract-wrap,tr.addrow{display:none!important}
   .wrap{max-width:none;padding:0}
   .mast{box-shadow:none;border-radius:0;color:#000;background:#fff;border:none;padding:10px 0}
-  .mast::before{display:none}
-  h1{color:#000;font-size:24px}
-  .mblock{box-shadow:none;transform:none}
+  .mast::before,.mast::after,.hazard{display:none}
+  h1{color:#000;font-size:26px} h1 .mo{box-shadow:none;transform:none}
   .eyebrow{color:#8a5a00}.dot{display:none}
   .mast-sub{color:#333}
-  .tile,.notes,.sign,.board-card{box-shadow:none;border-color:#999}
+  .tile,.spot,.notes,.sign,.board-card{box-shadow:none;border-color:#999}
   .table-wrap{overflow:visible;max-height:none}
   table{width:100%;min-width:0}
-  thead th,td.c-grp,td.c-name,td.c-sum,tfoot td,tr.band td{position:static}
-  td.sh,td.c-grp,td.c-name,td.c-sum,tfoot td,tr.band td,.badge,.sc,.mblock{
+  thead th,td.c-grp,td.c-name,td.c-sum,tfoot td{position:static}
+  td.sh,td.c-grp,td.c-name,td.c-sum,tfoot td,tr.band td,.badge,.sc{
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  tbody tr{animation:none}
+  tbody tr[data-i]{animation:none}
   td.sh{font-size:7px;min-width:0}
-  .nmin{border:none}
 }
 </style>
 </head>
-<body class="mode-cycle">
+<body>
 <div class="wrap">
 
-  <!-- ============ MASTHEAD ============ -->
+  <!-- ================= MASTHEAD ================= -->
   <header class="mast">
     <div class="mast-left">
-      <div class="eyebrow"><span class="dot"></span>Papan Operasional · Customer Service · <span style="color:#7ee2b0">Mode Editor Aktif</span></div>
-      <h1>Jadwal Shift
-        <span class="monthnav">
-          <button class="marr" id="mPrev" title="Bulan sebelumnya">‹</button>
-          <span class="mblock"><b id="mName">AGUSTUS</b><span id="mYear">2026</span></span>
-          <button class="marr" id="mNext" title="Bulan berikutnya">›</button>
-        </span>
-      </h1>
-      <div class="mjump">
-        <select id="selMon"></select>
-        <select id="selYear"></select>
-        <button id="btnToday">◉ BULAN INI</button>
-      </div>
-      <p class="mast-sub" id="mastSub"></p>
+      <div class="eyebrow"><span class="dot"></span>Papan Operasional · Editor Jadwal Shift · Dept. Customer Service</div>
+      <h1>Jadwal Shift <span class="mo" id="moTitle">AGUSTUS 2026</span></h1>
+      <p class="mast-sub" id="mastSub">memuat…</p>
     </div>
     <div class="mast-right">
-      <div class="mcard"><span class="lab">Waktu Indonesia Barat</span><b id="clk">--:--:--</b><span class="d" id="clkDate">memuat…</span></div>
-      <div class="mcard start"><span class="lab">Status Periode</span><b id="startTxt">memuat…</b><span class="d" id="startSub"></span></div>
-      <span class="savechip" id="saveChip">● TERSIMPAN OTOMATIS</span>
-      <button class="printbtn" onclick="window.print()">🖶 Cetak</button>
+      <div class="mcard">
+        <span class="lab">Waktu Indonesia Barat</span>
+        <b id="clk">--:--:--</b>
+        <span class="d" id="clkDate">memuat…</span>
+      </div>
+      <div class="mcard start">
+        <span class="lab">Status Periode</span>
+        <b id="startTxt">memuat…</b>
+        <span class="d" id="startSub"></span>
+      </div>
+      <button class="printbtn" onclick="window.print()">🖶 Cetak Bulan Ini</button>
     </div>
     <div class="hazard"></div>
   </header>
 
-  <!-- ============ STATS + SPOT ============ -->
+  <!-- ================= TOOLBAR ================= -->
+  <section class="toolbar">
+    <div class="tgroup">
+      <button class="tbtn" id="mPrev" title="Bulan sebelumnya">‹</button>
+      <button class="tbtn title" id="mTitle" title="Daftar bulan — klik untuk kelola">AGUSTUS 2026 ▾</button>
+      <button class="tbtn" id="mNext" title="Bulan berikutnya">›</button>
+      <button class="tbtn amber" id="mAdd">＋ Bulan</button>
+    </div>
+    <div class="tsep"></div>
+    <label class="switch"><input type="checkbox" id="editTgl">
+      <span class="track"><span class="knob"></span></span><span class="swlab">MODE EDIT</span>
+    </label>
+    <div class="brushes" id="brushes">
+      <span class="blab">KUAS ▸</span>
+      <button class="bchip" data-b="P"><i class="sw p"></i>PAGI</button>
+      <button class="bchip" data-b="M"><i class="sw m"></i>MALAM</button>
+      <button class="bchip" data-b="O"><i class="sw o"></i>OFFDAY</button>
+      <button class="bchip" data-b="X"><i class="sw x"></i>OFF C. PAGI</button>
+      <button class="bchip" data-b="C"><i class="sw c"></i>C. MALAM</button>
+      <button class="bchip" data-b="L"><i class="sw l"></i>CUTI</button>
+      <span class="bhint">klik &amp; seret untuk mengecat · klik kanan → OFFDAY · tanpa kuas: klik sel untuk ganti shift · klik dua kali nama untuk ubah nama</span>
+    </div>
+    <div class="tsep"></div>
+    <div class="tgroup">
+      <span class="savechip" id="saveChip">● SIAP</span>
+      <button class="tbtn" id="expJson" title="Unduh seluruh data (semua bulan)">⇩ JSON</button>
+      <button class="tbtn" id="expCsv" title="Unduh bulan aktif sebagai CSV">⇩ CSV</button>
+      <button class="tbtn" id="impBtn" title="Impor file JSON cadangan">⇧ Impor</button>
+      <input type="file" id="impFile" accept=".json" hidden>
+      <button class="tbtn danger" id="resetBtn" title="Kembalikan ke data awal">↺ Reset</button>
+    </div>
+  </section>
+
+  <!-- ================= MANAGER BULAN ================= -->
+  <section class="manager" id="manager">
+    <div class="manager-in">
+      <h3>▤ Kelola Periode Bulan</h3>
+      <div id="mlist"></div>
+      <div class="mactions">
+        <button class="tbtn amber" id="mkEmpty">＋ Bulan berikutnya · kosong</button>
+        <button class="tbtn amber" id="mkCopy">＋ Bulan berikutnya · salin pola bulan aktif</button>
+        <span class="bhint" style="color:var(--mut);width:auto;align-self:center">Bulan baru memakai daftar staf bulan aktif; jumlah hari menyesuaikan kalender.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STATS + SPOTLIGHT ================= -->
   <section class="grid-top">
-    <div class="tile t-all"><span class="lab">Total Staf</span><b id="tAll">0</b><i>seluruh unit</i></div>
-    <div class="tile t-cs"><span class="lab">Unit CS</span><b id="tCS">0</b><i>customer service</i></div>
-    <div class="tile t-kks"><span class="lab">Unit KKS</span><b id="tKKS">0</b><i>koordinator</i></div>
-    <div class="tile t-ks"><span class="lab">Unit KS</span><b id="tKS">0</b><i>kepala shift</i></div>
+    <div class="tile t-all"><span class="lab">Total Staf</span><b id="stAll">0</b><i>seluruh unit</i></div>
+    <div class="tile t-cs"><span class="lab">Unit CS</span><b id="stCs">0</b><i>customer service</i></div>
+    <div class="tile t-kks"><span class="lab">Unit KKS</span><b id="stKks">0</b><i>koordinator</i></div>
+    <div class="tile t-ks"><span class="lab">Unit KS</span><b id="stKs">0</b><i>kepala shift</i></div>
     <div class="tile dist">
       <span class="lab">Distribusi Shift Bulan Ini</span>
-      <div class="dist-bar"><span class="bp" id="dbP"></span><span class="bm" id="dbM"></span><span class="bo" id="dbO"></span><span class="bl" id="dbL"></span></div>
+      <div class="dist-bar">
+        <span class="bp" id="dbP"></span><span class="bm" id="dbM"></span>
+        <span class="bo" id="dbO"></span><span class="bl" id="dbL"></span>
+      </div>
       <div class="dist-leg">
         <span><i class="k" style="background:var(--pagi)"></i>Pagi <em id="dlP">0</em></span>
         <span><i class="k" style="background:var(--malam)"></i>Malam <em id="dlM">0</em></span>
@@ -382,64 +481,49 @@ footer b{color:var(--ink)}
       </div>
     </div>
     <aside class="spot">
-      <div class="spot-head"><span class="lab">▸ Sorot Tanggal</span>
+      <div class="spot-head">
+        <span class="lab">▸ Sorot Tanggal</span>
         <div class="spot-nav"><button id="prevD" title="Hari sebelumnya">‹</button><button id="nextD" title="Hari berikutnya">›</button></div>
       </div>
-      <div class="spot-date"><b id="spotNum">1</b><div><span class="m" id="spotMY">AGUSTUS 2026</span><strong id="spotDow">Sabtu</strong></div></div>
+      <div class="spot-date">
+        <b id="spotNum">1</b>
+        <div><span class="m" id="spotMon">AGUSTUS 2026</span><strong id="spotDow">Sabtu</strong></div>
+      </div>
       <div class="spot-chips">
         <div class="schip sp"><b id="sP">0</b><span>Masuk Pagi</span></div>
         <div class="schip sm"><b id="sM">0</b><span>Masuk Malam</span></div>
         <div class="schip so"><b id="sO">0</b><span>Off</span></div>
         <div class="schip sl"><b id="sL">0</b><span>Cuti</span></div>
       </div>
-      <div class="spot-apply">
-        <span class="lab">TERAPKAN SATU KODE KE SELURUH KOLOM TANGGAL INI:</span>
-        <span id="applyRow"></span>
-      </div>
+      <p class="spot-hint">Klik kepala tanggal pada tabel untuk memindahkan sorotan &amp; melihat kekuatan regu harian.</p>
     </aside>
   </section>
 
-  <!-- ============ CONTROLS ============ -->
+  <!-- ================= CONTROLS ================= -->
   <section class="controls">
-    <div class="modeseg">
-      <button class="modebtn on" id="modeCycle" title="Klik sel untuk mengganti kode satu per satu">✎ Siklus</button>
-      <button class="modebtn" id="modeBrush" title="Pilih kode lalu klik-tarik untuk mengecat banyak sel">🖌 Kuas</button>
-    </div>
-    <div class="legend" id="legend">
-      <button class="lchip" data-k="p"><i class="sw p"></i>PAGI</button>
-      <button class="lchip" data-k="m"><i class="sw m"></i>MALAM</button>
-      <button class="lchip" data-k="o"><i class="sw o"></i>OFFDAY</button>
-      <button class="lchip" data-k="x"><i class="sw x"></i>OFF C. PAGI</button>
-      <button class="lchip" data-k="c"><i class="sw c"></i>C. MALAM</button>
-      <button class="lchip" data-k="l"><i class="sw l"></i>CUTI</button>
-      <button class="lchip" data-k="e"><i class="sw e"></i>KOSONG</button>
-      <span class="lchip" style="cursor:default"><i class="sw wk"></i>SAB/MIN</span>
-    </div>
-    <label class="search"><span>CARI ▸</span><input id="q" type="text" placeholder="Nama staf… ( / )" autocomplete="off"></label>
+    <label class="search"><span>CARI ▸</span><input id="q" type="text" placeholder="Ketik nama staf…  (tekan / untuk fokus)" autocomplete="off"></label>
     <div class="tabs">
       <button class="tab on" data-g="ALL">Semua</button>
       <button class="tab" data-g="CS">CS</button>
       <button class="tab" data-g="KKS">KKS</button>
       <button class="tab" data-g="KS">KS</button>
     </div>
+    <div class="legend">
+      <button class="lchip" data-k="p"><i class="sw p"></i>PAGI</button>
+      <button class="lchip" data-k="m"><i class="sw m"></i>MALAM</button>
+      <button class="lchip" data-k="o"><i class="sw o"></i>OFFDAY</button>
+      <button class="lchip" data-k="x"><i class="sw x"></i>OFF C. PAGI</button>
+      <button class="lchip" data-k="c"><i class="sw c"></i>C. MALAM</button>
+      <button class="lchip" data-k="l"><i class="sw l"></i>CUTI</button>
+      <span class="lchip"><i class="sw wk"></i>SABTU / MINGGU</span>
+    </div>
   </section>
 
-  <!-- ============ BOARD ============ -->
+  <!-- ================= BOARD ================= -->
   <section class="board-card">
     <div class="board-head">
-      <h2>▦ Matriks Jadwal — <em id="bhMonth">Agustus 2026</em></h2>
-      <div class="bh-right">
-        <button class="abtn pri" id="btnAdd">＋ Tambah Staf</button>
-        <button class="abtn" id="btnCopyPrev">⧉ Salin Bulan Sebelumnya</button>
-        <button class="abtn" id="btnUndo">↺ Urungkan</button>
-        <span class="bh-sep"></span>
-        <button class="abtn" id="btnCsv">⬇ CSV</button>
-        <button class="abtn" id="btnJson">⬇ JSON</button>
-        <button class="abtn" id="btnImport">⬆ Impor</button>
-        <button class="abtn warn" id="btnReset">⟲ Reset Contoh</button>
-        <button class="abtn warn" id="btnWipe">🗑 Hapus Bulan</button>
-      </div>
-      <span class="hintline">✎ <b>klik sel</b> = ganti kode · <b>klik-tarik</b> (mode kuas) = cat · <b>klik kanan</b> = mundur satu kode · <b>klik nama</b> = ubah nama · <b>klik badge unit</b> = pindah unit · <b>Ctrl+Z</b> = urungkan</span>
+      <h2>▦ Matriks Jadwal <span id="editBadge">● MODE EDIT AKTIF</span></h2>
+      <span class="mono" id="visCount">0 staf ditampilkan</span>
     </div>
     <div class="table-wrap" id="twrap">
       <table id="board">
@@ -447,28 +531,24 @@ footer b{color:var(--ink)}
         <tbody id="tbody"></tbody>
         <tfoot><tr id="frow"></tr></tfoot>
       </table>
-      <div class="empty" id="empty" style="display:none">
-        <h3>Belum Ada Jadwal</h3>
-        <p>Belum ada data staf untuk bulan ini. Salin pola dari bulan sebelumnya atau mulai dari awal.</p>
-        <button class="abtn pri" id="emptyCopy">⧉ SALIN DARI BULAN SEBELUMNYA</button>
-        <button class="abtn" id="emptyAdd">＋ TAMBAH STAF PERTAMA</button>
-      </div>
     </div>
   </section>
 
-  <!-- ============ NOTES + SIGN ============ -->
+  <!-- ================= NOTES + SIGNATURE ================= -->
   <section class="bottom">
     <div class="notes">
-      <h3>Keterangan &amp; Cara Edit</h3>
+      <h3>Panduan &amp; Keterangan</h3>
       <ul>
-        <li><b>PAGI / MALAM</b> Shift masuk sesuai regu.</li>
+        <li><b>MODE EDIT</b> Aktifkan sakelar, pilih kuas, lalu klik/seret sel untuk mengecat. Klik kanan = OFFDAY. Tanpa kuas, klik sel mengganti shift secara berurutan.</li>
+        <li><b>UBAH NAMA</b> Klik dua kali nama staf (saat edit). ⧉ menduplikasi pola satu baris, ✕ menghapus staf.</li>
+        <li><b>BULAN BARU</b> Tombol ＋ Bulan / judul bulan di toolbar: buat bulan berikutnya (kosong atau salin pola), buka, atau hapus periode.</li>
+        <li><b>AUTO-SAVE</b> Semua perubahan tersimpan otomatis di peramban (localStorage). Gunakan ⇩ JSON untuk cadangan &amp; ⇧ Impor untuk memulihkan.</li>
+        <li><b>PAGI / MALAM</b> Masuk shift pagi / malam sesuai jadwal regu.</li>
         <li><b>OFFDAY</b> Libur / tidak masuk shift.</li>
         <li><b>OFF C. PAGI</b> Offday, kemudian berganti (rolling) ke shift pagi.</li>
         <li><b>C. MALAM</b> Hari pergantian / transisi ke shift malam.</li>
-        <li><b>CUTI</b> Cuti resmi yang telah disetujui.</li>
-        <li><b>EDIT SEL</b> Mode Siklus: klik sel berulang untuk mengganti kode. Mode Kuas: pilih kode di legenda lalu klik-tarik.</li>
-        <li><b>DATA</b> Tersimpan otomatis di peramban ini. Gunakan ⬇ JSON untuk cadangan / pindah komputer, ⬆ Impor untuk memuat kembali.</li>
-        <li><b>BULAN BARU</b> Navigasi dengan tombol ‹ › pada judul bulan, lalu "Salin Bulan Sebelumnya" sebagai titik awal.</li>
+        <li><b>CUTI</b> Cuti resmi yang telah disetujui atasan.</li>
+        <li><b>REKAP</b> Malam dihitung termasuk C. Malam; Off termasuk Off C. Pagi.</li>
       </ul>
     </div>
     <div class="sign">
@@ -477,55 +557,32 @@ footer b{color:var(--ink)}
     </div>
   </section>
 
-  <footer>Papan Jadwal Shift v2 · <b>Departemen Customer Service</b> · data tersimpan lokal di peramban · klik 🖶 untuk cetak</footer>
+  <footer>Dokumen Jadwal Shift · <b>Departemen Customer Service</b> · <span id="footPeriod">Agustus 2026</span> ·
+    <span class="noprint">arahkan kursor ke sel untuk detail — </span>editor v2 · papan operasional digital</footer>
 </div>
 
 <div id="tip"></div>
 
-<!-- modal tambah staf -->
-<div class="overlay" id="overlay">
-  <div class="modal">
-    <h3>＋ Tambah Staf Baru</h3>
-    <label>Nama Lengkap</label>
-    <input id="fName" type="text" placeholder="cth: ANDI SAPUTRA" autocomplete="off">
-    <div class="mrow2">
-      <div><label>Unit</label>
-        <select id="fUnit"><option value="CS">CS</option><option value="KKS">KKS</option><option value="KS">KS</option></select>
-      </div>
-      <div><label>Salin Pola Dari (opsional)</label>
-        <select id="fCopy"><option value="">— jadwal kosong —</option></select>
-      </div>
-    </div>
-    <div class="mbtns">
-      <button class="abtn" id="btnCancel">Batal</button>
-      <button class="abtn pri" id="btnSave">Simpan Staf</button>
-    </div>
-  </div>
-</div>
-<input type="file" id="impFile" accept=".json" style="display:none">
-
 <script>
-/* ================= KONSTANTA ================= */
+/* ================== KONSTANTA ================== */
 const SH = {
   P:{label:'PAGI',        cls:'p', desc:'Masuk shift pagi.'},
   M:{label:'MALAM',       cls:'m', desc:'Masuk shift malam.'},
   O:{label:'OFFDAY',      cls:'o', desc:'Libur / hari off.'},
   X:{label:'OFF C. PAGI', cls:'x', desc:'Offday — berganti (rolling) ke shift pagi.'},
   C:{label:'C. MALAM',    cls:'c', desc:'Hari pergantian / transisi ke shift malam.'},
-  L:{label:'CUTI',        cls:'l', desc:'Cuti resmi yang telah disetujui.'},
-  '':{label:'—',          cls:'e', desc:'Belum diisi / kosong.'}
+  L:{label:'CUTI',        cls:'l', desc:'Cuti resmi yang telah disetujui.'}
 };
-const ORDER = ['','P','M','O','X','C','L'];
-const MONS  = ['JANUARI','FEBRUARI','MARET','APRIL','MEI','JUNI','JULI','AGUSTUS','SEPTEMBER','OKTOBER','NOVEMBER','DESEMBER'];
-const MONS_S= ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const ORDER = ['P','M','O','X','C','L'];
+const SHCLS = ['p','m','o','x','c','l'];
+const MONTHS_ID   = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const MONTHS_SH   = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const DOW_S = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 const DOW_L = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-const UNITS = [['CS','Customer Service'],['KKS','Koordinator'],['KS','Kepala Shift']];
-const LSKEY = 'papanShiftV2';
+const LSKEY = 'roster-shift-v2';
 
-/* ================= SEED AGUSTUS 2026 ================= */
-const expand = s => s.split(' ').flatMap(t => Array(parseInt(t.slice(1))||1).fill(t[0]));
-const SEED = [
+/* ================== DATA AWAL (AGUSTUS 2026) ================== */
+const RAW_2026_08 = [
 ['CS','FERY ISNAN PANE','M9 O M9 X P9 O P'],
 ['CS','MUHAMMAD FADLY JULIANSYAH','M2 O M12 O M4 X P10'],
 ['CS','BINSAR RIZKY SYABAN','P14 O P4 C M5 O M5'],
@@ -569,502 +626,509 @@ const SEED = [
 ['KS','KEVIN MANURUNG','P6 C M10 O M7 O M5'],
 ['KS','WELLIANTO','P7 C M10 O M6 O M5'],
 ['KS','RICKY LEONARDO','P8 C M10 O M6 O M4']
-].map(([u,n,t])=>({u,n,c:expand(t)}));
+];
+const expand = s => s.split(' ').flatMap(t => Array(parseInt(t.slice(1))||1).fill(t[0]));
+const defaultMonths = () => ({ '2026-08': RAW_2026_08.map(([g,n,t])=>({g,n,c:expand(t)})) });
 
-/* ================= STATE ================= */
+/* ================== STATE ================== */
 let state;
-try{ state = JSON.parse(localStorage.getItem(LSKEY)); }catch(e){ state = null; }
-if(!state || !state.months){ state = { months:{ '2026-08':{ rows: JSON.parse(JSON.stringify(SEED)) } } }; }
+try{ state = JSON.parse(localStorage.getItem(LSKEY)); }catch(e){ state=null; }
+if(!state || typeof state!=='object' || !state.months) state = { months: defaultMonths() };
 
-const TODAY = new Date();
-let curY = 2026, curM = 7;                 /* Agustus 2026 (0-based) */
-if(TODAY.getFullYear()===2026 && TODAY.getMonth()===7){ /* tetap Agustus saat pertama dibuka */ }
-let selDate = 1, mode = 'cycle', brushCode = 'P';
-let activeGroup = 'ALL', query = '';
-let rowRefs = [], colCells = {}, painting = false, strokeSnapped = false;
-const undoStack = [];
+const keysSorted = () => Object.keys(state.months).sort();
+const daysOf  = k  => new Date(+k.slice(0,4), +k.slice(5,7), 0).getDate();
+const nextKeyOf = k => { let y=+k.slice(0,4), m=+k.slice(5,7); m++; if(m>12){m=1;y++;} return y+'-'+String(m).padStart(2,'0'); };
+const fitCells = (c,n) => c.slice(0,n).concat(Array(Math.max(0,n-c.length)).fill('O'));
 
-const $ = id => document.getElementById(id);
-const keyOf = (y,m)=> y+'-'+String(m+1).padStart(2,'0');
-const curKey = ()=> keyOf(curY,curM);
-const daysIn = (y,m)=> new Date(y,m+1,0).getDate();
-const dowOf = (y,m,d)=> new Date(y,m,d).getDay();
-const monthData = ()=> state.months[curKey()] || {rows:[]};
-const rows = ()=> monthData().rows;
+function normalize(s){
+  Object.keys(s.months).forEach(k=>{
+    if(!/^\d{4}-\d{2}$/.test(k)){ delete s.months[k]; return; }
+    const d = daysOf(k);
+    s.months[k] = (s.months[k]||[]).filter(r=>r && typeof r.n==='string').map(r=>({
+      g:String(r.g||'').toUpperCase(), n:r.n, c:fitCells((r.c||[]).map(x=>SH[x]?x:'O'), d)
+    }));
+  });
+}
+normalize(state);
 
-/* ================= SIMPAN / UNDO ================= */
+let curKey = (state.cur && state.months[state.cur]) ? state.cur : keysSorted()[0];
+let cur = [];                       // staf bulan aktif
+let brush=null, editMode=false, painting=false;
+let selDate=1, activeGroup='ALL', query='', hlCol=null, lastStatsKey='';
+let rowEls=[], colCells={};
+
+const cY = ()=> +curKey.slice(0,4);
+const cM = ()=> +curKey.slice(5,7);
+const days = ()=> daysOf(curKey);
+const dowOf = d => new Date(cY(), cM()-1, d).getDay();
+const monthLabel = ()=> MONTHS_ID[cM()-1]+' '+cY();
+const esc = s => s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ================== SIMPAN ================== */
+const chip = document.getElementById('saveChip');
 let saveT;
-function save(){
-  clearTimeout(saveT);
-  saveT = setTimeout(()=>{
-    try{ localStorage.setItem(LSKEY, JSON.stringify(state)); }catch(e){}
-    const c = $('saveChip'); c.classList.add('flash'); setTimeout(()=>c.classList.remove('flash'), 700);
-  }, 250);
+function persist(){
+  state.cur = curKey;
+  try{ localStorage.setItem(LSKEY, JSON.stringify(state)); }catch(e){}
+  const n=new Date();
+  chip.className='savechip ok';
+  chip.textContent='✓ TERSIMPAN '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
 }
-function pushUndo(){
-  undoStack.push({ key:curKey(), data: state.months[curKey()] ? JSON.stringify(state.months[curKey()]) : null });
-  if(undoStack.length > 60) undoStack.shift();
-}
-function undo(){
-  const e = undoStack.pop(); if(!e) return;
-  if(e.data===null) delete state.months[e.key];
-  else state.months[e.key] = JSON.parse(e.data);
-  save(); if(e.key===curKey()) renderBoard();
+function markDirty(){
+  chip.className='savechip busy'; chip.textContent='◌ MENYIMPAN…';
+  clearTimeout(saveT); saveT=setTimeout(persist, 350);
 }
 
-/* ================= RENDER ================= */
-function setCellVisual(td, code){
-  const s = SH[code];
-  td.className = 'sh '+s.cls + (td.classList.contains('sel')?' sel':'') + (td.classList.contains('ch')?' ch':'') + (td.classList.contains('today')?' today':'');
-  td.textContent = s.label; td.dataset.k = code;
-}
-function rowSumHtml(row){
-  const cnt = {p:0,m:0,o:0,l:0};
-  row.c.forEach(c=>{ if(c==='P')cnt.p++; else if(c==='M'||c==='C')cnt.m++; else if(c==='O'||c==='X')cnt.o++; else if(c==='L')cnt.l++; });
-  return `<span class="sc p" title="Shift pagi">P ${cnt.p}</span><span class="sc m" title="Shift malam (incl. C. Malam)">M ${cnt.m}</span><span class="sc o" title="Off (incl. Off C. Pagi)">O ${cnt.o}</span><span class="sc l" title="Cuti">CT ${cnt.l}</span>`;
-}
+/* ================== RENDER ================== */
+const hrow=document.getElementById('hrow'), tbody=document.getElementById('tbody'),
+      frow=document.getElementById('frow'), twrap=document.getElementById('twrap'),
+      tip=document.getElementById('tip');
 
-function renderBoard(){
-  const days = daysIn(curY,curM), rs = rows();
-  const isThisMonth = (curY===TODAY.getFullYear() && curM===TODAY.getMonth());
-  const todayD = TODAY.getDate();
+function buildTable(){
+  const d = days();
+  hrow.innerHTML = '<th class="c-grp">UNIT</th><th class="c-name">NAMA STAF</th>' +
+    Array.from({length:d},(_,i)=>{
+      const dd=i+1, dw=dowOf(dd);
+      return `<th data-col="${dd}" class="${dw===0?'sun':(dw===6?'wknd':'')}" title="Sorot ${dd} ${monthLabel()}">
+        <span class="dow">${DOW_S[dw]}</span><span class="num">${dd}</span></th>`;
+    }).join('') + '<th class="c-sum">REKAP · P/M/OFF/CT</th>';
 
-  /* header */
-  let h = '<th class="c-grp">UNIT</th><th class="c-name">NAMA STAF</th>';
-  for(let d=1; d<=days; d++){
-    const dw = dowOf(curY,curM,d);
-    h += `<th data-col="${d}" class="${dw===0?'sun':(dw===6?'wknd':'')}${(isThisMonth&&d===todayD)?' today':''}" title="Sorot ${d} ${MONS_S[curM]}">
-      <span class="dow">${DOW_S[dw]}</span><span class="num">${d}</span></th>`;
-  }
-  h += '<th class="c-sum">REKAP · P/M/O/CT</th>';
-  $('hrow').innerHTML = h;
-
-  /* body */
-  let b = '', gi = 0;
+  let html='';
+  const UNITS=[['CS','Customer Service'],['KKS','Koordinator'],['KS','Kepala Shift']];
   UNITS.forEach(([g,label])=>{
-    const idxs = rs.map((r,i)=> r.u===g ? i : -1).filter(i=>i>=0);
-    b += `<tr class="band" data-g="${g}"><td colspan="${days+3}">▮ UNIT <em>${g}</em> — ${label}<small>${idxs.length} staf</small>
-      <button class="bandadd" data-u="${g}">＋ TAMBAH STAF</button></td></tr>`;
-    idxs.forEach(i=>{
-      const r = rs[i];
-      const tds = r.c.slice(0,days).map((c,ci)=>{
-        const d = ci+1, s = SH[c]||SH[''];
-        return `<td class="sh ${s.cls}${(isThisMonth&&d===todayD)?' today':''}" data-col="${d}" data-r="${i}" data-k="${c}">${s.label}</td>`;
+    const members = cur.map((r,i)=>({r,i})).filter(x=>x.r.g===g);
+    html += `<tr class="band" data-g="${g}"><td colspan="${d+3}">▮ UNIT <em>${g}</em> — ${label}<small>${members.length} staf</small></td></tr>`;
+    members.forEach(({r,i})=>{
+      const cnt={p:0,m:0,o:0,l:0};
+      r.c.forEach(k=>{ if(k==='P')cnt.p++; else if(k==='M'||k==='C')cnt.m++; else if(k==='O'||k==='X')cnt.o++; else cnt.l++; });
+      const tds = r.c.map((k,idx)=>{
+        const s=SH[k]||SH.O;
+        return `<td class="sh ${s.cls}" data-r="${i}" data-d="${idx+1}">${s.label}</td>`;
       }).join('');
-      b += `<tr class="row" data-g="${g}" data-r="${i}" data-name="${r.n}" style="animation-delay:${Math.min(gi++*14,650)}ms">
-        <td class="c-grp"><button class="badge ${g.toLowerCase()}" data-r="${i}" title="Klik untuk pindah unit (CS→KKS→KS)">${g}</button></td>
-        <td class="c-name"><span class="nmrow"><span class="no">${String(i+1).padStart(2,'0')}</span>
-          <input class="nmin" data-r="${i}" value="${r.n.replace(/"/g,'&quot;')}" spellcheck="false" title="Klik untuk ubah nama">
-          <span class="acts">
-            <button class="ract" data-a="dup" data-r="${i}" title="Duplikasi baris">⧉</button>
-            <button class="ract" data-a="clr" data-r="${i}" title="Kosongkan seluruh baris">⌫</button>
-            <button class="ract del" data-a="del" data-r="${i}" title="Hapus staf">✕</button>
-          </span></span></td>
-        ${tds}<td class="c-sum">${rowSumHtml(r)}</td></tr>`;
+      html += `<tr data-g="${g}" data-i="${i}" style="animation-delay:${Math.min(i*13,560)}ms">
+        <td class="c-grp"><span class="badge ${g.toLowerCase()}">${g}</span></td>
+        <td class="c-name"><span class="nm"><span class="no">${String(i+1).padStart(2,'0')}</span>
+          <b class="nmname" title="Klik dua kali untuk ubah nama">${esc(r.n)}</b>
+          <span class="ract-wrap"><button class="ract dup" title="Duplikasi pola baris ini">⧉</button><button class="ract del" title="Hapus staf ini">✕</button></span>
+        </span></td>${tds}
+        <td class="c-sum"><span class="sc p" title="Shift pagi">P ${cnt.p}</span><span class="sc m" title="Shift malam (termasuk C. Malam)">M ${cnt.m}</span><span class="sc o" title="Off (termasuk Off C. Pagi)">O ${cnt.o}</span><span class="sc l" title="Cuti">CT ${cnt.l}</span></td></tr>`;
     });
   });
-  $('tbody').innerHTML = b;
+  html += `<tr class="addrow"><td colspan="${d+3}"><span class="add-inner">＋ STAF BARU
+      <select id="addG"><option>CS</option><option>KKS</option><option>KS</option></select>
+      <input id="addN" placeholder="Nama lengkap staf…">
+      <button id="addBtn">TAMBAHKAN</button>
+      <span class="hint">Sel baru diisi OFFDAY — cat dengan kuas.</span></span></td></tr>`;
+  tbody.innerHTML = html;
 
-  /* footer */
-  $('frow').innerHTML = `<td class="covlab" colspan="2">KEKUATAN<br>HARIAN ▸</td>` +
-    Array.from({length:days},(_,i)=>`<td class="cov" data-col="${i+1}"><b class="fp">–</b><b class="fm">–</b></td>`).join('') + '<td class="cov"></td>';
+  frow.innerHTML = '<td class="covlab" colspan="2">KEKUATAN<br>HARIAN ▸</td>' +
+    Array.from({length:d},(_,i)=>`<td class="cov" data-col="${i+1}"><b class="fp">–</b><b class="fm">–</b></td>`).join('') +
+    '<td class="cov"></td>';
 
-  /* cache */
-  colCells = {};
-  document.querySelectorAll('thead th[data-col]').forEach(th=>{ colCells[+th.dataset.col] = {th, tds:[], tf:null}; });
-  document.querySelectorAll('tfoot td.cov[data-col]').forEach(td=>{ colCells[+td.dataset.col].tf = td; });
-  rowRefs = [];
-  document.querySelectorAll('tbody tr.row').forEach(tr=>{
-    const i = +tr.dataset.r;
-    rowRefs[i] = { tr, sum: tr.querySelector('td.c-sum'), tds: [...tr.querySelectorAll('td.sh')] };
-    rowRefs[i].tds.forEach(td=>{ colCells[+td.dataset.col].tds.push(td); });
-  });
-
-  /* teks masthead */
-  $('mName').textContent = MONS[curM]; $('mYear').textContent = curY;
-  $('bhMonth').textContent = MONS_S[curM]+' '+curY;
-  $('spotMY').textContent = MONS[curM]+' '+curY;
-  document.title = `Jadwal Shift ${MONS_S[curM]} ${curY} — Papan Operasional`;
-  $('mastSub').innerHTML = `Periode <b>1–${days} ${MONS_S[curM]} ${curY}</b> · ${days} hari · <b>${rs.length} staf</b> terjadwal · pola shift Pagi / Malam dengan rolling antar regu.`;
-  $('selMon').value = curM; $('selYear').value = curY;
-
-  $('empty').style.display = rs.length ? 'none' : 'block';
-  selDate = Math.min(selDate, days);
-  refreshStats(); applyFilter(); selectDate(selDate);
+  rowEls=[...tbody.querySelectorAll('tr[data-i]')];
+  colCells={};
+  hrow.querySelectorAll('th[data-col]').forEach(th=>{ colCells[+th.dataset.col]={th,tds:[],tf:null}; });
+  tbody.querySelectorAll('td.sh').forEach(td=>{ colCells[+td.dataset.col].tds.push(td); });
+  frow.querySelectorAll('td.cov[data-col]').forEach(td=>{ colCells[+td.dataset.col].tf=td; });
 }
 
-/* ================= STATISTIK ================= */
-function visibleIdx(){
-  const q = query.trim().toUpperCase(), out = [];
-  rows().forEach((r,i)=>{
-    const ref = rowRefs[i]; if(!ref) return;
-    if(ref.tr.classList.contains('hid') || ref.tr.classList.contains('dim')) return;
-    if(q && !r.n.toUpperCase().includes(q)) return;
-    out.push(i);
+function visibleRows(){
+  return cur.filter((r,i)=>{
+    const el=rowEls[i];
+    return el && !el.classList.contains('off') && !el.classList.contains('dim');
   });
-  return out;
 }
 function coverage(d){
-  const c = {p:0,m:0,o:0,l:0};
-  visibleIdx().forEach(i=>{
-    const k = rows()[i].c[d-1];
-    if(k==='P')c.p++; else if(k==='M'||k==='C')c.m++; else if(k==='O'||k==='X')c.o++; else if(k==='L')c.l++;
+  const c={p:0,m:0,o:0,l:0};
+  visibleRows().forEach(r=>{
+    const k=r.c[d-1];
+    if(k==='P')c.p++; else if(k==='M'||k==='C')c.m++;
+    else if(k==='O'||k==='X')c.o++; else c.l++;
   });
   return c;
 }
-function refreshStats(){
-  const rs = rows(), days = daysIn(curY,curM);
-  /* tile */
-  $('tAll').textContent = rs.length;
-  $('tCS').textContent  = rs.filter(r=>r.u==='CS').length;
-  $('tKKS').textContent = rs.filter(r=>r.u==='KKS').length;
-  $('tKS').textContent  = rs.filter(r=>r.u==='KS').length;
-  /* distribusi */
-  const tot = {p:0,m:0,o:0,l:0};
-  rs.forEach(r=>r.c.forEach(c=>{ if(c==='P')tot.p++; else if(c==='M'||c==='C')tot.m++; else if(c==='O'||c==='X')tot.o++; else if(c==='L')tot.l++; }));
-  const sum = Math.max(tot.p+tot.m+tot.o+tot.l,1);
-  $('dbP').style.width=(tot.p/sum*100)+'%'; $('dbM').style.width=(tot.m/sum*100)+'%';
-  $('dbO').style.width=(tot.o/sum*100)+'%'; $('dbL').style.width=(tot.l/sum*100)+'%';
-  $('dlP').textContent=tot.p.toLocaleString('id-ID'); $('dlM').textContent=tot.m.toLocaleString('id-ID');
-  $('dlO').textContent=tot.o.toLocaleString('id-ID'); $('dlL').textContent=tot.l.toLocaleString('id-ID');
-  refreshFoot(); refreshSpot();
-}
 function refreshFoot(){
-  const days = daysIn(curY,curM);
-  for(let d=1; d<=days; d++){
-    const c = coverage(d), tf = colCells[d] && colCells[d].tf; if(!tf) continue;
-    tf.querySelector('.fp').textContent = '☀ '+c.p;
-    tf.querySelector('.fm').textContent = '☾ '+c.m;
+  for(let d=1; d<=days(); d++){
+    const c=coverage(d), tf=colCells[d] && colCells[d].tf;
+    if(!tf) continue;
+    tf.querySelector('.fp').textContent='☀ '+c.p;
+    tf.querySelector('.fm').textContent='☾ '+c.m;
   }
 }
 function refreshSpot(){
-  const c = coverage(selDate);
-  $('spotNum').textContent = selDate;
-  $('spotDow').textContent = DOW_L[dowOf(curY,curM,selDate)];
-  $('sP').textContent=c.p; $('sM').textContent=c.m; $('sO').textContent=c.o; $('sL').textContent=c.l;
+  const c=coverage(selDate);
+  document.getElementById('spotNum').textContent=selDate;
+  document.getElementById('spotMon').textContent=monthLabel().toUpperCase();
+  document.getElementById('spotDow').textContent=DOW_L[dowOf(selDate)];
+  document.getElementById('sP').textContent=c.p;
+  document.getElementById('sM').textContent=c.m;
+  document.getElementById('sO').textContent=c.o;
+  document.getElementById('sL').textContent=c.l;
 }
-let statRaf = false;
-function scheduleStats(){ if(statRaf) return; statRaf = true; requestAnimationFrame(()=>{ statRaf=false; refreshStats(); }); }
-
 function selectDate(d){
-  const days = daysIn(curY,curM);
-  selDate = Math.min(days, Math.max(1, d));
-  Object.values(colCells).forEach(c=>{ c.th.classList.remove('sel'); c.tf.classList.remove('sel'); c.tds.forEach(td=>td.classList.remove('sel')); });
-  const c = colCells[selDate]; if(!c) return;
-  c.th.classList.add('sel'); c.tf.classList.add('sel'); c.tds.forEach(td=>td.classList.add('sel'));
+  selDate=Math.min(days(),Math.max(1,d));
+  Object.values(colCells).forEach(c=>{
+    c.th.classList.remove('sel');
+    if(c.tf)c.tf.classList.remove('sel');
+    c.tds.forEach(td=>td.classList.remove('sel'));
+  });
+  const c=colCells[selDate];
+  if(c){ c.th.classList.add('sel'); if(c.tf)c.tf.classList.add('sel'); c.tds.forEach(td=>td.classList.add('sel')); }
   refreshSpot();
 }
-
-/* ================= FILTER ================= */
 function applyFilter(){
-  const q = query.trim().toUpperCase(); let vis = 0;
-  rows().forEach((r,i)=>{
-    const ref = rowRefs[i]; if(!ref) return;
-    ref.tr.classList.toggle('hid', activeGroup!=='ALL' && r.u!==activeGroup);
-    ref.tr.classList.toggle('dim', q!=='' && !r.n.toUpperCase().includes(q));
-    if(!ref.tr.classList.contains('hid') && !ref.tr.classList.contains('dim')) vis++;
+  const q=query.trim().toUpperCase();
+  let vis=0;
+  rowEls.forEach((el,i)=>{
+    const r=cur[i];
+    el.classList.toggle('off', activeGroup!=='ALL' && r.g!==activeGroup);
+    el.classList.toggle('dim', q!=='' && !r.n.toUpperCase().includes(q));
+    if(!el.classList.contains('off') && !el.classList.contains('dim')) vis++;
   });
-  document.querySelectorAll('tr.band').forEach(b=> b.classList.toggle('hid', activeGroup!=='ALL' && b.dataset.g!==activeGroup));
+  document.querySelectorAll('tr.band').forEach(b=>{
+    b.classList.toggle('off', activeGroup!=='ALL' && b.dataset.g!==activeGroup);
+  });
+  document.getElementById('visCount').textContent=vis+' staf ditampilkan';
   refreshFoot(); refreshSpot();
 }
+function setNum(el,val,animate){
+  if(!animate){ el.textContent=val; return; }
+  const t0=performance.now();
+  (function step(t){ const p=Math.min((t-t0)/700,1), e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(val*e); if(p<1)requestAnimationFrame(step); })(t0);
+}
+function updateStats(){
+  const animate = curKey!==lastStatsKey; lastStatsKey=curKey;
+  const cs=cur.filter(r=>r.g==='CS').length, kks=cur.filter(r=>r.g==='KKS').length, ks=cur.filter(r=>r.g==='KS').length;
+  setNum(document.getElementById('stAll'),cur.length,animate);
+  setNum(document.getElementById('stCs'),cs,animate);
+  setNum(document.getElementById('stKks'),kks,animate);
+  setNum(document.getElementById('stKs'),ks,animate);
+  const tot={p:0,m:0,o:0,l:0};
+  cur.forEach(r=>r.c.forEach(k=>{
+    if(k==='P')tot.p++; else if(k==='M'||k==='C')tot.m++;
+    else if(k==='O'||k==='X')tot.o++; else tot.l++;
+  }));
+  const sum=tot.p+tot.m+tot.o+tot.l||1;
+  requestAnimationFrame(()=>{
+    document.getElementById('dbP').style.width=(tot.p/sum*100)+'%';
+    document.getElementById('dbM').style.width=(tot.m/sum*100)+'%';
+    document.getElementById('dbO').style.width=(tot.o/sum*100)+'%';
+    document.getElementById('dbL').style.width=(tot.l/sum*100)+'%';
+  });
+  document.getElementById('dlP').textContent=tot.p.toLocaleString('id-ID');
+  document.getElementById('dlM').textContent=tot.m.toLocaleString('id-ID');
+  document.getElementById('dlO').textContent=tot.o.toLocaleString('id-ID');
+  document.getElementById('dlL').textContent=tot.l.toLocaleString('id-ID');
+}
+function updateMast(){
+  document.title='Jadwal Shift — '+monthLabel()+' · Customer Service';
+  const mo=document.getElementById('moTitle');
+  mo.textContent=monthLabel().toUpperCase();
+  mo.classList.remove('flip'); void mo.offsetWidth; mo.classList.add('flip');
+  document.getElementById('mTitle').textContent=monthLabel().toUpperCase()+' ▾';
+  document.getElementById('mastSub').innerHTML=
+    `Periode <b>1 – ${days()} ${monthLabel()}</b> · <b>${cur.length}</b> staf terdaftar · unit <b>CS · KKS · KS</b> · perubahan tersimpan otomatis di peramban.`;
+  document.getElementById('footPeriod').textContent=monthLabel();
+}
+function updateMonthNav(){
+  const ks=keysSorted(), i=ks.indexOf(curKey);
+  document.getElementById('mPrev').disabled = i<=0;
+  document.getElementById('mNext').disabled = i>=ks.length-1;
+}
+function render(){
+  const sl=twrap.scrollLeft, st=twrap.scrollTop;
+  cur=state.months[curKey]||[];
+  buildTable();
+  applyFilter();
+  updateStats();
+  updateMast();
+  updateMonthNav();
+  selectDate(selDate);
+  twrap.scrollLeft=sl; twrap.scrollTop=st;
+}
 
-/* ================= EDIT SEL ================= */
-function applyCode(td, code){
-  const r = +td.dataset.r, d = +td.dataset.col;
-  rows()[r].c[d-1] = code;
-  setCellVisual(td, code);
-  rowRefs[r].sum.innerHTML = rowSumHtml(rows()[r]);
-  scheduleStats();
+/* ================== EDIT SEL ================== */
+function setCell(td,k){
+  const r=+td.dataset.r, d=+td.dataset.d;
+  if(!cur[r]) return;
+  cur[r].c[d-1]=k;
+  SHCLS.forEach(c=>td.classList.remove(c));
+  td.classList.add(SH[k].cls);
+  td.textContent=SH[k].label;
+  td.classList.remove('pop'); void td.offsetWidth; td.classList.add('pop');
+  markDirty(); refreshFoot(); refreshSpot();
 }
-function cycleCell(td, dir){
-  pushUndo();
-  const cur = td.dataset.k;
-  let i = ORDER.indexOf(cur); if(i<0) i = 0;
-  applyCode(td, ORDER[(i+dir+ORDER.length*2)%ORDER.length]);
-  save();
-}
-function paintCell(td){
-  if(td.dataset.k === brushCode) return;
-  if(!strokeSnapped){ pushUndo(); strokeSnapped = true; }
-  applyCode(td, brushCode==='e' ? '' : brushCode);
+function paint(td){ if(brush) setCell(td,brush); }
+function cycle(td){
+  const k=cur[+td.dataset.r].c[+td.dataset.d-1];
+  setCell(td, ORDER[(ORDER.indexOf(k)+1)%ORDER.length]);
 }
 
-/* ================= EVENT: TBODY (delegasi) ================= */
-const tbody = $('tbody'), tip = $('tip');
 tbody.addEventListener('mousedown', e=>{
-  const td = e.target.closest('td.sh'); if(!td) return;
-  if(mode==='brush'){ e.preventDefault(); painting = true; strokeSnapped = false; paintCell(td); }
+  const td=e.target.closest('td.sh');
+  if(td && editMode && brush && e.button===0){ painting=true; paint(td); e.preventDefault(); }
 });
 tbody.addEventListener('mouseover', e=>{
-  const td = e.target.closest('td.sh'); if(!td) return;
-  if(painting && mode==='brush'){ paintCell(td); }
-  /* crosshair */
-  const d = +td.dataset.col;
-  clearColHl(); hlCol = d;
-  colCells[d].th.classList.add('ch'); colCells[d].tds.forEach(x=>x.classList.add('ch'));
+  const td=e.target.closest('td.sh');
+  if(!td) return;
+  if(painting) paint(td);
+  /* crosshair kolom */
+  const d=+td.dataset.col || +td.dataset.d;
+  if(hlCol && hlCol!==d) clearCol();
+  if(hlCol!==d && colCells[d]){
+    hlCol=d; colCells[d].th.classList.add('ch');
+    colCells[d].tds.forEach(x=>x.classList.add('ch'));
+  }
   /* tooltip */
-  const r = +td.dataset.r, k = td.dataset.k, s = SH[k]||SH[''];
-  tip.innerHTML = `<b>${rows()[r].n}</b><span>${DOW_L[dowOf(curY,curM,d)]}, ${d} ${MONS_S[curM]} ${curY}</span>
+  const r=cur[+td.dataset.r]; if(!r) return;
+  const dd=+td.dataset.d, k=r.c[dd-1], s=SH[k];
+  tip.innerHTML=`<b>${esc(r.n)}</b><span>${DOW_L[dowOf(dd)]}, ${dd} ${monthLabel()}</span>
     <em class="${s.cls}">${s.label}</em><small>${s.desc}</small>`;
   tip.classList.add('show');
 });
-tbody.addEventListener('click', e=>{
-  /* aksi baris */
-  const act = e.target.closest('[data-a]');
-  if(act){ handleRowAction(act); return; }
-  /* badge unit */
-  const bd = e.target.closest('.badge[data-r]');
-  if(bd){
-    pushUndo();
-    const r = +bd.dataset.r, seq = ['CS','KKS','KS'];
-    rows()[r].u = seq[(seq.indexOf(rows()[r].u)+1)%3];
-    save(); renderBoard(); return;
-  }
-  /* siklus sel */
-  const td = e.target.closest('td.sh');
-  if(td && mode==='cycle'){ cycleCell(td, 1); }
-});
-tbody.addEventListener('contextmenu', e=>{
-  const td = e.target.closest('td.sh'); if(!td) return;
-  e.preventDefault(); cycleCell(td, -1);
-});
 tbody.addEventListener('mouseout', e=>{
   if(!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('td.sh')){
-    clearColHl(); tip.classList.remove('show');
+    clearCol(); tip.classList.remove('show');
   }
 });
-tbody.addEventListener('change', e=>{
-  const inp = e.target.closest('.nmin'); if(!inp) return;
-  pushUndo();
-  rows()[+inp.dataset.r].n = inp.value.trim() || 'TANPA NAMA';
-  inp.value = rows()[+inp.dataset.r].n;
-  inp.closest('tr').dataset.name = inp.value;
-  save();
-});
-document.addEventListener('mouseup', ()=>{ if(painting){ painting=false; save(); } });
-document.addEventListener('mousemove', e=>{
-  if(!tip.classList.contains('show')) return;
-  let x = e.clientX+16, y = e.clientY+14;
-  if(x+tip.offsetWidth > innerWidth-10) x = e.clientX - tip.offsetWidth - 16;
-  if(y+tip.offsetHeight > innerHeight-10) y = e.clientY - tip.offsetHeight - 14;
-  tip.style.left = x+'px'; tip.style.top = y+'px';
-});
-let hlCol = null;
-function clearColHl(){
-  if(hlCol===null || !colCells[hlCol]) return;
+window.addEventListener('mouseup', ()=> painting=false);
+function clearCol(){
+  if(!hlCol) return;
   colCells[hlCol].th.classList.remove('ch');
   colCells[hlCol].tds.forEach(x=>x.classList.remove('ch'));
-  hlCol = null;
+  hlCol=null;
 }
+document.addEventListener('mousemove', e=>{
+  if(!tip.classList.contains('show')) return;
+  const w=tip.offsetWidth, h=tip.offsetHeight;
+  let x=e.clientX+16, y=e.clientY+14;
+  if(x+w>innerWidth-10) x=e.clientX-w-16;
+  if(y+h>innerHeight-10) y=e.clientY-h-14;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+});
 
-function handleRowAction(btn){
-  const a = btn.dataset.a, r = +btn.dataset.r, days = daysIn(curY,curM);
-  if(a==='dup'){
-    pushUndo();
-    const src = rows()[r];
-    rows().splice(r+1, 0, { u:src.u, n:src.n+' (SALINAN)', c:src.c.slice() });
-    save(); renderBoard();
-  } else if(a==='clr'){
-    pushUndo();
-    rows()[r].c = Array(days).fill('');
-    rowRefs[r].tds.forEach(td=>setCellVisual(td,''));
-    rowRefs[r].sum.innerHTML = rowSumHtml(rows()[r]);
-    save(); scheduleStats();
-  } else if(a==='del'){
-    if(!btn.classList.contains('arm')){
-      btn.classList.add('arm'); btn.textContent = 'YAKIN?';
-      setTimeout(()=>{ btn.classList.remove('arm'); btn.textContent='✕'; }, 2200);
-      return;
-    }
-    pushUndo();
-    rows().splice(r,1);
-    save(); renderBoard();
+tbody.addEventListener('contextmenu', e=>{
+  const td=e.target.closest('td.sh');
+  if(td && editMode){ e.preventDefault(); setCell(td,'O'); }
+});
+
+tbody.addEventListener('click', e=>{
+  if(e.target.id==='addBtn'){ addStaff(); return; }
+  const dup=e.target.closest('.dup'), del=e.target.closest('.del');
+  if(dup){
+    const i=+dup.closest('tr').dataset.i, r=cur[i];
+    cur.splice(i+1,0,{g:r.g,n:r.n+' (SALINAN)',c:[...r.c]});
+    markDirty(); render(); return;
   }
+  if(del){
+    const i=+del.closest('tr').dataset.i, r=cur[i];
+    if(confirm('Hapus "'+r.n+'" dari bulan '+monthLabel()+'?')){
+      cur.splice(i,1); markDirty(); render();
+    }
+    return;
+  }
+  const td=e.target.closest('td.sh');
+  if(td && editMode && !brush) cycle(td);
+});
+tbody.addEventListener('keydown', e=>{
+  if(e.target.id==='addN' && e.key==='Enter') addStaff();
+});
+function addStaff(){
+  const g=document.getElementById('addG').value;
+  const n=document.getElementById('addN').value.trim().toUpperCase();
+  if(!n){ alert('Nama staf wajib diisi.'); return; }
+  cur.push({g,n,c:Array(days()).fill('O')});
+  markDirty(); render();
 }
-
-/* ================= MODE & LEGENDA ================= */
-function setMode(m){
-  mode = m;
-  document.body.classList.toggle('mode-cycle', m==='cycle');
-  document.body.classList.toggle('mode-brush', m==='brush');
-  $('modeCycle').classList.toggle('on', m==='cycle');
-  $('modeBrush').classList.toggle('on', m==='brush');
-  document.querySelectorAll('.lchip[data-k]').forEach(ch=>{
-    ch.classList.toggle('pick', m==='brush' && ((ch.dataset.k==='e'&&brushCode==='')||ch.dataset.k===brushCode));
-  });
-}
-$('modeCycle').onclick = ()=>setMode('cycle');
-$('modeBrush').onclick = ()=>setMode('brush');
-document.querySelectorAll('.lchip[data-k]').forEach(ch=>{
-  ch.addEventListener('mouseenter', ()=>{ if(ch.dataset.k!=='e') document.body.classList.add('hl-'+ch.dataset.k); });
-  ch.addEventListener('mouseleave', ()=>{ document.body.className = document.body.className.replace(/hl-\w/g,'').trim(); setMode(mode); });
-  ch.addEventListener('click', ()=>{
-    brushCode = ch.dataset.k==='e' ? '' : ch.dataset.k.toUpperCase();
-    setMode('brush');
+tbody.addEventListener('dblclick', e=>{
+  const b=e.target.closest('.nmname');
+  if(!b || !editMode) return;
+  const tr=b.closest('tr'), i=+tr.dataset.i, r=cur[i];
+  const inp=document.createElement('input');
+  inp.className='rename'; inp.value=r.n;
+  b.replaceWith(inp); inp.focus(); inp.select();
+  let done=false;
+  const commit=()=>{ if(done)return; done=true;
+    r.n=inp.value.trim().toUpperCase()||r.n; markDirty(); render(); };
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',ev=>{
+    if(ev.key==='Enter')inp.blur();
+    if(ev.key==='Escape'){ inp.value=r.n; inp.blur(); }
   });
 });
 
-/* ================= NAV BULAN ================= */
-function gotoMonth(y,m){
-  curY = y; curM = m; selDate = 1;
-  if(y===TODAY.getFullYear() && m===TODAY.getMonth()) selDate = TODAY.getDate();
-  renderBoard();
-}
-$('mPrev').onclick = ()=>{ let m=curM-1,y=curY; if(m<0){m=11;y--;} gotoMonth(y,m); };
-$('mNext').onclick = ()=>{ let m=curM+1,y=curY; if(m>11){m=0;y++;} gotoMonth(y,m); };
-MONS.forEach((n,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=n; $('selMon').appendChild(o); });
-for(let y=2025;y<=2028;y++){ const o=document.createElement('option'); o.value=y; o.textContent=y; $('selYear').appendChild(o); }
-$('selMon').onchange = ()=>gotoMonth(curY, +$('selMon').value);
-$('selYear').onchange = ()=>gotoMonth(+$('selYear').value, curM);
-$('btnToday').onclick = ()=>gotoMonth(TODAY.getFullYear(), TODAY.getMonth());
-
-/* ================= SPOT: navigasi + terapkan kolom ================= */
-$('prevD').onclick = ()=>selectDate(selDate-1);
-$('nextD').onclick = ()=>selectDate(selDate+1);
-$('hrow').addEventListener('click', e=>{ const th = e.target.closest('th[data-col]'); if(th) selectDate(+th.dataset.col); });
-const APPLY = [['P','PAGI'],['M','MALAM'],['O','OFF'],['X','OFF C.P'],['C','C.MLM'],['L','CUTI'],['','KOSONG']];
-$('applyRow').innerHTML = APPLY.map(([k,l])=>`<button class="apchip" data-k="${k}">${l}</button>`).join('');
-$('applyRow').addEventListener('click', e=>{
-  const b = e.target.closest('.apchip'); if(!b) return;
-  if(!rows().length) return;
-  pushUndo();
-  const code = b.dataset.k;
-  rows().forEach((r,i)=>{
-    r.c[selDate-1] = code;
-    const td = rowRefs[i].tds[selDate-1];
-    setCellVisual(td, code);
-    rowRefs[i].sum.innerHTML = rowSumHtml(r);
-  });
-  save(); scheduleStats();
+/* ================== MODE EDIT & KUAS ================== */
+document.getElementById('editTgl').addEventListener('change', e=>{
+  editMode=e.target.checked;
+  document.body.classList.toggle('editing',editMode);
+  if(!editMode){ brush=null; updateBrushUI(); }
 });
+const brushes=document.getElementById('brushes');
+brushes.addEventListener('click', e=>{
+  const b=e.target.closest('.bchip'); if(!b) return;
+  brush = brush===b.dataset.b ? null : b.dataset.b;
+  updateBrushUI();
+});
+function updateBrushUI(){
+  document.querySelectorAll('.bchip').forEach(x=>x.classList.toggle('on', x.dataset.b===brush));
+}
 
-/* ================= PENCARIAN & TAB ================= */
-const qInput = $('q');
-qInput.addEventListener('input', ()=>{ query = qInput.value; applyFilter(); });
+/* ================== NAVIGASI & KELOLA BULAN ================== */
+function setCurKey(k){
+  if(!state.months[k]) return;
+  curKey=k; selDate=1;
+  const n=new Date();
+  if(n.getFullYear()===cY() && n.getMonth()+1===cM()) selDate=n.getDate();
+  markDirty(); render();
+}
+document.getElementById('mPrev').onclick=()=>{
+  const ks=keysSorted(), i=ks.indexOf(curKey); if(i>0) setCurKey(ks[i-1]);
+};
+document.getElementById('mNext').onclick=()=>{
+  const ks=keysSorted(), i=ks.indexOf(curKey); if(i<ks.length-1) setCurKey(ks[i+1]);
+};
+const manager=document.getElementById('manager'), mlist=document.getElementById('mlist');
+function toggleManager(force){
+  const open = force!==undefined ? force : !manager.classList.contains('open');
+  if(open) buildManager();
+  manager.classList.toggle('open',open);
+}
+document.getElementById('mTitle').onclick=()=>toggleManager();
+document.getElementById('mAdd').onclick=()=>toggleManager(true);
+function buildManager(){
+  mlist.innerHTML = keysSorted().map(k=>{
+    const arr=state.months[k], y=+k.slice(0,4), m=+k.slice(5,7);
+    return `<div class="mrow ${k===curKey?'cur':''}"><b>${MONTHS_ID[m-1]} ${y}</b>
+      <span>${arr.length} staf · ${daysOf(k)} hari</span>
+      <div><button class="mbtn" data-open="${k}">BUKA</button><button class="mbtn del" data-del="${k}">✕</button></div></div>`;
+  }).join('');
+}
+mlist.addEventListener('click', e=>{
+  const o=e.target.closest('[data-open]');
+  if(o){ setCurKey(o.dataset.open); toggleManager(false); return; }
+  const d=e.target.closest('[data-del]');
+  if(d) delMonth(d.dataset.del);
+});
+function delMonth(k){
+  if(keysSorted().length<=1){ alert('Tidak dapat menghapus satu-satunya bulan.'); return; }
+  const y=+k.slice(0,4), m=+k.slice(5,7);
+  if(!confirm('Hapus jadwal '+MONTHS_ID[m-1]+' '+y+' beserta seluruh isinya?')) return;
+  delete state.months[k];
+  if(curKey===k) curKey=keysSorted()[0];
+  markDirty(); render(); buildManager();
+}
+function createMonth(mode){
+  const ks=keysSorted(), nk=nextKeyOf(ks[ks.length-1]);
+  if(state.months[nk]){ alert('Bulan tersebut sudah ada. Buka lewat daftar bulan.'); toggleManager(true); return; }
+  const base=state.months[curKey]||[], d=daysOf(nk);
+  state.months[nk]=base.map(r=>({
+    g:r.g, n:r.n,
+    c: mode==='copy' ? fitCells([...r.c], d) : Array(d).fill('O')
+  }));
+  markDirty(); setCurKey(nk); toggleManager(true);
+}
+document.getElementById('mkEmpty').onclick=()=>createMonth('empty');
+document.getElementById('mkCopy').onclick=()=>createMonth('copy');
+
+/* ================== EKSPOR / IMPOR / RESET ================== */
+function download(name,text,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type}));
+  a.download=name; a.click(); URL.revokeObjectURL(a.href);
+}
+document.getElementById('expJson').onclick=()=>{
+  state.cur=curKey;
+  download('jadwal-shift-semua-bulan.json', JSON.stringify(state,null,2), 'application/json');
+};
+document.getElementById('expCsv').onclick=()=>{
+  const d=days(), ms=MONTHS_SH[cM()-1], y=cY();
+  const lines=[['UNIT','NAMA STAF',...Array.from({length:d},(_,i)=>(i+1)+'-'+ms+'-'+y)].join(';')];
+  cur.forEach(r=>lines.push([r.g,'"'+r.n.replace(/"/g,'""')+'"',...r.c.map(k=>SH[k].label)].join(';')));
+  download('jadwal-shift-'+curKey+'.csv', '\uFEFF'+lines.join('\r\n'), 'text/csv');
+};
+document.getElementById('impBtn').onclick=()=>document.getElementById('impFile').click();
+document.getElementById('impFile').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const s=JSON.parse(rd.result);
+      if(!s || typeof s!=='object' || !s.months) throw 0;
+      normalize(s);
+      if(!keysSorted.call) {}
+      if(Object.keys(s.months).length===0) throw 0;
+      state=s;
+      curKey=(s.cur && s.months[s.cur]) ? s.cur : Object.keys(s.months).sort()[0];
+      persist(); render();
+      chip.textContent='✓ IMPOR BERHASIL';
+    }catch(err){ alert('File JSON tidak valid atau bukan cadangan jadwal.'); }
+  };
+  rd.readAsText(f); e.target.value='';
+});
+document.getElementById('resetBtn').onclick=()=>{
+  if(confirm('Kembalikan ke data awal (Agustus 2026)?\nSeluruh perubahan & bulan tambahan akan dihapus.')){
+    state={months:defaultMonths()}; curKey='2026-08';
+    persist(); render();
+  }
+};
+
+/* ================== FILTER & LEGENDA ================== */
+const qInput=document.getElementById('q');
+qInput.addEventListener('input', ()=>{ query=qInput.value; applyFilter(); });
 qInput.addEventListener('keydown', e=>{ if(e.key==='Escape'){ qInput.value=''; query=''; applyFilter(); qInput.blur(); }});
 document.addEventListener('keydown', e=>{
   if(e.key==='/' && document.activeElement!==qInput){ e.preventDefault(); qInput.focus(); }
-  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && document.activeElement.tagName!=='INPUT'){ e.preventDefault(); undo(); }
 });
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
-    t.classList.add('on'); activeGroup = t.dataset.g; applyFilter();
+    t.classList.add('on'); activeGroup=t.dataset.g; applyFilter();
   });
 });
-
-/* ================= MODAL TAMBAH STAF ================= */
-function openModal(unit){
-  $('fName').value = ''; $('fUnit').value = unit || 'CS';
-  const fc = $('fCopy'); fc.innerHTML = '<option value="">— jadwal kosong —</option>';
-  rows().forEach((r,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=`${r.n} (${r.u})`; fc.appendChild(o); });
-  $('overlay').classList.add('open'); setTimeout(()=>$('fName').focus(), 50);
-}
-function closeModal(){ $('overlay').classList.remove('open'); }
-$('btnAdd').onclick = ()=>openModal('CS');
-$('emptyAdd').onclick = ()=>openModal('CS');
-$('btnCancel').onclick = closeModal;
-$('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
-$('btnSave').onclick = ()=>{
-  const n = $('fName').value.trim();
-  if(!n){ $('fName').focus(); return; }
-  pushUndo();
-  const days = daysIn(curY,curM);
-  const src = $('fCopy').value;
-  const c = src==='' ? Array(days).fill('') : rows()[+src].c.slice();
-  if(!state.months[curKey()]) state.months[curKey()] = {rows:[]};
-  rows().push({ u:$('fUnit').value, n, c });
-  save(); closeModal(); renderBoard();
-};
-tbody.addEventListener('click', e=>{
-  const b = e.target.closest('.bandadd'); if(b) openModal(b.dataset.u);
+document.querySelectorAll('.lchip[data-k]').forEach(ch=>{
+  ch.addEventListener('mouseenter', ()=>document.body.classList.add('hl-'+ch.dataset.k));
+  ch.addEventListener('mouseleave', ()=>document.body.className = editMode?'editing':'');
 });
 
-/* ================= SALIN BULAN SEBELUMNYA ================= */
-function copyPrev(){
-  let m = curM-1, y = curY; if(m<0){ m=11; y--; }
-  const prev = state.months[keyOf(y,m)];
-  if(!prev || !prev.rows.length){ alert('Tidak ada data pada bulan sebelumnya ('+MONS_S[m]+' '+y+').'); return; }
-  if(rows().length && !confirm('Bulan ini sudah berisi data. Timpa dengan salinan '+MONS_S[m]+' '+y+'?')) return;
-  pushUndo();
-  const days = daysIn(curY,curM);
-  state.months[curKey()] = { rows: prev.rows.map(r=>({ u:r.u, n:r.n, c:r.c.slice(0,days).concat(Array(Math.max(0,days-r.c.length)).fill('')) })) };
-  save(); renderBoard();
-}
-$('btnCopyPrev').onclick = copyPrev;
-$('emptyCopy').onclick = copyPrev;
-
-/* ================= EKSPOR / IMPOR / RESET ================= */
-function download(name, text, mime){
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], {type:mime}));
-  a.download = name; a.click(); URL.revokeObjectURL(a.href);
-}
-$('btnJson').onclick = ()=>download('papan-shift-semua-bulan.json', JSON.stringify(state, null, 2), 'application/json');
-$('btnCsv').onclick = ()=>{
-  const days = daysIn(curY,curM);
-  let out = '\uFEFFUNIT;NAMA STAF;'+Array.from({length:days},(_,i)=>i+1).join(';')+'\n';
-  rows().forEach(r=>{
-    out += r.u+';'+r.n+';'+r.c.map(c=>SH[c]?SH[c].label:'').join(';')+'\n';
-  });
-  download(`jadwal-shift-${curKey()}.csv`, out, 'text/csv');
-};
-$('btnImport').onclick = ()=>$('impFile').click();
-$('impFile').addEventListener('change', e=>{
-  const f = e.target.files[0]; if(!f) return;
-  const rd = new FileReader();
-  rd.onload = ()=>{
-    try{
-      const obj = JSON.parse(rd.result);
-      if(!obj.months) throw 0;
-      if(!confirm('Gabungkan file ini ke data yang ada? (bulan dengan kunci sama akan ditimpa)')) return;
-      pushUndo();
-      Object.assign(state.months, obj.months);
-      save(); renderBoard();
-    }catch(err){ alert('File JSON tidak valid.'); }
-  };
-  rd.readAsText(f); e.target.value = '';
+/* sorot tanggal via kepala kolom */
+hrow.addEventListener('click', e=>{
+  const th=e.target.closest('th[data-col]');
+  if(th) selectDate(+th.dataset.col);
 });
-$('btnReset').onclick = ()=>{
-  if(!confirm('Muat ulang data contoh Agustus 2026? Data Agustus 2026 saat ini akan ditimpa.')) return;
-  pushUndo();
-  state.months['2026-08'] = { rows: JSON.parse(JSON.stringify(SEED)) };
-  save(); if(curKey()==='2026-08') renderBoard(); else alert('Data contoh Agustus 2026 berhasil dimuat ulang.');
-};
-$('btnWipe').onclick = ()=>{
-  if(!confirm('Hapus seluruh data bulan '+MONS_S[curM]+' '+curY+'?')) return;
-  pushUndo();
-  delete state.months[curKey()];
-  save(); renderBoard();
-};
-$('btnUndo').onclick = undo;
+document.getElementById('prevD').onclick=()=>selectDate(selDate-1);
+document.getElementById('nextD').onclick=()=>selectDate(selDate+1);
 
-/* ================= JAM & STATUS PERIODE ================= */
+/* ================== ELEMEN HIDUP ================== */
 function tick(){
-  const n = new Date();
-  $('clk').textContent = n.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false});
-  $('clkDate').textContent = n.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const start = new Date(curY,curM,1), end = new Date(curY,curM,daysIn(curY,curM),23,59,59);
-  const el = $('startTxt'), sub = $('startSub');
-  if(n < start){
-    const diff = start-n, d = Math.floor(diff/864e5),
-      h = String(Math.floor(diff/36e5)%24).padStart(2,'0'),
-      m = String(Math.floor(diff/6e4)%60).padStart(2,'0'),
-      s = String(Math.floor(diff/1e3)%60).padStart(2,'0');
-    el.textContent = `Dimulai dalam ${d} hari ${h}:${m}:${s}`;
-    sub.textContent = 'shift perdana · 1 '+MONS_S[curM]+' '+curY;
-  } else if(n <= end){
-    el.innerHTML = '<span class="go">● SEDANG BERLANGSUNG</span>';
-    sub.textContent = 'hari ke-'+n.getDate()+' dari '+daysIn(curY,curM);
+  const n=new Date();
+  document.getElementById('clk').textContent=
+    n.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false});
+  document.getElementById('clkDate').textContent=
+    n.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const start=new Date(cY(),cM()-1,1), end=new Date(cY(),cM()-1,days(),23,59,59);
+  const el=document.getElementById('startTxt'), sub=document.getElementById('startSub');
+  if(n<start){
+    const diff=start-n, dd=Math.floor(diff/864e5),
+          h=String(Math.floor(diff/36e5)%24).padStart(2,'0'),
+          m=String(Math.floor(diff/6e4)%60).padStart(2,'0'),
+          s=String(Math.floor(diff/1e3)%60).padStart(2,'0');
+    el.textContent='Dimulai dalam '+dd+' hari '+h+':'+m+':'+s;
+    sub.textContent='shift perdana · 1 '+monthLabel();
+  } else if(n<=end){
+    el.innerHTML='<span class="go">● SEDANG BERLANGSUNG</span>';
+    sub.textContent='hari ke-'+n.getDate()+' dari '+days();
   } else {
-    el.textContent = 'Periode selesai'; sub.textContent = 'arsip jadwal';
+    el.textContent='Periode selesai'; sub.textContent='arsip jadwal';
   }
 }
-tick(); setInterval(tick, 1000);
+tick(); setInterval(tick,1000);
 
-/* ================= INIT ================= */
-setMode('cycle');
-renderBoard();
+/* ================== INIT ================== */
+selDate=1;
+{ const n=new Date();
+  if(n.getFullYear()===cY() && n.getMonth()+1===cM()) selDate=n.getDate(); }
+render();
 </script>
 </body>
 </html>
