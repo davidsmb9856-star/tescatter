@@ -2914,9 +2914,14 @@ let portalConfig = {
   loaded: false
 };
 let currentPortalPinInput = '';
+let portalPin = DEFAULT_PORTAL_PIN;
 
-function portalRef() {
-  return db.ref('portal/settings');
+function portalSettingsRef() {
+  return db.ref('portal_settings/main');
+}
+
+function userPinRef(uid) {
+  return db.ref('user_pins/' + uid);
 }
 
 function sanitizeConfigValue(v) {
@@ -2933,19 +2938,24 @@ function sanitizeConfigObject(obj) {
 
 async function loadPortalConfig() {
   try {
-    const snap = await portalRef().once('value');
+    const snap = await portalSettingsRef().once('value');
     const val = snap.val();
 
     if (val) {
-      portalConfig.links = { ...defaultPortalLinks, ...(val.links || {}) };
-      portalConfig.names = { ...defaultPortalNames, ...(val.names || {}) };
-      portalConfig.pin = sanitizeConfigValue(val.pin) || DEFAULT_PORTAL_PIN;
+      portalConfig.links = {
+        ...defaultPortalLinks,
+        ...(val.links || {})
+      };
+
+      portalConfig.names = {
+        ...defaultPortalNames,
+        ...(val.names || {})
+      };
     } else {
       portalConfig.links = { ...defaultPortalLinks };
       portalConfig.names = { ...defaultPortalNames };
-      portalConfig.pin = DEFAULT_PORTAL_PIN;
 
-      if (currentUser) {
+      if (currentUser && isAdmin()) {
         await savePortalConfigToFirebase('init default');
       }
     }
@@ -2960,37 +2970,95 @@ async function loadPortalConfig() {
 }
 
 async function savePortalConfigToFirebase(reason = 'manual') {
-  if (!currentUser) throw new Error('Login diperlukan untuk menyimpan pengaturan portal');
+  if (!currentUser) {
+    throw new Error('Login diperlukan untuk menyimpan pengaturan portal');
+  }
+
+  if (!isAdmin()) {
+    throw new Error('Akses ditolak. Hanya admin yang bisa menyimpan pengaturan portal');
+  }
 
   const payload = {
     links: sanitizeConfigObject(portalConfig.links),
     names: sanitizeConfigObject(portalConfig.names),
-    pin: sanitizeConfigValue(portalConfig.pin) || DEFAULT_PORTAL_PIN,
     updatedAt: new Date().toISOString(),
     updatedBy: currentUser.email || 'unknown',
     reason
   };
 
-  await portalRef().set(payload);
+  await portalSettingsRef().set(payload);
 }
 
 function startPortalListener() {
   if (portalListenerStarted) return;
+
   portalListenerStarted = true;
 
-  portalRef().on('value', snap => {
+  portalSettingsRef().on('value', snap => {
     const val = snap.val();
+
     if (val) {
-      portalConfig.links = { ...defaultPortalLinks, ...(val.links || {}) };
-      portalConfig.names = { ...defaultPortalNames, ...(val.names || {}) };
-      if (val.pin) portalConfig.pin = sanitizeConfigValue(val.pin);
-      updatePortalUI();
+      portalConfig.links = {
+        ...defaultPortalLinks,
+        ...(val.links || {})
+      };
+
+      portalConfig.names = {
+        ...defaultPortalNames,
+        ...(val.names || {})
+      };
+    } else {
+      portalConfig.links = { ...defaultPortalLinks };
+      portalConfig.names = { ...defaultPortalNames };
     }
+
+    updatePortalUI();
   }, err => {
     console.error('❌ Portal listener error:', err);
   });
 }
 
+  async function loadUserPortalPin() {
+  if (!currentUser) {
+    portalPin = DEFAULT_PORTAL_PIN;
+    return;
+  }
+
+  try {
+    const snap = await userPinRef(currentUser.uid).once('value');
+    const val = snap.val();
+
+    if (val && val.portalPin) {
+      portalPin = String(val.portalPin);
+    } else {
+      portalPin = DEFAULT_PORTAL_PIN;
+    }
+  } catch (e) {
+    console.error('❌ loadUserPortalPin error:', e);
+    portalPin = DEFAULT_PORTAL_PIN;
+  }
+}
+
+async function saveUserPortalPin(pin) {
+  if (!currentUser) {
+    throw new Error('Login diperlukan untuk menyimpan PIN');
+  }
+
+  const cleanPin = String(pin || '').trim();
+
+  if (!/^\d{4}$/.test(cleanPin)) {
+    throw new Error('PIN harus 4 digit angka');
+  }
+
+  await userPinRef(currentUser.uid).set({
+    portalPin: cleanPin,
+    updatedAt: new Date().toISOString(),
+    email: currentUser.email || ''
+  });
+
+  portalPin = cleanPin;
+}
+  
 function getPortalLink(id) {
   return sanitizeConfigValue(portalConfig.links[id] || defaultPortalLinks[id] || '#');
 }
@@ -3602,7 +3670,9 @@ async function initApp() {
     lt.textContent = 'LOADING SCRIPTS';
 
     scripts = await FIREBASE.load();
+
     await loadPortalConfig();
+    await loadUserPortalPin();
 
     init();
     renderAll();
@@ -4402,10 +4472,15 @@ function copyCode() {
 async function sync() {
   try {
     toast('Syncing dari Firebase...', 'info');
+
     scripts = await FIREBASE.load();
+
     await loadPortalConfig();
+    await loadUserPortalPin();
+
     renderAll();
     updatePortalUI();
+
     toast('✅ Sync OK (' + scripts.length + ' script)', 'success');
   } catch (e) {
     toast('❌ Gagal: ' + e.message, 'error');
@@ -4469,7 +4544,14 @@ function toast(msg, type = 'info') {
   }, 3500);
 }
 
-function openPortalSettings() {
+async function openPortalSettings() {
+  if (!isAdmin()) {
+    toast('⛔ Hanya admin yang bisa mengubah pengaturan portal', 'error');
+    return;
+  }
+
+  await loadUserPortalPin();
+
   currentPortalPinInput = '';
 
   document.querySelectorAll('.portal-pin').forEach(inp => inp.value = '');
@@ -4498,7 +4580,7 @@ function clearPortalPin() {
 }
 
 function submitPortalPin() {
-  const correctPin = portalConfig.pin || DEFAULT_PORTAL_PIN;
+  const correctPin = portalPin || DEFAULT_PORTAL_PIN;
 
   if (currentPortalPinInput === correctPin) {
     closePortalPin();
@@ -4566,36 +4648,44 @@ function closePortalSettings() {
 
 async function savePortalSettings() {
   try {
+    if (!currentUser) {
+      throw new Error('Login diperlukan');
+    }
+
+    if (!isAdmin()) {
+      throw new Error('Hanya admin yang bisa menyimpan pengaturan portal');
+    }
+
     const links = {};
     const names = {};
 
     document.querySelectorAll('#portalSettingsForm .input-field[data-menu-id]').forEach(input => {
       const id = input.dataset.menuId;
-      links[id] = input.value.trim();
+      links[id] = input.value.trim() || defaultPortalLinks[id] || '#';
     });
 
     document.querySelectorAll('#portalSettingsForm .input-field[data-name-id]').forEach(input => {
       const id = input.dataset.nameId;
-      const val = input.value.trim();
-      names[id] = val || defaultPortalNames[id] || id;
+      names[id] = input.value.trim() || defaultPortalNames[id] || id;
     });
 
-    Object.keys(defaultPortalLinks).forEach(id => {
-      if (links[id] === undefined) links[id] = portalConfig.links[id] || defaultPortalLinks[id];
-      if (names[id] === undefined) names[id] = portalConfig.names[id] || defaultPortalNames[id];
-    });
+    portalConfig.links = {
+      ...defaultPortalLinks,
+      ...portalConfig.links,
+      ...links
+    };
 
-    portalConfig.links = { ...defaultPortalLinks, ...links };
-    portalConfig.names = { ...defaultPortalNames, ...names };
+    portalConfig.names = {
+      ...defaultPortalNames,
+      ...portalConfig.names,
+      ...names
+    };
 
     const newPin = document.getElementById('newPortalPinInput');
 
     if (newPin && newPin.value.trim()) {
-      if (!/^\d{4}$/.test(newPin.value.trim())) {
-        toast('❌ PIN harus 4 digit angka', 'error');
-        return;
-      }
-      portalConfig.pin = newPin.value.trim();
+      await saveUserPortalPin(newPin.value.trim());
+      toast('✅ PIN portal disimpan', 'success');
     }
 
     await savePortalConfigToFirebase('manual save');
@@ -4613,6 +4703,14 @@ async function resetPortalLinks() {
   if (!confirm('Reset semua link dan nama menu ke default?')) return;
 
   try {
+    if (!currentUser) {
+      throw new Error('Login diperlukan');
+    }
+
+    if (!isAdmin()) {
+      throw new Error('Hanya admin yang bisa reset pengaturan portal');
+    }
+
     portalConfig.links = { ...defaultPortalLinks };
     portalConfig.names = { ...defaultPortalNames };
 
@@ -4621,7 +4719,7 @@ async function resetPortalLinks() {
     updatePortalUI();
     showPortalSettingsForm();
 
-    toast('✅ Link & nama direset!', 'success');
+    toast('✅ Link & nama menu direset!', 'success');
   } catch (e) {
     toast('❌ Gagal reset: ' + e.message, 'error');
   }
