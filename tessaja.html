@@ -1005,6 +1005,7 @@ const dom = {
 };
 let selectedTipe = '', selectedLabel = '';
 let lastNominal = '';
+let lastResultValue = '';
 let autoRefreshTimer = null;
 let hasResultDisplayed = false;
 
@@ -1195,23 +1196,31 @@ async function refreshSemuaData() {
 
 function tampilkanValueHitungan() {
   const r = dom.resultBox;
+
   if (!selectedTipe || !selectedLabel || !state.kelompok[selectedTipe]) {
     r.innerHTML = '<span class="result-placeholder">👇 Pilih Tipe & Label di bawah untuk melihat hasil</span>';
     r.classList.remove('active');
     hasResultDisplayed = false;
+    lastResultValue = '';
     return;
   }
+
   const item = state.kelompok[selectedTipe].find(i => i.label === selectedLabel);
+
   if (item) {
     r.innerHTML = `<span class="result-text">${formatResultText(item.value)}</span><span class="result-hint">📋 Klik untuk menyalin</span>`;
     r.classList.add('active');
     r.onclick = () => copyText(item.value, r);
+
     r.classList.remove('copied');
     void r.offsetWidth;
     r.classList.add('copied');
     setTimeout(() => r.classList.remove('copied'), 350);
+
     hasResultDisplayed = true;
+    lastResultValue = item.value; // simpan nilai terakhir
     lastNominal = dom.inNom.value;
+
     showToast('✅ Hasil ditampilkan!', 'success');
   }
 }
@@ -1234,20 +1243,73 @@ function manualUpdateTanggal() {
   });
 }
 
+  async function refreshSetelahUpdateNominal() {
+  // tunggu sebentar agar Google Sheets mulai menyimpan perubahan
+  await new Promise(r => setTimeout(r, 1500));
+
+  await fetchPrediksi();
+  await fetchHitung();
+
+  const tipe = selectedTipe;
+  const label = selectedLabel;
+
+  // jika belum ada hasil yang dipilih, cukup muat data saja
+  if (!hasResultDisplayed || !tipe || !label || !state.kelompok[tipe]) {
+    await loadHitungData();
+    if (hasResultDisplayed) tampilkanValueHitungan();
+    return;
+  }
+
+  const nilaiLama = lastResultValue;
+  let attempts = 0;
+  const maxAttempts = 6; // maksimal coba 6 kali
+  let berubah = false;
+
+  while (attempts < maxAttempts && !berubah) {
+    await loadHitungData();
+
+    const item = (state.kelompok[tipe] || []).find(i => i.label === label);
+
+    if (item && item.value !== nilaiLama) {
+      berubah = true;
+      tampilkanValueHitungan();
+      showToast('✅ Hasil berhasil diperbarui!', 'success');
+    } else {
+      attempts++;
+      if (attempts < maxAttempts) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+  }
+
+  if (!berubah) {
+    await loadHitungData();
+    tampilkanValueHitungan();
+    showToast('⚠️ Hasil mungkin belum berubah, coba lagi sebentar lagi.', 'warning');
+  }
+}
+  
 function autoUpdateNominal() { clearTimeout(autoTimeout); autoTimeout = setTimeout(manualUpdateNominal, 800); }
 function manualUpdateNominal() {
   if (!dom.inNom.value) return showToast('Isi nominal terlebih dahulu', 'warning');
-  dom.btnNom.disabled = true; dom.statNom.textContent = 'Memproses...';
-  updateSheet('updateNominal', dom.inNom.value).then(ok => {
+
+  dom.btnNom.disabled = true;
+  dom.statNom.textContent = 'Memproses...';
+
+  updateSheet('updateNominal', dom.inNom.value).then(async ok => {
     dom.btnNom.disabled = false;
+
     if (ok) {
       localStorage.setItem(CONFIG.keyNominal, dom.inNom.value);
       dom.statNom.textContent = 'Rp ' + formatNum(dom.inNom.value);
       showToast('Nominal berhasil disimpan', 'success');
-      fetchPrediksi(); fetchHitung(); loadHitungData();
-      if (hasResultDisplayed) autoRefreshResult(dom.inNom.value);
+
+      // gunakan refresh khusus nominal
+      await refreshSetelahUpdateNominal();
+    } else {
+      dom.statNom.textContent = '✗ Error';
+      showToast('Cek URL Script', 'error');
     }
-    else { dom.statNom.textContent = '✗ Error'; showToast('Cek URL Script', 'error'); }
   });
 }
 
