@@ -1249,34 +1249,64 @@ let autoTimeout = null;
 function autoUpdateTanggal() { clearTimeout(autoTimeout); autoTimeout = setTimeout(manualUpdateTanggal, 800); }
 function manualUpdateTanggal() {
   if (!dom.inTgl.value) return showToast('Pilih tanggal terlebih dahulu', 'warning');
-  const p = dom.inTgl.value.split('-'); const fmt = `${p[1]}/${p[2]}/${p[0]}`;
-  dom.btnTgl.disabled = true; dom.statTgl.textContent = 'Memproses...';
-  updateSheet('updateTanggal', fmt).then(ok => {
+
+  const p = dom.inTgl.value.split('-');
+  const fmt = `${p[1]}/${p[2]}/${p[0]}`;
+
+  dom.btnTgl.disabled = true;
+  dom.statTgl.textContent = 'Memproses...';
+
+  updateSheet('updateTanggal', fmt).then(async ok => {
     dom.btnTgl.disabled = false;
+
     if (ok) {
       localStorage.setItem(CONFIG.keyTanggal, dom.inTgl.value);
       dom.statTgl.textContent = '✓ Tersimpan';
       showToast('Tanggal berhasil disimpan', 'success');
-      fetchPrediksi(); fetchHitung(); loadHitungData();
+
+      // refresh otomatis tanpa reload halaman
+      await refreshSemuaData();
+    } else {
+      dom.statTgl.textContent = '✗ Error';
+      showToast('Cek URL Script', 'error');
     }
-    else { dom.statTgl.textContent = '✗ Error'; showToast('Cek URL Script', 'error'); }
   });
 }
 
-function autoUpdateNominal() { clearTimeout(autoTimeout); autoTimeout = setTimeout(manualUpdateNominal, 800); }
+  async function refreshSemuaData() {
+  // tunggu sebentar agar Google Sheets selesai menyimpan perubahan
+  await new Promise(r => setTimeout(r, 600));
+
+  await fetchPrediksi();
+  await fetchHitung();
+  await loadHitungData();
+
+  // jika sedang di tab hitung dan sudah ada hasil, refresh hasilnya juga
+  if (hasResultDisplayed) {
+    autoRefreshResult(dom.inNom.value);
+  }
+}
+  
 function manualUpdateNominal() {
   if (!dom.inNom.value) return showToast('Isi nominal terlebih dahulu', 'warning');
-  dom.btnNom.disabled = true; dom.statNom.textContent = 'Memproses...';
-  updateSheet('updateNominal', dom.inNom.value).then(ok => {
+
+  dom.btnNom.disabled = true;
+  dom.statNom.textContent = 'Memproses...';
+
+  updateSheet('updateNominal', dom.inNom.value).then(async ok => {
     dom.btnNom.disabled = false;
+
     if (ok) {
       localStorage.setItem(CONFIG.keyNominal, dom.inNom.value);
       dom.statNom.textContent = 'Rp ' + formatNum(dom.inNom.value);
       showToast('Nominal berhasil disimpan', 'success');
-      fetchPrediksi(); fetchHitung(); loadHitungData();
-      if (hasResultDisplayed) autoRefreshResult(dom.inNom.value);
+
+      // refresh otomatis tanpa reload halaman
+      await refreshSemuaData();
+    } else {
+      dom.statNom.textContent = '✗ Error';
+      showToast('Cek URL Script', 'error');
     }
-    else { dom.statNom.textContent = '✗ Error'; showToast('Cek URL Script', 'error'); }
   });
 }
 
