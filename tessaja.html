@@ -936,7 +936,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
       <div class="control-bar">
         <div class="control-group">
           <span class="control-label"><i class="fas fa-coins"></i> Nominal</span>
-          <input type="number" id="input-nominal" class="bonus-input" placeholder="0" oninput="handleNominalInput()">
+          <input type="number" id="input-nominal" class="bonus-input" placeholder="0">
         </div>
         <button class="bonus-btn" id="btn-nominal" onclick="manualUpdateNominal()">
           <i class="fas fa-bolt"></i> Update
@@ -1179,46 +1179,17 @@ async function loadHitungData() {
   } catch(e) { console.error(e); }
 }
 
-function handleNominalInput() {
-  const currentNominal = dom.inNom.value.trim();
-  clearTimeout(autoRefreshTimer);
-  autoRefreshTimer = setTimeout(() => {
-    if (hasResultDisplayed && currentNominal !== lastNominal) {
-      autoRefreshResult(currentNominal);
-    }
-    lastNominal = currentNominal;
-  }, 600);
-}
+async function refreshSemuaData() {
+  // tunggu agar Google Sheets selesai menyimpan perubahan
+  await new Promise(r => setTimeout(r, 1500));
 
-async function autoRefreshResult(nominal) {
-  const r = dom.resultBox;
-  r.classList.add('refreshing');
-  try {
-    const data = parseCSV(await (await fetch(CONFIG.sheetHitung + '&t=' + Date.now())).text());
-    if (data[0]) {
-      const serverNom = safeGet(data[0], 23);
-      if (serverNom && serverNom !== nominal) {
-        dom.inNom.value = serverNom;
-        dom.statNom.textContent = 'Rp ' + formatNum(serverNom);
-        nominal = serverNom;
-      }
-    }
-    const item = state.kelompok[selectedTipe]?.find(i => i.label === selectedLabel);
-    if (item) {
-      r.innerHTML = `<span class="result-text">${formatResultText(item.value)}</span><span class="result-hint">📋 Klik untuk menyalin</span>`;
-      r.classList.add('active');
-      r.onclick = () => copyText(item.value, r);
-      r.classList.remove('copied');
-      void r.offsetWidth;
-      r.classList.add('copied');
-      setTimeout(() => r.classList.remove('copied'), 350);
-      showToast('🔄 Hasil diperbarui otomatis!', 'success');
-    }
-  } catch(e) {
-    console.error('Auto-refresh error:', e);
-    showToast('⚠️ Gagal memperbarui', 'error');
-  } finally {
-    r.classList.remove('refreshing');
+  await fetchPrediksi();
+  await fetchHitung();
+  await loadHitungData();
+
+  // jika sudah ada hasil yang dipilih, tampilkan ulang hasil terbaru
+  if (hasResultDisplayed) {
+    tampilkanValueHitungan();
   }
 }
 
@@ -1249,64 +1220,34 @@ let autoTimeout = null;
 function autoUpdateTanggal() { clearTimeout(autoTimeout); autoTimeout = setTimeout(manualUpdateTanggal, 800); }
 function manualUpdateTanggal() {
   if (!dom.inTgl.value) return showToast('Pilih tanggal terlebih dahulu', 'warning');
-
-  const p = dom.inTgl.value.split('-');
-  const fmt = `${p[1]}/${p[2]}/${p[0]}`;
-
-  dom.btnTgl.disabled = true;
-  dom.statTgl.textContent = 'Memproses...';
-
-  updateSheet('updateTanggal', fmt).then(async ok => {
+  const p = dom.inTgl.value.split('-'); const fmt = `${p[1]}/${p[2]}/${p[0]}`;
+  dom.btnTgl.disabled = true; dom.statTgl.textContent = 'Memproses...';
+  updateSheet('updateTanggal', fmt).then(ok => {
     dom.btnTgl.disabled = false;
-
     if (ok) {
       localStorage.setItem(CONFIG.keyTanggal, dom.inTgl.value);
       dom.statTgl.textContent = '✓ Tersimpan';
       showToast('Tanggal berhasil disimpan', 'success');
-
-      // refresh otomatis tanpa reload halaman
-      await refreshSemuaData();
-    } else {
-      dom.statTgl.textContent = '✗ Error';
-      showToast('Cek URL Script', 'error');
+      fetchPrediksi(); fetchHitung(); loadHitungData();
     }
+    else { dom.statTgl.textContent = '✗ Error'; showToast('Cek URL Script', 'error'); }
   });
 }
 
-  async function refreshSemuaData() {
-  // tunggu sebentar agar Google Sheets selesai menyimpan perubahan
-  await new Promise(r => setTimeout(r, 600));
-
-  await fetchPrediksi();
-  await fetchHitung();
-  await loadHitungData();
-
-  // jika sedang di tab hitung dan sudah ada hasil, refresh hasilnya juga
-  if (hasResultDisplayed) {
-    autoRefreshResult(dom.inNom.value);
-  }
-}
-  
+function autoUpdateNominal() { clearTimeout(autoTimeout); autoTimeout = setTimeout(manualUpdateNominal, 800); }
 function manualUpdateNominal() {
   if (!dom.inNom.value) return showToast('Isi nominal terlebih dahulu', 'warning');
-
-  dom.btnNom.disabled = true;
-  dom.statNom.textContent = 'Memproses...';
-
-  updateSheet('updateNominal', dom.inNom.value).then(async ok => {
+  dom.btnNom.disabled = true; dom.statNom.textContent = 'Memproses...';
+  updateSheet('updateNominal', dom.inNom.value).then(ok => {
     dom.btnNom.disabled = false;
-
     if (ok) {
       localStorage.setItem(CONFIG.keyNominal, dom.inNom.value);
       dom.statNom.textContent = 'Rp ' + formatNum(dom.inNom.value);
       showToast('Nominal berhasil disimpan', 'success');
-
-      // refresh otomatis tanpa reload halaman
-      await refreshSemuaData();
-    } else {
-      dom.statNom.textContent = '✗ Error';
-      showToast('Cek URL Script', 'error');
+      fetchPrediksi(); fetchHitung(); loadHitungData();
+      if (hasResultDisplayed) autoRefreshResult(dom.inNom.value);
     }
+    else { dom.statNom.textContent = '✗ Error'; showToast('Cek URL Script', 'error'); }
   });
 }
 
