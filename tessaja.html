@@ -5087,49 +5087,42 @@ async function clearLoginHistoryOld(days = 7) {
   }
 }
 
-// ==================== BUKU DOSA ALL ====================
+// ==================== BUKU DOSA ALL (FIX 404 — pakai CSV + deteksi gid) ====================
 const BUKU_SHEET_ID = '2PACX-1vRNKApyhRDJkDp2XDSXu7cOqiTreCPUSxCeBIHpkxPBcGlbrMc7q2vA_jSLMUOON7q8yhRoofh8wTVd';
 const BUKU_PUB_BASE = 'https://docs.google.com/spreadsheets/d/e/' + BUKU_SHEET_ID;
-const KESALAHAN_SHEET_NAME = 'Situs Lain';
-const FATAL_SHEET_NAME = 'Fatal All Situs';
+const KESALAHAN_SHEET_NAME = 'Situs Lain';      // sheet KESALAHAN CHAT ALL
+const FATAL_SHEET_NAME = 'Fatal All Situs';     // ⚠️ sheet FATAL ALL (sesuai daftar tab sheet kamu)
 
-// ⚠️ CADANGAN: isi gid manual JIKA auto-detect gagal (lihat panduan di bawah).
-// Contoh: const MANUAL_GIDS = { 'Situs Lain': '123456789', 'Fatal All Situs': '987654321' };
+// Cadangan manual: isi gid jika auto-detect gagal. Cara dapat gid:
+// buka sheet di editor → klik tab-nya → lihat URL "#gid=XXXXX", atau
+// File → Share → Publish to web → pilih sheet → salin gid dari URL.
 const MANUAL_GIDS = { 'Situs Lain': '', 'Fatal All Situs': '' };
 
 let bukuGidMap = {};
+let kesalahanChatData = [];
+let kesalahanStaffData = [];
+let fatalData = [];
 
-function decodeEntities(s) {
-  const d = document.createElement('textarea');
-  d.innerHTML = s;
-  return d.value;
+// ---------- util ----------
+function cellVal(row, idx) {
+  return (row && row[idx] !== undefined) ? String(row[idx]).trim() : '';
+}
+function extractUrl(text) {
+  const m = String(text || '').match(/https?:\/\/[^\s"'<>]+/);
+  return m ? m[0] : '';
 }
 
-// Parse gid↔nama sheet dari halaman pubhtml mentah
-function parseGidsFromHtml(html) {
-  const map = {};
-  let m;
-  const re1 = /gid=(\d+)[^>]*>\s*([^<>]+?)\s*</g;
-  while ((m = re1.exec(html))) {
-    const name = decodeEntities(m[2]).trim();
-    if (name && name.length < 80) map[name] = m[1];
-  }
-  const re2 = /"name"\s*:\s*"([^"]+)"\s*,\s*"gid"\s*:\s*(\d+)/g;
-  while ((m = re2.exec(html))) map[m[1]] = m[2];
-  const re3 = /"gid"\s*:\s*(\d+)\s*,\s*"name"\s*:\s*"([^"]+)"/g;
-  while ((m = re3.exec(html))) map[m[2]] = m[1];
-  return map;
-}
-
-// Parser CSV standar (mendukung tanda kutip & koma di dalam sel)
+// ---------- parser CSV (dukung tanda kutip & koma di dalam sel) ----------
 function parseCSV(text) {
   const rows = [];
   let cur = [], cell = '', inQ = false;
   for (let i = 0; i < text.length; i++) {
-    const ch = text[i], nx = text[i + 1];
+    const ch = text[i];
     if (inQ) {
-      if (ch === '"') { if (nx === '"') { cell += '"'; i++; } else inQ = false; }
-      else cell += ch;
+      if (ch === '"') {
+        if (text[i + 1] === '"') { cell += '"'; i++; }
+        else inQ = false;
+      } else cell += ch;
     } else {
       if (ch === '"') inQ = true;
       else if (ch === ',') { cur.push(cell); cell = ''; }
@@ -5137,21 +5130,40 @@ function parseCSV(text) {
       else if (ch !== '\r') cell += ch;
     }
   }
-  if (cell !== '' || cur.length) { cur.push(cell); rows.push(cur); }
+  if (cell.length > 0 || cur.length > 0) { cur.push(cell); rows.push(cur); }
   return rows;
+}
+
+// ---------- deteksi gid dari halaman pubhtml ----------
+function parseGidsFromHtml(html) {
+  const map = {};
+  let m;
+  // pola anchor: ...gid=123...>Nama Sheet<
+  const reAnchor = /gid=(\d+)[^>]*>\s*([^<]{1,60})\s*</g;
+  while ((m = reAnchor.exec(html))) {
+    const name = m[2].trim();
+    if (name && !/^[\d\s]*$/.test(name)) map[name] = m[1];
+  }
+  // pola JSON: "name":"X","gid":123  atau  "gid":123,"name":"X"
+  const reJson1 = /"name"\s*:\s*"([^"]+)"\s*,\s*"gid"\s*:\s*"?(\d+)"?/g;
+  while ((m = reJson1.exec(html))) map[m[1]] = m[2];
+  const reJson2 = /"gid"\s*:\s*"?(\d+)"?\s*,\s*"name"\s*:\s*"([^"]+)"/g;
+  while ((m = reJson2.exec(html))) map[m[2]] = m[1];
+  return map;
 }
 
 async function discoverBukuGids() {
   if (Object.keys(bukuGidMap).length) return bukuGidMap;
   try {
-    const r = await fetch(BUKU_PUB_BASE + '/pubhtml');
-    if (r.ok) bukuGidMap = parseGidsFromHtml(await r.text());
+    const res = await fetch(BUKU_PUB_BASE + '/pubhtml');
+    if (res.ok) bukuGidMap = parseGidsFromHtml(await res.text());
   } catch (e) {
     console.warn('⚠️ Auto-detect gid gagal:', e);
   }
   return bukuGidMap;
 }
 
+// ---------- ambil baris sheet (CSV) ----------
 async function fetchBukuRows(sheetName) {
   // 1) gid manual (cadangan)
   let gid = (MANUAL_GIDS[sheetName] || '').trim();
@@ -5160,23 +5172,39 @@ async function fetchBukuRows(sheetName) {
     await discoverBukuGids();
     gid = bukuGidMap[sheetName] || '';
   }
+  // 3) fetch CSV berdasarkan gid
   if (gid) {
-    const r = await fetch(BUKU_PUB_BASE + '/pub?output=csv&single=true&gid=' + gid);
-    if (r.ok) return parseCSV(await r.text());
-    throw new Error('HTTP ' + r.status + ' saat membaca sheet "' + sheetName + '"');
+    const url = BUKU_PUB_BASE + '/pub?output=csv&single=true&gid=' + gid;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' saat membaca sheet "' + sheetName + '"');
+    return parseCSV(await res.text());
   }
-  throw new Error('GID tidak ditemukan untuk sheet "' + sheetName + '". Isi MANUAL_GIDS (panduan di catatan).');
+  // 4) fallback: sheet pertama (kemungkinan bukan yang diinginkan)
+  const res = await fetch(BUKU_PUB_BASE + '/pub?output=csv&single=true');
+  if (!res.ok) throw new Error('HTTP ' + res.status + ' — isi MANUAL_GIDS dengan gid sheet');
+  return parseCSV(await res.text());
 }
 
-function cellVal(row, idx) {
-  return (row && row[idx] !== undefined) ? String(row[idx]).trim() : '';
+// ---------- navigasi view ----------
+function showBukuDosaMenu() {
+  document.getElementById('bukuDosaMenuSection').style.display = 'block';
+  document.getElementById('bukuDosaKesalahanView').style.display = 'none';
+  document.getElementById('bukuDosaFatalView').style.display = 'none';
+}
+function showBukuDosaView(type) {
+  document.getElementById('bukuDosaMenuSection').style.display = 'none';
+  if (type === 'kesalahan') {
+    document.getElementById('bukuDosaKesalahanView').style.display = 'block';
+    document.getElementById('bukuDosaFatalView').style.display = 'none';
+    loadBukuDosa('kesalahan');
+  } else {
+    document.getElementById('bukuDosaFatalView').style.display = 'block';
+    document.getElementById('bukuDosaKesalahanView').style.display = 'none';
+    loadBukuDosa('fatal');
+  }
 }
 
-function extractUrl(text) {
-  const m = String(text || '').match(/https?:\/\/[^\s"'<>]+/);
-  return m ? m[0] : '';
-}
-
+// ---------- load data ----------
 async function loadBukuDosa(type) {
   if (type === 'kesalahan') {
     document.getElementById('kesalahanList').innerHTML = `<div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data...</h4></div>`;
@@ -5184,14 +5212,14 @@ async function loadBukuDosa(type) {
     try {
       const rows = await fetchBukuRows(KESALAHAN_SHEET_NAME);
       kesalahanChatData = [];
-      for (let i = 3; i < Math.min(rows.length, 2547); i++) {          // baris 4+
+      for (let i = 3; i < rows.length && i < 2547; i++) {
         const namaCS = cellVal(rows[i], 1);   // B
         const link   = cellVal(rows[i], 2);   // C
         const ket    = cellVal(rows[i], 3);   // D
         if (namaCS || ket) kesalahanChatData.push({ namaCS, link, ket });
       }
       kesalahanStaffData = [];
-      for (let i = 2; i < Math.min(rows.length, 40); i++) {             // baris 3-40
+      for (let i = 2; i < rows.length && i < 40; i++) {
         const nama   = cellVal(rows[i], 8);   // I
         const jumlah = cellVal(rows[i], 9);   // J
         if (nama) kesalahanStaffData.push({ nama, jumlah });
@@ -5207,15 +5235,15 @@ async function loadBukuDosa(type) {
     try {
       const rows = await fetchBukuRows(FATAL_SHEET_NAME);
       fatalData = [];
-      for (let i = 4; i < Math.min(rows.length, 1001); i++) {           // baris 5+
-        const tanggal  = cellVal(rows[i], 1);   // B
-        const namaStaf = cellVal(rows[i], 3);   // D
-        const status   = cellVal(rows[i], 4);   // E
-        const situs    = cellVal(rows[i], 5);   // F
-        const potong   = cellVal(rows[i], 7);   // H
-        const ket      = cellVal(rows[i], 8);   // I
-        const ss       = cellVal(rows[i], 9);   // J
-        const ssLc     = cellVal(rows[i], 10);  // K
+      for (let i = 4; i < rows.length && i < 1001; i++) {
+        const tanggal  = cellVal(rows[i], 1);  // B
+        const namaStaf = cellVal(rows[i], 3);  // D
+        const status   = cellVal(rows[i], 4);  // E
+        const situs    = cellVal(rows[i], 5);  // F
+        const potong   = cellVal(rows[i], 7);  // H
+        const ket      = cellVal(rows[i], 8);  // I
+        const ss       = cellVal(rows[i], 9);  // J
+        const ssLc     = cellVal(rows[i], 10); // K
         if (tanggal || namaStaf || ket) fatalData.push({ tanggal, namaStaf, status, situs, potong, ket, ss, ssLc });
       }
       populateFatalSitusFilter();
@@ -5224,6 +5252,136 @@ async function loadBukuDosa(type) {
       showBukuDosaError('fatalList', e);
     }
   }
+}
+
+// ---------- filter situs ----------
+function populateKesalahanSitusFilter() {
+  const sel = document.getElementById('kesalahanSitusFilter');
+  if (!sel) return;
+  // Data kesalahan (B/C/D) tidak punya kolom situs per-baris, jadi cukup "Semua Situs".
+  sel.innerHTML = '<option value="all">Semua Situs</option>';
+  sel.value = 'all';
+}
+function populateFatalSitusFilter() {
+  const sel = document.getElementById('fatalSitusFilter');
+  if (!sel) return;
+  const current = sel.value;
+  const sites = [...new Set(fatalData.map(d => d.situs).filter(Boolean))].sort();
+  let html = '<option value="all">Semua Situs</option>';
+  sites.forEach(s => { html += `<option value="${esc(s)}">${esc(s)}</option>`; });
+  sel.innerHTML = html;
+  if (current && Array.from(sel.options).some(o => o.value === current)) sel.value = current;
+  else sel.value = 'all';
+}
+
+// ---------- render ----------
+function renderKesalahanChat() {
+  const container = document.getElementById('kesalahanList');
+  if (!container) return;
+  const q = (document.getElementById('kesalahanSearch').value || '').toLowerCase().trim();
+  let data = kesalahanChatData;
+  if (q) data = data.filter(d =>
+    (d.namaCS || '').toLowerCase().includes(q) ||
+    (d.ket || '').toLowerCase().includes(q) ||
+    (d.link || '').toLowerCase().includes(q)
+  );
+  if (data.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="icon">📭</div><h4>TIDAK ADA DATA</h4><p>${q ? 'Tidak ada hasil untuk "' + esc(q) + '"' : 'Belum ada data kesalahan chat'}</p></div>`;
+    return;
+  }
+  container.innerHTML = data.map((item, idx) => {
+    const url = extractUrl(item.link);
+    const tanggalText = url ? String(item.link).replace(url, '').trim() : String(item.link || '');
+    const linkBtn = url ? `<a href="${esc(url)}" target="_blank" class="btn btn-warning" style="padding:6px 11px;font-size:9.5px;"><i class="fas fa-image"></i> LIHAT FOTO</a>` : '';
+    return `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-user-tie"></i></div>
+        <div class="card-body">
+          <div class="card-title">${esc(item.namaCS || 'CS ' + (idx + 1))}</div>
+          <div class="card-desc">${esc(item.ket || 'Tanpa keterangan')}</div>
+        </div>
+      </div>
+      ${tanggalText ? `<div class="card-meta"><span><span class="icon"><i class="fas fa-calendar"></i></span>${esc(tanggalText)}</span></div>` : ''}
+      <div class="card-actions">${linkBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderKesalahanStaff() {
+  const container = document.getElementById('kesalahanStaffSummary');
+  if (!container) return;
+  if (kesalahanStaffData.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = `
+  <div class="section" style="padding:16px;">
+    <div class="section-header" style="margin-bottom:12px;padding-bottom:10px;">
+      <h3 style="font-size:12px;"><span class="bar"></span><i class="fas fa-chart-bar"></i> TOTAL KESALAHAN PER STAFF</h3>
+      <small>${kesalahanStaffData.length} STAFF</small>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;">
+      ${kesalahanStaffData.map(s => `
+        <div style="background:rgba(0,212,255,0.04);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:10px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text-primary);margin-bottom:3px;">${esc(s.nama)}</div>
+          <div style="font-size:14px;font-weight:800;color:var(--neon-red);font-family:'Space Grotesk',sans-serif;">${esc(s.jumlah)}</div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function renderFatal() {
+  const container = document.getElementById('fatalList');
+  if (!container) return;
+  const situsSel = document.getElementById('fatalSitusFilter');
+  const selectedSitus = situsSel ? situsSel.value : 'all';
+  const q = (document.getElementById('fatalSearch').value || '').toLowerCase().trim();
+  let data = fatalData;
+  if (selectedSitus && selectedSitus !== 'all') data = data.filter(d => d.situs === selectedSitus);
+  if (q) data = data.filter(d =>
+    (d.namaStaf || '').toLowerCase().includes(q) ||
+    (d.ket || '').toLowerCase().includes(q) ||
+    (d.situs || '').toLowerCase().includes(q) ||
+    (d.status || '').toLowerCase().includes(q)
+  );
+  if (data.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="icon">📭</div><h4>TIDAK ADA DATA</h4><p>${q ? 'Tidak ada hasil untuk "' + esc(q) + '"' : 'Belum ada data kesalahan fatal'}</p></div>`;
+    return;
+  }
+  container.innerHTML = data.map((item, idx) => {
+    const ssUrl = extractUrl(item.ss);
+    const ssLcUrl = extractUrl(item.ssLc);
+    const ssBtn = ssUrl ? `<a href="${esc(ssUrl)}" target="_blank" class="btn btn-warning" style="padding:6px 11px;font-size:9.5px;"><i class="fas fa-image"></i> SS</a>` : '';
+    const ssLcBtn = ssLcUrl ? `<a href="${esc(ssLcUrl)}" target="_blank" class="btn btn-purple" style="padding:6px 11px;font-size:9.5px;"><i class="fas fa-image"></i> SS LC</a>` : '';
+    return `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="color:var(--neon-red);border-color:rgba(255,62,108,0.35);background:rgba(255,62,108,0.1);"><i class="fas fa-skull-crossbones"></i></div>
+        <div class="card-body">
+          <div class="card-title">${esc(item.namaStaf || 'Staf ' + (idx + 1))}</div>
+          <div class="card-desc">${esc(item.ket || 'Tanpa keterangan')}</div>
+        </div>
+      </div>
+      <div class="card-meta">
+        <span><span class="icon"><i class="fas fa-calendar"></i></span>${esc(item.tanggal || '-')}</span>
+        <span><span class="icon"><i class="fas fa-globe"></i></span>${esc(item.situs || '-')}</span>
+        <span><span class="icon"><i class="fas fa-id-badge"></i></span>${esc(item.status || '-')}</span>
+        <span><span class="icon"><i class="fas fa-percent"></i></span>Potong: ${esc(item.potong || '-')}</span>
+      </div>
+      <div class="card-actions">${ssBtn}${ssLcBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+function showBukuDosaError(containerId, e) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = `
+  <div class="empty">
+    <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+    <h4>GAGAL MEMUAT DATA</h4>
+    <p>${esc(e.message || 'Terjadi kesalahan')}</p>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:8px;">Pastikan Google Sheet sudah dipublikasikan ke web (File → Share → Publish to web). Jika masih gagal, isi MANUAL_GIDS dengan gid sheet.</p>
+  </div>`;
 }
 
 function populateKesalahanSitusFilter() {
