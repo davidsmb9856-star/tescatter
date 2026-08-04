@@ -5087,26 +5087,40 @@ async function clearLoginHistoryOld(days = 7) {
   }
 }
 
-// ==================== BUKU DOSA ALL (FIX 404 — pakai CSV + deteksi gid) ====================
-const BUKU_SHEET_ID = '2PACX-1vRNKApyhRDJkDp2XDSXu7cOqiTreCPUSxCeBIHpkxPBcGlbrMc7q2vA_jSLMUOON7q8yhRoofh8wTVd';
-const BUKU_PUB_BASE = 'https://docs.google.com/spreadsheets/d/e/' + BUKU_SHEET_ID;
-const KESALAHAN_SHEET_NAME = 'Situs Lain';      // sheet KESALAHAN CHAT ALL
-const FATAL_SHEET_NAME = 'Fatal All Situs';     // ⚠️ sheet FATAL ALL (sesuai daftar tab sheet kamu)
+// ==================== BUKU DOSA ALL ====================
+const BUKU_SHEET_ID = '1camkXfvojs-YSBBPekYHTi4cwata4YCGTtmVIeOy1yc';
+const KESALAHAN_GID = '1921614792';   // tab untuk KESALAHAN CHAT ALL
+const FATAL_GID     = '1808497081';   // tab untuk FATAL ALL SITUS
 
-// Cadangan manual: isi gid jika auto-detect gagal. Cara dapat gid:
-// buka sheet di editor → klik tab-nya → lihat URL "#gid=XXXXX", atau
-// File → Share → Publish to web → pilih sheet → salin gid dari URL.
-const MANUAL_GIDS = { 'Situs Lain': '', 'Fatal All Situs': '' };
-
-let bukuGidMap = {};
 let kesalahanChatData = [];
 let kesalahanStaffData = [];
 let fatalData = [];
 
-// ---------- util ----------
+function gvizUrl(gid) {
+  return `https://docs.google.com/spreadsheets/d/${BUKU_SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
+}
+
+async function fetchGvizRows(gid) {
+  const res = await fetch(gvizUrl(gid));
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const text = await res.text();
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('Format data tidak valid');
+  const json = JSON.parse(text.substring(start, end + 1));
+  if (!json.table || !json.table.rows) return [];
+  return json.table.rows.map(r => (r.c || []).map(cell => {
+    if (!cell) return '';
+    if (cell.f) return String(cell.f);
+    if (cell.v === null || cell.v === undefined) return '';
+    return String(cell.v);
+  }));
+}
+
 function cellVal(row, idx) {
   return (row && row[idx] !== undefined) ? String(row[idx]).trim() : '';
 }
+
 function extractUrl(text) {
   const m = String(text || '').match(/https?:\/\/[^\s"'<>]+/);
   return m ? m[0] : '';
