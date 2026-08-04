@@ -152,6 +152,46 @@ body::after {
   100% { background-position: 44px 44px; }
 }
 
+  /* ===== TAMBAHAN: BADGE VISIBILITAS & FILTER PENGGUNA ===== */
+.owner-badge.pub {
+  background: rgba(0, 255, 157, 0.13);
+  color: var(--neon-green);
+  border: 1px solid rgba(0, 255, 157, 0.25);
+}
+.owner-badge.priv {
+  background: rgba(255, 62, 108, 0.13);
+  color: var(--neon-red);
+  border: 1px solid rgba(255, 62, 108, 0.25);
+}
+.owner-filter-select {
+  padding: 9px 36px 9px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-normal);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300d4ff' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  max-width: 340px;
+  width: 100%;
+  transition: var(--transition);
+}
+.owner-filter-select:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+}
+.owner-filter-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+  
 .scanline {
   position: fixed;
   left: 0;
@@ -2421,6 +2461,14 @@ body::after {
             <h3><span class="bar"></span>🐒 SEMUA SCRIPT (PUBLIK)</h3>
             <small><span id="recentCnt">0</span> SCRIPT</small>
           </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+  <label style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;display:flex;align-items:center;gap:7px;">
+    <i class="fas fa-filter" style="color:var(--neon-cyan);"></i> FILTER PENGGUNA
+  </label>
+  <select id="ownerFilter" class="owner-filter-select" onchange="renderDash()">
+    <option value="all">👥 Semua Pengguna</option>
+  </select>
+</div>
           <div id="recentList" class="card-list"></div>
         </div>
       </div>
@@ -2705,6 +2753,23 @@ body::after {
     <div class="form-group"><label>Pemilik / Author</label><input type="text" id="sAuthor" placeholder="Akan terisi otomatis dari Google" maxlength="50"></div>
     <div class="form-group"><label>Deskripsi</label><input type="text" id="sDesc" placeholder="Opsional" maxlength="200"></div>
     <div class="form-group">
+      <div class="form-group">
+  <label>Visibilitas Script</label>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <label style="display:flex;align-items:center;gap:8px;padding:11px 16px;background:rgba(0,255,157,0.04);border:1px solid rgba(0,255,157,0.25);border-radius:var(--radius-md);cursor:pointer;font-size:12px;font-weight:600;color:var(--text-primary);">
+      <input type="radio" name="sVis" value="public" checked style="width:auto;accent-color:var(--neon-green);">
+      <i class="fas fa-globe" style="color:var(--neon-green);"></i> Publik
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;padding:11px 16px;background:rgba(255,62,108,0.04);border:1px solid rgba(255,62,108,0.25);border-radius:var(--radius-md);cursor:pointer;font-size:12px;font-weight:600;color:var(--text-primary);">
+      <input type="radio" name="sVis" value="private" style="width:auto;accent-color:var(--neon-red);">
+      <i class="fas fa-lock" style="color:var(--neon-red);"></i> Private
+    </label>
+  </div>
+  <div class="form-hint" style="margin-top:6px;">
+    <span><i class="fas fa-globe"></i> Publik = muncul di Dashboard semua user</span>
+    <span><i class="fas fa-lock"></i> Private = hanya anda & admin</span>
+  </div>
+</div>
       <label>Script Code</label>
       <textarea id="sCode" placeholder="// ==UserScript==
 // @name         My Script
@@ -3431,14 +3496,12 @@ function calculateDiff(oldCode, newCode) {
   const newLines = newCode.split('\n');
   const diff = [];
   const maxLen = Math.max(oldLines.length, newLines.length);
-
   for (let i = 0; i < maxLen; i++) {
     if (oldLines[i] !== newLines[i]) {
       if (oldLines[i]) diff.push({ type: 'removed', line: i + 1, text: oldLines[i] });
       if (newLines[i]) diff.push({ type: 'added', line: i + 1, text: newLines[i] });
     }
   }
-
   return diff;
 }
 
@@ -3549,7 +3612,11 @@ async function executeDelete(id) {
   const script = scripts[idx];
   const scriptName = script.name || 'Unnamed';
   const oldData = { ...script };
-
+  
+  if (!isAdmin() && script.ownerEmail !== currentUser.email) {
+    toast('⛔ Hanya pemilik atau admin yang bisa hapus', 'error');
+    return;
+  }
   pushHistory(script, buildHistoryEntry('delete', scriptName, oldData, null));
 
   try {
@@ -3848,21 +3915,42 @@ function renderAll() {
 }
 
 function renderDash() {
-  document.getElementById('sTot').textContent = scripts.length;
+  // 1) Visibilitas: admin lihat SEMUA, user biasa hanya PUBLIK
+  const visibleScripts = scripts.filter(s => {
+    if (!s) return false;
+    if (isAdmin()) return true;
+    return s.isPublic !== false; // default publik utk script lama
+  });
 
-  const ch = scripts.reduce((a, s) => a + (s.code ? s.code.length : 0), 0);
+  // 2) Bento stats (berdasarkan yang terlihat)
+  document.getElementById('sTot').textContent = visibleScripts.length;
+  const ch = visibleScripts.reduce((a, s) => a + (s.code ? s.code.length : 0), 0);
   document.getElementById('sChr').textContent = ch.toLocaleString('id-ID');
-  document.getElementById('sHist').textContent = countAllHistory().toLocaleString('id-ID');
-  document.getElementById('histBadge').textContent = countAllHistory();
-  document.getElementById('allBadge').textContent = scripts.length;
+  const visHist = visibleScripts.reduce((acc, s) => acc + ((s.history && s.history.length) || 0), 0);
+  document.getElementById('sHist').textContent = visHist.toLocaleString('id-ID');
 
+  // 3) Nav badges
+  document.getElementById('histBadge').textContent = countAllHistory();
+  document.getElementById('allBadge').textContent = visibleScripts.length;
   const myScripts = getUserScripts();
   document.getElementById('myBadge').textContent = myScripts.length;
 
+  // 4) Isi dropdown filter pengguna
+  populateOwnerFilter(visibleScripts);
+
+  // 5) Terapkan filter pengguna
+  const ownerSel = document.getElementById('ownerFilter');
+  const selectedOwner = ownerSel ? ownerSel.value : 'all';
+  let all = visibleScripts;
+  if (selectedOwner && selectedOwner !== 'all') {
+    all = all.filter(s => (s.ownerEmail || 'unknown') === selectedOwner);
+  }
+
+  // 6) Urutkan terbaru dulu (tidak acak)
+  all = [...all].sort((a, b) => new Date(b.updated || 0) - new Date(a.updated || 0));
+
+  // 7) Pencarian
   const q = (document.getElementById('qIn').value || '').toLowerCase().trim();
-
-  let all = [...scripts].sort((a, b) => new Date(b.updated || 0) - new Date(a.updated || 0));
-
   if (q) {
     all = all.filter(s =>
       (s.name || '').toLowerCase().includes(q) ||
@@ -3881,8 +3969,8 @@ function renderDash() {
 
   if (all.length === 0) {
     container.innerHTML = q
-      ? `<div class="empty"><div class="icon"><i class="fas fa-search"></i></div><h4>TIDAK DITEMUKAN</h4><p>Tidak ada script publik cocok dengan "${esc(q)}"</p></div>`
-      : `<div class="empty"><div class="icon">🐒</div><h4>BELUM ADA SCRIPT</h4><p>Klik "SCRIPT BARU" untuk mulai</p></div>`;
+      ? `<div class="empty"><div class="icon"><i class="fas fa-search"></i></div><h4>TIDAK DITEMUKAN</h4><p>Tidak ada script cocok dengan "${esc(q)}"</p></div>`
+      : `<div class="empty"><div class="icon">🐒</div><h4>BELUM ADA SCRIPT PUBLIK</h4><p>Script publik akan muncul di sini</p></div>`;
     return;
   }
 
@@ -3890,38 +3978,66 @@ function renderDash() {
     const displayName = s.name || 'Unnamed';
     const ownerEmail = s.ownerEmail || 'Unknown';
     const ownerName = s.ownerName || 'Unknown';
-    const isMyScript = s.ownerEmail === currentUser?.email;
-
+    const isMyScript = currentUser && s.ownerEmail === currentUser.email;
     const ownerBadge = isMyScript
       ? `<span class="owner-badge mine"><i class="fas fa-check"></i> MILIK ANDA</span>`
       : `<span class="owner-badge other"><i class="fas fa-user"></i> ${esc(ownerName)}</span>`;
-
-    const ownerHtml = `<div class="card-author"><i class="fas fa-envelope"></i> ${esc(ownerEmail)} ${ownerBadge}</div>`;
-
+    const visBadge = s.isPublic === false
+      ? `<span class="owner-badge priv"><i class="fas fa-lock"></i> PRIVATE</span>`
+      : `<span class="owner-badge pub"><i class="fas fa-globe"></i> PUBLIK</span>`;
+    const ownerHtml = `<div class="card-author"><i class="fas fa-envelope"></i> ${esc(ownerEmail)} ${ownerBadge} ${visBadge}</div>`;
+    const lines = s.code ? s.code.split('\n').length : 0;
+    const size = s.code ? (s.code.length / 1024).toFixed(1) + ' KB' : '0 KB';
+    const canModify = isMyScript || isAdmin();
     return `
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon"><i class="fas fa-code"></i></div>
-          <div class="card-body">
-            <div class="card-title">${esc(displayName)}</div>
-            <div class="card-desc">${esc(s.desc || 'Tanpa deskripsi')}</div>
-            ${ownerHtml}
-          </div>
-        </div>
-        <div class="card-meta">
-          <span><span class="icon"><i class="fas fa-clock"></i></span>${ago(s.updated)}</span>
-          <span><span class="icon"><i class="fas fa-file-code"></i></span>${s.code ? (s.code.length / 1024).toFixed(1) + ' KB' : '0 KB'}</span>
-          <span><span class="icon"><i class="fas fa-align-left"></i></span>${s.code ? s.code.split('\n').length : 0} baris</span>
-        </div>
-        <div class="card-actions">
-          <button class="btn btn-success" onclick="openTMFromCard(event,'${s.id}')"><i class="fas fa-external-link-alt"></i> TM</button>
-          <button class="btn btn-warning" onclick="quickCopy('${s.id}')"><i class="fas fa-copy"></i> COPY</button>
-          <button class="btn btn-ghost" onclick="editS('${s.id}')"><i class="fas fa-edit"></i> EDIT</button>
-          <button class="btn btn-danger" onclick="quickDel('${s.id}')"><i class="fas fa-trash"></i> HAPUS</button>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-code"></i></div>
+        <div class="card-body">
+          <div class="card-title">${esc(displayName)}</div>
+          <div class="card-desc">${esc(s.desc || 'Tanpa deskripsi')}</div>
+          ${ownerHtml}
         </div>
       </div>
-    `;
+      <div class="card-meta">
+        <span><span class="icon"><i class="fas fa-clock"></i></span>${ago(s.updated)}</span>
+        <span><span class="icon"><i class="fas fa-file-code"></i></span>${size}</span>
+        <span><span class="icon"><i class="fas fa-align-left"></i></span>${lines} baris</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-success" onclick="openTMFromCard(event,'${s.id}')"><i class="fas fa-external-link-alt"></i> TM</button>
+        <button class="btn btn-warning" onclick="quickCopy('${s.id}')"><i class="fas fa-copy"></i> COPY</button>
+        ${canModify ? `
+        <button class="btn btn-ghost" onclick="editS('${s.id}')"><i class="fas fa-edit"></i> EDIT</button>
+        <button class="btn btn-danger" onclick="quickDel('${s.id}')"><i class="fas fa-trash"></i> HAPUS</button>` : ''}
+      </div>
+    </div>`;
   }).join('');
+}
+
+  function populateOwnerFilter(visibleScripts) {
+  const sel = document.getElementById('ownerFilter');
+  if (!sel) return;
+  const currentValue = sel.value;
+  const owners = {};
+  visibleScripts.forEach(s => {
+    const email = s.ownerEmail || 'unknown';
+    const name = s.ownerName || email;
+    if (!owners[email]) owners[email] = { name, count: 0 };
+    owners[email].count++;
+  });
+  let html = `<option value="all">👥 Semua Pengguna (${visibleScripts.length})</option>`;
+  Object.keys(owners)
+    .sort((a, b) => (owners[a].name || '').localeCompare(owners[b].name || ''))
+    .forEach(email => {
+      html += `<option value="${esc(email)}">${esc(owners[email].name)} (${owners[email].count})</option>`;
+    });
+  sel.innerHTML = html;
+  if (currentValue && Array.from(sel.options).some(o => o.value === currentValue)) {
+    sel.value = currentValue;
+  } else {
+    sel.value = 'all';
+  }
 }
 
 function renderScriptsSection() {
@@ -3968,29 +4084,32 @@ function renderList() {
 
 function cardH(s) {
   const displayName = s.name || 'Unnamed';
-
+  const visBadge = s.isPublic === false
+    ? `<span class="owner-badge priv"><i class="fas fa-lock"></i> PRIVATE</span>`
+    : `<span class="owner-badge pub"><i class="fas fa-globe"></i> PUBLIK</span>`;
+  const lines = s.code ? s.code.split('\n').length : 0;
+  const size = s.code ? (s.code.length / 1024).toFixed(1) + ' KB' : '0 KB';
   return `
-    <div class="card">
-      <div class="card-header" onclick="editS('${s.id}')" style="cursor:pointer">
-        <div class="card-icon"><i class="fas fa-code"></i></div>
-        <div class="card-body">
-          <div class="card-title">${esc(displayName)}</div>
-          <div class="card-desc">${esc(s.desc || 'Tanpa deskripsi')}</div>
-        </div>
-      </div>
-      <div class="card-meta">
-        <span><span class="icon"><i class="fas fa-clock"></i></span>${ago(s.updated)}</span>
-        <span><span class="icon"><i class="fas fa-file-code"></i></span>${s.code ? (s.code.length / 1024).toFixed(1) + ' KB' : '0 KB'}</span>
-        <span><span class="icon"><i class="fas fa-align-left"></i></span>${s.code ? s.code.split('\n').length : 0} baris</span>
-      </div>
-      <div class="card-actions">
-        <button class="btn btn-success" onclick="event.stopPropagation();openTMFromCard(event,'${s.id}')"><i class="fas fa-external-link-alt"></i> TM</button>
-        <button class="btn btn-ghost" onclick="event.stopPropagation();editS('${s.id}')"><i class="fas fa-edit"></i> Edit</button>
-        <button class="btn btn-warning" onclick="event.stopPropagation();quickCopy('${s.id}')"><i class="fas fa-copy"></i> Copy</button>
-        <button class="btn btn-danger" onclick="event.stopPropagation();quickDel('${s.id}')"><i class="fas fa-trash"></i> Hapus</button>
+  <div class="card">
+    <div class="card-header" onclick="editS('${s.id}')" style="cursor:pointer">
+      <div class="card-icon"><i class="fas fa-code"></i></div>
+      <div class="card-body">
+        <div class="card-title">${esc(displayName)} ${visBadge}</div>
+        <div class="card-desc">${esc(s.desc || 'Tanpa deskripsi')}</div>
       </div>
     </div>
-  `;
+    <div class="card-meta">
+      <span><span class="icon"><i class="fas fa-clock"></i></span>${ago(s.updated)}</span>
+      <span><span class="icon"><i class="fas fa-file-code"></i></span>${size}</span>
+      <span><span class="icon"><i class="fas fa-align-left"></i></span>${lines} baris</span>
+    </div>
+    <div class="card-actions">
+      <button class="btn btn-success" onclick="event.stopPropagation();openTMFromCard(event,'${s.id}')"><i class="fas fa-external-link-alt"></i> TM</button>
+      <button class="btn btn-ghost" onclick="event.stopPropagation();editS('${s.id}')"><i class="fas fa-edit"></i> Edit</button>
+      <button class="btn btn-warning" onclick="event.stopPropagation();quickCopy('${s.id}')"><i class="fas fa-copy"></i> Copy</button>
+      <button class="btn btn-danger" onclick="event.stopPropagation();quickDel('${s.id}')"><i class="fas fa-trash"></i> Hapus</button>
+    </div>
+  </div>`;
 }
 
 function emptyH(t, m) {
@@ -4371,35 +4490,35 @@ function closeHistDetail() {
 
 function newS() {
   editId = null;
-
   document.getElementById('sName').value = '';
   document.getElementById('sAuthor').value = currentUser.name || '';
   document.getElementById('sDesc').value = '';
   document.getElementById('sCode').value = '';
   document.getElementById('edTitle').textContent = 'SCRIPT BARU';
   document.getElementById('bDel').style.display = 'none';
-
+  const pubRadio = document.querySelector('input[name="sVis"][value="public"]');
+  if (pubRadio) pubRadio.checked = true;
   updateStats();
   openEditor();
 }
 
 function editS(id) {
   const s = scripts.find(x => x && x.id === id);
-
-  if (!s) {
-    toast('❌ Script tidak ditemukan', 'error');
+  if (!s) { toast('❌ Script tidak ditemukan', 'error'); return; }
+  if (!isAdmin() && s.ownerEmail !== currentUser.email) {
+    toast('⛔ Hanya pemilik atau admin yang bisa edit', 'error');
     return;
   }
-
   editId = id;
-
   document.getElementById('sName').value = s.name || '';
   document.getElementById('sAuthor').value = s.author || '';
   document.getElementById('sDesc').value = s.desc || '';
   document.getElementById('sCode').value = s.code || '';
   document.getElementById('edTitle').textContent = 'EDIT: ' + (s.name || 'Unnamed');
   document.getElementById('bDel').style.display = 'inline-flex';
-
+  const visVal = s.isPublic === false ? 'private' : 'public';
+  const visRadio = document.querySelector(`input[name="sVis"][value="${visVal}"]`);
+  if (visRadio) visRadio.checked = true;
   updateStats();
   openEditor();
 }
@@ -4415,71 +4534,48 @@ async function saveS() {
   const author = document.getElementById('sAuthor').value.trim();
   const desc = document.getElementById('sDesc').value.trim();
   const code = document.getElementById('sCode').value;
+  if (!name) { toast('Nama wajib diisi', 'error'); return; }
+  if (!code) { toast('Code kosong', 'error'); return; }
 
-  if (!name) {
-    toast('Nama wajib diisi', 'error');
-    return;
-  }
-
-  if (!code) {
-    toast('Code kosong', 'error');
-    return;
-  }
+  const visChecked = document.querySelector('input[name="sVis"]:checked');
+  const isPublic = visChecked ? (visChecked.value !== 'private') : true;
 
   const now = new Date().toISOString();
   let scriptToSave;
-
   if (editId) {
     const i = scripts.findIndex(s => s && s.id === editId);
-
     if (i >= 0) {
+      if (!isAdmin() && scripts[i].ownerEmail !== currentUser.email) {
+        toast('⛔ Hanya pemilik atau admin yang bisa edit', 'error');
+        return;
+      }
       const oldData = { ...scripts[i] };
-
-      scripts[i] = {
-        ...scripts[i],
-        name,
-        author,
-        desc,
-        code,
-        updated: now
-      };
-
+      scripts[i] = { ...scripts[i], name, author, desc, code, isPublic, updated: now };
       pushHistory(scripts[i], buildHistoryEntry('update', name, oldData, scripts[i]));
       scriptToSave = scripts[i];
     }
   } else {
     const ns = {
       id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-      name,
-      author,
-      desc,
-      code,
-      created: now,
-      updated: now,
+      name, author, desc, code, isPublic,
+      created: now, updated: now,
       ownerEmail: currentUser.email,
       ownerName: currentUser.name,
       history: []
     };
-
     pushHistory(ns, buildHistoryEntry('create', name, null, ns));
     scripts.push(ns);
     editId = ns.id;
     scriptToSave = ns;
   }
-
   try {
     toast('Menyimpan ke Firebase...', 'info');
     await FIREBASE.save(scriptToSave);
-
     document.getElementById('edTitle').textContent = name;
     document.getElementById('bDel').style.display = 'inline-flex';
-
     renderAll();
-    toast('✅ Tersimpan di Firebase', 'success');
-
-    setTimeout(() => {
-      closeEditor();
-    }, 600);
+    toast(isPublic ? '✅ Tersimpan (PUBLIK)' : '🔒 Tersimpan (PRIVATE)', 'success');
+    setTimeout(() => { closeEditor(); }, 600);
   } catch (e) {
     toast('❌ Gagal: ' + e.message, 'error');
   }
