@@ -107,6 +107,32 @@ body::after {
   50% { transform: translate(-80px, -60px) scale(1.08); }
 }
 
+  /* BUKU DOSA ALL STYLES */
+.dosa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue)) !important;
+  color: var(--bg-primary) !important;
+  border-color: var(--neon-cyan) !important;
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.35) !important;
+}
+.img-thumb {
+  display: inline-block;
+  margin: 4px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border-normal);
+  transition: var(--transition);
+}
+.img-thumb:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+}
+  
   .portal-input-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2378,10 +2404,10 @@ body::after {
     <span class="nav-badge">TOP</span>
   </div>
 
-  <div class="nav-item" data-section="social" onclick="showSection('social', this)">
-    <span class="nav-icon"><i class="fas fa-share-alt"></i></span>
-    Sosial Media
-  </div>
+  <div class="nav-item" data-section="dosa" onclick="showSection('dosa', this)">
+  <span class="nav-icon"><i class="fas fa-book-dead"></i></span>
+  Buku Dosa All
+</div>
 
   <div class="nav-label" style="margin-top:10px;">VAULT</div>
 
@@ -2707,34 +2733,36 @@ body::after {
       </div>
     </div>
 
-    <div class="content" id="section-social">
-      <div class="container">
-        <div class="section">
-          <div class="section-header">
-            <h3><span class="bar"></span><i class="fas fa-share-alt"></i> SOSIAL MEDIA</h3>
-            <small>CONNECT WITH US</small>
-          </div>
-          <div class="menu-grid">
-            <a href="#" target="_blank" class="menu-card primary" data-menu-id="telegram" id="link-telegram">
-              <div class="menu-card-icon"><i class="fab fa-telegram"></i></div>
-              <div class="menu-card-content"><h3>TELEGRAM</h3><p>Join Telegram Group</p></div>
-              <div class="menu-card-arrow"><i class="fas fa-external-link-alt"></i></div>
-            </a>
-            <a href="#" target="_blank" class="menu-card primary" data-menu-id="whatsapp" id="link-whatsapp">
-              <div class="menu-card-icon"><i class="fab fa-whatsapp"></i></div>
-              <div class="menu-card-content"><h3>WHATSAPP</h3><p>Chat Admin langsung</p></div>
-              <div class="menu-card-arrow"><i class="fas fa-external-link-alt"></i></div>
-            </a>
-            <a href="#" target="_blank" class="menu-card primary" data-menu-id="instagram" id="link-instagram">
-              <div class="menu-card-icon"><i class="fab fa-instagram"></i></div>
-              <div class="menu-card-content"><h3>INSTAGRAM</h3><p>Follow update terbaru</p></div>
-              <div class="menu-card-arrow"><i class="fas fa-external-link-alt"></i></div>
-            </a>
-          </div>
+    <div class="content" id="section-dosa">
+  <div class="container">
+    <div class="section">
+      <div class="section-header">
+        <h3><span class="bar"></span><i class="fas fa-book-dead"></i> BUKU DOSA ALL</h3>
+        <div class="modal-tools">
+          <button class="btn btn-primary tab-btn active" onclick="switchDosaTab('chat', this)">KESALAHAN CHAT ALL</button>
+          <button class="btn btn-ghost tab-btn" onclick="switchDosaTab('fatal', this)">FATAL ALL SITUS</button>
         </div>
       </div>
+      
+      <div id="dosa-tab-chat">
+        <div style="margin-bottom:16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <label style="font-size:11px; color:var(--text-secondary); font-weight:600;">FILTER SITUS:</label>
+          <select id="dosaChatSitusFilter" class="owner-filter-select" onchange="renderKesalahanChat()" style="max-width:250px;">
+            <option value="all">Semua Situs</option>
+          </select>
+          <button class="btn btn-ghost" onclick="loadDosaData('chat')" style="padding:8px 12px;"><i class="fas fa-sync"></i> Refresh</button>
+        </div>
+        <div id="dosaChatList" class="dosa-grid"></div>
+      </div>
+
+      <div id="dosa-tab-fatal" style="display:none;">
+        <div style="margin-bottom:16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <button class="btn btn-ghost" onclick="loadDosaData('fatal')" style="padding:8px 12px;"><i class="fas fa-sync"></i> Refresh Data</button>
+        </div>
+        <div id="dosaFatalList" class="dosa-grid"></div>
+      </div>
     </div>
-  </main>
+  </div>
 </div>
 
 <div class="overlay" id="editorOverlay">
@@ -3421,7 +3449,7 @@ saveActiveSection(sectionName);
 
   const titles = {
     'portal': '<i class="fas fa-rocket"></i> CYBER PORTAL',
-    'social': '<i class="fas fa-share-alt"></i> SOSIAL MEDIA',
+    'dosa': '<i class="fas fa-book-dead"></i> BUKU DOSA ALL',
     'dashboard': '<i class="fas fa-chart-line"></i> DASHBOARD',
     'scripts': '<i class="fas fa-box"></i> SCRIPT SAYA',
     'history': '<i class="fas fa-scroll"></i> HISTORI EDIT',
@@ -3447,6 +3475,10 @@ saveActiveSection(sectionName);
   if (sectionName === 'dashboard') renderDash();
   if (sectionName === 'login-history') renderLoginHistory();
   if (sectionName === 'portal') updatePortalUI();
+
+        if (sectionName === 'dosa') {
+        if (!window.dosaChatData) loadDosaData('chat');
+      }
 }
 
 function renderUserCard() {
@@ -4905,6 +4937,218 @@ async function resetPortalLinks() {
   }
 }
 
+  // ==========================================
+// BUKU DOSA ALL - GOOGLE SHEETS INTEGRATION
+// ==========================================
+const SHEET_ID = '1camkXfvojs-YSBBPekYHTi4cwata4YCGTtmVIeOy1yc';
+window.dosaChatData = null;
+window.dosaFatalData = null;
+
+function getCellValue(row, index) {
+  if (!row.c || !row.c[index]) return '';
+  const cell = row.c[index];
+  if (cell.v !== null && cell.v !== undefined) return cell.v;
+  if (cell.f !== null && cell.f !== undefined) return cell.f;
+  return '';
+}
+
+async function fetchSheetData(sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const jsonStr = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+  if (jsonStr && jsonStr[1]) {
+    return JSON.parse(jsonStr[1]);
+  }
+  throw new Error('Format response Google Sheets tidak valid');
+}
+
+function extractLinks(text) {
+  if (!text) return [];
+  const urlRegex = /(https?:\/\/[^\s,;\n\r]+)/g;
+  return text.match(urlRegex) || [];
+}
+
+function switchDosaTab(tab, btnEl) {
+  document.querySelectorAll('#section-dosa .tab-btn').forEach(b => {
+    b.classList.remove('active', 'btn-primary');
+    b.classList.add('btn-ghost');
+  });
+  btnEl.classList.add('active', 'btn-primary');
+  btnEl.classList.remove('btn-ghost');
+
+  document.getElementById('dosa-tab-chat').style.display = tab === 'chat' ? 'block' : 'none';
+  document.getElementById('dosa-tab-fatal').style.display = tab === 'fatal' ? 'block' : 'none';
+
+  if (tab === 'chat' && !window.dosaChatData) loadDosaData('chat');
+  if (tab === 'fatal' && !window.dosaFatalData) loadDosaData('fatal');
+}
+
+async function loadDosaData(type) {
+  if (type === 'chat') {
+    const listEl = document.getElementById('dosaChatList');
+    listEl.innerHTML = '<div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data Kesalahan Chat...</h4></div>';
+    try {
+      window.dosaChatData = await fetchSheetData('Situs Lain');
+      populateSitusDropdown(window.dosaChatData);
+      renderKesalahanChat();
+    } catch (e) {
+      listEl.innerHTML = `<div class="empty"><div class="icon"><i class="fas fa-exclamation-triangle"></i></div><h4>Gagal memuat data</h4><p>${esc(e.message)}<br><small>Pastikan Sheet "Situs Lain" bersifat Publik (Anyone with link).</small></p></div>`;
+    }
+  } else if (type === 'fatal') {
+    const listEl = document.getElementById('dosaFatalList');
+    listEl.innerHTML = '<div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data Fatal All...</h4></div>';
+    try {
+      window.dosaFatalData = await fetchSheetData('Fatal All Situs');
+      renderFatalAll();
+    } catch (e) {
+      listEl.innerHTML = `<div class="empty"><div class="icon"><i class="fas fa-exclamation-triangle"></i></div><h4>Gagal memuat data</h4><p>${esc(e.message)}<br><small>Pastikan Sheet "Fatal All Situs" bersifat Publik.</small></p></div>`;
+    }
+  }
+}
+
+function populateSitusDropdown(data) {
+  const select = document.getElementById('dosaChatSitusFilter');
+  select.innerHTML = '<option value="all">Semua Situs</option>';
+  if (!data.table || !data.table.rows || data.table.rows.length < 2) return;
+  
+  const row2 = data.table.rows[1]; // Baris ke-2 (C2, D2, dll)
+  const situsSet = new Set();
+  
+  for (let i = 2; i <= 6; i++) { // Cek kolom C sampai G di baris 2
+    const val = String(getCellValue(row2, i)).trim();
+    if (val && val.length > 1 && val.length < 50 && !val.includes('http')) {
+      situsSet.add(val);
+    }
+  }
+  
+  situsSet.forEach(s => {
+    select.innerHTML += `<option value="${esc(s)}">${esc(s)}</option>`;
+  });
+}
+
+function renderKesalahanChat() {
+  const listEl = document.getElementById('dosaChatList');
+  if (!window.dosaChatData || !window.dosaChatData.table) return;
+  
+  const filter = document.getElementById('dosaChatSitusFilter').value;
+  const rows = window.dosaChatData.table.rows;
+  let html = '';
+  let count = 0;
+  
+  rows.forEach((row, index) => {
+    if (index < 3) return; // Skip header & C2 dropdown row
+    
+    const namaCS = getCellValue(row, 1); // B
+    const linkFotoTgl = getCellValue(row, 2); // C
+    const keterangan = getCellValue(row, 3); // D
+    const namaStaff = getCellValue(row, 8); // I
+    const totalKesalahan = getCellValue(row, 9); // J
+    
+    if (!namaCS && !keterangan && !linkFotoTgl) return;
+    
+    const links = extractLinks(String(linkFotoTgl));
+    const tanggal = String(linkFotoTgl).replace(/(https?:\/\/[^\s,;\n\r]+)/g, '').trim();
+    
+    html += `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(255,62,108,0.1); color:var(--neon-red); border-color:rgba(255,62,108,0.3);">
+            <i class="fas fa-exclamation-circle"></i>
+          </div>
+          <div class="card-body">
+            <div class="card-title">${esc(namaCS || 'Unknown CS')}</div>
+            <div class="card-desc" style="color:var(--text-secondary); font-size:11px;">${esc(tanggal || 'Tanpa Tanggal')}</div>
+          </div>
+        </div>
+        <div class="card-meta" style="border:none; padding:8px 0; margin:0;">
+          <span><i class="fas fa-user-shield" style="color:var(--neon-cyan)"></i> ${esc(namaStaff || '-')}</span>
+          <span><i class="fas fa-bug" style="color:var(--neon-red)"></i> ${esc(totalKesalahan || '0')} Kesalahan</span>
+        </div>
+        <div style="padding:10px 0; border-top:1px solid var(--border-subtle); border-bottom:1px solid var(--border-subtle); margin:8px 0;">
+          <label style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-weight:700;">Keterangan</label>
+          <p style="font-size:12px; color:var(--text-primary); margin-top:4px; line-height:1.5;">${esc(keterangan || 'Tidak ada keterangan')}</p>
+        </div>
+        <div style="padding-top:8px;">
+          <label style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-weight:700;">Bukti Foto</label>
+          <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">
+            ${links.length > 0 ? links.map((l, i) => `<a href="${l}" target="_blank" class="btn btn-ghost" style="padding:5px 10px; font-size:10px;"><i class="fas fa-image"></i> Foto ${i+1}</a>`).join('') : '<span style="font-size:11px; color:var(--text-muted);">Tidak ada link foto</span>'}
+          </div>
+        </div>
+      </div>
+    `;
+    count++;
+  });
+  
+  listEl.innerHTML = count === 0 ? '<div class="empty"><div class="icon"><i class="fas fa-check-circle"></i></div><h4>TIDAK ADA KESALAHAN</h4><p>Data bersih atau belum ada yang tercatat</p></div>' : html;
+}
+
+function renderFatalAll() {
+  const listEl = document.getElementById('dosaFatalList');
+  if (!window.dosaFatalData || !window.dosaFatalData.table) return;
+  
+  const rows = window.dosaFatalData.table.rows;
+  let html = '';
+  let count = 0;
+  
+  rows.forEach((row, index) => {
+    if (index < 4) return; // Skip header
+    
+    const tanggal = getCellValue(row, 1); // B
+    const namaStaf = getCellValue(row, 3); // D
+    const statusStaf = getCellValue(row, 4); // E
+    const namaSitus = getCellValue(row, 5); // F
+    const potongBonus = getCellValue(row, 7); // H
+    const keterangan = getCellValue(row, 8); // I
+    const ssKesalahan = getCellValue(row, 9); // J
+    const ssLC = getCellValue(row, 10); // K
+    
+    if (!namaStaf && !keterangan && !namaSitus) return;
+    
+    const linksSS = extractLinks(String(ssKesalahan));
+    const linksLC = extractLinks(String(ssLC));
+    
+    html += `
+      <div class="card" style="border-color:rgba(255,62,108,0.3);">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(255,62,108,0.15); color:var(--neon-red); border-color:rgba(255,62,108,0.4);">
+            <i class="fas fa-skull-crossbones"></i>
+          </div>
+          <div class="card-body">
+            <div class="card-title">${esc(namaStaf || 'Unknown')}</div>
+            <div class="card-desc" style="color:var(--neon-red); font-weight:600;">${esc(namaSitus || '-')} • ${esc(statusStaf || '-')}</div>
+          </div>
+        </div>
+        <div class="card-meta" style="border:none; padding:8px 0; margin:0;">
+          <span><i class="fas fa-calendar" style="color:var(--neon-cyan)"></i> ${esc(tanggal || '-')}</span>
+          <span><i class="fas fa-percent" style="color:var(--neon-yellow)"></i> Potong ${esc(potongBonus || '0')}%</span>
+        </div>
+        <div style="padding:10px 0; border-top:1px solid var(--border-subtle); border-bottom:1px solid var(--border-subtle); margin:8px 0;">
+          <label style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-weight:700;">Keterangan Fatal</label>
+          <p style="font-size:12px; color:var(--text-primary); margin-top:4px; line-height:1.5;">${esc(keterangan || 'Tidak ada keterangan')}</p>
+        </div>
+        <div style="padding-top:8px; display:grid; gap:10px;">
+          <div>
+            <label style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-weight:700;">SS Kesalahan</label>
+            <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">
+              ${linksSS.length > 0 ? linksSS.map((l, i) => `<a href="${l}" target="_blank" class="btn btn-ghost" style="padding:5px 10px; font-size:10px;"><i class="fas fa-image"></i> SS ${i+1}</a>`).join('') : '<span style="font-size:11px; color:var(--text-muted);">-</span>'}
+            </div>
+          </div>
+          <div>
+            <label style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-weight:700;">SS Kesalahan LC</label>
+            <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">
+              ${linksLC.length > 0 ? linksLC.map((l, i) => `<a href="${l}" target="_blank" class="btn btn-ghost" style="padding:5px 10px; font-size:10px;"><i class="fas fa-image"></i> LC ${i+1}</a>`).join('') : '<span style="font-size:11px; color:var(--text-muted);">-</span>'}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    count++;
+  });
+  
+  listEl.innerHTML = count === 0 ? '<div class="empty"><div class="icon"><i class="fas fa-check-circle"></i></div><h4>TIDAK ADA FATAL ERROR</h4><p>Data bersih atau belum ada yang tercatat</p></div>' : html;
+}
+  
   function openClearLoginHistory() {
   if (!isAdmin()) {
     toast('⛔ Hanya admin yang bisa membersihkan histori login', 'error');
