@@ -5087,36 +5087,85 @@ async function clearLoginHistoryOld(days = 7) {
   }
 }
 
-  // ==================== BUKU DOSA ALL ====================
+// ==================== BUKU DOSA ALL ====================
 const BUKU_SHEET_ID = '2PACX-1vRNKApyhRDJkDp2XDSXu7cOqiTreCPUSxCeBIHpkxPBcGlbrMc7q2vA_jSLMUOON7q8yhRoofh8wTVd';
-const KESALAHAN_SHEET_NAME = 'Situs Lain';   // sheet untuk KESALAHAN CHAT ALL
-const FATAL_SHEET_NAME = '';                 // ⚠️ ISI nama sheet untuk FATAL ALL (jika berbeda). Kosong = sheet pertama.
+const BUKU_PUB_BASE = 'https://docs.google.com/spreadsheets/d/e/' + BUKU_SHEET_ID;
+const KESALAHAN_SHEET_NAME = 'Situs Lain';
+const FATAL_SHEET_NAME = 'Fatal All Situs';
 
-let kesalahanChatData = [];
-let kesalahanStaffData = [];
-let fatalData = [];
+// ⚠️ CADANGAN: isi gid manual JIKA auto-detect gagal (lihat panduan di bawah).
+// Contoh: const MANUAL_GIDS = { 'Situs Lain': '123456789', 'Fatal All Situs': '987654321' };
+const MANUAL_GIDS = { 'Situs Lain': '', 'Fatal All Situs': '' };
 
-function gvizUrl(sheetName) {
-  let u = `https://docs.google.com/spreadsheets/d/e/${BUKU_SHEET_ID}/gviz/tq?tqx=out:json`;
-  if (sheetName) u += `&sheet=${encodeURIComponent(sheetName)}`;
-  return u;
+let bukuGidMap = {};
+
+function decodeEntities(s) {
+  const d = document.createElement('textarea');
+  d.innerHTML = s;
+  return d.value;
 }
 
-async function fetchGvizRows(sheetName) {
-  const res = await fetch(gvizUrl(sheetName));
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const text = await res.text();
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('Format data tidak valid');
-  const json = JSON.parse(text.substring(start, end + 1));
-  if (!json.table || !json.table.rows) return [];
-  return json.table.rows.map(r => (r.c || []).map(cell => {
-    if (!cell) return '';
-    if (cell.f) return String(cell.f);
-    if (cell.v === null || cell.v === undefined) return '';
-    return String(cell.v);
-  }));
+// Parse gid↔nama sheet dari halaman pubhtml mentah
+function parseGidsFromHtml(html) {
+  const map = {};
+  let m;
+  const re1 = /gid=(\d+)[^>]*>\s*([^<>]+?)\s*</g;
+  while ((m = re1.exec(html))) {
+    const name = decodeEntities(m[2]).trim();
+    if (name && name.length < 80) map[name] = m[1];
+  }
+  const re2 = /"name"\s*:\s*"([^"]+)"\s*,\s*"gid"\s*:\s*(\d+)/g;
+  while ((m = re2.exec(html))) map[m[1]] = m[2];
+  const re3 = /"gid"\s*:\s*(\d+)\s*,\s*"name"\s*:\s*"([^"]+)"/g;
+  while ((m = re3.exec(html))) map[m[2]] = m[1];
+  return map;
+}
+
+// Parser CSV standar (mendukung tanda kutip & koma di dalam sel)
+function parseCSV(text) {
+  const rows = [];
+  let cur = [], cell = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i], nx = text[i + 1];
+    if (inQ) {
+      if (ch === '"') { if (nx === '"') { cell += '"'; i++; } else inQ = false; }
+      else cell += ch;
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ',') { cur.push(cell); cell = ''; }
+      else if (ch === '\n') { cur.push(cell); rows.push(cur); cur = []; cell = ''; }
+      else if (ch !== '\r') cell += ch;
+    }
+  }
+  if (cell !== '' || cur.length) { cur.push(cell); rows.push(cur); }
+  return rows;
+}
+
+async function discoverBukuGids() {
+  if (Object.keys(bukuGidMap).length) return bukuGidMap;
+  try {
+    const r = await fetch(BUKU_PUB_BASE + '/pubhtml');
+    if (r.ok) bukuGidMap = parseGidsFromHtml(await r.text());
+  } catch (e) {
+    console.warn('⚠️ Auto-detect gid gagal:', e);
+  }
+  return bukuGidMap;
+}
+
+async function fetchBukuRows(sheetName) {
+  // 1) gid manual (cadangan)
+  let gid = (MANUAL_GIDS[sheetName] || '').trim();
+  // 2) gid auto-detect
+  if (!gid) {
+    await discoverBukuGids();
+    gid = bukuGidMap[sheetName] || '';
+  }
+  if (gid) {
+    const r = await fetch(BUKU_PUB_BASE + '/pub?output=csv&single=true&gid=' + gid);
+    if (r.ok) return parseCSV(await r.text());
+    throw new Error('HTTP ' + r.status + ' saat membaca sheet "' + sheetName + '"');
+  }
+  throw new Error('GID tidak ditemukan untuk sheet "' + sheetName + '". Isi MANUAL_GIDS (panduan di catatan).');
 }
 
 function cellVal(row, idx) {
@@ -5128,40 +5177,21 @@ function extractUrl(text) {
   return m ? m[0] : '';
 }
 
-function showBukuDosaMenu() {
-  document.getElementById('bukuDosaMenuSection').style.display = 'block';
-  document.getElementById('bukuDosaKesalahanView').style.display = 'none';
-  document.getElementById('bukuDosaFatalView').style.display = 'none';
-}
-
-function showBukuDosaView(type) {
-  document.getElementById('bukuDosaMenuSection').style.display = 'none';
-  if (type === 'kesalahan') {
-    document.getElementById('bukuDosaKesalahanView').style.display = 'block';
-    document.getElementById('bukuDosaFatalView').style.display = 'none';
-    loadBukuDosa('kesalahan');
-  } else {
-    document.getElementById('bukuDosaFatalView').style.display = 'block';
-    document.getElementById('bukuDosaKesalahanView').style.display = 'none';
-    loadBukuDosa('fatal');
-  }
-}
-
 async function loadBukuDosa(type) {
   if (type === 'kesalahan') {
     document.getElementById('kesalahanList').innerHTML = `<div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data...</h4></div>`;
     document.getElementById('kesalahanStaffSummary').innerHTML = '';
     try {
-      const rows = await fetchGvizRows(KESALAHAN_SHEET_NAME);
+      const rows = await fetchBukuRows(KESALAHAN_SHEET_NAME);
       kesalahanChatData = [];
-      for (let i = 3; i < rows.length && i < 2547; i++) {
+      for (let i = 3; i < Math.min(rows.length, 2547); i++) {          // baris 4+
         const namaCS = cellVal(rows[i], 1);   // B
         const link   = cellVal(rows[i], 2);   // C
         const ket    = cellVal(rows[i], 3);   // D
         if (namaCS || ket) kesalahanChatData.push({ namaCS, link, ket });
       }
       kesalahanStaffData = [];
-      for (let i = 2; i < rows.length && i < 40; i++) {
+      for (let i = 2; i < Math.min(rows.length, 40); i++) {             // baris 3-40
         const nama   = cellVal(rows[i], 8);   // I
         const jumlah = cellVal(rows[i], 9);   // J
         if (nama) kesalahanStaffData.push({ nama, jumlah });
@@ -5175,17 +5205,17 @@ async function loadBukuDosa(type) {
   } else if (type === 'fatal') {
     document.getElementById('fatalList').innerHTML = `<div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data...</h4></div>`;
     try {
-      const rows = await fetchGvizRows(FATAL_SHEET_NAME || null);
+      const rows = await fetchBukuRows(FATAL_SHEET_NAME);
       fatalData = [];
-      for (let i = 4; i < rows.length && i < 1001; i++) {
-        const tanggal  = cellVal(rows[i], 1);  // B
-        const namaStaf = cellVal(rows[i], 3);  // D
-        const status   = cellVal(rows[i], 4);  // E
-        const situs    = cellVal(rows[i], 5);  // F
-        const potong   = cellVal(rows[i], 7);  // H
-        const ket      = cellVal(rows[i], 8);  // I
-        const ss       = cellVal(rows[i], 9);  // J
-        const ssLc     = cellVal(rows[i], 10); // K
+      for (let i = 4; i < Math.min(rows.length, 1001); i++) {           // baris 5+
+        const tanggal  = cellVal(rows[i], 1);   // B
+        const namaStaf = cellVal(rows[i], 3);   // D
+        const status   = cellVal(rows[i], 4);   // E
+        const situs    = cellVal(rows[i], 5);   // F
+        const potong   = cellVal(rows[i], 7);   // H
+        const ket      = cellVal(rows[i], 8);   // I
+        const ss       = cellVal(rows[i], 9);   // J
+        const ssLc     = cellVal(rows[i], 10);  // K
         if (tanggal || namaStaf || ket) fatalData.push({ tanggal, namaStaf, status, situs, potong, ket, ss, ssLc });
       }
       populateFatalSitusFilter();
