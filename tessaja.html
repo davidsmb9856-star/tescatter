@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
-<title>BUKU DOSA ALL — Dove Blue v18</title>
+<title>BUKU DOSA ALL — Dove Blue v18.1</title>
 <style>
 :root{
   --dv50:#f3f8fd;--dv100:#e6f0f9;--dv200:#cfe0ef;--dv300:#aacbe6;--dv400:#79a6cf;
@@ -204,7 +204,7 @@ html.dark .toast{background:#0a1825;border:1px solid var(--dv300);color:#eaf3fb}
 <body>
 <header><div class="hwrap">
   <div class="logo">🕊️</div>
-  <h1>BUKU DOSA ALL <small>Drag‑Free · Dove Blue v18 · Custom Dropdown</small></h1>
+  <h1>BUKU DOSA ALL <small>Drag‑Free · Dove Blue v18.1 · Filter Header Staff</small></h1>
   <div class="hdr-actions">
     <div id="status"><span class="dot" id="sDot"></span><span id="sTxt">Memuat…</span></div>
     <span class="updated" id="updated"></span>
@@ -317,11 +317,7 @@ function makeDD(hostId, onChange){
     const cur=items.find(it=>it.v===value); txt.textContent=cur?cur.label:'—';
   }
   function set(v,fire){value=v;render();if(fire&&onChange)onChange(v)}
-  return {
-    setItems(arr,keepValue){items=arr;if(!keepValue||!items.some(it=>it.v===value))value=arr.length?arr[0].v:'';render()},
-    setValue(v){value=v;render()},
-    getValue(){return value}
-  };
+  return {setItems(arr,keepValue){items=arr;if(!keepValue||!items.some(it=>it.v===value))value=arr.length?arr[0].v:'';render()},setValue(v){value=v;render()},getValue(){return value}};
 }
 document.addEventListener('click',()=>document.querySelectorAll('.dd.open').forEach(d=>d.classList.remove('open')));
 
@@ -368,7 +364,23 @@ const DDfatalDate=makeDD('ddFatalDate',v=>{fDate=v;fatalShown=PAGE;renderFatal()
 const DDfSitus=makeDD('ddFSitus',v=>{fSitus=v;fatalShown=PAGE;renderFatal()});
 const DDfStaff=makeDD('ddFStaff',v=>{fStaff=v;fatalShown=PAGE;renderFatal()});
 
-function parseChat(rows){const recs=[],staff=[];for(let i=0;i<Math.min(40,rows.length);i++){const r=rows[i]||[],I=cl(r[8]),J=cl(r[9]);staff.push({name:I||'(kosong)',total:J||'0',row:i+1})}let curDate='';for(let i=0;i<Math.min(rows.length,2547);i++){const r=rows[i]||[],B=cl(r[1]),C=cl(r[2]),D=cl(r[3]);if(isDate(C)){curDate=C;}recs.push({tgl:curDate,nama:B,links:linksOf(C),ket:D,row:i+1})}return {recs,staff}}
+/* ===== PARSE CHAT — dengan FILTER HEADER STAFF ===== */
+function parseChat(rows){
+  const recs=[],staff=[];
+  const SKIP=/^(nama\s*staff|total\s*kesalahan|nomor\s*paspor|staff|nama|total|no|jumlah|rekapan)/i;
+  for(let i=0;i<Math.min(40,rows.length);i++){
+    const r=rows[i]||[],I=cl(r[8]),J=cl(r[9]);
+    if(!I) continue;
+    if(SKIP.test(I)) continue;
+    if(/[#@$]/.test(I)) continue;
+    const jClean=cl(J);
+    if(jClean && !/^\d+$/.test(jClean)) continue;
+    staff.push({name:I,total:jClean||'0',row:i+1});
+  }
+  let curDate='';
+  for(let i=0;i<Math.min(rows.length,2547);i++){const r=rows[i]||[],B=cl(r[1]),C=cl(r[2]),D=cl(r[3]);if(isDate(C)){curDate=C;}recs.push({tgl:curDate,nama:B,links:linksOf(C),ket:D,row:i+1})}
+  return {recs,staff};
+}
 function parseFatal(rows){const out=[];for(let i=0;i<Math.min(rows.length,1001);i++){const r=rows[i]||[];out.push({tgl:cl(r[1]),staf:cl(r[3]),stat:cl(r[4]),situs:cl(r[5]),potong:cl(r[7]),ket:cl(r[8]),ss1:linksOf(r[9]),ss2:linksOf(r[10]),row:i+1})}return out}
 
 function buildChatDateDropdown(){const d=[...new Set(CHAT_RECS.map(r=>r.tgl).filter(Boolean))];sortDatesDesc(d);DDchatDate.setItems([{v:'',label:'— SEMUA TANGGAL —'},...d.map(x=>({v:x,label:'📅 '+x}))],true)}
@@ -381,8 +393,7 @@ function buildStaffDropdowns(){
   else if(cOrder==='high')arr.sort((a,b)=>parseInt(b.total)-parseInt(a.total));
   else if(cOrder==='low')arr.sort((a,b)=>parseInt(a.total)-parseInt(b.total));
   const items=[{v:'',label:'— SEMUA STAFF —'},...arr.map(s=>({v:s.name,label:s.name+'  (total: '+s.total+')'}))];
-  DDchatStaff.setItems(items,true);
-  DDstaffPanel.setItems(items,true);
+  DDchatStaff.setItems(items,true);DDstaffPanel.setItems(items,true);
 }
 function selectStaff(name){cStaff=name||'';DDchatStaff.setValue(cStaff);DDstaffPanel.setValue(cStaff);chatShown=PAGE;renderChat();renderStaff();if(cStaff){document.querySelector('.tab[data-p="chat"]').click();toast('👤 Filter: '+cStaff)}}
 
