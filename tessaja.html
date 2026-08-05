@@ -3,17 +3,15 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
-<title>BUKU DOSA ALL — Dove Blue v18.1</title>
+<title>BUKU DOSA ALL — Dove Blue v18.2</title>
 <style>
 :root{
   --dv50:#f3f8fd;--dv100:#e6f0f9;--dv200:#cfe0ef;--dv300:#aacbe6;--dv400:#79a6cf;
   --dv500:#4682b4;--dv600:#37688f;--dv700:#2c5373;--dv800:#1f3a52;--dv900:#15283a;
   --ink:#13232f;--soft:#5a6b7d;--line:#e2ebf3;
   --red:#c62828;--redbg:#fdecea;--amber:#b45309;--amberbg:#fff6e0;--ok:#15803d;--okbg:#dcfce7;
-  --bg1:#f3f8fd;--bg2:#eaf2fa;--bg3:#e4eef8;
-  --card:#ffffff;--radius:14px;
-  --shadow:0 6px 20px rgba(31,58,84,.10);--shadow-lg:0 14px 40px rgba(31,58,84,.18);
-  --hl:#fff3bf;
+  --bg1:#f3f8fd;--bg2:#eaf2fa;--bg3:#e4eef8;--card:#ffffff;--radius:14px;
+  --shadow:0 6px 20px rgba(31,58,84,.10);--shadow-lg:0 14px 40px rgba(31,58,84,.18);--hl:#fff3bf;
   --field-bg:#ffffff;--field-fg:#13232f;--field-border:#cfe0ef;
   --dd-bg:#ffffff;--dd-fg:#13232f;--dd-hover:#e6f0f9;--dd-sel:#4682b4;--dd-selfg:#ffffff;
 }
@@ -22,9 +20,8 @@ html.dark{
   --dv500:#6fa3cf;--dv600:#8fbce0;--dv700:#aacfeb;--dv800:#cfe2f2;--dv900:#eaf3fb;
   --ink:#e8f0f8;--soft:#9fb2c4;--line:#2a4258;
   --red:#ef5350;--redbg:#3a1f1f;--amber:#f0a830;--amberbg:#3a2f15;--ok:#34d399;--okbg:#13352a;
-  --bg1:#0f1d2b;--bg2:#132434;--bg3:#16293a;
-  --card:#1a2f42;--shadow:0 6px 20px rgba(0,0,0,.4);--shadow-lg:0 14px 40px rgba(0,0,0,.55);
-  --hl:#7a6522;
+  --bg1:#0f1d2b;--bg2:#132434;--bg3:#16293a;--card:#1a2f42;
+  --shadow:0 6px 20px rgba(0,0,0,.4);--shadow-lg:0 14px 40px rgba(0,0,0,.55);--hl:#7a6522;
   --field-bg:#0f2233;--field-fg:#eaf3fb;--field-border:#33597a;
   --dd-bg:#16293a;--dd-fg:#eaf3fb;--dd-hover:#27455f;--dd-sel:#4682b4;--dd-selfg:#ffffff;
 }
@@ -204,7 +201,7 @@ html.dark .toast{background:#0a1825;border:1px solid var(--dv300);color:#eaf3fb}
 <body>
 <header><div class="hwrap">
   <div class="logo">🕊️</div>
-  <h1>BUKU DOSA ALL <small>Drag‑Free · Dove Blue v18.1 · Filter Header Staff</small></h1>
+  <h1>BUKU DOSA ALL <small>Drag‑Free · Dove Blue v18.2 · Fix Download</small></h1>
   <div class="hdr-actions">
     <div id="status"><span class="dot" id="sDot"></span><span id="sTxt">Memuat…</span></div>
     <span class="updated" id="updated"></span>
@@ -295,6 +292,10 @@ html.dark .toast{background:#0a1825;border:1px solid var(--dv300);color:#eaf3fb}
   <img id="mImg" alt="preview"><div class="mcap" id="mCap"></div>
 </div></div>
 <div class="toast" id="toast"></div>
+
+<!-- ===== TEMPLATE SOURCE (aman, tidak rusak saat diambil untuk download) ===== -->
+<script type="text/plain" id="appSource">__APP_SOURCE_PLACEHOLDER__</script>
+
 <script>
 const SID='1camkXfvojs-YSBBPekYHTi4cwata4YCGTtmVIeOy1yc';
 const CHAT_SHEET='Only JoniTogel', CHAT_GID_FALLBACK='0', FATAL_SHEET='Fatal All Situs';
@@ -341,10 +342,46 @@ function applyTheme(dark){document.documentElement.classList.toggle('dark',dark)
 $('btnTheme').onclick=()=>applyTheme(!document.documentElement.classList.contains('dark'));
 try{if(localStorage.getItem('bda_theme')==='1')applyTheme(true)}catch(e){}
 
-function downloadFile(fn,c,m){const b=new Blob([c],{type:m||'text/plain;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),1500)}
-function toCSV(rows){return rows.map(r=>r.map(c=>{const s=String(c??'');return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(',')).join('\r\n')}
+/* ===== DOWNLOAD DIPERBAIKI: multi-metode + source aman ===== */
+function triggerDownload(filename, blob){
+  try{ if(window.navigator && window.navigator.msSaveOrOpenBlob){ window.navigator.msSaveOrOpenBlob(blob, filename); return true; } }catch(e){}
+  try{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=filename; a.rel='noopener'; a.style.display='none';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ try{document.body.removeChild(a)}catch(e){} try{URL.revokeObjectURL(url)}catch(e){} }, 400);
+    return true;
+  }catch(e){ console.warn('anchor download gagal:', e); }
+  try{
+    const url=URL.createObjectURL(blob);
+    const w=window.open(url,'_blank');
+    if(w){ try{w.document.title=filename}catch(e){} }
+    setTimeout(()=>{ try{URL.revokeObjectURL(url)}catch(e){} }, 60000);
+    return !!w;
+  }catch(e){ console.warn('window.open download gagal:', e); }
+  return false;
+}
+function downloadFile(fn,c,m){
+  const blob=new Blob([c],{type:m||'application/octet-stream'});
+  const ok=triggerDownload(fn, blob);
+  if(!ok) toast('⚠️ Browser memblokir download. Izinkan pop-up lalu coba lagi.');
+}
 function stamp(){const d=new Date();return d.getFullYear()+''+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'_'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')}
-function downloadApp(){try{downloadFile('buku-dosa-all_'+stamp()+'.html','<!DOCTYPE html>\n'+document.documentElement.outerHTML,'text/html;charset=utf-8');toast('✅ Aplikasi diunduh! Buka file .html di browser.')}catch(e){toast('❌ Gagal: '+e.message)}}
+function getAppHTML(){
+  let src='';
+  try{ src=document.getElementById('appSource').textContent; }catch(e){ src=''; }
+  if(!src || src.indexOf('__APP_SOURCE_PLACEHOLDER__')>-1){
+    src='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+    src=src.replace(/<script type="text\/plain" id="appSource">[\s\S]*?<\/script>/i,'<script type="text/plain" id="appSource">__APP_SOURCE_PLACEHOLDER__<\/script>');
+  }
+  return src;
+}
+function downloadApp(){
+  try{ const html=getAppHTML(); downloadFile('buku-dosa-all_'+stamp()+'.html', html, 'text/html;charset=utf-8'); toast('✅ Aplikasi diunduh! Buka file .html di browser.'); }
+  catch(e){ toast('❌ Gagal mengunduh: '+e.message); }
+}
+function toCSV(rows){return rows.map(r=>r.map(c=>{const s=String(c??'');return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(',')).join('\r\n')}
 function exportChatCsv(){if(!CHAT_RECS.length){toast('⚠️ Belum ada data Chat.');return}const h=['No','Tanggal','Nama CS','Link Foto','Keterangan'],rows=[h];let n=0;CHAT_RECS.forEach(r=>{if(!r.nama&&!r.links.length&&!r.ket)return;n++;rows.push([n,r.tgl||'',r.nama||'',r.links.join(' | '),r.ket||''])});downloadFile('kesalahan-chat_'+stamp()+'.csv','\ufeff'+toCSV(rows),'text/csv;charset=utf-8');toast('✅ Chat CSV ('+n+' baris)')}
 function exportFatalCsv(){if(!FATAL.length){toast('⚠️ Belum ada data Fatal.');return}const h=['No','Tanggal','Nama Staf','Status','Situs','Potong %','Keterangan Fatal','SS Kesalahan','SS Kesalahan LC'],rows=[h];let n=0;FATAL.forEach(x=>{if(!x.tgl&&!x.staf&&!x.ket&&!x.ss1.length&&!x.ss2.length&&!x.situs&&!x.potong&&!x.stat)return;n++;rows.push([n,x.tgl||'',x.staf||'',x.stat||'',x.situs||'',x.potong||'',x.ket||'',x.ss1.join(' | '),x.ss2.join(' | ')])});downloadFile('fatal-all-situs_'+stamp()+'.csv','\ufeff'+toCSV(rows),'text/csv;charset=utf-8');toast('✅ Fatal CSV ('+n+' baris)')}
 function exportStaffCsv(){const st=CHAT_STAFF.filter(s=>s.name&&s.name!=='(kosong)');if(!st.length){toast('⚠️ Belum ada data Staff.');return}const sorted=[...st].sort((a,b)=>parseInt(b.total||0)-parseInt(a.total||0)),rows=[['No','Nama Staff','Total Kesalahan']];sorted.forEach((s,i)=>rows.push([i+1,s.name,s.total]));downloadFile('staff-total_'+stamp()+'.csv','\ufeff'+toCSV(rows),'text/csv;charset=utf-8');toast('✅ Staff CSV ('+sorted.length+')')}
@@ -364,7 +401,6 @@ const DDfatalDate=makeDD('ddFatalDate',v=>{fDate=v;fatalShown=PAGE;renderFatal()
 const DDfSitus=makeDD('ddFSitus',v=>{fSitus=v;fatalShown=PAGE;renderFatal()});
 const DDfStaff=makeDD('ddFStaff',v=>{fStaff=v;fatalShown=PAGE;renderFatal()});
 
-/* ===== PARSE CHAT — dengan FILTER HEADER STAFF ===== */
 function parseChat(rows){
   const recs=[],staff=[];
   const SKIP=/^(nama\s*staff|total\s*kesalahan|nomor\s*paspor|staff|nama|total|no|jumlah|rekapan)/i;
