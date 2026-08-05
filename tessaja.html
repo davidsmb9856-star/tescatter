@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
-<title>BUKU DOSA ALL — Dove Blue v5</title>
+<title>BUKU DOSA ALL — Dove Blue v6</title>
 <style>
 :root{
   --dv50:#f2f7fc;--dv100:#e3eef8;--dv200:#c9ddef;--dv300:#a3c4e2;--dv400:#74a3cf;
@@ -38,12 +38,16 @@ h1 small{display:block;font-size:10px;font-weight:400;opacity:.85;letter-spacing
 .tab.on .pill{background:rgba(255,255,255,.25)}
 .ctrls{max-width:1700px;margin:12px auto;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .ctrl{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--dv200);
-  border-radius:11px;padding:7px 11px;box-shadow:0 2px 5px rgba(32,58,81,.06);flex:1 1 180px;min-width:0}
+  border-radius:11px;padding:7px 11px;box-shadow:0 2px 5px rgba(32,58,81,.06);flex:1 1 160px;min-width:0}
 .ctrl label{font-size:10px;font-weight:800;color:var(--dv700);letter-spacing:.5px;white-space:nowrap}
 .ctrl select,.ctrl input{border:0;outline:0;background:transparent;font-size:13px;color:var(--ink);width:100%;min-width:0}
 .btn{cursor:pointer;border:1px solid var(--dv200);background:linear-gradient(180deg,#fff,#e8f1fa);
   color:var(--dv700);font-weight:700;padding:8px 13px;border-radius:10px;transition:.15s;font-size:13px;white-space:nowrap}
 .btn:active{transform:scale(.97)}
+.filterinfo{max-width:1700px;margin:0 auto 8px;padding:0 16px;font-size:11.5px;color:var(--dv600);font-weight:700;
+  display:none;align-items:center;gap:6px}
+.filterinfo.show{display:flex}
+.filterinfo .badge{background:linear-gradient(90deg,var(--dv500),var(--dv400));color:#fff;padding:4px 10px;border-radius:8px;font-size:11px}
 .srcnote{max-width:1700px;margin:0 auto 8px;padding:0 16px;font-size:11px;color:var(--soft)}
 .srcnote b{color:var(--dv600)}
 .stats{max-width:1700px;margin:0 auto 10px;padding:0 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
@@ -149,7 +153,7 @@ main{max-width:1700px;margin:0 auto;padding:0 16px}
 
 <header><div class="hwrap">
   <div class="logo">🕊️</div>
-  <h1>BUKU DOSA ALL <small>Drag‑Free · Dove Blue v5</small></h1>
+  <h1>BUKU DOSA ALL <small>Drag‑Free · Dove Blue v6</small></h1>
   <div id="status"><span class="dot" id="sDot"></span><span id="sTxt">Memuat…</span></div>
 </div></header>
 
@@ -162,7 +166,9 @@ main{max-width:1700px;margin:0 auto;padding:0 16px}
 <!-- ================= PANEL CHAT ================= -->
 <section class="panel on" id="p-chat">
   <div class="srcnote">📄 Sumber: sheet <b id="chatSrc">Only JoniTogel</b> · kolom B (nama) · C (link/tanggal) · D (keterangan) · I–J (staff & total)</div>
+  <div class="filterinfo" id="chatFilterInfo">📅 Menampilkan: <span class="badge" id="chatDateBadge">—</span></div>
   <div class="ctrls">
+    <div class="ctrl"><label>📅 TANGGAL</label><select id="selChatDate"><option value="">— SEMUA TANGGAL —</option></select></div>
     <div class="ctrl"><label>🔍 CARI</label><input id="qChat" placeholder="nama CS / keterangan…"></div>
     <button class="btn" id="btnResetChat">↺ Reset</button>
     <button class="btn" id="btnReload">⟳ Reload</button>
@@ -188,10 +194,11 @@ main{max-width:1700px;margin:0 auto;padding:0 16px}
 <!-- ================= PANEL FATAL ================= -->
 <section class="panel" id="p-fatal">
   <div class="srcnote">📄 Sumber: sheet <b>Fatal All Situs</b> · B(tgl) · D(nama) · E(status) · F(situs) · H(potong%) · I(ket) · J(SS) · K(SS LC)</div>
+  <div class="filterinfo" id="fatalFilterInfo">📅 Menampilkan: <span class="badge" id="fatalDateBadge">—</span></div>
   <div class="ctrls">
+    <div class="ctrl"><label>📅 TANGGAL</label><select id="selFatalDate"><option value="">— SEMUA TANGGAL —</option></select></div>
     <div class="ctrl"><label>🌐 SITUS</label><select id="fSitus"></select></div>
     <div class="ctrl"><label>👤 STAFF</label><select id="fStaff"></select></div>
-    <div class="ctrl"><label>📅 TGL</label><input type="date" id="fDate"></div>
     <div class="ctrl"><label>🔍 CARI</label><input id="qFatal" placeholder="keterangan / nama…"></div>
     <button class="btn" id="btnResetFatal">↺ Reset</button>
   </div>
@@ -223,17 +230,17 @@ main{max-width:1700px;margin:0 auto;padding:0 16px}
 </div></div>
 
 <script>
-/* =============== KONFIG (sesuai spesifikasi) =============== */
+/* =============== KONFIG =============== */
 const SID='1camkXfvojs-YSBBPekYHTi4cwata4YCGTtmVIeOy1yc';
-const CHAT_SHEET='Only JoniTogel';   // nama sheet KESALAHAN CHAT ALL
-const CHAT_GID_FALLBACK='0';         // fallback bila sheet di atas kosong
+const CHAT_SHEET='Only JoniTogel';
+const CHAT_GID_FALLBACK='0';
 const FATAL_SHEET='Fatal All Situs';
 const csvByName=n=>`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(n)}`;
 const csvByGid=g=>`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&gid=${g}`;
 
 /* =============== STATE =============== */
 let CHAT_RECS=[],CHAT_STAFF=[],FATAL=[];
-let fStaff='',fSitus='',fDate='',fQ='',cQ='',cStaff='';
+let fStaff='',fSitus='',fDate='',fQ='',cQ='',cStaff='',cDate='';
 
 /* =============== UTIL =============== */
 const $=id=>document.getElementById(id);
@@ -251,38 +258,48 @@ async function fetchCSV(u){const r=await fetch(u);if(!r.ok)throw new Error('HTTP
  const t=await r.text();if(t.trim().startsWith('<'))throw new Error('Bukan CSV (cek akses share sheet)');return parseCSV(t)}
 function setStatus(k,t){$('sDot').className='dot '+(k==='ok'?'ok':k==='err'?'err':'');$('sTxt').textContent=t}
 function copyText(text,el){navigator.clipboard.writeText(text).then(()=>{if(el){const o=el.textContent;el.textContent='✓';el.classList.add('copied');setTimeout(()=>{el.textContent=o;el.classList.remove('copied')},1100)}}).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta)})}
+function normD(s){const m=cl(s).match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);if(!m)return cl(s);let y=m[3];if(y.length===2)y='20'+y;return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`}
+function sortDatesDesc(arr){return arr.sort((a,b)=>{const da=normD(a).split('-').map(Number),db=normD(b).split('-').map(Number);
+  for(let i=0;i<3;i++){if(db[i]!==da[i])return db[i]-da[i]}return 0})}
 
-/* =============== PARSE CHAT  (B4 nama, C4 link/tgl, D4 ket, I3:J40 staff) =============== */
-/* indeks 0-based: B=1, C=2, D=3, I=8, J=9 ; baris data mulai index 3 (baris ke-4) */
+/* =============== PARSE =============== */
 function parseChat(rows){
   const recs=[],staff=[];let curDate='';
-  // Staff I3:J40 -> index baris 2..39
   for(let i=2;i<Math.min(40,rows.length);i++){
     const r=rows[i]||[],I=cl(r[8]),J=cl(r[9]);
     if(I&&!/#VALUE!/i.test(I)&&!/total/i.test(I))staff.push({name:I,total:J||'0'});
   }
-  // Data B4:C2547:D -> index baris 3..2546
   for(let i=3;i<Math.min(rows.length,2547);i++){
     const r=rows[i]||[],B=cl(r[1]),C=cl(r[2]),D=cl(r[3]);
-    if(isDate(C)){curDate=C;continue}            // baris tanggal -> forward fill
+    if(isDate(C)){curDate=C;continue}
     const L=linksOf(C);
-    if(!B&&!L.length&&!D)continue;               // abaikan baris kosong
+    if(!B&&!L.length&&!D)continue;
     if(!B&&!L.length)continue;
     recs.push({tgl:curDate,nama:B,links:L,ket:D});
   }
   return {recs,staff};
 }
-/* =============== PARSE FATAL (B5 tgl,D5 nama,E5 status,F5 situs,H5 potong,I5 ket,J5 ss,K5 sslc) =============== */
-/* indeks 0-based: B=1,D=3,E=4,F=5,H=7,I=8,J=9,K=10 ; baris data mulai index 4 (baris ke-5) */
 function parseFatal(rows){
   const out=[];
   for(let i=4;i<Math.min(rows.length,1001);i++){
     const r=rows[i]||[];
     const o={tgl:cl(r[1]),staf:cl(r[3]),stat:cl(r[4]),situs:cl(r[5]),potong:cl(r[7]),ket:cl(r[8]),ss1:linksOf(r[9]),ss2:linksOf(r[10])};
-    if(!o.tgl&&!o.staf&&!o.ket&&!o.ss1.length&&!o.ss2.length)continue;  // abaikan kosong
+    if(!o.tgl&&!o.staf&&!o.ket&&!o.ss1.length&&!o.ss2.length)continue;
     out.push(o);
   }
   return out;
+}
+
+/* =============== BUILD DATE DROPDOWN =============== */
+function buildChatDateDropdown(){
+  const dates=[...new Set(CHAT_RECS.map(r=>r.tgl).filter(Boolean))];
+  sortDatesDesc(dates);
+  $('selChatDate').innerHTML='<option value="">— SEMUA TANGGAL —</option>'+dates.map(d=>`<option value="${esc(d)}"${d===cDate?' selected':''}>📅 ${esc(d)}</option>`).join('');
+}
+function buildFatalDateDropdown(){
+  const dates=[...new Set(FATAL.map(r=>r.tgl).filter(Boolean))];
+  sortDatesDesc(dates);
+  $('selFatalDate').innerHTML='<option value="">— SEMUA TANGGAL —</option>'+dates.map(d=>`<option value="${esc(d)}"${d===fDate?' selected':''}>📅 ${esc(d)}</option>`).join('');
 }
 
 /* =============== LINK HTML =============== */
@@ -305,15 +322,22 @@ function bindLinks(root){
 /* =============== RENDER CHAT =============== */
 function renderChat(){
   let recs=[...CHAT_RECS];
+  // FILTER TANGGAL
+  if(cDate)recs=recs.filter(r=>r.tgl===cDate);
   if(cStaff)recs=recs.filter(r=>r.nama.toUpperCase().includes(cStaff.toUpperCase()));
   if(cQ)recs=recs.filter(r=>(r.nama+' '+r.ket).toLowerCase().includes(cQ.toLowerCase()));
+  
+  // Update filter info badge
+  if(cDate){$('chatFilterInfo').classList.add('show');$('chatDateBadge').textContent=cDate}
+  else{$('chatFilterInfo').classList.remove('show')}
+  
   $('stRow').textContent=CHAT_RECS.length;
   $('stCs').textContent=new Set(CHAT_RECS.map(r=>r.nama).filter(Boolean)).size;
   $('stFatal').textContent=CHAT_RECS.filter(r=>/fatal/i.test(r.ket)).length;
   $('stShow').textContent=recs.length;$('cChat').textContent=recs.length;
 
   let last='',dh='<div class="hrow"><div>NO</div><div>TANGGAL</div><div>NAMA CS</div><div>🔗 LINK FOTO (SS)</div><div>KETERANGAN</div></div>';
-  if(!recs.length)dh+='<div class="empty">Tidak ada data yang cocok. Baris kosong diabaikan otomatis.</div>';
+  if(!recs.length)dh+='<div class="empty">Tidak ada data untuk tanggal <b>'+esc(cDate||'yang dipilih')+'</b>.</div>';
   recs.forEach((r,i)=>{
     if(r.tgl&&r.tgl!==last){last=r.tgl;dh+=`<div class="dsep">📅 ${esc(r.tgl)}</div>`}
     const fatal=/fatal/i.test(r.ket);
@@ -327,7 +351,7 @@ function renderChat(){
   $('gridChat').innerHTML=dh;bindLinks($('gridChat'));
 
   last='';let mh='';
-  if(!recs.length)mh='<div class="empty">Tidak ada data yang cocok.</div>';
+  if(!recs.length)mh='<div class="empty">Tidak ada data untuk tanggal yang dipilih.</div>';
   recs.forEach((r,i)=>{
     if(r.tgl&&r.tgl!==last){last=r.tgl;mh+=`<div class="dsep-m">📅 ${esc(r.tgl)}</div>`}
     const fatal=/fatal/i.test(r.ket);
@@ -354,17 +378,21 @@ function renderStaff(){
 /* =============== RENDER FATAL =============== */
 function renderFatal(){
   let r=[...FATAL];
+  if(fDate)r=r.filter(x=>x.tgl===fDate);
   if(fSitus)r=r.filter(x=>x.situs===fSitus);
   if(fStaff)r=r.filter(x=>x.staf===fStaff);
-  if(fDate)r=r.filter(x=>normD(x.tgl)===fDate);
   if(fQ)r=r.filter(x=>(x.staf+' '+x.ket+' '+x.situs).toLowerCase().includes(fQ.toLowerCase()));
+  
+  if(fDate){$('fatalFilterInfo').classList.add('show');$('fatalDateBadge').textContent=fDate}
+  else{$('fatalFilterInfo').classList.remove('show')}
+  
   $('ftRow').textContent=FATAL.length;
   $('ftStaff').textContent=new Set(FATAL.map(x=>x.staf).filter(Boolean)).size;
   $('ftSitus').textContent=new Set(FATAL.map(x=>x.situs).filter(Boolean)).size;
   $('ftShow').textContent=r.length;$('cFatal').textContent=r.length;
 
   let dh='<div class="hrow"><div>NO</div><div>TANGGAL</div><div>NAMA STAF</div><div>STATUS</div><div>SITUS</div><div>POTONG</div><div>KETERANGAN FATAL</div><div>🔗 SS KESALAHAN</div><div>🔗 SS LC</div></div>';
-  if(!r.length)dh+='<div class="empty">Tidak ada data fatal yang cocok.</div>';
+  if(!r.length)dh+='<div class="empty">Tidak ada data fatal untuk tanggal <b>'+esc(fDate||'yang dipilih')+'</b>.</div>';
   r.forEach((x,i)=>{
     const mk=(a,l)=>a.length?a.map((u,j)=>linkHTML(u,j,x.staf,l)).join(''):'<span style="color:#9aa7b2">—</span>';
     dh+=`<div class="row">
@@ -380,7 +408,7 @@ function renderFatal(){
   $('gridFatal').innerHTML=dh;bindLinks($('gridFatal'));
 
   let mh='';
-  if(!r.length)mh='<div class="empty">Tidak ada data fatal yang cocok.</div>';
+  if(!r.length)mh='<div class="empty">Tidak ada data fatal untuk tanggal yang dipilih.</div>';
   r.forEach((x,i)=>{
     const mk=(a,l)=>a.length?a.map((u,j)=>linkHTML(u,j,x.staf,l)).join(''):'<span style="color:#9aa7b2;font-size:12px">— tidak ada —</span>';
     mh+=`<div class="card fatalcard">
@@ -397,23 +425,20 @@ function renderFatal(){
   });
   $('cardsFatal').innerHTML=mh;bindLinks($('cardsFatal'));
 }
-const normD=s=>{const m=cl(s).match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);if(!m)return cl(s);let y=m[3];if(y.length===2)y='20'+y;return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`};
 
-/* =============== LOAD (chat: coba nama sheet -> fallback gid) =============== */
+/* =============== LOAD =============== */
 async function loadChat(){
-  // 1) coba sheet bernama "Only JoniTogel"
   try{
     const rows=await fetchCSV(csvByName(CHAT_SHEET));
     const p=parseChat(rows);
-    if(p.recs.length>0){ $('chatSrc').textContent=CHAT_SHEET; return p; }
-  }catch(e){ console.warn('Sheet "'+CHAT_SHEET+'" gagal/kosong:',e.message); }
-  // 2) fallback ke gid=0
+    if(p.recs.length>0){$('chatSrc').textContent=CHAT_SHEET;return p}
+  }catch(e){console.warn('Sheet "'+CHAT_SHEET+'" gagal/kosong:',e.message)}
   try{
     const rows=await fetchCSV(csvByGid(CHAT_GID_FALLBACK));
     const p=parseChat(rows);
     $('chatSrc').textContent='gid=0 (fallback)';
     return p;
-  }catch(e){ throw e; }
+  }catch(e){throw e}
 }
 async function boot(){
   setStatus('','Memuat data…');
@@ -423,9 +448,10 @@ async function boot(){
     else throw chatRes.reason;
     if(fatalRes.status==='fulfilled')FATAL=parseFatal(fatalRes.value);
     else console.warn('Fatal gagal:',fatalRes.reason);
+    buildChatDateDropdown();buildFatalDateDropdown();
     renderStaff();renderChat();renderFatal();fillFatalFilters();setStatus('ok','Data termuat ✓');
   }catch(e){console.error(e);setStatus('err','Gagal: '+e.message);
-    $('gridChat').innerHTML='<div class="empty">❌ Gagal memuat. Pastikan Google Sheet di-share: <b>Anyone with the link → Viewer</b>, dan sheet <b>Only JoniTogel</b> berisi data.<br><small>'+esc(e.message)+'</small></div>';
+    $('gridChat').innerHTML='<div class="empty">❌ Gagal memuat. Pastikan Google Sheet di-share: <b>Anyone with the link → Viewer</b>.<br><small>'+esc(e.message)+'</small></div>';
     $('cardsChat').innerHTML='';}
 }
 function fillFatalFilters(){
@@ -440,14 +466,15 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
   t.classList.add('on');$('p-'+t.dataset.p).classList.add('on')});
+$('selChatDate').onchange=e=>{cDate=e.target.value;renderChat()};
 $('qChat').oninput=e=>{cQ=e.target.value;renderChat()};
-$('btnResetChat').onclick=()=>{cQ='';cStaff='';$('qChat').value='';renderStaff();renderChat()};
+$('btnResetChat').onclick=()=>{cQ='';cStaff='';cDate='';$('qChat').value='';$('selChatDate').value='';renderStaff();renderChat()};
 $('btnReload').onclick=()=>{CHAT_RECS=[];CHAT_STAFF=[];FATAL=[];boot()};
+$('selFatalDate').onchange=e=>{fDate=e.target.value;renderFatal()};
 $('fSitus').onchange=e=>{fSitus=e.target.value;renderFatal()};
 $('fStaff').onchange=e=>{fStaff=e.target.value;renderFatal()};
-$('fDate').onchange=e=>{fDate=e.target.value;renderFatal()};
 $('qFatal').oninput=e=>{fQ=e.target.value;renderFatal()};
-$('btnResetFatal').onclick=()=>{fSitus=fStaff=fDate=fQ='';$('fSitus').value=$('fStaff').value=$('fDate').value=$('qFatal').value='';renderFatal()};
+$('btnResetFatal').onclick=()=>{fSitus=fStaff=fDate=fQ='';$('selFatalDate').value=$('fSitus').value=$('fStaff').value=$('qFatal').value='';renderFatal()};
 
 function dragScroll(el){let down=false,sx=0,sl=0,moved=0;
  el.addEventListener('pointerdown',e=>{if(e.target.closest('a,button,select,input'))return;down=true;moved=0;sx=e.clientX;sl=el.scrollLeft});
