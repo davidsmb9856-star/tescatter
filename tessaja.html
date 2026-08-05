@@ -223,9 +223,7 @@ main{max-width:1700px;margin:0 auto 40px;padding:0 16px}
 const SID='1camkXfvojs-YSBBPekYHTi4cwata4YCGTtmVIeOy1yc';
 const CHAT_SHEET='Situs Lain', FATAL_SHEET='Fatal All Situs';
 
-/* ⭐⭐⭐ TEMPEL URL WEB APP APPS SCRIPT (berakhiran /exec) DI SINI ⭐⭐⭐
-   Setelah diisi: memilih situs di dropdown = mengganti C2 di sheet (persis seperti memilih dropdown di sheet).
-   Biarkan '' jika tidak memasang bridge → mode baca + ambil per tab. */
+/* ⭐⭐⭐ TEMPEL URL WEB APP APPS SCRIPT (berakhiran /exec) DI SINI ⭐⭐⭐ */
 const WEB_APP_URL='';
 
 const DEFAULT_SITES=['JONITOGEL','LINETOGEL','GENGTOTO','GOLTOGEL','TOGELUP','DINGDONGTOGEL',
@@ -267,7 +265,6 @@ function setStatus(k,t){$('sDot').className='dot '+(k==='ok'?'ok':k==='err'?'err
 async function setSheetC2(site) {
   if (!WEB_APP_URL) throw new Error('WEB_APP_URL belum diisi');
   
-  // Menggunakan mode text/plain untuk melewati CORS Preflight Browser
   const response = await fetch(WEB_APP_URL, {
     method: 'POST',
     mode: 'cors',
@@ -284,6 +281,23 @@ async function setSheetC2(site) {
   if (!resJson.ok) throw new Error(resJson.error || 'Gagal mengubah dropdown');
 
   return true;
+}
+
+async function reloadMainUntil(targetSite, maxTries=10) {
+  for(let i=0; i<maxTries; i++) {
+    await sleep(1500);
+    try {
+      const rows = await fetchCSV(csvURL(CHAT_SHEET));
+      const p = parseChatRows(rows, targetSite, true);
+      if(p.c2 && p.c2.toUpperCase() === targetSite.toUpperCase()) {
+        C2 = p.c2;
+        chatBySite[targetSite] = {recs: p.recs, staff: p.staff};
+        TABMAP[targetSite] = CHAT_SHEET;
+        return true;
+      }
+    } catch(e) {}
+  }
+  return false;
 }
 
 /* ================== PENCARI TAB (fallback) ================== */
@@ -348,7 +362,6 @@ function buildSitusDropdown(){
   $('selSitus').innerHTML='<option value="__ALL__">— SEMUA SITUS —</option>'+
     knownSites().map(s=>`<option value="${esc(s)}"${s===curSite?' selected':''}>${esc(s)}${s===C2?' 🏠':''}</option>`).join('')+
     '<option value="__CUSTOM__">➕ Situs lain (ketik nama tab)…</option>';
-  $('c2val')&&($('c2val').textContent=C2||'—');
   const b=$('badgeMode');
   if(WEB_APP_URL){b.textContent='🔗 BRIDGE C2 AKTIF';b.classList.remove('off')}
   else{b.textContent='📖 MODE BACA (bridge belum dipasang)';b.classList.add('off')}
@@ -418,6 +431,7 @@ function renderFatal(){
 }
 const normD=s=>{const m=cl(s).match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);if(!m)return cl(s);
   let y=m[3];if(y.length===2)y='20'+y;return`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`};
+
 function bindLinks(box){
   box.querySelectorAll('.lk').forEach(a=>{
     a.addEventListener('click',e=>{
@@ -433,6 +447,21 @@ function copyText(t,el){
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(done);
   else{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);done()}
 }
+
+/* ================== MODAL PREVIEW ================== */
+let mURL='';
+function mOpen(url,cap2){
+  mURL=url;$('mTitle').textContent=cap2||'Preview';
+  let img=url;const d=url.match(/\/d\/([\w-]{10,})/)||url.match(/[?&]id=([\w-]{10,})/);
+  if(d)img=`https://drive.google.com/thumbnail?id=${d[1]}&sz=w1600`;
+  const el=$('mImg');el.style.display='block';el.src=img;el.onerror=()=>{el.style.display='none'};
+  $('mOpen').href=url;
+  $('mCap').innerHTML=`URL: <code>${esc(url)}</code>`;
+  $('mbg').classList.add('show');
+}
+function mClose(){$('mbg').classList.remove('show')}
+$('mCopy').onclick=e=>copyText(mURL,e.target);
+$('mbg').onclick=e=>{if(e.target===$('mbg'))mClose()};
 
 /* ================== BOOT ================== */
 async function boot(){
@@ -471,7 +500,7 @@ $('selSitus').onchange=async e=>{
   if(v==='__CUSTOM__'){$('customRow').classList.add('show');$('customTab').focus();return}
   curSite=v;LS.set('bda_cursite',curSite);cStaff='';
   if(v==='__ALL__'){renderStaff();renderChat();return}
-  /* 1) BRIDGE: ganti C2 asli di sheet, lalu muat ulang */
+  
   if(WEB_APP_URL){
     setStatus('','Mengubah C2 di Google Sheet → '+v+' …');
     $('gridChat').innerHTML='<div class="loader"><div class="spin"></div> Menyetel C2 = '+esc(v)+' di sheet…</div>';
@@ -482,15 +511,15 @@ $('selSitus').onchange=async e=>{
         buildSitusDropdown();renderStaff();renderChat();return;
       }
     }catch(err){console.warn('bridge:',err)}
-    setStatus('','Bridge lambat/gagal — coba ambil per tab…');
+    setStatus('','Bridge lambat/gagal — mencoba ambil per tab…');
   }
-  /* 2) FALLBACK: ambil tab sheet situs */
+  
   if(!chatBySite[v]){
     $('gridChat').innerHTML='<div class="loader"><div class="spin"></div> Mencari & memuat '+esc(v)+'…</div>';
     try{await ensureSite(v);setStatus('ok',v+' dimuat ✓')}
     catch(err){
       setStatus('err','Tab '+v+' tidak ditemukan');
-      $('gridChat').innerHTML='<div class="empty">❌ Tab <b>'+esc(v)+'</b> tidak ketemu. Pasang bridge Apps Script (lihat catatan) atau <b>➕ Situs lain</b>.</div>';
+      $('gridChat').innerHTML='<div class="empty">❌ Tab <b>'+esc(v)+'</b> tidak ketemu. Pasang bridge Apps Script atau gunakan tombol <b>➕ Situs lain</b>.</div>';
       renderStaff();return;
     }
   }
@@ -518,26 +547,17 @@ $('fStaff').onchange=e=>{fStaff=e.target.value;renderFatal()};
 $('fDate').onchange=e=>{fDate=e.target.value;renderFatal()};
 $('qFatal').oninput=e=>{fQ=e.target.value;renderFatal()};
 $('btnResetFatal').onclick=()=>{fSitus=fStaff=fDate=fQ='';$('fSitus').value=$('fStaff').value=$('fDate').value=$('qFatal').value='';renderFatal()};
-function dragScroll(el){let down=false,sx=0,sl=0,moved=0;
- el.addEventListener('pointerdown',e=>{if(e.target.closest('a,button,select,input'))return;down=true;moved=0;sx=e.clientX;sl=el.scrollLeft});
- window.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-sx;moved=Math.max(moved,Math.abs(dx));if(moved>4)el.scrollLeft=sl-dx});
- window.addEventListener('pointerup',()=>down=false)}
+
+function dragScroll(el){
+  let down=false,sx=0,sl=0,moved=0;
+  el.addEventListener('pointerdown',e=>{if(e.target.closest('a,button,select,input'))return;down=true;moved=0;sx=e.clientX;sl=el.scrollLeft});
+  window.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-sx;moved=Math.max(moved,Math.abs(dx));if(moved>4)el.scrollLeft=sl-dx});
+  window.addEventListener('pointerup',()=>down=false);
+}
 if(matchMedia('(pointer:fine)').matches){dragScroll($('wrapChat'));dragScroll($('wrapFatal'))}
 dragScroll($('staffChips'));
-let mURL='';
-function mOpen(url,cap2){
-  mURL=url;$('mTitle').textContent=cap2||'Preview';
-  let img=url;const d=url.match(/\/d\/([\w-]{10,})/)||url.match(/[?&]id=([\w-]{10,})/);
-  if(d)img=`https://drive.google.com/thumbnail?id=${d[1]}&sz=w1600`;
-  const el=$('mImg');el.style.display='block';el.src=img;el.onerror=()=>{el.style.display='none'};
-  $('mOpen').href=url;
-  $('mCap').innerHTML=`<b>🔗 URL:</b><br><code>${esc(url)}</code>`;
-  $('mbg').classList.add('show');
-}
-function mClose(){$('mbg').classList.remove('show');$('mImg').src=''}
-$('mbg').onclick=e=>{if(e.target.id==='mbg')mClose()};
-$('mCopy').onclick=()=>copyText(mURL,$('mCopy'));
-document.addEventListener('keydown',e=>{if(e.key==='Escape')mClose()});
+
+// Jalankan aplikasi saat dokumen selesai dimuat
 boot();
 </script>
 </body>
