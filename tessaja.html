@@ -264,25 +264,26 @@ async function fetchCSV(u){
 function setStatus(k,t){$('sDot').className='dot '+(k==='ok'?'ok':k==='err'?'err':'');$('sTxt').textContent=t}
 
 /* ================== BRIDGE C2 (Apps Script) ================== */
-async function setSheetC2(site){
-  const r=await fetch(WEB_APP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({site})});
-  if(!r.ok)throw new Error('HTTP '+r.status);
-  const j=await r.json();if(!j.ok)throw new Error(j.error||'bridge gagal');
+async function setSheetC2(site) {
+  if (!WEB_APP_URL) throw new Error('WEB_APP_URL belum diisi');
+  
+  // Menggunakan mode text/plain untuk melewati CORS Preflight Browser
+  const response = await fetch(WEB_APP_URL, {
+    method: 'POST',
+    mode: 'cors',
+    redirect: 'follow',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify({ site: site })
+  });
+
+  if (!response.ok) throw new Error('HTTP status ' + response.status);
+
+  const resJson = await response.json();
+  if (!resJson.ok) throw new Error(resJson.error || 'Gagal mengubah dropdown');
+
   return true;
-}
-async function reloadMainUntil(site){
-  for(let i=0;i<6;i++){
-    await sleep(i?1600:700);
-    try{
-      const rows=await fetchCSV(csvURL(CHAT_SHEET));
-      const p=parseChatRows(rows,site,true);
-      if((p.c2||'').toUpperCase()===site.toUpperCase()){
-        chatBySite[site]=p;C2=p.c2;return true;
-      }
-    }catch(e){}
-  }
-  return false;
 }
 
 /* ================== PENCARI TAB (fallback) ================== */
