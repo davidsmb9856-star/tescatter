@@ -210,7 +210,7 @@ h1 small{display:block;font-size:10.5px;font-weight:500;opacity:.85;letter-spaci
 
 <!-- ================= PANEL 1 : KESALAHAN CHAT ALL ================= -->
 <section class="panel on" id="p-chat">
-  <div class="srcnote">📄 Sumber: sheet <b id="chatSrc">Only JoniTogel</b> · B4 (nama) · C4 (link/tanggal) · D4 (keterangan) · I3:J40 (staff & total) — <b>semua baris diambil</b></div>
+  <div class="srcnote">📄 Sumber: sheet <b id="chatSrc">Only JoniTogel</b> · B4 (nama) · C4 (link/tanggal) · D4 (keterangan) · I3:J40 (staff & total) — <b>semua baris diambil, kolom kosong tidak diabaikan</b></div>
   <div class="filterinfo" id="chatFilterInfo">📅 Menampilkan tanggal: <span class="badge" id="chatDateBadge">—</span></div>
   <div class="ctrls">
     <div class="ctrl"><label>📅 TANGGAL</label><select id="selChatDate"><option value="">— SEMUA TANGGAL —</option></select></div>
@@ -260,7 +260,7 @@ h1 small{display:block;font-size:10.5px;font-weight:500;opacity:.85;letter-spaci
 
 <!-- ================= PANEL 3 : FATAL ALL SITUS ================= -->
 <section class="panel" id="p-fatal">
-  <div class="srcnote">📄 Sumber: sheet <b>Fatal All Situs</b> · B5(tgl) · D5(nama) · E5(status) · F5(situs) · H5(potong%) · I5(ket) · J5(SS) · K5(SS LC) — <b>semua baris diambil</b></div>
+  <div class="srcnote">📄 Sumber: sheet <b>Fatal All Situs</b> · B5(tgl) · D5(nama) · E5(status) · F5(situs) · H5(potong%) · I5(ket) · J5(SS) · K5(SS LC) — <b>semua baris diambil, kolom kosong tidak diabaikan</b></div>
   <div class="filterinfo" id="fatalFilterInfo">📅 Menampilkan tanggal: <span class="badge" id="fatalDateBadge">—</span></div>
   <div class="ctrls">
     <div class="ctrl"><label>📅 TANGGAL</label><select id="selFatalDate"><option value="">— SEMUA TANGGAL —</option></select></div>
@@ -331,37 +331,39 @@ function normD(s){const m=cl(s).match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);if(!m
 function sortDatesDesc(arr){return arr.sort((a,b)=>{const da=normD(a).split('-').map(Number),db=normD(b).split('-').map(Number);
   for(let i=0;i<3;i++){if(db[i]!==da[i])return db[i]-da[i]}return 0})}
 
-/* =============== PARSE CHAT — AMBIL SEMUA BARIS (jangan abaikan kosong) =============== */
+/* =============== PARSE CHAT — AMBIL SEMUA BARIS (jangan abaikan kolom kosong) =============== */
 function parseChat(rows){
   const recs=[],staff=[];
-  // STAFF I3:J40 -> index 2..39 (lewati baris tanggal & #VALUE!)
+  // STAFF I3:J40 -> index 2..39 (lewatkan baris tanggal & #VALUE!)
   for(let i=2;i<Math.min(40,rows.length);i++){
     const r=rows[i]||[],C=cl(r[2]);
     if(isDate(C))continue;
     const I=cl(r[8]),J=cl(r[9]);
     if(I&&!/#VALUE!/i.test(I)&&!/total/i.test(I))staff.push({name:I,total:J||'0'});
   }
-  // DATA B4:C2547:D -> index 3..2546 — AMBIL SEMUA BARIS
+  // DATA B4:C2547:D -> index 3..2546
+  // Ambil SEMUA baris dalam rentang. Hanya lewati baris yang BENAR-BENAR kosong di B,C,D sekaligus.
+  // Baris tanggal (C berisi tanggal) -> forward-fill, tidak dijadikan record.
   let curDate='';
   for(let i=3;i<Math.min(rows.length,2547);i++){
     const r=rows[i]||[],B=cl(r[1]),C=cl(r[2]),D=cl(r[3]);
+    if(isDate(C)){curDate=C;continue}            // penanda tanggal
     const L=linksOf(C);
-    // Hanya baris TANGGAL MURNI (C=tanggal, B & D & link kosong) yang jadi pemisah tanggal
-    if(isDate(C) && !B && !D && !L.length){curDate=C;continue}
-    // Jika C berisi tanggal tapi juga ada link/nama/ket → tetap ambil sebagai data, dan update curDate
-    if(isDate(C)){curDate=C}
-    recs.push({tgl:curDate,nama:B,links:L,ket:D});   // selalu push — tidak ada yang di-skip
+    if(B===''&&C===''&&D==='')continue;          // hanya lewati baris 100% kosong
+    recs.push({tgl:curDate,nama:B,links:L,ket:D}); // nama/link/ket boleh kosong sebagian -> tetap tampil
   }
   return {recs,staff};
 }
 
-/* =============== PARSE FATAL — AMBIL SEMUA BARIS (jangan abaikan kosong) =============== */
+/* =============== PARSE FATAL — AMBIL SEMUA BARIS (jangan abaikan kolom kosong) =============== */
 function parseFatal(rows){
   const out=[];
-  for(let i=4;i<Math.min(rows.length,1001);i++){     // B5:K1001 -> index 4..1000
+  for(let i=4;i<Math.min(rows.length,1001);i++){
     const r=rows[i]||[];
     const o={tgl:cl(r[1]),staf:cl(r[3]),stat:cl(r[4]),situs:cl(r[5]),potong:cl(r[7]),ket:cl(r[8]),ss1:linksOf(r[9]),ss2:linksOf(r[10])};
-    out.push(o);   // selalu push — semua baris diambil, tidak di-skip
+    // Hanya lewati baris yang BENAR-BENAR kosong di semua kolom relevan
+    if(o.tgl===''&&o.staf===''&&o.stat===''&&o.situs===''&&o.potong===''&&o.ket===''&&!o.ss1.length&&!o.ss2.length)continue;
+    out.push(o);
   }
   return out;
 }
@@ -437,8 +439,8 @@ function renderChat(){
     const fatal=/fatal/i.test(r.ket);
     const lks=r.links.length?r.links.map((u,j)=>linkHTML(u,j,r.nama||'(tanpa nama)','Foto')).join(''):'<span style="color:#9aa7b2">— tidak ada link —</span>';
     dh+=`<div class="row${fatal?' fatalrow':''}"><div class="no">${i+1}</div><div class="tgl">${esc(r.tgl||'—')}</div>
-      <div class="nm" title="${esc(r.nama)}">${esc(r.nama||'<span style=color:#aab6c2>(kosong)</span>')}</div><div class="links">${lks}</div>
-      <div class="ket" title="${esc(r.ket)}">${fatal?'<span class="tagf red">FATAL</span> ':''}${esc(r.ket||'<span style=color:#aab6c2>(kosong)</span>')}</div></div>`;
+      <div class="nm" title="${esc(r.nama)}">${esc(r.nama||'—')}</div><div class="links">${lks}</div>
+      <div class="ket" title="${esc(r.ket)}">${fatal?'<span class="tagf red">FATAL</span> ':''}${esc(r.ket||'—')}</div></div>`;
   });
   $('gridChat').innerHTML=dh;bindLinks($('gridChat'));
 
@@ -449,10 +451,10 @@ function renderChat(){
     const fatal=/fatal/i.test(r.ket);
     const lks=r.links.length?r.links.map((u,j)=>linkHTML(u,j,r.nama||'(tanpa nama)','Foto')).join(''):'<span style="color:#9aa7b2;font-size:12px">— tidak ada link —</span>';
     mh+=`<div class="card${fatal?' fatalcard':''}"><div class="chead"><div class="av">${esc(initials(r.nama))}</div>
-        <div class="who"><div class="nm">${esc(r.nama||'(tanpa nama)')}</div>
+        <div class="who"><div class="nm">${esc(r.nama||'—')}</div>
           <div class="sub"><span>📅 <b>${esc(r.tgl||'—')}</b></span><span>📷 <b>${r.links.length}</b> foto</span>${fatal?'<span class="tagf red">FATAL</span>':''}</div></div>
         <div class="no">#${i+1}</div></div>
-      ${r.ket?`<div class="ck">${esc(r.ket)}</div>`:'<div class="ck" style="color:#aab6c2">(tidak ada keterangan)</div>'}
+      ${r.ket?`<div class="ck">${esc(r.ket)}</div>`:''}
       <div class="clabel">🔗 Link Foto</div><div class="clinks">${lks}</div></div>`;
   });
   $('cardsChat').innerHTML=mh;bindLinks($('cardsChat'));
@@ -476,11 +478,11 @@ function renderFatal(){
   r.forEach((x,i)=>{
     const mk=(a,l)=>a.length?a.map((u,j)=>linkHTML(u,j,x.staf||'(tanpa nama)',l)).join(''):'<span style="color:#9aa7b2">—</span>';
     dh+=`<div class="row"><div class="no">${i+1}</div><div class="tgl">${esc(x.tgl||'—')}</div>
-      <div class="nm" title="${esc(x.staf)}">${esc(x.staf||'<span style=color:#aab6c2>(kosong)</span>')}</div>
+      <div class="nm" title="${esc(x.staf)}">${esc(x.staf||'—')}</div>
       <div>${x.stat?`<span class="tagf amb">${esc(x.stat)}</span>`:'—'}</div>
       <div><b>${esc(x.situs||'—')}</b></div>
       <div>${x.potong?`<span class="tagf red">−${esc(x.potong)}%</span>`:'—'}</div>
-      <div class="ket" title="${esc(x.ket)}">${esc(x.ket||'<span style=color:#aab6c2>(kosong)</span>')}</div>
+      <div class="ket" title="${esc(x.ket)}">${esc(x.ket||'—')}</div>
       <div class="links">${mk(x.ss1,'SS')}</div><div class="links">${mk(x.ss2,'LC')}</div></div>`;
   });
   $('gridFatal').innerHTML=dh;bindLinks($('gridFatal'));
@@ -490,10 +492,10 @@ function renderFatal(){
   r.forEach((x,i)=>{
     const mk=(a,l)=>a.length?a.map((u,j)=>linkHTML(u,j,x.staf||'(tanpa nama)',l)).join(''):'<span style="color:#9aa7b2;font-size:12px">— tidak ada —</span>';
     mh+=`<div class="card fatalcard"><div class="chead"><div class="av">${esc(initials(x.staf))}</div>
-        <div class="who"><div class="nm">${esc(x.staf||'(tanpa nama)')}</div>
+        <div class="who"><div class="nm">${esc(x.staf||'—')}</div>
           <div class="sub"><span>📅 <b>${esc(x.tgl||'—')}</b></span><span>🌐 <b>${esc(x.situs||'—')}</b></span>${x.stat?`<span class="tagf amb">${esc(x.stat)}</span>`:''}${x.potong?`<span class="tagf red">−${esc(x.potong)}%</span>`:''}</div></div>
         <div class="no">#${i+1}</div></div>
-      ${x.ket?`<div class="ck">${esc(x.ket)}</div>`:'<div class="ck" style="color:#aab6c2">(tidak ada keterangan)</div>'}
+      ${x.ket?`<div class="ck">${esc(x.ket)}</div>`:''}
       <div class="clabel">🔗 SS Kesalahan</div><div class="clinks">${mk(x.ss1,'SS')}</div>
       <div class="clabel" style="margin-top:7px">🔗 SS Kesalahan LC</div><div class="clinks">${mk(x.ss2,'LC')}</div></div>`;
   });
