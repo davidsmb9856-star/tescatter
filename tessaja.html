@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>BUKU DOSA ALL — Dove Blue v6</title>
+<title>BUKU DOSA ALL — Dove Blue v7</title>
 <style>
 :root{
   --dv50:#f2f7fc; --dv100:#e3eef8; --dv200:#c9ddef; --dv300:#a3c4e2;
@@ -30,7 +30,7 @@ h1 small{display:block;font-size:10.5px;font-weight:400;opacity:.85}
 .tabs{max-width:1700px;margin:14px auto 0;padding:0 16px;display:flex;gap:8px;overflow-x:auto}
 .tab{cursor:pointer;padding:11px 18px;border-radius:12px 12px 4px 4px;font-weight:700;letter-spacing:.3px;
   background:#fff;color:var(--dv700);border:1px solid var(--dv200);box-shadow:0 2px 6px rgba(32,58,81,.08);
-  display:flex;gap:8px;align-items:center;transition:.18s;white-space:nowrap;flex:0 0 auto}
+  display:flex;gap:8px;align-items:center;white-space:nowrap;flex:0 0 auto}
 .tab.on{background:linear-gradient(180deg,var(--dv500),var(--dv600));color:#fff;border-color:var(--dv700)}
 .pill{font-size:11px;padding:2px 9px;border-radius:999px;background:rgba(70,130,180,.12)}
 .tab.on .pill{background:rgba(255,255,255,.25)}
@@ -40,10 +40,10 @@ h1 small{display:block;font-size:10.5px;font-weight:400;opacity:.85}
 .ctrl label{font-size:11px;font-weight:800;color:var(--dv700);letter-spacing:.5px;white-space:nowrap}
 .ctrl select,.ctrl input{border:0;outline:0;background:transparent;font-size:14px;color:var(--ink);min-width:170px}
 .btn{cursor:pointer;border:1px solid var(--dv200);background:linear-gradient(180deg,#fff,#e8f1fa);
-  color:var(--dv700);font-weight:700;padding:10px 14px;border-radius:10px;transition:.15s;font-size:13px}
-.btn:hover{transform:translateY(-1px)}
+  color:var(--dv700);font-weight:700;padding:10px 14px;border-radius:10px;font-size:13px}
 .badge{font-size:12px;font-weight:800;color:#fff;background:linear-gradient(90deg,var(--dv500),var(--dv400));
   padding:8px 14px;border-radius:10px;letter-spacing:.5px;box-shadow:var(--shadow)}
+.badge.off{background:linear-gradient(90deg,#8a97a5,#6b7885)}
 .situsbanner{max-width:1700px;margin:0 auto 10px;padding:0 16px}
 .situsbanner div{background:linear-gradient(90deg,var(--dv100),#fff);border:1px solid var(--dv200);
   border-radius:12px;padding:10px 16px;font-weight:900;letter-spacing:1.5px;color:var(--dv700);
@@ -111,7 +111,6 @@ main{max-width:1700px;margin:0 auto 40px;padding:0 16px}
 .mcap{text-align:left;margin-top:10px;font-size:12.5px;color:var(--soft);background:var(--dv50);padding:10px 12px;border-radius:8px;border:1px solid var(--dv200);word-break:break-all}
 .mcap code{background:#fff;padding:2px 6px;border-radius:4px;font-size:11px;border:1px solid var(--dv200)}
 .copied{background:var(--okbg)!important;color:var(--ok)!important}
-/* ===== MOBILE ===== */
 @media(max-width:768px){
   h1{font-size:16px}
   #status{margin-left:0;width:100%;justify-content:center}
@@ -144,7 +143,7 @@ main{max-width:1700px;margin:0 auto 40px;padding:0 16px}
 
 <header><div class="hwrap">
   <div class="logo">🕊️</div>
-  <h1>BUKU DOSA ALL <small>Drag‑Free · Dove Blue v6 · Mobile Ready</small></h1>
+  <h1>BUKU DOSA ALL <small>Drag‑Free · Dove Blue v7 · Bridge C2 · Mobile Ready</small></h1>
   <div id="status"><span class="dot" id="sDot"></span><span id="sTxt">Memuat data…</span></div>
 </div></header>
 
@@ -156,10 +155,9 @@ main{max-width:1700px;margin:0 auto 40px;padding:0 16px}
 <main>
 <section class="panel on" id="p-chat">
   <div class="ctrls">
-    <span class="badge">🏠 C2: <span id="c2val">…</span></span>
-    <div class="ctrl"><label>🌐 SITUS</label><select id="selSitus"></select></div>
-    <button class="btn" id="btnLoadAll">⤓ Muat Semua</button>
-    <button class="btn" id="btnReload">⟳</button>
+    <span class="badge" id="badgeMode">…</span>
+    <div class="ctrl"><label>🌐 SITUS (C2)</label><select id="selSitus"></select></div>
+    <button class="btn" id="btnReload">⟳ Reload</button>
   </div>
   <div class="ctrls" style="margin-top:0">
     <div class="ctrl" style="flex:1"><label>🔍</label><input id="qChat" placeholder="Cari nama CS / keterangan…"></div>
@@ -225,26 +223,30 @@ main{max-width:1700px;margin:0 auto 40px;padding:0 16px}
 const SID='1camkXfvojs-YSBBPekYHTi4cwata4YCGTtmVIeOy1yc';
 const CHAT_SHEET='Situs Lain', FATAL_SHEET='Fatal All Situs';
 
-/* ⭐ DAFTAR SITUS = persis isi dropdown C2 di sheet (dari screenshot).
-   Bisa diedit / ditambah bila ada situs baru. */
+/* ⭐⭐⭐ TEMPEL URL WEB APP APPS SCRIPT (berakhiran /exec) DI SINI ⭐⭐⭐
+   Setelah diisi: memilih situs di dropdown = mengganti C2 di sheet (persis seperti memilih dropdown di sheet).
+   Biarkan '' jika tidak memasang bridge → mode baca + ambil per tab. */
+const WEB_APP_URL='';
+
 const DEFAULT_SITES=['JONITOGEL','LINETOGEL','GENGTOTO','GOLTOGEL','TOGELUP','DINGDONGTOGEL',
  'HOMETOGEL','UDINTOGEL','PATIHTOTO','INDRATOGEL','FIATOGEL','PROTOGEL','YOWESTOGEL','TOGELON',
- 'YOKTOGEL','LUNATOGEL','OPPATOTO','MARIATOGEL','ZIATOGEL','DANATOTO','PARTAITOGEL','PVWIP4D',
- 'SITUSTOTO','NANASTOTO','INDRABET','BDSJOKO','JUTAWANBET','MANCINGDUIT'];
+ 'YOKTOGEL','LUNATOGEL','OPPATOTO','MARIATOGEL','ZIATOGEL','DANATOTA','PARTAITOGEL','PVWIP4D',
+ 'SITUSTOTO','NANASTOTA','INDRABET','BDSJOKO','JUTAWANBET','MANCINGDUIT'];
 
-const csvURL=n=>`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(n)}`;
+const csvURL=n=>`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(n)}&cb=${Date.now()}`;
 
 /* ================== STATE ================== */
 let C2='',FATAL=[];const chatBySite={};
 let curSite='__ALL__',cQ='',cStaff='',fSitus='',fStaff='',fDate='',fQ='';
 const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},
           set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-let TABMAP=LS.get('bda_map',{});   // {SITUS: namaTab yang berhasil}
+let TABMAP=LS.get('bda_map',{});
 
 /* ================== UTIL ================== */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cl=v=>(v==null||String(v).trim()==='')?'':String(v).trim();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const isDate=s=>/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(cl(s));
 const linksOf=s=>cl(s)?[...new Set((String(s).match(/https?:\/\/[^\s,"'<>]+/gi)||[]))]:[];
 const shortURL=u=>{try{const o=new URL(u);return o.hostname.replace(/^www\./,'')+(o.pathname.length>1?o.pathname.slice(0,18)+(o.pathname.length>18?'…':''):'')}catch(e){return u}};
@@ -261,23 +263,37 @@ async function fetchCSV(u){
 }
 function setStatus(k,t){$('sDot').className='dot '+(k==='ok'?'ok':k==='err'?'err':'');$('sTxt').textContent=t}
 
-/* ================== PENCARI NAMA TAB (pola "Only JoniTogel") ================== */
-const cap=s=>s? s.charAt(0).toUpperCase()+s.slice(1).toLowerCase():s;
+/* ================== BRIDGE C2 (Apps Script) ================== */
+async function setSheetC2(site){
+  const r=await fetch(WEB_APP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({site})});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const j=await r.json();if(!j.ok)throw new Error(j.error||'bridge gagal');
+  return true;
+}
+async function reloadMainUntil(site){
+  for(let i=0;i<6;i++){
+    await sleep(i?1600:700);
+    try{
+      const rows=await fetchCSV(csvURL(CHAT_SHEET));
+      const p=parseChatRows(rows,site,true);
+      if((p.c2||'').toUpperCase()===site.toUpperCase()){
+        chatBySite[site]=p;C2=p.c2;return true;
+      }
+    }catch(e){}
+  }
+  return false;
+}
+
+/* ================== PENCARI TAB (fallback) ================== */
+const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1).toLowerCase():s;
 function smartCase(s){
   const SUF=['TOGEL','TOTO','BET','4D','ON','UP','JOKO','DUIT'];
-  for(const x of SUF){
-    if(s.endsWith(x)&&s.length>x.length){
-      const a=cap(s.slice(0,-x.length));
-      const b=(x==='4D')?'4D':cap(x.toLowerCase());
-      return a+b;
-    }
-  }
+  for(const x of SUF){if(s.endsWith(x)&&s.length>x.length){
+    return cap(s.slice(0,-x.length))+((x==='4D')?'4D':cap(x.toLowerCase()))}}
   return cap(s.toLowerCase());
 }
-function candidates(s){
-  const sc=smartCase(s);
-  return [...new Set(['Only '+sc,'Only '+s,'Only '+cap(s.toLowerCase()),'Only '+s.toLowerCase(),sc,s,cap(s.toLowerCase())])];
-}
+const candidates=s=>[...new Set(['Only '+smartCase(s),'Only '+s,'Only '+cap(s.toLowerCase()),'Only '+s.toLowerCase(),smartCase(s),s,cap(s.toLowerCase())])];
 
 /* ================== PARSER ================== */
 const HEAD_RE=/^(no|tanggal|nama|link|keterangan|ss)/i;
@@ -288,9 +304,8 @@ function parseChatRows(rows,label,isMain){
     const r=rows[i]||[],B=cl(r[1]),C=cl(r[2]),D=cl(r[3]);
     if(isDate(C)){curDate=C;continue}
     const I=cl(r[8]),J=cl(r[9]);
-    if(I&&!/#VALUE!/i.test(I)&&!/total/i.test(I)&&/^[A-Z0-9]{6,}$/i.test(cl(r[7])||'')|| (I&&J&&!/#VALUE!/i.test(I+J)&&/[A-Z]/i.test(I)&&/^\d+$/i.test(J))){
-      if(I&&!/#VALUE!/i.test(I)&&!/total/i.test(I))staff.push({name:I,total:J||'0'});
-    }
+    if(I&&J&&!/#VALUE!/i.test(I+J)&&/^[A-Z]/i.test(I)&&/^\d+$/i.test(J)&&!/total/i.test(I))
+      staff.push({name:I,total:J});
     const L=linksOf(C);
     if(!B&&!L.length&&!D)continue;
     if(HEAD_RE.test(B)&&!L.length)continue;
@@ -305,19 +320,17 @@ function parseFatal(rows){
   return out;
 }
 
-/* ================== MUAT SITUS (auto-probe tab) ================== */
+/* ================== MUAT SITUS ================== */
 async function ensureSite(label){
   if(chatBySite[label])return chatBySite[label];
-  let tabs;
-  if(label===C2)tabs=[CHAT_SHEET,...(TABMAP[label]?[TABMAP[label]]:[]),...candidates(label)];
-  else if(TABMAP[label])tabs=[TABMAP[label]];
-  else tabs=candidates(label);
+  const tabs=(label===C2)?[CHAT_SHEET,...candidates(label)]
+            :(TABMAP[label]?[TABMAP[label]]:candidates(label));
   let lastErr;
   for(const t of tabs){
     try{
       const rows=await fetchCSV(csvURL(t));
       const p=parseChatRows(rows,label,t===CHAT_SHEET);
-      if(!p.recs.length)throw new Error('tidak ada baris');
+      if(!p.recs.length)throw new Error('kosong');
       chatBySite[label]=p;TABMAP[label]=t;LS.set('bda_map',TABMAP);
       return p;
     }catch(e){lastErr=e}
@@ -334,10 +347,13 @@ function buildSitusDropdown(){
   $('selSitus').innerHTML='<option value="__ALL__">— SEMUA SITUS —</option>'+
     knownSites().map(s=>`<option value="${esc(s)}"${s===curSite?' selected':''}>${esc(s)}${s===C2?' 🏠':''}</option>`).join('')+
     '<option value="__CUSTOM__">➕ Situs lain (ketik nama tab)…</option>';
-  $('c2val').textContent=C2||'—';
+  $('c2val')&&($('c2val').textContent=C2||'—');
+  const b=$('badgeMode');
+  if(WEB_APP_URL){b.textContent='🔗 BRIDGE C2 AKTIF';b.classList.remove('off')}
+  else{b.textContent='📖 MODE BACA (bridge belum dipasang)';b.classList.add('off')}
 }
 
-/* ================== RENDER CHAT ================== */
+/* ================== RENDER ================== */
 function currentRecs(){
   if(curSite==='__ALL__'){let a=[];for(const k in chatBySite)a=a.concat(chatBySite[k].recs);return a}
   return(chatBySite[curSite]||{recs:[]}).recs;
@@ -352,7 +368,7 @@ function renderChat(){
   $('stFatal').textContent=base.filter(r=>/fatal/i.test(r.ket)).length;
   $('stShow').textContent=recs.length;$('cChat').textContent=recs.length;
   let last='',html='<div class="hrow"><div>NO</div><div>TANGGAL</div><div>NAMA CS</div><div>🔗 LINK FOTO (SS)</div><div>KETERANGAN</div></div>';
-  if(!recs.length)html+='<div class="empty">⚠️ Belum ada data untuk pilihan ini. Coba <b>⤓ Muat Semua</b> atau <b>➕ Situs lain</b>.</div>';
+  if(!recs.length)html+='<div class="empty">⚠️ Belum ada data untuk pilihan ini.</div>';
   recs.forEach((r,i)=>{
     if(r.tgl&&r.tgl!==last){last=r.tgl;html+=`<div class="dsep">📅 ${esc(r.tgl)}${r.situs?' · '+esc(r.situs):''}</div>`}
     const fatal=/fatal/i.test(r.ket);
@@ -372,8 +388,6 @@ function renderStaff(){
   $('staffChips').innerHTML=st.length?st.map(s=>`<div class="chip-s${cStaff===s.name?' on':''}" data-n="${esc(s.name)}">👤 ${esc(s.name)} <b>${esc(s.total)}</b></div>`).join(''):'<div class="empty" style="padding:8px">Staff belum tersedia</div>';
   $('staffChips').querySelectorAll('.chip-s').forEach(c=>c.onclick=()=>{cStaff=(cStaff===c.dataset.n)?'':c.dataset.n;renderStaff();renderChat()});
 }
-
-/* ================== RENDER FATAL ================== */
 function renderFatal(){
   let r=[...FATAL];
   if(fSitus)r=r.filter(x=>x.situs===fSitus);
@@ -403,7 +417,6 @@ function renderFatal(){
 }
 const normD=s=>{const m=cl(s).match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);if(!m)return cl(s);
   let y=m[3];if(y.length===2)y='20'+y;return`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`};
-
 function bindLinks(box){
   box.querySelectorAll('.lk').forEach(a=>{
     a.addEventListener('click',e=>{
@@ -445,15 +458,6 @@ function fillFatalFilters(){
   $('fSitus').innerHTML='<option value="">— Semua Situs —</option>'+s.map(x=>`<option>${esc(x)}</option>`).join('');
   $('fStaff').innerHTML='<option value="">— Semua Staff —</option>'+p.map(x=>`<option>${esc(x)}</option>`).join('');
 }
-async function loadAllSites(){
-  setStatus('','Memuat semua situs (bisa beberapa detik)…');
-  let ok=0,fail=0;
-  for(const s of knownSites()){
-    try{await ensureSite(s);ok++;setStatus('',`Memuat… ${ok+fail}/${knownSites().length}`)}catch(e){fail++}
-  }
-  renderStaff();renderChat();
-  setStatus('ok',`${ok} situs dimuat${fail?`, ${fail} gagal (cek ➕)`:''}`);
-}
 
 /* ================== EVENTS ================== */
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
@@ -465,13 +469,27 @@ $('selSitus').onchange=async e=>{
   const v=e.target.value;
   if(v==='__CUSTOM__'){$('customRow').classList.add('show');$('customTab').focus();return}
   curSite=v;LS.set('bda_cursite',curSite);cStaff='';
-  if(curSite!=='__ALL__'&&!chatBySite[curSite]){
-    setStatus('','Mencari tab situs '+curSite+'…');
-    $('gridChat').innerHTML='<div class="loader"><div class="spin"></div> Mencari & memuat '+esc(curSite)+'…</div>';
-    try{await ensureSite(curSite);setStatus('ok',curSite+' dimuat ✓')}
+  if(v==='__ALL__'){renderStaff();renderChat();return}
+  /* 1) BRIDGE: ganti C2 asli di sheet, lalu muat ulang */
+  if(WEB_APP_URL){
+    setStatus('','Mengubah C2 di Google Sheet → '+v+' …');
+    $('gridChat').innerHTML='<div class="loader"><div class="spin"></div> Menyetel C2 = '+esc(v)+' di sheet…</div>';
+    try{
+      await setSheetC2(v);
+      if(await reloadMainUntil(v)){
+        setStatus('ok','C2 sheet diganti ke '+v+' ✓');
+        buildSitusDropdown();renderStaff();renderChat();return;
+      }
+    }catch(err){console.warn('bridge:',err)}
+    setStatus('','Bridge lambat/gagal — coba ambil per tab…');
+  }
+  /* 2) FALLBACK: ambil tab sheet situs */
+  if(!chatBySite[v]){
+    $('gridChat').innerHTML='<div class="loader"><div class="spin"></div> Mencari & memuat '+esc(v)+'…</div>';
+    try{await ensureSite(v);setStatus('ok',v+' dimuat ✓')}
     catch(err){
-      setStatus('err','Tab '+curSite+' tidak ditemukan');
-      $('gridChat').innerHTML='<div class="empty">❌ Tab untuk <b>'+esc(curSite)+'</b> tidak ketemu.<br>Coba <b>➕ Situs lain</b> lalu ketik nama tab persis (mis. <i>Only JoniTogel</i>).</div>';
+      setStatus('err','Tab '+v+' tidak ditemukan');
+      $('gridChat').innerHTML='<div class="empty">❌ Tab <b>'+esc(v)+'</b> tidak ketemu. Pasang bridge Apps Script (lihat catatan) atau <b>➕ Situs lain</b>.</div>';
       renderStaff();return;
     }
   }
@@ -492,7 +510,6 @@ $('btnCustom').onclick=async()=>{
   }catch(err){setStatus('err','Tab "'+name+'" tidak ditemukan — cek ejaan')}
 };
 $('btnCustomX').onclick=()=>{$('customRow').classList.remove('show');$('selSitus').value=curSite};
-$('btnLoadAll').onclick=loadAllSites;
 $('qChat').oninput=e=>{cQ=e.target.value;renderChat()};
 $('btnReload').onclick=()=>{for(const k in chatBySite)delete chatBySite[k];FATAL=[];boot()};
 $('fSitus').onchange=e=>{fSitus=e.target.value;renderFatal()};
