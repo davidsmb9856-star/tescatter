@@ -151,14 +151,14 @@ main{max-width:1700px;margin:0 auto 46px;padding:0 20px}
 <main>
 <section class="panel on" id="p-chat">
   <div class="ctrls">
-    <span class="badge">🏠 SITUS UTAMA (C2): <span id="c2val">…</span></span>
+    <span class="badge">🏠 SITUS C2 (DARI SHEET): <span id="c2val">…</span></span>
     <div class="ctrl">
-      <label>🌐 PILIH SITUS</label>
+      <label>🌐 PILIH FILTER SITUS</label>
       <select id="selSitus"></select>
     </div>
     <div class="ctrl"><label>🔍 CARI</label><input id="qChat" placeholder="nama CS / keterangan…"></div>
     <button class="btn" id="btnResetChat">↺ Reset</button>
-    <button class="btn" id="btnReload">⟳ Reload</button>
+    <button class="btn" id="btnReload">⟳ Reload Data</button>
   </div>
   <div class="stats">
     <div class="stat"><div class="t">BARIS KESALAHAN</div><div class="v" id="stRow">0</div></div>
@@ -214,13 +214,15 @@ main{max-width:1700px;margin:0 auto 46px;padding:0 20px}
 /* =============== KONFIG =============== */
 const SID='1camkXfvojs-YSBBPekYHTi4cwata4YCGTtmVIeOy1yc';
 const CHAT_SHEET='Situs Lain', FATAL_SHEET='Fatal All Situs';
-const csvURL=n=>`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(n)}`;
+
+// MENAMBAHKAN RANDOM TIMESTAMP SUPAYA GOOGLE SHEETS TIDAK MENYIMPAN CACHE DROPDOWN C2 LAMA
+const csvURL=n=>`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(n)}&_nocache=${Date.now()}`;
 
 /* =============== STATE =============== */
 let CHAT_RECS=[], CHAT_STAFF=[], C2='';
 let FATAL=[];
 let fStaff='', fSitus='', fDate='', fQ='', cQ='', cStaff='';
-let curSite='__ALL__';  // '__ALL__' = semua, atau nama situs spesifik
+let curSite='__ALL__'; 
 
 /* =============== UTIL =============== */
 const $=id=>document.getElementById(id);
@@ -229,7 +231,6 @@ const blank=v=>v==null||String(v).trim()==='';
 const cl=v=>blank(v)?'':String(v).trim();
 const isDate=s=>/^\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}$/.test(cl(s));
 
-// Optimasi Pembersihan URL
 function linksOf(s){
   if(blank(s)) return [];
   const rawMatches = String(s).match(/https?:\/\/[^\s,"'<>]+/gi) || [];
@@ -266,7 +267,7 @@ async function fetchCSV(u){
   const r=await fetch(u);
   if(!r.ok)throw new Error('HTTP '+r.status);
   const t=await r.text();
-  if(t.trim().startsWith('<'))throw new Error('Bukan CSV (periksa hak akses sheet)');
+  if(t.trim().startsWith('<'))throw new Error('Bukan CSV');
   return parseCSV(t);
 }
 
@@ -277,7 +278,10 @@ function setStatus(k,t){
 
 /* =============== PARSE CHAT =============== */
 function parseChat(rows){
-  const c2=cl((rows[1]||[])[2]);  // C2
+  // BACA SEL C2 DARI BARIS BARIS KEDUA (INDEX 1) KOLOM KETIGA (INDEX 2)
+  const c2Raw = (rows[1] || [])[2];
+  const c2 = cl(c2Raw);
+  
   const recs=[],staff=[];let curDate='';
   for(let i=2;i<Math.min(rows.length,2547);i++){
     const r=rows[i]||[],B=cl(r[1]),C=cl(r[2]),D=cl(r[3]);
@@ -329,11 +333,11 @@ function buildSitusDropdown(){
   const list=getKnownSitus();
   const opts=['<option value="__ALL__">— SEMUA SITUS —</option>'];
   list.forEach(s=>{
-    const isMain=(s===C2)?' 🏠 (Utama)':'';
+    const isMain=(s===C2)?' 🏠 (C2 Sheet)':'';
     opts.push(`<option value="${esc(s)}"${s===curSite?' selected':''}>${esc(s)}${isMain}</option>`);
   });
   $('selSitus').innerHTML=opts.join('');
-  $('c2val').textContent=C2||'—';
+  $('c2val').textContent=C2||'— (Kosong)';
 }
 
 /* =============== RENDER CHAT =============== */
@@ -386,7 +390,6 @@ function renderStaff(){
   $('staffChips').querySelectorAll('.chip-s').forEach(c=>c.onclick=()=>{cStaff=(cStaff===c.dataset.n)?'':c.dataset.n;renderStaff();renderChat()});
 }
 
-/* =============== COPY HELPER =============== */
 function copyToClipboard(text,el){
   navigator.clipboard.writeText(text).then(()=>{
     if(el){
@@ -401,19 +404,15 @@ function copyToClipboard(text,el){
   });
 }
 
-/* =============== NORMALIZE DATE FOR INPUT FILTER =============== */
 const normD=s=>{
   if(blank(s)) return '';
   const m=cl(s).match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{2,4})$/);
   if(!m) return cl(s);
   let y=m[3];
   if(y.length===2) y='20'+y;
-  const d = m[1].padStart(2,'0');
-  const month = m[2].padStart(2,'0');
-  return `${y}-${month}-${d}`;
+  return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
 };
 
-/* =============== RENDER FATAL =============== */
 function renderFatal(){
   let r=[...FATAL];
   if(fSitus)r=r.filter(x=>x.situs===fSitus);
@@ -455,7 +454,6 @@ function renderFatal(){
   bindLinkEvents($('gridFatal'));
 }
 
-/* =============== BIND LINK EVENTS =============== */
 function bindLinkEvents(container){
   container.querySelectorAll('.lk').forEach(a=>{
     a.addEventListener('click',e=>{
@@ -491,7 +489,7 @@ async function boot(){
   }catch(e){
     console.error(e);
     setStatus('err','Gagal: '+e.message);
-    $('gridChat').innerHTML='<div class="empty">❌ Gagal memuat sheet. Pastikan Google Sheet di-share ke <b>"Anyone with the link can view"</b>.<br><small>'+esc(e.message)+'</small></div>';
+    $('gridChat').innerHTML='<div class="empty">❌ Gagal memuat sheet: <br><small>'+esc(e.message)+'</small></div>';
   }
 }
 
@@ -511,14 +509,19 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
 $('selSitus').onchange=e=>{curSite=e.target.value;renderChat()};
 $('qChat').oninput=e=>{cQ=e.target.value;renderChat()};
 $('btnResetChat').onclick=()=>{cQ='';cStaff='';curSite='__ALL__';$('qChat').value='';buildSitusDropdown();renderStaff();renderChat()};
-$('btnReload').onclick=()=>{CHAT_RECS=[];CHAT_STAFF=[];FATAL=[];boot()};
+
+// TOMBOL RELOAD MEMAKSA MEMANGGIL CSV TERBARU KANPA CACHE
+$('btnReload').onclick=()=>{
+  CHAT_RECS=[];CHAT_STAFF=[];FATAL=[];
+  boot();
+};
+
 $('fSitus').onchange=e=>{fSitus=e.target.value;renderFatal()};
 $('fStaff').onchange=e=>{fStaff=e.target.value;renderFatal()};
 $('fDate').onchange=e=>{fDate=e.target.value;renderFatal()};
 $('qFatal').oninput=e=>{fQ=e.target.value;renderFatal()};
 $('btnResetFatal').onclick=()=>{fSitus=fStaff=fDate=fQ='';$('fSitus').value=$('fStaff').value=$('fDate').value=$('qFatal').value='';renderFatal()};
 
-/* =============== DRAG-FREE SCROLL =============== */
 function dragScroll(el){
   let down=false,sx=0,sl=0,moved=0;
   el.addEventListener('pointerdown',e=>{
@@ -535,7 +538,6 @@ function dragScroll(el){
 }
 dragScroll($('wrapChat'));dragScroll($('wrapFatal'));dragScroll($('staffChips'));
 
-/* =============== MODAL =============== */
 let mURL='';
 function mOpen(url,cap){
   mURL=url;
@@ -550,7 +552,7 @@ function mOpen(url,cap){
   $('mImgBox').innerHTML=`<img id="mImg" src="${esc(imgUrl)}" alt="preview">`;
   const el=$('mImg');
   el.onerror=()=>{
-    $('mImgBox').innerHTML='<div class="img-err">⚠️ Gambar tidak dapat dimuat langsung.<br>Silakan klik tombol <b>"Buka Tab Baru"</b> untuk melihat file secara langsung.</div>';
+    $('mImgBox').innerHTML='<div class="img-err">⚠️ Gambar tidak dapat dimuat langsung.<br>Silakan klik <b>"Buka Tab Baru"</b>.</div>';
   };
 
   $('mOpen').href=url;
