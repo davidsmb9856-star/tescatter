@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
-<title>BUKU DOSA ALL — Dove Blue v13</title>
+<title>BUKU DOSA ALL — Dove Blue v14</title>
 <style>
 :root{
   --dv50:#f3f8fd;--dv100:#e6f0f9;--dv200:#cfe0ef;--dv300:#aacbe6;--dv400:#79a6cf;
@@ -196,7 +196,7 @@ h1 small{display:block;font-size:10.5px;font-weight:500;opacity:.85;letter-spaci
 
 <header><div class="hwrap">
   <div class="logo">🕊️</div>
-  <h1>BUKU DOSA ALL <small>Drag‑Free · Dove Blue v13</small></h1>
+  <h1>BUKU DOSA ALL <small>Drag‑Free · Dove Blue v14</small></h1>
   <div id="status"><span class="dot" id="sDot"></span><span id="sTxt">Memuat…</span></div>
 </div></header>
 
@@ -210,7 +210,7 @@ h1 small{display:block;font-size:10.5px;font-weight:500;opacity:.85;letter-spaci
 
 <!-- ================= PANEL 1 : KESALAHAN CHAT ALL ================= -->
 <section class="panel on" id="p-chat">
-  <div class="srcnote">📄 Sumber: sheet <b id="chatSrc">Only JoniTogel</b> · B4:D2547 + I3:J40 — <b>SEMUA baris diambil tanpa pengecualian</b></div>
+  <div class="srcnote">📄 Sumber: sheet <b id="chatSrc">Only JoniTogel</b> · B1:D2547 + I1:J40 — <b>SEMUA baris diambil dari baris 1, tanpa abaikan kolom kosong</b></div>
   <div class="filterinfo" id="chatFilterInfo">📅 Menampilkan tanggal: <span class="badge" id="chatDateBadge">—</span></div>
   <div class="ctrls">
     <div class="ctrl"><label>📅 TANGGAL</label><select id="selChatDate"><option value="">— SEMUA TANGGAL —</option></select></div>
@@ -234,7 +234,7 @@ h1 small{display:block;font-size:10.5px;font-weight:500;opacity:.85;letter-spaci
 
 <!-- ================= PANEL 2 : STAFF & TOTAL ================= -->
 <section class="panel" id="p-staff">
-  <div class="srcnote">📄 Sumber: sheet <b id="staffSrc">Only JoniTogel</b> · kolom I3:I40 (nama staff) · J3:J40 (total kesalahan) — <b>SEMUA baris diambil</b></div>
+  <div class="srcnote">📄 Sumber: sheet <b id="staffSrc">Only JoniTogel</b> · I1:I40 (nama staff) · J1:J40 (total) — <b>SEMUA baris dari baris 1</b></div>
   <div class="stats">
     <div class="stat"><div class="t">Total Staff</div><div class="v" id="sfTotal">0</div></div>
     <div class="stat"><div class="t">Total Kesalahan</div><div class="v" id="sfSum">0</div></div>
@@ -243,7 +243,7 @@ h1 small{display:block;font-size:10.5px;font-weight:500;opacity:.85;letter-spaci
   </div>
   <div class="section">
     <div class="section-head">
-      <h3><span class="ico">👥</span> Staff & Total Kesalahan <span style="font-size:10.5px;color:var(--soft);font-weight:600">(I3:J40 · klik untuk filter di menu Chat)</span></h3>
+      <h3><span class="ico">👥</span> Staff & Total Kesalahan <span style="font-size:10.5px;color:var(--soft);font-weight:600">(I1:J40 · klik untuk filter di menu Chat)</span></h3>
     </div>
     <div class="chips" id="staffChips"></div>
   </div>
@@ -260,7 +260,7 @@ h1 small{display:block;font-size:10.5px;font-weight:500;opacity:.85;letter-spaci
 
 <!-- ================= PANEL 3 : FATAL ALL SITUS ================= -->
 <section class="panel" id="p-fatal">
-  <div class="srcnote">📄 Sumber: sheet <b>Fatal All Situs</b> · B5:K1001 — <b>SEMUA baris diambil tanpa pengecualian</b></div>
+  <div class="srcnote">📄 Sumber: sheet <b>Fatal All Situs</b> · B1:K1001 — <b>SEMUA baris dari baris 1, tanpa abaikan kolom kosong</b></div>
   <div class="filterinfo" id="fatalFilterInfo">📅 Menampilkan tanggal: <span class="badge" id="fatalDateBadge">—</span></div>
   <div class="ctrls">
     <div class="ctrl"><label>📅 TANGGAL</label><select id="selFatalDate"><option value="">— SEMUA TANGGAL —</option></select></div>
@@ -332,44 +332,45 @@ function sortDatesDesc(arr){return arr.sort((a,b)=>{const da=normD(a).split('-')
   for(let i=0;i<3;i++){if(db[i]!==da[i])return db[i]-da[i]}return 0})}
 
 /* ============================================================
-   PARSE CHAT — AMBIL SEMUA DATA (TANPA PENGECUALIAN)
-   - B4:B2547 nama, C4:C2547 link/tanggal, D4:D2547 keterangan
-   - I3:I40 nama staff, J3:J40 total
-   - TIDAK ADA baris yang dilewati karena kosong / #VALUE! / total
-   - Baris tanggal (C berisi tanggal) -> forward-fill ke baris bawah
+   PARSE CHAT — AMBIL SEMUA DATA DARI BARIS 1 (TANPA PENGECUALIAN)
+   - B1:B2547 nama  -> r[1],  index 0..2546
+   - C1:C2547 link/tanggal -> r[2]
+   - D1:D2547 keterangan -> r[3]
+   - I1:I40 nama staff -> r[8], index 0..39
+   - J1:J40 total -> r[9]
+   - TIDAK ADA baris yang dilewati. Baris tanggal (C) -> forward-fill.
 ============================================================ */
 function parseChat(rows){
   const recs=[],staff=[];
 
-  // STAFF I3:J40 -> index 2..39 — ambil SEMUA, tanpa filter #VALUE!/total/kosong
-  for(let i=2;i<Math.min(40,rows.length);i++){
+  // STAFF I1:J40 -> index 0..39 — ambil SEMUA baris
+  for(let i=0;i<Math.min(40,rows.length);i++){
     const r=rows[i]||[];
     const I=cl(r[8]),J=cl(r[9]);
-    if(I||J) staff.push({name:I||'(tanpa nama)',total:J||'0'});
+    staff.push({name:I||'(kosong)',total:J||'0',row:i+1});
   }
 
-  // DATA B4:D2547 -> index 3..2546 — ambil SEMUA baris
+  // DATA B1:D2547 -> index 0..2546 — ambil SEMUA baris
   let curDate='';
-  for(let i=3;i<Math.min(rows.length,2547);i++){
+  for(let i=0;i<Math.min(rows.length,2547);i++){
     const r=rows[i]||[];
     const B=cl(r[1]),C=cl(r[2]),D=cl(r[3]);
-    if(isDate(C)){curDate=C;}            // update penanda tanggal (tetap lanjut, tidak skip)
+    if(isDate(C)){curDate=C;}            // penanda tanggal (forward-fill), tetap lanjut
     const L=linksOf(C);
-    // Ambil SEMUA baris dalam rentang — bahkan yang kosong sekalipun tetap dicatat
-    recs.push({tgl:curDate,nama:B,links:L,ket:D,row:i+1});
+    recs.push({tgl:curDate,nama:B,links:L,ket:D,row:i+1}); // semua baris dicatat
   }
   return {recs,staff};
 }
 
 /* ============================================================
-   PARSE FATAL — AMBIL SEMUA DATA (TANPA PENGECUALIAN)
-   - B5 tanggal, D5 nama, E5 status, F5 situs, H5 potong,
-     I5 ket, J5 SS, K5 SS LC  (baris 5..1001 -> index 4..1000)
-   - TIDAK ADA baris yang dilewati
+   PARSE FATAL — AMBIL SEMUA DATA DARI BARIS 1 (TANPA PENGECUALIAN)
+   - B1:B1001 tanggal -> r[1], index 0..1000
+   - D1 nama -> r[3], E1 status -> r[4], F1 situs -> r[5]
+   - H1 potong -> r[7], I1 ket -> r[8], J1 SS -> r[9], K1 SS LC -> r[10]
 ============================================================ */
 function parseFatal(rows){
   const out=[];
-  for(let i=4;i<Math.min(rows.length,1001);i++){
+  for(let i=0;i<Math.min(rows.length,1001);i++){
     const r=rows[i]||[];
     out.push({
       tgl:cl(r[1]), staf:cl(r[3]), stat:cl(r[4]), situs:cl(r[5]),
@@ -410,21 +411,23 @@ function bindLinks(root){
 
 /* =============== RENDER STAFF =============== */
 function renderStaff(){
-  $('staffChips').innerHTML=CHAT_STAFF.length?CHAT_STAFF.map(s=>`<div class="chip-s${cStaff===s.name?' on':''}" data-n="${esc(s.name)}">👤 ${esc(s.name)} <b>${esc(s.total)}</b></div>`).join(''):'<div class="empty" style="padding:8px">Staff belum tersedia</div>';
+  // tampilkan hanya staff yang punya nama (filter tampilan saja, data tetap semua)
+  const staffValid=CHAT_STAFF.filter(s=>s.name&&s.name!=='(kosong)');
+  $('staffChips').innerHTML=staffValid.length?staffValid.map(s=>`<div class="chip-s${cStaff===s.name?' on':''}" data-n="${esc(s.name)}">👤 ${esc(s.name)} <b>${esc(s.total)}</b></div>`).join(''):'<div class="empty" style="padding:8px">Staff belum tersedia</div>';
   $('staffChips').querySelectorAll('.chip-s').forEach(c=>c.onclick=()=>{
     cStaff=(cStaff===c.dataset.n)?'':c.dataset.n;
     renderStaff();renderChat();
     if(cStaff){document.querySelector('.tab[data-p="chat"]').click();}
   });
-  const tots=CHAT_STAFF.map(s=>parseInt(s.total||0)||0);
-  $('sfTotal').textContent=CHAT_STAFF.length;
+  const tots=staffValid.map(s=>parseInt(s.total||0)||0);
+  $('sfTotal').textContent=staffValid.length;
   $('sfSum').textContent=tots.reduce((a,b)=>a+b,0);
   $('sfMax').textContent=tots.length?Math.max(...tots):0;
   $('sfRed').textContent=tots.filter(t=>t>=RED_THRESHOLD).length;
-  $('cStaff2').textContent=CHAT_STAFF.length;
-  $('staffCnt').textContent=CHAT_STAFF.length;
-  if(!CHAT_STAFF.length){$('staffTableBody').innerHTML='<tr><td colspan="3" class="empty" style="padding:22px">Belum ada data staff</td></tr>';return}
-  const sorted=[...CHAT_STAFF].sort((a,b)=>parseInt(b.total||0)-parseInt(a.total||0));
+  $('cStaff2').textContent=staffValid.length;
+  $('staffCnt').textContent=staffValid.length;
+  if(!staffValid.length){$('staffTableBody').innerHTML='<tr><td colspan="3" class="empty" style="padding:22px">Belum ada data staff</td></tr>';return}
+  const sorted=[...staffValid].sort((a,b)=>parseInt(b.total||0)-parseInt(a.total||0));
   $('staffTableBody').innerHTML=sorted.map((s,i)=>{
     const tot=parseInt(s.total||0);const high=tot>=RED_THRESHOLD?'high':'';
     return `<tr><td class="no">${i+1}</td><td class="nm">${esc(s.name)}</td><td class="totcell"><span class="tot ${high}">${esc(s.total)}</span></td></tr>`;
@@ -439,38 +442,40 @@ function renderChat(){
   if(cQ)recs=recs.filter(r=>((r.nama||'')+' '+(r.ket||'')).toLowerCase().includes(cQ.toLowerCase()));
   if(cDate){$('chatFilterInfo').classList.add('show');$('chatDateBadge').textContent=cDate}else{$('chatFilterInfo').classList.remove('show')}
 
-  // Stats dihitung dari SEMUA data (bukan yang difilter) agar mencerminkan "ambil semua"
   const allNonEmpty=CHAT_RECS.filter(r=>r.nama||r.links.length||r.ket);
-  $('stRow').textContent=CHAT_RECS.length;                       // total baris (termasuk kosong)
+  $('stRow').textContent=CHAT_RECS.length;
   $('stCs').textContent=new Set(allNonEmpty.map(r=>r.nama).filter(Boolean)).size;
   $('stFatal').textContent=allNonEmpty.filter(r=>/fatal/i.test(r.ket)).length;
   $('stShow').textContent=recs.length;$('cChat').textContent=recs.length;
 
   let last='',dh='<div class="hrow"><div>NO</div><div>TANGGAL</div><div>NAMA CS</div><div>🔗 LINK FOTO (SS)</div><div>KETERANGAN</div></div>';
   if(!recs.length)dh+='<div class="empty">Tidak ada data untuk tanggal <b>'+esc(cDate||'yang dipilih')+'</b>.</div>';
-  recs.forEach((r,i)=>{
-    // Lewati baris yang benar-benar kosong saat RENDER saja (agar tampilan rapi), tapi datanya tetap terhitung di stats
+  let no=0;
+  recs.forEach((r)=>{
+    // baris benar-benar kosong tidak dirender (tapi tetap terhitung di stats "Baris")
     if(!r.nama&&!r.links.length&&!r.ket)return;
+    no++;
     if(r.tgl&&r.tgl!==last){last=r.tgl;dh+=`<div class="dsep">📅 ${esc(r.tgl)}</div>`}
     const fatal=/fatal/i.test(r.ket);
     const lks=r.links.length?r.links.map((u,j)=>linkHTML(u,j,r.nama||'(tanpa nama)','Foto')).join(''):'<span style="color:#9aa7b2">— tidak ada link —</span>';
-    dh+=`<div class="row${fatal?' fatalrow':''}"><div class="no">${i+1}</div><div class="tgl">${esc(r.tgl||'—')}</div>
+    dh+=`<div class="row${fatal?' fatalrow':''}"><div class="no">${no}</div><div class="tgl">${esc(r.tgl||'—')}</div>
       <div class="nm" title="${esc(r.nama)}">${esc(r.nama||'—')}</div><div class="links">${lks}</div>
       <div class="ket" title="${esc(r.ket)}">${fatal?'<span class="tagf red">FATAL</span> ':''}${esc(r.ket||'—')}</div></div>`;
   });
   $('gridChat').innerHTML=dh;bindLinks($('gridChat'));
 
-  last='';let mh='';
+  last='';let mh='';no=0;
   if(!recs.length)mh='<div class="empty">Tidak ada data untuk tanggal yang dipilih.</div>';
-  recs.forEach((r,i)=>{
+  recs.forEach((r)=>{
     if(!r.nama&&!r.links.length&&!r.ket)return;
+    no++;
     if(r.tgl&&r.tgl!==last){last=r.tgl;mh+=`<div class="dsep-m">📅 ${esc(r.tgl)}</div>`}
     const fatal=/fatal/i.test(r.ket);
     const lks=r.links.length?r.links.map((u,j)=>linkHTML(u,j,r.nama||'(tanpa nama)','Foto')).join(''):'<span style="color:#9aa7b2;font-size:12px">— tidak ada link —</span>';
     mh+=`<div class="card${fatal?' fatalcard':''}"><div class="chead"><div class="av">${esc(initials(r.nama))}</div>
         <div class="who"><div class="nm">${esc(r.nama||'—')}</div>
           <div class="sub"><span>📅 <b>${esc(r.tgl||'—')}</b></span><span>📷 <b>${r.links.length}</b> foto</span>${fatal?'<span class="tagf red">FATAL</span>':''}</div></div>
-        <div class="no">#${i+1}</div></div>
+        <div class="no">#${no}</div></div>
       ${r.ket?`<div class="ck">${esc(r.ket)}</div>`:''}
       <div class="clabel">🔗 Link Foto</div><div class="clinks">${lks}</div></div>`;
   });
@@ -487,17 +492,19 @@ function renderFatal(){
   if(fDate){$('fatalFilterInfo').classList.add('show');$('fatalDateBadge').textContent=fDate}else{$('fatalFilterInfo').classList.remove('show')}
 
   const allNonEmpty=FATAL.filter(x=>x.tgl||x.staf||x.ket||x.ss1.length||x.ss2.length||x.situs||x.potong||x.stat);
-  $('ftRow').textContent=FATAL.length;                            // total baris (termasuk kosong)
+  $('ftRow').textContent=FATAL.length;
   $('ftStaff').textContent=new Set(allNonEmpty.map(x=>x.staf).filter(Boolean)).size;
   $('ftSitus').textContent=new Set(allNonEmpty.map(x=>x.situs).filter(Boolean)).size;
   $('ftShow').textContent=r.length;$('cFatal').textContent=r.length;
 
   let dh='<div class="hrow"><div>NO</div><div>TANGGAL</div><div>NAMA STAF</div><div>STATUS</div><div>SITUS</div><div>POTONG</div><div>KETERANGAN FATAL</div><div>🔗 SS KESALAHAN</div><div>🔗 SS LC</div></div>';
   if(!r.length)dh+='<div class="empty">Tidak ada data fatal untuk tanggal <b>'+esc(fDate||'yang dipilih')+'</b>.</div>';
-  r.forEach((x,i)=>{
+  let no=0;
+  r.forEach((x)=>{
     if(!x.tgl&&!x.staf&&!x.ket&&!x.ss1.length&&!x.ss2.length&&!x.situs&&!x.potong&&!x.stat)return;
+    no++;
     const mk=(a,l)=>a.length?a.map((u,j)=>linkHTML(u,j,x.staf||'(tanpa nama)',l)).join(''):'<span style="color:#9aa7b2">—</span>';
-    dh+=`<div class="row"><div class="no">${i+1}</div><div class="tgl">${esc(x.tgl||'—')}</div>
+    dh+=`<div class="row"><div class="no">${no}</div><div class="tgl">${esc(x.tgl||'—')}</div>
       <div class="nm" title="${esc(x.staf)}">${esc(x.staf||'—')}</div>
       <div>${x.stat?`<span class="tagf amb">${esc(x.stat)}</span>`:'—'}</div>
       <div><b>${esc(x.situs||'—')}</b></div>
@@ -507,15 +514,16 @@ function renderFatal(){
   });
   $('gridFatal').innerHTML=dh;bindLinks($('gridFatal'));
 
-  let mh='';
+  let mh='';no=0;
   if(!r.length)mh='<div class="empty">Tidak ada data fatal untuk tanggal yang dipilih.</div>';
-  r.forEach((x,i)=>{
+  r.forEach((x)=>{
     if(!x.tgl&&!x.staf&&!x.ket&&!x.ss1.length&&!x.ss2.length&&!x.situs&&!x.potong&&!x.stat)return;
+    no++;
     const mk=(a,l)=>a.length?a.map((u,j)=>linkHTML(u,j,x.staf||'(tanpa nama)',l)).join(''):'<span style="color:#9aa7b2;font-size:12px">— tidak ada —</span>';
     mh+=`<div class="card fatalcard"><div class="chead"><div class="av">${esc(initials(x.staf))}</div>
         <div class="who"><div class="nm">${esc(x.staf||'—')}</div>
           <div class="sub"><span>📅 <b>${esc(x.tgl||'—')}</b></span><span>🌐 <b>${esc(x.situs||'—')}</b></span>${x.stat?`<span class="tagf amb">${esc(x.stat)}</span>`:''}${x.potong?`<span class="tagf red">−${esc(x.potong)}%</span>`:''}</div></div>
-        <div class="no">#${i+1}</div></div>
+        <div class="no">#${no}</div></div>
       ${x.ket?`<div class="ck">${esc(x.ket)}</div>`:''}
       <div class="clabel">🔗 SS Kesalahan</div><div class="clinks">${mk(x.ss1,'SS')}</div>
       <div class="clabel" style="margin-top:7px">🔗 SS Kesalahan LC</div><div class="clinks">${mk(x.ss2,'LC')}</div></div>`;
