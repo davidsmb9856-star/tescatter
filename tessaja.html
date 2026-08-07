@@ -302,6 +302,27 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 mark{background:var(--hl);border-radius:3px;padding:0 2px}
 @media(max-width:900px){
 .app{grid-template-columns:1fr}.sidebar{display:none}
+  .announcement-bar{display:none;align-items:center;gap:10px;margin:0 28px 14px;padding:10px 16px;background:linear-gradient(90deg,rgba(0,212,255,.12),rgba(0,153,255,.06));border:1px solid rgba(0,212,255,.35);border-radius:var(--radius-md);color:var(--neon-cyan);font-size:12px;font-weight:600}
+.announcement-bar i{font-size:14px}
+.maintenance-overlay{position:fixed;inset:0;z-index:9990;display:none;align-items:center;justify-content:center;background:var(--bg-primary)}
+.maintenance-overlay.show{display:flex}
+.maintenance-box{text-align:center;padding:40px}
+.maintenance-box i{font-size:64px;color:var(--neon-yellow);margin-bottom:16px;animation:pulse 2s infinite}
+.maintenance-box h3{font-family:'Space Grotesk',sans-serif;letter-spacing:3px;color:var(--neon-cyan);margin-bottom:10px}
+.maintenance-box p{color:var(--text-secondary);font-size:13px}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--border-subtle)}
+.set-row:last-child{border-bottom:none}
+.set-row label{font-size:11px;color:var(--text-secondary);font-weight:600}
+.switch{position:relative;width:40px;height:22px;flex:0 0 auto}
+.switch input{opacity:0;width:0;height:0}
+.switch .sl{position:absolute;inset:0;background:var(--bg-hover);border:1px solid var(--border-normal);border-radius:999px;cursor:pointer;transition:.2s}
+.switch .sl:before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--text-tertiary);border-radius:50%;transition:.2s}
+.switch input:checked + .sl{background:rgba(0,212,255,.25);border-color:var(--neon-cyan)}
+.switch input:checked + .sl:before{transform:translateX(18px);background:var(--neon-cyan)}
+.set-input{width:100%;padding:9px 12px;background:var(--bg-primary);border:1px solid var(--border-normal);border-radius:var(--radius-md);color:var(--text-primary);font-size:12px;margin-top:6px}
+.set-input:focus{outline:none;border-color:var(--neon-cyan)}
+.hide-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.hide-item{display:flex;align-items:center;gap:8px;background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:var(--text-secondary);cursor:pointer}
 .topbar{padding:14px 16px}.content{padding:18px 16px}
 .search-box{width:150px}.bento{grid-template-columns:repeat(2,1fr)}
 .topbar h2{font-size:15px}.code-comparison{grid-template-columns:1fr}
@@ -847,6 +868,59 @@ function closePortalSettings(){document.getElementById('portalSettingsOverlay').
 async function savePortalSettings(){try{if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');const links={};const names={};document.querySelectorAll('#portalSettingsForm .input-field[data-menu-id]').forEach(i=>{links[i.dataset.menuId]=i.value.trim()||defaultPortalLinks[i.dataset.menuId]||'#'});document.querySelectorAll('#portalSettingsForm .input-field[data-name-id]').forEach(i=>{names[i.dataset.nameId]=i.value.trim()||defaultPortalNames[i.dataset.nameId]||i.dataset.nameId});portalConfig.links=Object.assign({},defaultPortalLinks,portalConfig.links,links);portalConfig.names=Object.assign({},defaultPortalNames,portalConfig.names,names);const np=document.getElementById('newPortalPinInput');if(np&&np.value.trim()){await saveUserPortalPin(np.value.trim());toast('✅ PIN portal disimpan','success')}await savePortalConfigToFirebase('manual save');updatePortalUI();closePortalSettings();toast('✅ Pengaturan Portal tersimpan di Firebase','success')}catch(e){toast('❌ Gagal menyimpan: '+e.message,'error')}}
 async function resetPortalLinks(){if(!confirm('Reset semua link dan nama menu ke default?'))return;try{if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');portalConfig.links={...defaultPortalLinks};portalConfig.names={...defaultPortalNames};await savePortalConfigToFirebase('reset');updatePortalUI();showPortalSettingsForm();toast('✅ Link & nama menu direset!','success')}catch(e){toast('❌ Gagal reset: '+e.message,'error')}}
 function openClearLoginHistory(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}document.getElementById('clearLoginHistoryOverlay').classList.add('show')}
+/* ================= PLUGIN: PENGATURAN PORTAL LENGKAP ================= */
+const defaultSettings={appTitle:'SCRIPTVAULT',appSubtitle:'CYBER CORE 2026',logoEmoji:'🐒',footerText:'👑 Created by',announcementOn:false,announcementText:'📢 Selamat datang di ScriptVault Portal!',maintenanceOn:false,maintenanceMsg:'🔧 Portal sedang dalam perawatan. Coba lagi nanti.',openNewTab:true,clock24:true,autoRefreshOn:false,autoRefreshSec:60,defaultPublic:true,maxHistory:30,adminEmails:'david.smb9856@gmail.com',hiddenMenus:{}};
+portalConfig.settings=Object.assign({},defaultSettings,portalConfig.settings||{});
+function getAdminEmails(){const a=String(portalConfig.settings.adminEmails||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);return a.length?a:['david.smb9856@gmail.com']}
+window.isAdmin=function(){return currentUser&&getAdminEmails().includes((currentUser.email||'').toLowerCase())};
+window.pushHistory=function(s,e){if(!s.history)s.history=[];s.history.unshift(e);const m=parseInt(portalConfig.settings.maxHistory)||30;if(s.history.length>m)s.history=s.history.slice(0,m)};
+window.updateClock=function(){const n=new Date(),s=portalConfig.settings;const t=document.getElementById('clockTime');if(t)t.textContent=n.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:(s.clock24===false)});const d=document.getElementById('clockDate');if(d)d.textContent=n.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});const y=document.getElementById('clockDay');if(y)y.textContent=n.toLocaleDateString('id-ID',{weekday:'long'})};
+window.newS=function(){editId=null;document.getElementById('sName').value='';document.getElementById('sAuthor').value=currentUser.name||'';document.getElementById('sDesc').value='';document.getElementById('sCode').value='';document.getElementById('edTitle').textContent='SCRIPT BARU';document.getElementById('bDel').style.display='none';const def=portalConfig.settings.defaultPublic===false?'private':'public';const r=document.querySelector('input[name="sVis"][value="'+def+'"]');if(r)r.checked=true;updateStats();openEditor()};
+let autoRefreshTimer=null;
+function startAutoRefresh(){if(autoRefreshTimer){clearInterval(autoRefreshTimer);autoRefreshTimer=null}const s=portalConfig.settings;if(s.autoRefreshOn){const sec=Math.max(10,parseInt(s.autoRefreshSec)||60);autoRefreshTimer=setInterval(()=>{if(currentUser){FIREBASE.load().then(d=>{scripts=d;renderAll()}).catch(()=>{})}},sec*1000)}}
+function applySettings(){const s=portalConfig.settings;
+document.querySelectorAll('.logo-text h1').forEach(el=>el.textContent=s.appTitle||'SCRIPTVAULT');
+document.querySelectorAll('.logo-text small').forEach(el=>el.textContent=s.appSubtitle||'CYBER CORE 2026');
+document.querySelectorAll('.logo-icon,.loader-core,.auth-logo').forEach(el=>el.textContent=s.logoEmoji||'🐒');
+document.querySelectorAll('.auth-box h1').forEach(el=>el.textContent=s.appTitle||'SCRIPTVAULT');
+document.querySelectorAll('.sidebar-credit').forEach(el=>el.innerHTML=esc(s.footerText||'👑 Created by')+'<br><strong>'+esc(s.appTitle||'SCRIPTVAULT')+'</strong>');
+document.title=(s.appTitle||'ScriptVault')+' × Cyber Portal 2026';
+let an=document.getElementById('announcementBar');if(!an){an=document.createElement('div');an.id='announcementBar';an.className='announcement-bar';const m=document.querySelector('.main');if(m)m.prepend(an)}
+if(s.announcementOn&&s.announcementText){an.style.display='flex';an.innerHTML='<i class="fas fa-bullhorn"></i><span>'+esc(s.announcementText)+'</span>'}else an.style.display='none';
+let mt=document.getElementById('maintenanceOverlay');if(!mt){mt=document.createElement('div');mt.id='maintenanceOverlay';mt.className='maintenance-overlay';mt.innerHTML='<div class="maintenance-box"><i class="fas fa-tools"></i><h3>MAINTENANCE</h3><p id="maintenanceMsg"></p></div>';document.body.appendChild(mt)}
+document.getElementById('maintenanceMsg').textContent=s.maintenanceMsg||'Portal sedang dalam perawatan.';
+mt.classList.toggle('show',!!s.maintenanceOn&&!isAdmin());
+document.querySelectorAll('[data-menu-id]').forEach(el=>{const id=el.getAttribute('data-menu-id');el.style.display=(s.hiddenMenus&&s.hiddenMenus[id])?'none':'';if(el.tagName==='A')el.target=(s.openNewTab===false)?'_self':'_blank'});
+startAutoRefresh()}
+portalSettingsRef().on('value',snap=>{const v=snap.val();portalConfig.settings=Object.assign({},defaultSettings,(v&&v.settings)||{});applySettings()});
+window.savePortalConfigToFirebase=async function(reason){if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');await portalSettingsRef().set({links:sanitizeConfigObject(portalConfig.links),names:sanitizeConfigObject(portalConfig.names),settings:portalConfig.settings,updatedAt:new Date().toISOString(),updatedBy:currentUser.email||'unknown',reason:reason||'manual'})};
+function switchRow(l,k){return '<div class="set-row"><label>'+l+'</label><span class="switch"><input type="checkbox" class="set-check" data-set="'+k+'" '+(portalConfig.settings[k]?'checked':'')+'><span class="sl"></span></span></div>'}
+function inputRow(l,k,ph,ty){return '<div style="margin-bottom:10px"><label style="font-size:10.5px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px">'+l+'</label><input type="'+(ty||'text')+'" class="set-input" data-set="'+k+'" value="'+esc(portalConfig.settings[k]==null?'':portalConfig.settings[k])+'" placeholder="'+(ph||'')+'"></div>'}
+window.showPortalSettingsForm=function(){const form=document.getElementById('portalSettingsForm');form.innerHTML='';
+const panel=(t,h)=>{const g=document.createElement('div');g.className='settings-panel';g.innerHTML='<h3 class="settings-panel-title">'+t+'</h3>'+h;form.appendChild(g)};
+Object.entries(portalCategories).forEach(([cat,ids])=>{let h='';ids.forEach(id=>{h+='<div class="portal-input-row"><div class="portal-input-group"><label>Nama Menu</label><input type="text" class="input-field" data-name-id="'+id+'" value="'+esc(getPortalName(id))+'" maxlength="80"></div><div class="portal-input-group"><label>Link URL</label><input type="text" class="input-field" data-menu-id="'+id+'" value="'+esc(getPortalLink(id))+'" placeholder="https://..."></div></div>'});panel(cat,h)});
+panel('🎨 BRANDING & TAMPILAN',inputRow('Judul Aplikasi','appTitle','SCRIPTVAULT')+inputRow('Sub Judul','appSubtitle','CYBER CORE 2026')+inputRow('Logo (emoji)','logoEmoji','🐒')+inputRow('Teks Footer','footerText','👑 Created by'));
+panel('📢 PENGUMUMAN & MAINTENANCE',switchRow('Tampilkan Pengumuman','announcementOn')+inputRow('Teks Pengumuman','announcementText','📢 ...')+switchRow('Mode Maintenance (blokir user)','maintenanceOn')+inputRow('Pesan Maintenance','maintenanceMsg','🔧 ...'));
+let hg='<div class="hide-grid">';Object.keys(defaultPortalLinks).forEach(id=>{const hid=!!(portalConfig.settings.hiddenMenus&&portalConfig.settings.hiddenMenus[id]);hg+='<label class="hide-item"><input type="checkbox" class="hide-check" data-hide="'+id+'" '+(hid?'checked':'')+' style="accent-color:var(--neon-red)"> Sembunyikan '+esc(getPortalName(id))+'</label>'});hg+='</div>';panel('👁️ SEMBUNYIKAN MENU',hg);
+panel('⚙️ PERILAKU & OTOMATISASI',switchRow('Buka link di tab baru','openNewTab')+switchRow('Jam format 24 jam','clock24')+switchRow('Auto refresh data','autoRefreshOn')+inputRow('Interval auto refresh (detik)','autoRefreshSec','60','number')+switchRow('Script baru default PUBLIK','defaultPublic')+inputRow('Maks. histori per script','maxHistory','30','number'));
+panel('🔐 KEAMANAN',inputRow('Email Admin (pisahkan dengan koma)','adminEmails','admin@email.com')+'<div class="input-wrapper"><label class="input-label">PIN Portal Baru (4 digit)</label><input type="password" id="newPortalPinInput" class="input-field" maxlength="4" placeholder="Biarkan kosong jika tidak diubah"></div>');
+document.getElementById('portalSettingsOverlay').classList.add('show')};
+window.savePortalSettings=async function(){try{
+if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');
+const links={},names={};
+document.querySelectorAll('#portalSettingsForm .input-field[data-menu-id]').forEach(i=>{links[i.dataset.menuId]=i.value.trim()||defaultPortalLinks[i.dataset.menuId]||'#'});
+document.querySelectorAll('#portalSettingsForm .input-field[data-name-id]').forEach(i=>{names[i.dataset.nameId]=i.value.trim()||defaultPortalNames[i.dataset.nameId]||i.dataset.nameId});
+const settings=Object.assign({},portalConfig.settings);
+document.querySelectorAll('#portalSettingsForm .set-check').forEach(cb=>{settings[cb.dataset.set]=cb.checked});
+document.querySelectorAll('#portalSettingsForm .set-input').forEach(i=>{settings[i.dataset.set]=i.value});
+const hidden={};document.querySelectorAll('#portalSettingsForm .hide-check').forEach(cb=>{if(cb.checked)hidden[cb.dataset.hide]=true});settings.hiddenMenus=hidden;
+portalConfig.links=Object.assign({},defaultPortalLinks,portalConfig.links,links);
+portalConfig.names=Object.assign({},defaultPortalNames,portalConfig.names,names);
+portalConfig.settings=settings;
+const np=document.getElementById('newPortalPinInput');if(np&&np.value.trim()){await saveUserPortalPin(np.value.trim());toast('✅ PIN portal disimpan','success')}
+await savePortalConfigToFirebase('manual save lengkap');
+updatePortalUI();applySettings();closePortalSettings();toast('✅ Pengaturan Portal tersimpan','success');
+}catch(e){toast('❌ Gagal menyimpan: '+e.message,'error')}};
 function closeClearLoginHistory(){document.getElementById('clearLoginHistoryOverlay').classList.remove('show')}
 async function clearLoginHistoryAll(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus SEMUA histori login?\nAksi ini tidak dapat dibatalkan.'))return;try{toast('🧹 Menghapus semua histori login...','delete');const snap=await db.ref('login_history').once('value');const val=snap.val();if(!val){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const up={};let c=0;Object.keys(val).forEach(k=>{up[k]=null;c++});await db.ref('login_history').update(up);closeClearLoginHistory();toast('✅ '+c+' histori login dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
 async function clearLoginHistoryNonAdmin(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus login NON-ADMIN?\nLogin admin akan tetap disimpan.'))return;try{toast('🧹 Menghapus login non-admin...','delete');const snap=await db.ref('login_history').once('value');const val=snap.val();if(!val){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const up={};let c=0;Object.entries(val).forEach(([k,it])=>{if(!it||!it.isAdmin){up[k]=null;c++}});if(c===0){closeClearLoginHistory();toast('ℹ️ Tidak ada login non-admin','info');return}await db.ref('login_history').update(up);closeClearLoginHistory();toast('✅ '+c+' login non-admin dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
