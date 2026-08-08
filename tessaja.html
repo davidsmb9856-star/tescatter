@@ -18,18 +18,20 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .bg-effects::after{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(123,47,255,.08) 0%,transparent 65%);bottom:-200px;right:-200px;animation:float2 26s ease-in-out infinite;filter:blur(20px)}
 @keyframes float1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(100px,80px) scale(1.12)}}
 @keyframes float2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-80px,-60px) scale(1.08)}}
-/* EFEK GERBANG LOGIN */
-#entranceGate{position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden}
-.gate-left,.gate-right{position:absolute;top:0;bottom:0;width:50.5%;background:linear-gradient(180deg,#0e0e16,#07070c);transition:transform 1s cubic-bezier(.77,0,.18,1)}
-.gate-left{left:0;border-right:1px solid rgba(0,212,255,.4)}
-.gate-right{right:0;border-left:1px solid rgba(0,212,255,.4)}
-.gate-logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:70px;filter:drop-shadow(0 0 30px rgba(0,212,255,.8));animation:gateLogo 1.3s ease forwards}
-.gate-text{position:absolute;left:50%;top:calc(50% + 60px);transform:translateX(-50%);font-family:'Space Grotesk',sans-serif;letter-spacing:6px;color:var(--neon-cyan);font-size:14px;font-weight:700;animation:gateLogo 1.3s ease forwards}
-@keyframes gateLogo{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}60%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(2.2)}}
-#entranceGate.open .gate-left{transform:translateX(-101%)}
-#entranceGate.open .gate-right{transform:translateX(101%)}
-.app.entering{animation:appEnter .9s cubic-bezier(.22,1,.36,1)}
-@keyframes appEnter{0%{opacity:0;transform:scale(.94);filter:blur(8px)}100%{opacity:1;transform:scale(1);filter:blur(0)}}
+/* ===== REVEAL GATE (efek terbuka saat login) ===== */
+.reveal-gate{position:fixed;inset:0;z-index:10000;display:none;pointer-events:none}
+.reveal-gate.show{display:block;pointer-events:auto}
+.reveal-panel{position:absolute;top:0;bottom:0;width:50.5%;background:linear-gradient(180deg,var(--bg-secondary),var(--bg-primary));transition:transform 1s cubic-bezier(.77,0,.18,1);z-index:2}
+.reveal-panel.left{left:0;border-right:1px solid rgba(0,212,255,.4);box-shadow:8px 0 40px rgba(0,212,255,.25)}
+.reveal-panel.right{right:0;border-left:1px solid rgba(0,212,255,.4);box-shadow:-8px 0 40px rgba(0,212,255,.25)}
+.reveal-gate.open .reveal-panel.left{transform:translateX(-101%)}
+.reveal-gate.open .reveal-panel.right{transform:translateX(101%)}
+.reveal-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:3;transition:opacity .5s .2s}
+.reveal-gate.open .reveal-center{opacity:0}
+.reveal-logo{font-size:70px;animation:bounce 1.2s ease-in-out infinite;filter:drop-shadow(0 0 30px rgba(0,212,255,.6))}
+.reveal-title{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;letter-spacing:4px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase}
+.reveal-name{color:var(--neon-cyan);font-size:14px;font-weight:600;letter-spacing:1px}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .portal-input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .portal-input-group{background:rgba(0,212,255,.03);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:10px}
 .portal-input-group label{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;font-family:'Space Grotesk',sans-serif;font-weight:700}
@@ -46,7 +48,6 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .auth-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--neon-cyan),var(--neon-blue),transparent);background-size:200% 100%;animation:borderFlow 2.5s linear infinite}
 @keyframes borderFlow{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .auth-logo{font-size:58px;margin-bottom:18px;animation:bounce 3s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(0,212,255,.5))}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .auth-box h1{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;margin-bottom:10px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px}
 .auth-box p{color:var(--text-secondary);font-size:13px;line-height:1.6;margin-bottom:26px}
 .btn-google{width:100%;padding:13px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));color:var(--bg-primary);border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:var(--transition);box-shadow:var(--shadow-glow);font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:1px}
@@ -64,12 +65,13 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .app{position:relative;z-index:1;display:grid;grid-template-columns:270px 1fr;height:100vh;opacity:0;transition:opacity .7s}
 .app.show{opacity:1}
 .sidebar{background:linear-gradient(180deg,rgba(14,14,22,.9),rgba(7,7,12,.95));backdrop-filter:blur(20px);border-right:1px solid var(--border-subtle);display:flex;flex-direction:column;padding:20px 16px;overflow-y:auto;position:relative}
+.sidebar::before{content:'';position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(180deg,transparent,rgba(0,212,255,.2),transparent)}
 .sidebar::-webkit-scrollbar{width:5px}.sidebar::-webkit-scrollbar-thumb{background:rgba(0,212,255,.3);border-radius:6px}
 .logo{display:flex;align-items:center;gap:12px;padding-bottom:18px;border-bottom:1px solid var(--border-subtle);margin-bottom:18px;position:relative}
 .logo::after{content:'';position:absolute;bottom:-1px;left:0;width:60px;height:2px;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-blue));box-shadow:0 0 10px var(--neon-cyan)}
 .logo-icon{width:46px;height:46px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--bg-tertiary),var(--bg-card));border:1px solid rgba(0,212,255,.3);display:grid;place-items:center;font-size:24px;box-shadow:var(--shadow-sm);animation:dance 5s ease-in-out infinite;transition:var(--transition);cursor:pointer}
 .logo-icon:hover{animation:spinFast 1s ease-in-out infinite;transform:scale(1.15);box-shadow:var(--shadow-glow);border-color:var(--neon-cyan)}
-@keyframes dance{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-4px) rotate(-10deg)}75%{transform:translateY(-4px) rotate(10deg)}}
+@keyframes dance{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-4px) rotate(-10deg)}50%{transform:translateY(0)}75%{transform:translateY(-4px) rotate(10deg)}}
 @keyframes spinFast{0%{transform:scale(1.15) rotate(0)}100%{transform:scale(1.15) rotate(360deg)}}
 .logo-text h1{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;letter-spacing:1px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2}
 .logo-text small{font-size:9px;color:var(--text-muted);letter-spacing:2.5px;text-transform:uppercase;font-weight:600;margin-top:2px;display:block}
@@ -108,6 +110,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .sidebar-credit strong{color:var(--neon-cyan);font-weight:600;letter-spacing:2px;font-family:'Space Grotesk',sans-serif}
 .main{display:flex;flex-direction:column;overflow:hidden;position:relative}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid var(--border-subtle);background:rgba(14,14,22,.8);backdrop-filter:blur(28px) saturate(150%);gap:16px;z-index:2;position:relative}
+.topbar::before{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.3),transparent)}
 .topbar h2{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:12px;text-transform:uppercase;white-space:nowrap}
 .topbar h2::before{content:'';width:4px;height:22px;background:linear-gradient(180deg,var(--neon-cyan),var(--neon-blue));border-radius:3px;box-shadow:0 0 8px var(--neon-cyan)}
 .topbar-right{display:flex;gap:10px;align-items:center}
@@ -118,15 +121,20 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .search-box input::placeholder{color:var(--text-muted)}
 .search-clear{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px;display:none;transition:var(--transition)}
 .search-clear.show{display:block}
+.search-clear:hover{color:var(--neon-cyan)}
 .search-count{position:absolute;top:calc(100% + 6px);right:0;font-size:10px;color:var(--neon-cyan);font-family:'Space Grotesk',sans-serif;font-weight:600;background:rgba(0,212,255,.1);padding:3px 9px;border-radius:6px;border:1px solid rgba(0,212,255,.25);opacity:0;transform:translateY(-4px);transition:var(--transition);pointer-events:none;white-space:nowrap}
 .search-count.show{opacity:1;transform:translateY(0)}
 .btn{padding:9px 16px;border:none;border-radius:var(--radius-md);cursor:pointer;font-size:11.5px;font-weight:700;transition:var(--transition);display:inline-flex;align-items:center;gap:7px;font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:.8px;position:relative;overflow:hidden}
 .btn-primary{background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));color:var(--bg-primary);box-shadow:var(--shadow-glow)}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 24px rgba(0,212,255,.45)}
 .btn-success{background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));color:var(--bg-primary);box-shadow:var(--shadow-sm)}
+.btn-success:hover{transform:translateY(-2px)}
 .btn-warning{background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple));color:#fff;box-shadow:var(--shadow-sm)}
-.btn-danger{background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));color:var(--bg-primary);box-shadow:var(--shadow-sm)}
+.btn-warning:hover{transform:translateY(-2px)}
+.btn-danger{background:linear-gradient(135deg,var(--neon-red),#a1123f);color:#fff;box-shadow:var(--shadow-sm)}
+.btn-danger:hover{transform:translateY(-2px)}
 .btn-purple{background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple));color:#fff;box-shadow:var(--shadow-sm)}
+.btn-purple:hover{transform:translateY(-2px)}
 .btn-ghost{background:rgba(255,255,255,.03);color:var(--text-primary);border:1px solid var(--border-normal);backdrop-filter:blur(12px)}
 .btn-ghost:hover{background:rgba(0,212,255,.08);border-color:var(--neon-cyan);color:var(--neon-cyan);transform:translateY(-2px)}
 .btn-icon{width:40px;height:40px;padding:0;display:grid;place-items:center;background:rgba(255,255,255,.03);border:1px solid var(--border-subtle);border-radius:var(--radius-md);color:var(--text-secondary);cursor:pointer;transition:var(--transition);font-size:15px}
@@ -138,6 +146,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .container{max-width:1200px;margin:0 auto}
 .clock-wrapper{max-width:560px;margin:0 auto 30px;padding:24px 32px;background:linear-gradient(135deg,rgba(0,212,255,.07),rgba(0,255,255,.02));border:1px solid rgba(0,212,255,.25);border-radius:20px;backdrop-filter:blur(30px);position:relative;overflow:hidden;box-shadow:var(--shadow-glow);transition:var(--transition);text-align:center}
 .clock-wrapper:hover{transform:translateY(-4px);box-shadow:0 0 36px rgba(0,212,255,.4)}
+.clock-wrapper::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--neon-cyan),var(--neon-blue),transparent);background-size:200% 100%;animation:borderFlow 2.5s linear infinite}
 .clock-time{font-family:'Space Grotesk',sans-serif;font-size:46px;font-weight:700;color:var(--neon-cyan);letter-spacing:4px;text-shadow:0 0 26px rgba(0,212,255,.6)}
 .clock-date{font-size:14px;color:var(--text-secondary);margin-top:6px;letter-spacing:1px}
 .clock-day{font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--neon-blue);margin-top:3px;text-transform:uppercase;letter-spacing:4px;font-weight:600}
@@ -146,10 +155,13 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .bento-stat::before{content:'';position:absolute;top:-40px;right:-40px;width:110px;height:110px;border-radius:50%;filter:blur(50px);opacity:.16;transition:opacity .4s}
 .bento-stat:nth-child(1)::before{background:var(--neon-cyan)}.bento-stat:nth-child(2)::before{background:var(--neon-blue)}.bento-stat:nth-child(3)::before{background:var(--neon-purple)}.bento-stat:nth-child(4)::before{background:var(--neon-cyan)}
 .bento-stat:hover{border-color:rgba(0,212,255,.3);transform:translateY(-3px);box-shadow:var(--shadow-glow)}
+.bento-stat:hover::before{opacity:.3}
 .bento-label{font-family:'Space Grotesk',sans-serif;font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.bento-label .icon{font-size:14px}
 .bento-value{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;margin-top:8px;letter-spacing:-.03em;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
 .bento-sub{font-size:10px;color:var(--text-muted);margin-top:4px;font-weight:500}
 .section{background:linear-gradient(135deg,rgba(21,21,31,.7),rgba(14,14,22,.5));border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px;backdrop-filter:blur(12px);position:relative;overflow:hidden}
+.section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.5),transparent);opacity:.3}
 .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--border-subtle);position:relative}
 .section-header::after{content:'';position:absolute;bottom:-1px;left:0;width:60px;height:2px;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-blue));box-shadow:0 0 12px var(--neon-cyan)}
 .section-header h3{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;letter-spacing:1.5px;display:flex;align-items:center;gap:10px;text-transform:uppercase}
@@ -157,9 +169,12 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .section-header small{font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--neon-cyan);font-weight:600;background:rgba(0,212,255,.08);padding:4px 12px;border-radius:16px;border:1px solid rgba(0,212,255,.25);letter-spacing:1px}
 .card-list{display:flex;flex-direction:column;gap:10px}
 .card{background:linear-gradient(135deg,var(--bg-tertiary),var(--bg-secondary));border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px 16px;transition:var(--transition);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(120deg,transparent,rgba(0,212,255,.08),transparent);transition:left .6s ease}
+.card:hover::before{left:100%}
 .card:hover{border-color:rgba(0,212,255,.3);transform:translateY(-2px);box-shadow:var(--shadow-glow)}
 .card-header{display:flex;gap:12px;margin-bottom:10px;align-items:center}
 .card-icon{width:38px;height:38px;min-width:38px;border-radius:9px;background:linear-gradient(135deg,rgba(0,212,255,.16),rgba(0,255,255,.06));border:1px solid rgba(0,212,255,.25);display:grid;place-items:center;font-size:15px;flex-shrink:0;transition:var(--transition-bounce);cursor:pointer;color:var(--neon-cyan)}
+.card-icon:hover{transform:scale(1.1) rotate(5deg);box-shadow:var(--shadow-glow);border-color:var(--neon-cyan)}
 .card-body{flex:1;min-width:0}
 .card-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13.5px;margin-bottom:3px;color:var(--text-primary);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-desc{font-size:11px;color:var(--text-secondary);line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
@@ -173,12 +188,14 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .owner-badge.mine{background:rgba(0,212,255,.13);color:var(--neon-cyan);border:1px solid rgba(0,212,255,.25)}
 .owner-badge.other{background:rgba(123,47,255,.13);color:var(--neon-purple);border:1px solid rgba(123,47,255,.25)}
 .empty{text-align:center;padding:60px 24px;background:rgba(255,255,255,.015);border:1px dashed var(--border-normal);border-radius:var(--radius-lg)}
-.empty .icon{font-size:52px;margin-bottom:14px;opacity:.4;animation:float 3.5s ease-in-out infinite}
+.empty .icon{font-size:52px;margin-bottom:14px;opacity:.4;animation:float 3.5s ease-in-out infinite;filter:drop-shadow(0 0 16px rgba(0,212,255,.3))}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .empty h4{font-size:17px;margin-bottom:8px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:1px}
 .empty p{color:var(--text-secondary);font-size:12.5px;margin-bottom:18px}
 .menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .menu-card{display:flex;align-items:center;gap:14px;padding:16px 18px;background:linear-gradient(135deg,rgba(21,21,31,.7),rgba(14,14,22,.5));border:1px solid rgba(0,212,255,.18);border-radius:var(--radius-md);text-decoration:none;color:var(--text-primary);transition:var(--transition-bounce);position:relative;overflow:hidden;cursor:pointer;backdrop-filter:blur(16px)}
+.menu-card::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(120deg,transparent,rgba(0,212,255,.12),transparent);transition:left .6s ease}
+.menu-card:hover::before{left:100%}
 .menu-card:hover{transform:translateY(-5px) scale(1.01);border-color:var(--neon-cyan);box-shadow:var(--shadow-glow)}
 .menu-card.primary{background:linear-gradient(135deg,rgba(0,212,255,.16),rgba(0,255,255,.07));border:1px solid var(--neon-cyan);box-shadow:var(--shadow-glow)}
 .menu-card-icon{width:44px;height:44px;min-width:44px;background:linear-gradient(135deg,var(--bg-tertiary),var(--bg-card));border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--neon-cyan);transition:var(--transition-bounce);border:1px solid rgba(0,212,255,.25)}
@@ -194,6 +211,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .overlay.show{display:flex;animation:fadeIn .3s}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal{background:linear-gradient(135deg,var(--bg-tertiary),var(--bg-secondary));border:1px solid rgba(0,212,255,.3);border-radius:var(--radius-xl);padding:28px;max-width:1000px;width:100%;margin:auto;animation:slideUp .4s cubic-bezier(.4,0,.2,1);box-shadow:var(--shadow-lg),var(--shadow-glow);position:relative;overflow:hidden}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--neon-cyan),var(--neon-blue),transparent);background-size:200% 100%;animation:borderFlow 2.5s linear infinite}
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--border-subtle)}
 .modal-header h3{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;display:flex;align-items:center;gap:12px;letter-spacing:1.5px;text-transform:uppercase}
 .modal-header h3 .bar{width:4px;height:22px;background:linear-gradient(180deg,var(--neon-cyan),var(--neon-blue));border-radius:2px;display:inline-block;box-shadow:0 0 8px var(--neon-cyan)}
@@ -206,22 +224,24 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .form-hint{display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:8px;font-weight:500}
 .settings-panel{background:var(--bg-tertiary);border:1px solid rgba(0,212,255,.18);border-radius:var(--radius-lg);padding:20px;margin-bottom:14px}
 .settings-panel-title{font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:var(--neon-cyan);margin-bottom:14px;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:9px}
+.settings-panel-title::before{content:'';width:3px;height:16px;background:linear-gradient(180deg,var(--neon-cyan),var(--neon-blue));border-radius:2px;box-shadow:0 0 8px var(--neon-cyan)}
 .input-wrapper{margin-bottom:12px}
 .input-label{display:block;font-size:10.5px;color:var(--text-secondary);margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
 .input-field{width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid rgba(0,212,255,.18);border-radius:var(--radius-md);color:var(--text-primary);font-family:'Inter',sans-serif;font-size:12px;transition:var(--transition)}
 .input-field:focus{outline:none;border-color:var(--neon-cyan);box-shadow:var(--shadow-glow)}
-.menu-manage-row{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
-.menu-manage-row .btn-icon{width:30px;height:30px;font-size:12px}
+.menu-edit-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:8px;padding:8px;margin-bottom:8px}
+.menu-edit-row .input-field{width:auto}
 .history-detail{max-width:800px}
 .history-detail-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}
 .history-detail-icon{width:56px;height:56px;border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(0,212,255,.18),rgba(0,255,255,.08));border:1px solid rgba(0,212,255,.25);display:grid;place-items:center;font-size:24px;color:var(--neon-cyan);box-shadow:var(--shadow-glow)}
 .history-detail-title{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;color:var(--text-primary)}
 .history-detail-subtitle{font-size:11px;color:var(--neon-cyan);margin-top:3px;letter-spacing:1px;text-transform:uppercase}
 .history-detail-section{margin-bottom:20px}
-.history-detail-section h4{font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:10px}
+.history-detail-section h4{font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.history-detail-section h4::before{content:'';width:3px;height:14px;background:linear-gradient(180deg,var(--neon-cyan),var(--neon-blue));border-radius:2px;box-shadow:0 0 8px var(--neon-cyan)}
 .history-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
 .history-detail-item{background:rgba(0,212,255,.03);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:10px}
-.history-detail-item label{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:3px;font-weight:600}
+.history-detail-item label{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:3px;font-family:'Space Grotesk',sans-serif;font-weight:600}
 .history-detail-item span{font-size:12px;color:var(--text-primary);font-weight:500;word-break:break-all}
 .code-comparison{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .code-box{background:rgba(0,0,0,.4);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);overflow:hidden}
@@ -229,6 +249,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .code-header.old{border-left:3px solid var(--neon-cyan)}
 .code-header.new{border-left:3px solid var(--neon-green)}
 .code-content{padding:12px;font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.6;max-height:360px;overflow-y:auto;color:var(--text-secondary);white-space:pre-wrap;word-break:break-all}
+.code-content::-webkit-scrollbar{width:5px}.code-content::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--neon-cyan),var(--neon-blue));border-radius:6px}
 .diff-box{margin-top:10px;padding:10px;background:rgba(0,0,0,.3);border-radius:var(--radius-sm);font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.6;max-height:180px;overflow-y:auto}
 .diff-added{color:var(--neon-green);background:rgba(0,255,157,.08);padding:1px 5px;border-radius:3px}
 .diff-removed{color:var(--neon-cyan);background:rgba(0,212,255,.08);padding:1px 5px;border-radius:3px}
@@ -238,10 +259,10 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .toast.error{border-left:3px solid var(--neon-red)}
 .toast.info{border-left:3px solid var(--neon-cyan)}
 .toast.warning{border-left:3px solid var(--neon-blue)}
-.toast.delete{border-left:3px solid var(--neon-cyan)}
+.toast.delete{border-left:3px solid var(--neon-cyan);background:linear-gradient(135deg,rgba(0,212,255,.13),var(--bg-tertiary))}
 @keyframes toastSlideIn{from{transform:translateX(150%) scale(.9);opacity:0}to{transform:translateX(0) scale(1);opacity:1}}
 .toast .icon{font-size:18px}
-.toast-progress{position:absolute;bottom:0;left:0;height:2px;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-blue));animation:progressShrink 3.5s linear forwards}
+.toast-progress{position:absolute;bottom:0;left:0;height:2px;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-blue));animation:progressShrink 3.5s linear forwards;box-shadow:0 0 8px var(--neon-cyan)}
 @keyframes progressShrink{from{width:100%}to{width:0}}
 .delete-confirm-modal{max-width:480px;text-align:center;animation:slideUp .45s;border:1px solid rgba(0,212,255,.5)!important;box-shadow:0 0 70px rgba(0,212,255,.22),var(--shadow-lg)!important}
 .delete-icon-wrapper{width:88px;height:88px;margin:8px auto 16px;background:linear-gradient(135deg,rgba(0,212,255,.18),rgba(0,153,255,.12));border:2px solid var(--neon-cyan);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--neon-cyan);animation:pulse 3s ease-in-out infinite;box-shadow:0 0 36px rgba(0,212,255,.45)}
@@ -253,13 +274,13 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .delete-actions{display:flex;gap:12px;margin-top:22px}
 .delete-actions .btn{flex:1;padding:13px 18px;font-size:12.5px;letter-spacing:1.2px}
 .btn-delete-cancel{background:rgba(255,255,255,.03);color:var(--text-secondary);border:1px solid var(--border-normal);backdrop-filter:blur(12px);transition:var(--transition)}
-.btn-delete-cancel:hover{background:rgba(0,212,255,.08);border-color:var(--neon-cyan);color:var(--neon-cyan)}
+.btn-delete-cancel:hover{background:rgba(0,212,255,.08);border-color:var(--neon-cyan);color:var(--neon-cyan);transform:translateY(-2px)}
 .btn-delete-confirm{background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));color:var(--bg-primary);box-shadow:0 0 18px rgba(0,212,255,.35);transition:var(--transition)}
 .btn-delete-confirm:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 0 36px rgba(0,212,255,.6)}
-.login-history-card{background:linear-gradient(135deg,var(--bg-tertiary),var(--bg-secondary));border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px 16px;transition:var(--transition)}
+.login-history-card{background:linear-gradient(135deg,var(--bg-tertiary),var(--bg-secondary));border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px 16px;transition:var(--transition);position:relative;overflow:hidden}
 .login-history-card:hover{border-color:rgba(0,212,255,.3);transform:translateY(-2px);box-shadow:var(--shadow-glow)}
 .login-history-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.login-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));display:grid;place-items:center;font-size:15px;font-weight:700;color:var(--bg-primary);flex-shrink:0;border:2px solid rgba(0,212,255,.35);overflow:hidden}
+.login-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));display:grid;place-items:center;font-size:15px;font-weight:700;color:var(--bg-primary);flex-shrink:0;border:2px solid rgba(0,212,255,.35);box-shadow:0 0 8px rgba(0,212,255,.25);overflow:hidden}
 .login-avatar img{width:100%;height:100%;object-fit:cover}
 .login-info{flex:1;min-width:0}
 .login-name{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
@@ -277,6 +298,15 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 </head>
 <body>
 <div class="bg-effects"></div>
+<div class="reveal-gate" id="revealGate">
+<div class="reveal-panel left"></div>
+<div class="reveal-panel right"></div>
+<div class="reveal-center">
+<div class="reveal-logo">🐒</div>
+<div class="reveal-title">SELAMAT DATANG</div>
+<div class="reveal-name" id="revealName"></div>
+</div>
+</div>
 <div class="auth-gate" id="authGate">
 <div class="auth-box">
 <div class="auth-logo">🐒</div>
@@ -288,7 +318,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 <div class="loading" id="loading">
 <div class="loader-wrap"><div class="loader-ring"></div><div class="loader-ring"></div><div class="loader-core">🐒</div></div>
 <p id="loadTxt">INITIALIZING</p>
-<small>SCRIPTVAULT × CYBER PORTAL v35.0</small>
+<small>SCRIPTVAULT × CYBER PORTAL v40.0</small>
 </div>
 <div class="app" id="app">
 <aside class="sidebar">
@@ -296,16 +326,16 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 <div id="userCardContainer"></div>
 <div class="nav" id="navContainer">
 <div class="nav-label">PORTAL</div>
-<div class="nav-item active" data-section="portal" onclick="navTo('portal', this)"><span class="nav-icon"><i class="fas fa-rocket"></i></span>Cyber Portal<span class="nav-badge">TOP</span></div>
-<div class="nav-item" data-section="social" onclick="navTo('social', this)"><span class="nav-icon"><i class="fas fa-share-alt"></i></span>Sosial Media</div>
+<div class="nav-item active" data-section="portal" onclick="showSection('portal', this)"><span class="nav-icon"><i class="fas fa-rocket"></i></span>Cyber Portal<span class="nav-badge">TOP</span></div>
+<div class="nav-item" data-section="social" onclick="showSection('social', this)"><span class="nav-icon"><i class="fas fa-share-alt"></i></span>Sosial Media</div>
 <div class="nav-label" style="margin-top:10px;">VAULT</div>
-<div class="nav-item" data-section="dashboard" onclick="navTo('dashboard', this)"><span class="nav-icon"><i class="fas fa-chart-line"></i></span>Dashboard<span class="nav-badge" id="allBadge">0</span></div>
-<div class="nav-item" data-section="scripts" onclick="navTo('scripts', this)"><span class="nav-icon"><i class="fas fa-box"></i></span>Script Saya<span class="nav-badge" id="myBadge">0</span></div>
-<div class="nav-item" data-section="history" onclick="navTo('history', this)"><span class="nav-icon"><i class="fas fa-scroll"></i></span>Histori Edit<span class="nav-badge" id="histBadge">0</span></div>
+<div class="nav-item" data-section="dashboard" onclick="showSection('dashboard', this)"><span class="nav-icon"><i class="fas fa-chart-line"></i></span>Dashboard<span class="nav-badge" id="allBadge">0</span></div>
+<div class="nav-item" data-section="scripts" onclick="showSection('scripts', this)"><span class="nav-icon"><i class="fas fa-box"></i></span>Script Saya<span class="nav-badge" id="myBadge">0</span></div>
+<div class="nav-item" data-section="history" onclick="showSection('history', this)"><span class="nav-icon"><i class="fas fa-scroll"></i></span>Histori Edit<span class="nav-badge" id="histBadge">0</span></div>
 <div id="adminNavContainer"></div>
 </div>
 <div class="sidebar-footer">
-<div class="sidebar-info">v35.0 · ONLINE</div>
+<div class="sidebar-info">v40.0 · ONLINE</div>
 <div class="sidebar-actions">
 <button class="sidebar-btn clean" onclick="forceClean()"><i class="fas fa-broom"></i> Clean</button>
 <button class="sidebar-btn logout" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Out</button>
@@ -481,18 +511,14 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 const firebaseConfig={apiKey:"AIzaSyBExdIerKUOoOPZ9fOODSF4ZPJIUNci1bo",authDomain:"script-vault-e9e0c.firebaseapp.com",databaseURL:"https://script-vault-e9e0c-default-rtdb.firebaseio.com",projectId:"script-vault-e9e0c",storageBucket:"script-vault-e9e0c.firebasestorage.app",messagingSenderId:"531469123845",appId:"1:531469123845:web:ee5f26c2e7e62e9a9d776c"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();const auth=firebase.auth();const googleProvider=new firebase.auth.GoogleAuthProvider();
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e=>console.error('Auth persistence error:',e));
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e=>console.error(e));
 const TM_URL="chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/options.html#nav=new-user-script+editor";
-const MAX_HISTORY=30;
-const ADMIN_EMAILS=['david.smb9856@gmail.com'];
+const MAX_HISTORY=30;const ADMIN_EMAILS=['david.smb9856@gmail.com'];
 function isAdmin(){return currentUser&&ADMIN_EMAILS.includes((currentUser.email||'').toLowerCase())}
-let currentUser=null,currentIP='unknown',scripts=[],editId=null,deleteCallback=null;
-let currentSection='portal',uiInitialized=false,portalListenerStarted=false,clockInterval=null;
-let userNavigated=false,appInitialized=false,initPromise=null;
+let currentUser=null,currentIP='unknown',scripts=[],editId=null,deleteCallback=null,currentSection='portal',uiInitialized=false,portalListenerStarted=false,clockInterval=null;
 const defaultPortalLinks={'app-utama':'https://script.google.com/macros/s/AKfycbya8o-PPA76I8CsTlEVmcANKVuxapOGU5WhhienU7NNQ6HO-igG4Ly8yZPujUZE6DFRlw/exec','kendala-all':'https://tescatter.vercel.app/kendala.html','foto':'https://tescatter.vercel.app/GALERIFOTO.html','cara-bermain':'https://tescatter.vercel.app/parlay.html','try-cari':'https://tescatter.vercel.app/TRYCARI.html','prediksi':'https://tescatter.vercel.app/PREDIKSIHITUNGTOGEL.html','bonus-event':'https://tescatter.vercel.app/code.html','report-line':'https://tescatter.vercel.app/REPORTLINE.html','hadiah':'https://lineblog329.com/tabel-hadiah-togel-2/','tanya-z':'https://chat.z.ai/','cek-nawala':'https://trustpositif.smbgroup.io/checker','feature-1':'https://tescatter.vercel.app/apkbukalink.html','feature-2':'https://www.canva.com/projects','feature-3':'https://tescatter.vercel.app/tamperall.html','feature-4':'#','feature-5':'#','telegram':'https://t.me/YOUR_TELEGRAM','whatsapp':'https://wa.me/YOUR_WHATSAPP','instagram':'https://instagram.com/YOUR_INSTAGRAM'};
-const ICON_LIST=['fas fa-rocket','fas fa-headset','fas fa-camera','fas fa-book-open','fas fa-search','fas fa-bullseye','fas fa-gem','fas fa-file-alt','fas fa-medal','fas fa-robot','fas fa-shield-alt','fas fa-star','fas fa-palette','fas fa-bolt','fas fa-gamepad','fas fa-chart-line','fas fa-link','fas fa-cog','fab fa-telegram','fab fa-whatsapp','fab fa-instagram'];
-const defaultMenus=[
-{id:'app-utama',cat:'APLIKASI UTAMA',name:'BUKA APLIKASI UTAMA',link:defaultPortalLinks['app-utama'],icon:'fas fa-rocket',primary:true},
+const DEFAULT_MENUS=[
+{id:'app-utama',cat:'APLIKASI UTAMA',name:'BUKA APLIKASI UTAMA',link:defaultPortalLinks['app-utama'],icon:'fas fa-rocket'},
 {id:'kendala-all',cat:'CATATAN DAN INFO',name:'KENDALA ALL',link:defaultPortalLinks['kendala-all'],icon:'fas fa-headset'},
 {id:'foto',cat:'CATATAN DAN INFO',name:'FOTO',link:defaultPortalLinks['foto'],icon:'fas fa-camera'},
 {id:'cara-bermain',cat:'CATATAN DAN INFO',name:'CARA HITUNG BOLA',link:defaultPortalLinks['cara-bermain'],icon:'fas fa-book-open'},
@@ -502,277 +528,220 @@ const defaultMenus=[
 {id:'report-line',cat:'LAPORAN',name:'REPORT LINE',link:defaultPortalLinks['report-line'],icon:'fas fa-file-alt'},
 {id:'hadiah',cat:'LAPORAN',name:'HADIAH TOGEL',link:defaultPortalLinks['hadiah'],icon:'fas fa-medal'},
 {id:'tanya-z',cat:'AI DAN UTILITAS',name:'TANYA Z (AI)',link:defaultPortalLinks['tanya-z'],icon:'fas fa-robot'},
-{id:'portal-settings',cat:'AI DAN UTILITAS',name:'PENGATURAN PORTAL',link:'#',icon:'fas fa-cog',action:'settings'},
 {id:'cek-nawala',cat:'KEAMANAN',name:'CEK NAWALA',link:defaultPortalLinks['cek-nawala'],icon:'fas fa-shield-alt'},
-{id:'feature-1',cat:'LINK LAUNCHER',name:'LINK LAUNCHER',link:defaultPortalLinks['feature-1'],icon:'fas fa-star',soon:true},
-{id:'feature-2',cat:'LINK LAUNCHER',name:'CANVA',link:defaultPortalLinks['feature-2'],icon:'fas fa-palette',soon:true},
-{id:'feature-3',cat:'LINK LAUNCHER',name:'TAMPER SAVE',link:defaultPortalLinks['feature-3'],icon:'fas fa-bolt',soon:true},
-{id:'feature-4',cat:'LINK LAUNCHER',name:'FEATURE 4',link:'#',icon:'fas fa-gamepad',soon:true},
-{id:'feature-5',cat:'LINK LAUNCHER',name:'FEATURE 5',link:'#',icon:'fas fa-chart-line',soon:true}
+{id:'feature-1',cat:'LINK LAUNCHER',name:'LINK LAUNCHER',link:defaultPortalLinks['feature-1'],icon:'fas fa-star'},
+{id:'feature-2',cat:'LINK LAUNCHER',name:'CANVA',link:defaultPortalLinks['feature-2'],icon:'fas fa-palette'},
+{id:'feature-3',cat:'LINK LAUNCHER',name:'TAMPER SAVE',link:defaultPortalLinks['feature-3'],icon:'fas fa-bolt'},
+{id:'feature-4',cat:'LINK LAUNCHER',name:'FEATURE 4',link:defaultPortalLinks['feature-4'],icon:'fas fa-gamepad'},
+{id:'feature-5',cat:'LINK LAUNCHER',name:'FEATURE 5',link:defaultPortalLinks['feature-5'],icon:'fas fa-chart-line'}
 ];
 const DEFAULT_PORTAL_PIN='1234';
-let portalConfig={links:{...defaultPortalLinks},menus:[...defaultMenus],pin:DEFAULT_PORTAL_PIN,loaded:false};
+let portalConfig={links:{...defaultPortalLinks},menus:DEFAULT_MENUS.map(m=>({...m})),pin:DEFAULT_PORTAL_PIN,loaded:false};
 let currentPortalPinInput='',portalPin=DEFAULT_PORTAL_PIN;
 function portalSettingsRef(){return db.ref('portal_settings/main')}
 function userPinRef(uid){return db.ref('user_pins/'+uid)}
 function sanitizeConfigValue(v){return v===null||v===undefined?'':String(v)}
-function sanitizeConfigObject(obj){const out={};Object.entries(obj||{}).forEach(([k,v])=>{out[k]=sanitizeConfigValue(v)});return out}
+function sanitizeConfigObject(obj){const o={};Object.entries(obj||{}).forEach(([k,v])=>{o[k]=sanitizeConfigValue(v)});return o}
 async function loadPortalConfig(){try{const snap=await portalSettingsRef().once('value');const val=snap.val();
-if(val){portalConfig.links={...defaultPortalLinks,...(val.links||{})};portalConfig.menus=(val.menus&&val.menus.length)?val.menus:[...defaultMenus];}
-else{portalConfig.links={...defaultPortalLinks};portalConfig.menus=[...defaultMenus];if(currentUser&&isAdmin()){await savePortalConfigToFirebase('init default')}}
-portalConfig.loaded=true;renderPortalMenus();}catch(e){console.error(e);portalConfig.loaded=true;renderPortalMenus();}}
+if(val){portalConfig.links={...defaultPortalLinks,...(val.links||{})};if(Array.isArray(val.menus)&&val.menus.length)portalConfig.menus=val.menus;else portalConfig.menus=DEFAULT_MENUS.map(m=>({...m}))}
+else{portalConfig.links={...defaultPortalLinks};portalConfig.menus=DEFAULT_MENUS.map(m=>({...m}));if(currentUser&&isAdmin()){await savePortalConfigToFirebase('init default')}}
+portalConfig.loaded=true;renderPortalMenus()}catch(e){console.error(e);portalConfig.loaded=true;renderPortalMenus()}}
 async function savePortalConfigToFirebase(reason='manual'){if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');
-await portalSettingsRef().set({links:sanitizeConfigObject(portalConfig.links),menus:portalConfig.menus,updatedAt:new Date().toISOString(),updatedBy:currentUser.email||'unknown',reason});}
+await portalSettingsRef().set({links:sanitizeConfigObject(portalConfig.links),menus:portalConfig.menus,updatedAt:new Date().toISOString(),updatedBy:currentUser.email||'unknown',reason})}
 function startPortalListener(){if(portalListenerStarted)return;portalListenerStarted=true;
 portalSettingsRef().on('value',snap=>{const val=snap.val();
-if(val){portalConfig.links={...defaultPortalLinks,...(val.links||{})};portalConfig.menus=(val.menus&&val.menus.length)?val.menus:[...defaultMenus];}
-else{portalConfig.links={...defaultPortalLinks};portalConfig.menus=[...defaultMenus];}
-renderPortalMenus();},err=>console.error(err));}
+if(val){portalConfig.links={...defaultPortalLinks,...(val.links||{})};if(Array.isArray(val.menus)&&val.menus.length)portalConfig.menus=val.menus}
+renderPortalMenus()},err=>console.error(err))}
 async function loadUserPortalPin(){if(!currentUser){portalPin=DEFAULT_PORTAL_PIN;return}try{const snap=await userPinRef(currentUser.uid).once('value');const val=snap.val();portalPin=(val&&val.portalPin)?String(val.portalPin):DEFAULT_PORTAL_PIN}catch(e){portalPin=DEFAULT_PORTAL_PIN}}
 async function saveUserPortalPin(pin){if(!currentUser)throw new Error('Login diperlukan');const p=String(pin||'').trim();if(!/^\d{4}$/.test(p))throw new Error('PIN harus 4 digit');await userPinRef(currentUser.uid).set({portalPin:p,updatedAt:new Date().toISOString(),email:currentUser.email||''});portalPin=p}
 function getPortalLink(id){return sanitizeConfigValue(portalConfig.links[id]||defaultPortalLinks[id]||'#')}
 function getUserScripts(){if(!currentUser)return[];return scripts.filter(s=>s&&s.ownerEmail===currentUser.email)}
-/* ===== RENDER MENU PORTAL (data-driven) ===== */
-function renderPortalMenus(){const host=document.getElementById('portalMenus');if(!host)return;
-const menus=portalConfig.menus&&portalConfig.menus.length?portalConfig.menus:defaultMenus;
-const cats=[];menus.forEach(m=>{if(!cats.includes(m.cat))cats.push(m.cat)});
+/* ===== RENDER PORTAL DINAMIS (susun menu) ===== */
+function menuIcon(icon){if(!icon)return '🔗';if(/^fa[sb]?\s/.test(icon)||icon.startsWith('fa-'))return `<i class="${icon}"></i>`;return icon}
+function renderPortalMenus(){const wrap=document.getElementById('portalMenus');if(!wrap)return;
+const cats=[];portalConfig.menus.forEach(m=>{if(!cats.includes(m.cat))cats.push(m.cat)});
 let html='';
-cats.forEach(cat=>{const items=menus.filter(m=>m.cat===cat&&!m.hidden);if(!items.length)return;
-html+='<section style="margin-bottom:26px"><div class="section-header"><h3><span class="bar"></span><i class="fas fa-th-large"></i> '+esc(cat)+'</h3><small>'+items.length+' MENU</small></div><div class="menu-grid">';
-items.forEach(m=>{
-if(m.action==='settings'){html+='<a href="#" onclick="openPortalSettings();return false;" class="menu-card"><div class="menu-card-icon"><i class="'+esc(m.icon||'fas fa-cog')+'"></i></div><div class="menu-card-content"><h3>'+esc(m.name)+'</h3><p>Setting link & susun menu</p></div><div class="menu-card-arrow"><i class="fas fa-arrow-right"></i></div></a>';return}
-const href=m.link&&m.link!=='#'?m.link:'#';
-html+='<a href="'+esc(href)+'" target="_blank" class="menu-card'+(m.primary?' primary':'')+(m.soon?' coming-soon':'')+'"><div class="menu-card-icon"><i class="'+esc(m.icon||'fas fa-link')+'"></i></div><div class="menu-card-content"><h3>'+esc(m.name)+'</h3><p>'+esc(m.desc||'Buka menu')+'</p></div><div class="menu-card-arrow"><i class="fas '+(m.soon?'fa-external-link-alt':'fa-arrow-right')+'"></i></div>'+(m.soon?'<span class="badge-coming">SOON</span>':'')+'</a>';});
-html+='</div></section>';});
-host.innerHTML=html||'<div class="empty"><div class="icon">🗂️</div><h4>TIDAK ADA MENU</h4><p>Tambahkan menu lewat Pengaturan Portal</p></div>';}
-const FIREBASE={
-load:async()=>{const snap=await db.ref('scripts').once('value');const val=snap.val();if(!val)return[];if(Array.isArray(val)){const obj={};val.filter(s=>s&&s.id).forEach(s=>{obj[s.id]=s});if(Object.keys(obj).length>0)await db.ref('scripts').set(obj);else await db.ref('scripts').remove();return Object.values(obj)}return Object.values(val).filter(s=>s&&s.id)},
+cats.forEach(cat=>{const ms=portalConfig.menus.filter(m=>m.cat===cat&&!m.hide);if(!ms.length)return;
+html+=`<section style="margin-bottom:26px"><div class="section-header"><h3><span class="bar"></span><i class="fas fa-th-large"></i> ${esc(cat)}</h3><small>${ms.length} MENU</small></div><div class="menu-grid">`+ms.map(m=>{
+const coming=(m.link==='#'||!m.link);
+return `<a href="${coming?'#':esc(m.link)}" target="_blank" class="menu-card${m.id==='app-utama'?' primary':''}${coming?' coming-soon':''}" ${coming?'onclick="return false;"':''}>
+<div class="menu-card-icon">${menuIcon(m.icon)}</div>
+<div class="menu-card-content"><h3>${esc(m.name)}</h3><p>${coming?'Akses fitur tambahan':'Buka '+esc(m.name)}</p></div>
+<div class="menu-card-arrow"><i class="fas ${coming?'fa-external-link-alt':'fa-arrow-right'}"></i></div>
+${coming?'<span class="badge-coming">SOON</span>':''}</a>`}).join('')+`</div></section>`});
+wrap.innerHTML=html||'<div class="empty"><div class="icon">🗂️</div><h4>BELUM ADA MENU</h4><p>Tambahkan menu lewat Pengaturan Portal</p></div>'}
+const FIREBASE={load:async()=>{const s=await db.ref('scripts').once('value');const v=s.val();if(!v)return[];if(Array.isArray(v)){const o={};v.filter(x=>x&&x.id).forEach(x=>{o[x.id]=x});if(Object.keys(o).length>0)await db.ref('scripts').set(o);else await db.ref('scripts').remove();return Object.values(o)}return Object.values(v).filter(x=>x&&x.id)},
 save:async(s)=>{if(!s||!s.id)throw new Error('Script tidak valid');await db.ref('scripts/'+s.id).set(s)},
 delete:async(id)=>{await db.ref('scripts/'+id).remove()},
-cleanInvalid:async()=>{const snap=await db.ref('scripts').once('value');const val=snap.val();if(!val)return 0;let removed=0;const entries=Array.isArray(val)?val:Object.values(val);for(const s of entries){if(!s||!s.id||!s.name||s.name.trim()===''){if(s&&s.id){await db.ref('scripts/'+s.id).remove();removed++}}}return removed}};
+cleanInvalid:async()=>{const s=await db.ref('scripts').once('value');const v=s.val();if(!v)return 0;let r=0;const e=Array.isArray(v)?v:Object.values(v);for(const x of e){if(!x||!x.id||!x.name||x.name.trim()===''){if(x&&x.id){await db.ref('scripts/'+x.id).remove();r++}}}return r}};
 function setLoadingHide(){const el=document.getElementById('loading');if(el)el.classList.add('hide')}
 function shouldRecordLogin(uid){try{const k='sv_login_session';const ex=sessionStorage.getItem(k);if(ex===uid)return false;sessionStorage.setItem(k,uid);return true}catch(e){if(window.__svLoginRecorded===uid)return false;window.__svLoginRecorded=uid;return true}}
 function clearLoginSession(){try{sessionStorage.removeItem('sv_login_session')}catch(e){}window.__svLoginRecorded=null}
 async function recordLogin(){if(!currentUser)return;try{await db.ref('login_history').push().set({email:currentUser.email,name:currentUser.name||'Unknown',photo:currentUser.photo||null,uid:currentUser.uid,loginTime:new Date().toISOString(),ip:currentIP,userAgent:navigator.userAgent,platform:navigator.platform,language:navigator.language,screenRes:window.screen.width+'x'+window.screen.height,isAdmin:!!isAdmin()})}catch(e){console.error(e)}}
-/* ===== EFEK GERBANG LOGIN ===== */
-function playEntrance(){const g=document.createElement('div');g.id='entranceGate';
-g.innerHTML='<div class="gate-left"></div><div class="gate-right"></div><div class="gate-logo">🐒</div><div class="gate-text">SELAMAT DATANG</div>';
-document.body.appendChild(g);
-requestAnimationFrame(()=>requestAnimationFrame(()=>g.classList.add('open')));
-const app=document.getElementById('app');if(app){app.classList.add('entering');setTimeout(()=>app.classList.remove('entering'),1000)}
-setTimeout(()=>{g.remove()},1400);}
+/* ===== EFEK TERBUKA SAAT LOGIN PERTAMA ===== */
+function playReveal(name){const g=document.getElementById('revealGate');document.getElementById('revealName').textContent='👋 '+name;
+g.classList.add('show');g.classList.remove('open');
+setTimeout(()=>g.classList.add('open'),350);
+setTimeout(()=>{g.classList.remove('show');g.classList.remove('open')},1500)}
 auth.onAuthStateChanged(async(user)=>{
 if(user){currentUser={name:user.displayName||'User',email:user.email,photo:user.photoURL||null,uid:user.uid};
 await fetchIP();renderUserCard();renderAdminNav();setLoadingHide();
+const first=shouldRecordLogin(user.uid);
+if(first){await recordLogin();playReveal(currentUser.name);setTimeout(()=>toast('👑 Admin access granted','success'),1800)}
 document.getElementById('app').classList.add('show');document.getElementById('authGate').classList.remove('show');
 await initApp();
-const firstLogin=shouldRecordLogin(user.uid);
-if(firstLogin){await recordLogin();playEntrance();toast('✅ Login berhasil! Halo '+currentUser.name,'success');if(isAdmin())setTimeout(()=>toast('👑 Admin access granted','success'),1400)}
-} else {currentUser=null;scripts=[];userNavigated=false;initPromise=null;clearLoginSession();renderUserCard();renderAdminNav();setLoadingHide();
-document.getElementById('authGate').classList.add('show');document.getElementById('app').classList.remove('show');}});
+if(first)toast('✅ Login berhasil! Halo '+currentUser.name,'success')}
+else{currentUser=null;scripts=[];clearLoginSession();renderUserCard();renderAdminNav();setLoadingHide();
+document.getElementById('authGate').classList.add('show');document.getElementById('app').classList.remove('show')}});
 async function loginGoogle(){try{toast('Membuka login Google...','info');await auth.signInWithPopup(googleProvider)}catch(e){if(e.code==='auth/popup-closed-by-user')toast('Login dibatalkan','info');else if(e.code==='auth/popup-blocked-by-browser')toast('Popup diblokir. Jalankan via localhost/https.','error');else toast('❌ Gagal login: '+e.message,'error')}}
-function logoutUser(){if(!currentUser)return;if(!confirm('Logout?\n👤 '+currentUser.name+'\n📧 '+currentUser.email))return;auth.signOut().then(()=>{currentUser=null;scripts=[];userNavigated=false;clearLoginSession();renderUserCard();renderAdminNav();document.getElementById('app').classList.remove('show');document.getElementById('authGate').classList.add('show');toast('👋 Berhasil logout','success')}).catch(e=>toast('❌ Gagal logout: '+e.message,'error'))}
-function renderAdminNav(){const c=document.getElementById('adminNavContainer');if(isAdmin()){c.innerHTML='<div class="nav-label" style="margin-top:10px;color:var(--neon-cyan)"><i class="fas fa-crown"></i> ADMIN</div><div class="nav-item admin-only" data-section="login-history" onclick="navTo(\'login-history\', this)"><span class="nav-icon"><i class="fas fa-user-shield"></i></span>Histori Login<span class="admin-badge"><i class="fas fa-crown"></i> ADMIN</span></div>'}else{c.innerHTML=''}}
-function navTo(sectionName,navEl){userNavigated=true;showSection(sectionName,navEl)}
-function showSection(sectionName,navEl){
-if(sectionName==='login-history'&&!isAdmin()){toast('⛔ Akses ditolak! Hanya admin.','error');return}
-currentSection=sectionName;
-document.querySelectorAll('.content').forEach(ct=>ct.classList.remove('show'));
-document.querySelectorAll('.nav-item').forEach(ni=>ni.classList.remove('active'));
-if(!navEl)navEl=document.querySelector('.nav-item[data-section="'+sectionName+'"]');
-const target=document.getElementById('section-'+sectionName);if(target)target.classList.add('show');
-if(navEl)navEl.classList.add('active');
+function logoutUser(){if(!currentUser)return;if(!confirm('Logout?\n👤 '+currentUser.name+'\n📧 '+currentUser.email))return;auth.signOut().then(()=>{currentUser=null;scripts=[];clearLoginSession();renderUserCard();renderAdminNav();document.getElementById('app').classList.remove('show');document.getElementById('authGate').classList.add('show');toast('👋 Berhasil logout','success')}).catch(e=>toast('❌ Gagal logout: '+e.message,'error'))}
+function renderAdminNav(){const c=document.getElementById('adminNavContainer');if(isAdmin()){c.innerHTML='<div class="nav-label" style="margin-top:10px;color:var(--neon-cyan)"><i class="fas fa-crown"></i> ADMIN</div><div class="nav-item admin-only" data-section="login-history" onclick="showSection(\'login-history\', this)"><span class="nav-icon"><i class="fas fa-user-shield"></i></span>Histori Login<span class="admin-badge"><i class="fas fa-crown"></i> ADMIN</span></div>'}else{c.innerHTML=''}}
+function showSection(s,navEl){if(s==='login-history'&&!isAdmin()){toast('⛔ Akses ditolak! Hanya admin.','error');return}
+currentSection=s;document.querySelectorAll('.content').forEach(c=>c.classList.remove('show'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+const t=document.getElementById('section-'+s);if(t)t.classList.add('show');if(navEl)navEl.classList.add('active');
 const titles={'portal':'<i class="fas fa-rocket"></i> CYBER PORTAL','social':'<i class="fas fa-share-alt"></i> SOSIAL MEDIA','dashboard':'<i class="fas fa-chart-line"></i> DASHBOARD','scripts':'<i class="fas fa-box"></i> SCRIPT SAYA','history':'<i class="fas fa-scroll"></i> HISTORI EDIT','login-history':'<i class="fas fa-user-shield"></i> HISTORI LOGIN <span style="color:var(--neon-cyan);font-size:11px;margin-left:6px">👑 ADMIN</span>'};
-document.getElementById('pageTitle').innerHTML=titles[sectionName]||titles.portal;
-const showSearch=sectionName==='scripts'||sectionName==='dashboard';
+document.getElementById('pageTitle').innerHTML=titles[s]||titles.portal;
+const showSearch=s==='scripts'||s==='dashboard';
 document.getElementById('searchBox').style.display=showSearch?'flex':'none';
-document.getElementById('syncBtn').style.display=sectionName==='scripts'?'inline-flex':'none';
-document.getElementById('newScriptBtn').style.display=sectionName==='scripts'?'inline-flex':'none';
-const qIn=document.getElementById('qIn');
-if(showSearch){qIn.placeholder=sectionName==='dashboard'?'Cari script publik...':'Cari script saya...';qIn.value='';updateSearchUI(0,false)}
-if(sectionName==='scripts')renderScriptsSection();
-if(sectionName==='history')renderHistorySection();
-if(sectionName==='dashboard')renderDash();
-if(sectionName==='login-history')renderLoginHistory();
-if(sectionName==='portal')renderPortalMenus();}
-function renderUserCard(){const c=document.getElementById('userCardContainer');if(currentUser){const initial=(currentUser.name||currentUser.email||'?').charAt(0).toUpperCase();const av=currentUser.photo?('<img src="'+currentUser.photo+'" alt="avatar">'):initial;const tag=isAdmin()?'<span style="color:var(--neon-cyan);font-size:9px;margin-left:3px" title="Administrator"><i class="fas fa-crown"></i></span>':'';c.innerHTML='<div class="user-card"><div class="user-avatar">'+av+'</div><div class="user-info"><div class="user-name">'+esc(currentUser.name||'User')+tag+'</div><div class="user-email">'+esc(currentUser.email)+' <span class="verified" title="Terverifikasi Google"><i class="fas fa-check-circle"></i></span></div></div></div>'}else{c.innerHTML=''}}
+document.getElementById('syncBtn').style.display=s==='scripts'?'inline-flex':'none';
+document.getElementById('newScriptBtn').style.display=s==='scripts'?'inline-flex':'none';
+const q=document.getElementById('qIn');if(showSearch){q.placeholder=s==='dashboard'?'Cari script publik...':'Cari script saya...';q.value='';updateSearchUI(0,false)}
+if(s==='scripts')renderScriptsSection();if(s==='history')renderHistorySection();if(s==='dashboard')renderDash();if(s==='login-history')renderLoginHistory();if(s==='portal')renderPortalMenus()}
+function renderUserCard(){const c=document.getElementById('userCardContainer');if(currentUser){const i=(currentUser.name||currentUser.email||'?').charAt(0).toUpperCase();const a=currentUser.photo?('<img src="'+currentUser.photo+'" alt="avatar">'):i;const t=isAdmin()?'<span style="color:var(--neon-cyan);font-size:9px;margin-left:3px" title="Administrator"><i class="fas fa-crown"></i></span>':'';c.innerHTML='<div class="user-card"><div class="user-avatar">'+a+'</div><div class="user-info"><div class="user-name">'+esc(currentUser.name||'User')+t+'</div><div class="user-email">'+esc(currentUser.email)+' <span class="verified" title="Terverifikasi Google"><i class="fas fa-check-circle"></i></span></div></div></div>'}else{c.innerHTML=''}}
 async function fetchIP(){try{const r=await fetch('https://api.ipify.org?format=json');const d=await r.json();currentIP=d.ip||'unknown'}catch(e){try{const r2=await fetch('https://api64.ipify.org?format=json');const d2=await r2.json();currentIP=d2.ip||'unknown'}catch(e2){currentIP='unknown'}}const el=document.getElementById('sIp');if(el)el.textContent=currentIP}
-function buildHistoryEntry(action,scriptName,oldData,newData){let diff=null;if(oldData&&newData&&action==='update'){diff=calculateDiff(oldData.code||'',newData.code||'')}return{action,timestamp:new Date().toISOString(),editor:currentUser.name,email:currentUser.email,uid:currentUser.uid,ip:currentIP,scriptName:scriptName||'Unnamed',diff,oldCode:oldData?oldData.code:null,newCode:newData?newData.code:null}}
-function calculateDiff(oldCode,newCode){const o=oldCode.split('\n'),n=newCode.split('\n'),diff=[],m=Math.max(o.length,n.length);for(let i=0;i<m;i++){if(o[i]!==n[i]){if(o[i])diff.push({type:'removed',line:i+1,text:o[i]});if(n[i])diff.push({type:'added',line:i+1,text:n[i]})}}return diff}
-function pushHistory(script,entry){if(!script.history)script.history=[];script.history.unshift(entry);if(script.history.length>MAX_HISTORY)script.history=script.history.slice(0,MAX_HISTORY)}
+function buildHistoryEntry(a,n,o,nw){let d=null;if(o&&nw&&a==='update'){d=calculateDiff(o.code||'',nw.code||'')}return{action:a,timestamp:new Date().toISOString(),editor:currentUser.name,email:currentUser.email,uid:currentUser.uid,ip:currentIP,scriptName:n||'Unnamed',diff:d,oldCode:o?o.code:null,newCode:nw?nw.code:null}}
+function calculateDiff(o,n){const a=o.split('\n'),b=n.split('\n'),d=[],m=Math.max(a.length,b.length);for(let i=0;i<m;i++){if(a[i]!==b[i]){if(a[i])d.push({type:'removed',line:i+1,text:a[i]});if(b[i])d.push({type:'added',line:i+1,text:b[i]})}}return d}
+function pushHistory(s,e){if(!s.history)s.history=[];s.history.unshift(e);if(s.history.length>MAX_HISTORY)s.history=s.history.slice(0,MAX_HISTORY)}
 function countAllHistory(){return scripts.reduce((a,s)=>a+((s.history&&s.history.length)||0),0)}
 function handleSearch(){const q=document.getElementById('qIn').value;document.getElementById('searchClear').classList.toggle('show',q.length>0);if(currentSection==='dashboard')renderDash();else if(currentSection==='scripts')renderList()}
 function clearSearch(){document.getElementById('qIn').value='';document.getElementById('searchClear').classList.remove('show');updateSearchUI(0,false);if(currentSection==='dashboard')renderDash();else if(currentSection==='scripts')renderList();document.getElementById('qIn').focus()}
-function updateSearchUI(count,active){const el=document.getElementById('searchCount');if(!el)return;if(active){el.textContent=count+' ditemukan';el.classList.add('show')}else{el.classList.remove('show')}}
-function openDeleteConfirm(name,cb){deleteCallback=cb;document.getElementById('deleteScriptName').textContent='"'+name+'"';document.getElementById('deleteConfirmOverlay').classList.add('show');setTimeout(()=>{const b=document.querySelector('#deleteConfirmOverlay .btn-delete-cancel');if(b)b.focus()},100)}
+function updateSearchUI(c,a){const el=document.getElementById('searchCount');if(!el)return;if(a){el.textContent=c+' ditemukan';el.classList.add('show')}else{el.classList.remove('show')}}
+function openDeleteConfirm(n,cb){deleteCallback=cb;document.getElementById('deleteScriptName').textContent='"'+n+'"';document.getElementById('deleteConfirmOverlay').classList.add('show');setTimeout(()=>{const b=document.querySelector('#deleteConfirmOverlay .btn-delete-cancel');if(b)b.focus()},100)}
 function closeDeleteConfirm(){document.getElementById('deleteConfirmOverlay').classList.remove('show');deleteCallback=null}
-document.getElementById('confirmDeleteBtn').addEventListener('click',function(){if(deleteCallback){const cb=deleteCallback;closeDeleteConfirm();cb()}});
+document.getElementById('confirmDeleteBtn').addEventListener('click',function(){if(deleteCallback){const c=deleteCallback;closeDeleteConfirm();c()}});
 document.getElementById('deleteConfirmOverlay').addEventListener('click',function(e){if(e.target===this)closeDeleteConfirm()});
-async function forceClean(){if(!confirm('🐒 Clean Data\nHapus semua script tanpa nama & tanpa ID?\nLanjutkan?'))return;try{toast('Membersihkan data...','info');const removed=await FIREBASE.cleanInvalid();scripts=await FIREBASE.load();renderAll();toast('✅ '+removed+' script dibersihkan!','success')}catch(e){toast('❌ Gagal: '+e.message,'error')}}
+async function forceClean(){if(!confirm('🐒 Clean Data\nHapus semua script tanpa nama & tanpa ID?\nLanjutkan?'))return;try{toast('Membersihkan data...','info');const r=await FIREBASE.cleanInvalid();scripts=await FIREBASE.load();renderAll();toast('✅ '+r+' script dibersihkan!','success')}catch(e){toast('❌ Gagal: '+e.message,'error')}}
 function openEditor(){document.getElementById('editorOverlay').classList.add('show');setTimeout(()=>document.getElementById('sName').focus(),100)}
 function closeEditor(){document.getElementById('editorOverlay').classList.remove('show')}
-async function executeDelete(id){if(!id){toast('❌ Error: ID tidak valid','error');return}const idx=scripts.findIndex(s=>s&&s.id===id);if(idx===-1){toast('❌ Script tidak ditemukan','error');return}const script=scripts[idx];const name=script.name||'Unnamed';const old={...script};if(!isAdmin()&&script.ownerEmail!==currentUser.email){toast('⛔ Hanya pemilik atau admin yang bisa hapus','error');return}pushHistory(script,buildHistoryEntry('delete',name,old,null));try{toast('🗑️ Menghapus script...','delete');await FIREBASE.save(script);await db.ref('deleted_history/'+id).set({originalId:id,name,deletedBy:currentUser.email,deletedAt:new Date().toISOString(),history:script.history||[],lastCode:script.code||null});await FIREBASE.delete(id);scripts.splice(idx,1);if(editId===id){editId=null;closeEditor()}renderAll();toast('🗑️ "'+name+'" berhasil dihapus!','delete')}catch(e){toast('❌ Gagal hapus: '+e.message,'error');scripts=await FIREBASE.load();renderAll()}}
+async function executeDelete(id){if(!id){toast('❌ Error: ID tidak valid','error');return}const i=scripts.findIndex(s=>s&&s.id===id);if(i===-1){toast('❌ Script tidak ditemukan','error');return}const sc=scripts[i];const n=sc.name||'Unnamed';const o={...sc};if(!isAdmin()&&sc.ownerEmail!==currentUser.email){toast('⛔ Hanya pemilik atau admin yang bisa hapus','error');return}pushHistory(sc,buildHistoryEntry('delete',n,o,null));try{toast('🗑️ Menghapus script...','delete');await FIREBASE.save(sc);await db.ref('deleted_history/'+id).set({originalId:id,name:n,deletedBy:currentUser.email,deletedAt:new Date().toISOString(),history:sc.history||[],lastCode:sc.code||null});await FIREBASE.delete(id);scripts.splice(i,1);if(editId===id){editId=null;closeEditor()}renderAll();toast('🗑️ "'+n+'" berhasil dihapus!','delete')}catch(e){toast('❌ Gagal hapus: '+e.message,'error');scripts=await FIREBASE.load();renderAll()}}
 function delS(){if(!editId){toast('❌ Tidak ada script','error');return}const s=scripts.find(x=>x&&x.id===editId);openDeleteConfirm(s?s.name:'Unnamed',()=>executeDelete(editId))}
 function quickDel(id){const s=scripts.find(x=>x&&x.id===id);openDeleteConfirm(s?s.name:'Unnamed',()=>executeDelete(id))}
 function buildCode(s){let c=s.code||'';if(!/\/\/\s*==UserScript==/i.test(c)){const n=(s.name||'Script').replace(/\*\//g,'* /');const d=(s.desc||'').replace(/\*\//g,'* /');const a=(s.author||currentUser.name||'ScriptVault User').replace(/\*\//g,'* /');c='// ==UserScript==\n// @name         '+n+'\n// @namespace    scriptvault.local\n// @version      1.0\n// @description  '+(d||'Script from ScriptVault')+'\n// @author       '+a+'\n// @match        *://*/*\n// @grant        none\n// @run-at       document-idle\n// ==/UserScript==\n'+c}return c}
-function openTMFromCard(event,scriptId){event.preventDefault();event.stopPropagation();const s=scripts.find(x=>x&&x.id===scriptId);if(!s){toast('Script tidak ditemukan','error');return false}const code=buildCode(s);navigator.clipboard.writeText(code).then(()=>tryOpenTM()).catch(()=>{fallbackCopy(code);tryOpenTM()});return false}
-function openTMFromEditor(){const name=document.getElementById('sName').value.trim();const code=document.getElementById('sCode').value;const desc=document.getElementById('sDesc').value.trim();const author=document.getElementById('sAuthor').value.trim();if(!name){toast('Isi nama script dulu','error');return false}if(!code){toast('Code kosong','error');return false}const built=buildCode({name,desc,code,author});navigator.clipboard.writeText(built).then(()=>tryOpenTM()).catch(()=>{fallbackCopy(built);tryOpenTM()});return false}
+function openTMFromCard(e,id){e.preventDefault();e.stopPropagation();const s=scripts.find(x=>x&&x.id===id);if(!s){toast('Script tidak ditemukan','error');return false}const c=buildCode(s);navigator.clipboard.writeText(c).then(()=>tryOpenTM()).catch(()=>{fallbackCopy(c);tryOpenTM()});return false}
+function openTMFromEditor(){const n=document.getElementById('sName').value.trim();const c=document.getElementById('sCode').value;const d=document.getElementById('sDesc').value.trim();const a=document.getElementById('sAuthor').value.trim();if(!n){toast('Isi nama script dulu','error');return false}if(!c){toast('Code kosong','error');return false}const b=buildCode({name:n,desc:d,code:c,author:a});navigator.clipboard.writeText(b).then(()=>tryOpenTM()).catch(()=>{fallbackCopy(b);tryOpenTM()});return false}
 function tryOpenTM(){toast('🐒 Code sudah di-copy!','success');setTimeout(()=>{const w=window.open(TM_URL,'_blank');setTimeout(()=>{if(!w||w.closed||typeof w.closed=='undefined'){document.getElementById('tmHelpOverlay').classList.add('show')}},1000)},300)}
-function fallbackCopy(text){const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(t)}
-function initApp(){if(initPromise)return initPromise;initPromise=doInit();return initPromise}
-async function doInit(){const lt=document.getElementById('loadTxt');try{
-lt.textContent='LOADING SCRIPTS';
-scripts=await FIREBASE.load();
-await loadPortalConfig();await loadUserPortalPin();
-if(!appInitialized){appInitialized=true;init();startClock();startPortalListener()}
-renderAll();renderPortalMenus();
-if(!userNavigated){showSection('portal')}
-setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},600);
-}catch(e){console.error(e);lt.textContent='ERROR';lt.style.color='#ff3e6c';toast('❌ Gagal init: '+e.message,'error');setLoadingHide()}}
-function init(){if(uiInitialized)return;uiInitialized=true;
-const ta=document.getElementById('sCode');
-ta.addEventListener('input',updateStats);
-ta.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveS()}if(e.key==='Tab'){e.preventDefault();const t=e.target;const s=t.selectionStart;const en=t.selectionEnd;t.value=t.value.substring(0,s)+'  '+t.value.substring(en);t.selectionStart=t.selectionEnd=s+2}if(e.key==='Escape')closeEditor()});
+function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta)}
+async function initApp(){const lt=document.getElementById('loadTxt');try{lt.textContent='LOADING SCRIPTS';scripts=await FIREBASE.load();await loadPortalConfig();await loadUserPortalPin();init();renderAll();renderPortalMenus();startPortalListener();startClock();const p=document.querySelector('.nav-item[data-section="portal"]');showSection('portal',p);setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},600)}catch(e){console.error(e);lt.textContent='ERROR';lt.style.color='#ff3e6c';toast('❌ Gagal init: '+e.message,'error')}}
+function init(){if(uiInitialized)return;uiInitialized=true;const ta=document.getElementById('sCode');ta.addEventListener('input',updateStats);ta.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveS()}if(e.key==='Tab'){e.preventDefault();const t=e.target;const s=t.selectionStart;const en=t.selectionEnd;t.value=t.value.substring(0,s)+'  '+t.value.substring(en);t.selectionStart=t.selectionEnd=s+2}if(e.key==='Escape')closeEditor()});
 ['editorOverlay','tmHelpOverlay','histDetailOverlay','portalSettingsOverlay','portalPinOverlay','deleteConfirmOverlay','clearLoginHistoryOverlay'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.addEventListener('click',e=>{if(e.target.id===id)el.classList.remove('show')})});
-document.querySelectorAll('.portal-pin').forEach((input,index)=>{input.addEventListener('input',e=>{currentPortalPinInput=Array.from(document.querySelectorAll('.portal-pin')).map(i=>i.value).join('');if(e.target.value&&index<3){const next=document.querySelector('.portal-pin[data-index="'+(index+1)+'"]');if(next)next.focus()}if(currentPortalPinInput.length===4){setTimeout(submitPortalPin,250)}});input.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!e.target.value&&index>0){const prev=document.querySelector('.portal-pin[data-index="'+(index-1)+'"]');if(prev)prev.focus()}})})}
+document.querySelectorAll('.portal-pin').forEach((inp,idx)=>{inp.addEventListener('input',e=>{currentPortalPinInput=Array.from(document.querySelectorAll('.portal-pin')).map(i=>i.value).join('');if(e.target.value&&idx<3){const nx=document.querySelector('.portal-pin[data-index="'+(idx+1)+'"]');if(nx)nx.focus()}if(currentPortalPinInput.length===4){setTimeout(submitPortalPin,250)}});inp.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!e.target.value&&idx>0){const pv=document.querySelector('.portal-pin[data-index="'+(idx-1)+'"]');if(pv)pv.focus()}})})}
 function startClock(){updateClock();if(clockInterval)clearInterval(clockInterval);clockInterval=setInterval(updateClock,1000)}
-function updateClock(){const now=new Date();const t=document.getElementById('clockTime');const d=document.getElementById('clockDate');const y=document.getElementById('clockDay');if(t)t.textContent=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});if(d)d.textContent=now.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});if(y)y.textContent=now.toLocaleDateString('id-ID',{weekday:'long'})}
+function updateClock(){const n=new Date();const t=document.getElementById('clockTime');const d=document.getElementById('clockDate');const y=document.getElementById('clockDay');if(t)t.textContent=n.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});if(d)d.textContent=n.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});if(y)y.textContent=n.toLocaleDateString('id-ID',{weekday:'long'})}
 function renderAll(){renderDash();renderScriptsSection();renderHistorySection()}
-function renderDash(){const visibleScripts=scripts.filter(s=>{if(!s)return false;if(isAdmin())return true;return s.isPublic!==false});
-document.getElementById('sTot').textContent=visibleScripts.length;
-document.getElementById('sChr').textContent=visibleScripts.reduce((a,s)=>a+(s.code?s.code.length:0),0).toLocaleString('id-ID');
-document.getElementById('sHist').textContent=visibleScripts.reduce((a,s)=>a+((s.history&&s.history.length)||0),0).toLocaleString('id-ID');
-document.getElementById('histBadge').textContent=countAllHistory();
-document.getElementById('allBadge').textContent=visibleScripts.length;
+function renderDash(){const vis=scripts.filter(s=>{if(!s)return false;if(isAdmin())return true;return s.isPublic!==false});
+document.getElementById('sTot').textContent=vis.length;
+document.getElementById('sChr').textContent=vis.reduce((a,s)=>a+(s.code?s.code.length:0),0).toLocaleString('id-ID');
+document.getElementById('sHist').textContent=vis.reduce((a,s)=>a+((s.history&&s.history.length)||0),0).toLocaleString('id-ID');
+document.getElementById('histBadge').textContent=countAllHistory();document.getElementById('allBadge').textContent=vis.length;
 const my=getUserScripts();document.getElementById('myBadge').textContent=my.length;
-populateOwnerFilter(visibleScripts);
-const sel=document.getElementById('ownerFilter');const so=sel?sel.value:'all';
-let all=visibleScripts;if(so&&so!=='all')all=all.filter(s=>(s.ownerEmail||'unknown')===so);
+populateOwnerFilter(vis);const sel=document.getElementById('ownerFilter');const so=sel?sel.value:'all';let all=vis;if(so&&so!=='all')all=all.filter(s=>(s.ownerEmail||'unknown')===so);
 all=[...all].sort((a,b)=>new Date(b.updated||0)-new Date(a.updated||0));
 const q=(document.getElementById('qIn').value||'').toLowerCase().trim();
 if(q){all=all.filter(s=>(s.name||'').toLowerCase().includes(q)||(s.desc||'').toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)||(s.ownerEmail||'').toLowerCase().includes(q)||(s.ownerName||'').toLowerCase().includes(q));updateSearchUI(all.length,true)}else{updateSearchUI(0,false)}
 const c=document.getElementById('recentList');document.getElementById('recentCnt').textContent=all.length;
 if(all.length===0){c.innerHTML=q?'<div class="empty"><div class="icon"><i class="fas fa-search"></i></div><h4>TIDAK DITEMUKAN</h4><p>Tidak ada script cocok dengan "'+esc(q)+'"</p></div>':'<div class="empty"><div class="icon">🐒</div><h4>BELUM ADA SCRIPT PUBLIK</h4><p>Script publik akan muncul di sini</p></div>';return}
-c.innerHTML=all.map(s=>{const dn=s.name||'Unnamed';const oe=s.ownerEmail||'Unknown';const on=s.ownerName||'Unknown';const mine=currentUser&&s.ownerEmail===currentUser.email;const ob=mine?'<span class="owner-badge mine"><i class="fas fa-check"></i> MILIK ANDA</span>':'<span class="owner-badge other"><i class="fas fa-user"></i> '+esc(on)+'</span>';const vb=s.isPublic===false?'<span class="owner-badge priv"><i class="fas fa-lock"></i> PRIVATE</span>':'<span class="owner-badge pub"><i class="fas fa-globe"></i> PUBLIK</span>';const oh='<div class="card-author"><i class="fas fa-envelope"></i> '+esc(oe)+' '+ob+' '+vb+'</div>';const lines=s.code?s.code.split('\n').length:0;const size=s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB';const can=mine||isAdmin();
-return '<div class="card"><div class="card-header"><div class="card-icon"><i class="fas fa-code"></i></div><div class="card-body"><div class="card-title">'+esc(dn)+'</div><div class="card-desc">'+esc(s.desc||'Tanpa deskripsi')+'</div>'+oh+'</div></div><div class="card-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+ago(s.updated)+'</span><span><span class="icon"><i class="fas fa-file-code"></i></span>'+size+'</span><span><span class="icon"><i class="fas fa-align-left"></i></span>'+lines+' baris</span></div><div class="card-actions"><button class="btn btn-success" onclick="openTMFromCard(event,\''+s.id+'\')"><i class="fas fa-external-link-alt"></i> TM</button><button class="btn btn-warning" onclick="quickCopy(\''+s.id+'\')"><i class="fas fa-copy"></i> COPY</button>'+(can?'<button class="btn btn-ghost" onclick="editS(\''+s.id+'\')"><i class="fas fa-edit"></i> EDIT</button><button class="btn btn-danger" onclick="quickDel(\''+s.id+'\')"><i class="fas fa-trash"></i> HAPUS</button>':'')+'</div></div>'}).join('')}
-function populateOwnerFilter(vs){const sel=document.getElementById('ownerFilter');if(!sel)return;const cv=sel.value;const owners={};vs.forEach(s=>{const e=s.ownerEmail||'unknown';const n=s.ownerName||e;if(!owners[e])owners[e]={name:n,count:0};owners[e].count++});let html='<option value="all">👥 Semua Pengguna ('+vs.length+')</option>';Object.keys(owners).sort((a,b)=>(owners[a].name||'').localeCompare(owners[b].name||'')).forEach(e=>{html+='<option value="'+esc(e)+'">'+esc(owners[e].name)+' ('+owners[e].count+')</option>'});sel.innerHTML=html;if(cv&&Array.from(sel.options).some(o=>o.value===cv))sel.value=cv;else sel.value='all'}
-function renderScriptsSection(){const my=getUserScripts();document.getElementById('scTot').textContent=my.length;document.getElementById('scChr').textContent=my.reduce((a,s)=>a+(s.code?s.code.length:0),0).toLocaleString('id-ID');document.getElementById('scLines').textContent=my.reduce((a,s)=>a+(s.code?s.code.split('\n').length:0),0).toLocaleString('id-ID');const srt=[...my].filter(s=>s&&s.updated).sort((a,b)=>new Date(b.updated)-new Date(a.updated));document.getElementById('scLast').textContent=srt[0]?ago(srt[0].updated):'-';renderList()}
-function renderList(){const my=getUserScripts();const q=(document.getElementById('qIn').value||'').toLowerCase().trim();let f=my.filter(s=>s&&((s.name||'').toLowerCase().includes(q)||(s.desc||'').toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)));if(q)updateSearchUI(f.length,true);else updateSearchUI(0,false);document.getElementById('fCnt').textContent=f.length;const c=document.getElementById('list');c.innerHTML=f.length===0?emptyH(q?'Tidak ditemukan':'Belum ada script',q?'Tidak ada script cocok dengan "'+esc(q)+'"':'Klik "Script Baru" untuk mulai'):f.sort((a,b)=>new Date(b.updated||0)-new Date(a.updated||0)).map(cardH).join('')}
-function cardH(s){const dn=s.name||'Unnamed';const vb=s.isPublic===false?'<span class="owner-badge priv"><i class="fas fa-lock"></i> PRIVATE</span>':'<span class="owner-badge pub"><i class="fas fa-globe"></i> PUBLIK</span>';const lines=s.code?s.code.split('\n').length:0;const size=s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB';
-return '<div class="card"><div class="card-header" onclick="editS(\''+s.id+'\')" style="cursor:pointer"><div class="card-icon"><i class="fas fa-code"></i></div><div class="card-body"><div class="card-title">'+esc(dn)+' '+vb+'</div><div class="card-desc">'+esc(s.desc||'Tanpa deskripsi')+'</div></div></div><div class="card-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+ago(s.updated)+'</span><span><span class="icon"><i class="fas fa-file-code"></i></span>'+size+'</span><span><span class="icon"><i class="fas fa-align-left"></i></span>'+lines+' baris</span></div><div class="card-actions"><button class="btn btn-success" onclick="event.stopPropagation();openTMFromCard(event,\''+s.id+'\')"><i class="fas fa-external-link-alt"></i> TM</button><button class="btn btn-ghost" onclick="event.stopPropagation();editS(\''+s.id+'\')"><i class="fas fa-edit"></i> Edit</button><button class="btn btn-warning" onclick="event.stopPropagation();quickCopy(\''+s.id+'\')"><i class="fas fa-copy"></i> Copy</button><button class="btn btn-danger" onclick="event.stopPropagation();quickDel(\''+s.id+'\')"><i class="fas fa-trash"></i> Hapus</button></div></div>'}
+c.innerHTML=all.map(s=>{const dn=s.name||'Unnamed';const oe=s.ownerEmail||'Unknown';const on=s.ownerName||'Unknown';const mine=currentUser&&s.ownerEmail===currentUser.email;const ob=mine?'<span class="owner-badge mine"><i class="fas fa-check"></i> MILIK ANDA</span>':'<span class="owner-badge other"><i class="fas fa-user"></i> '+esc(on)+'</span>';const vb=s.isPublic===false?'<span class="owner-badge priv"><i class="fas fa-lock"></i> PRIVATE</span>':'<span class="owner-badge pub"><i class="fas fa-globe"></i> PUBLIK</span>';const oh='<div class="card-author"><i class="fas fa-envelope"></i> '+esc(oe)+' '+ob+' '+vb+'</div>';const ln=s.code?s.code.split('\n').length:0;const sz=s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB';const cm=mine||isAdmin();
+return '<div class="card"><div class="card-header"><div class="card-icon"><i class="fas fa-code"></i></div><div class="card-body"><div class="card-title">'+esc(dn)+'</div><div class="card-desc">'+esc(s.desc||'Tanpa deskripsi')+'</div>'+oh+'</div></div><div class="card-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+ago(s.updated)+'</span><span><span class="icon"><i class="fas fa-file-code"></i></span>'+sz+'</span><span><span class="icon"><i class="fas fa-align-left"></i></span>'+ln+' baris</span></div><div class="card-actions"><button class="btn btn-success" onclick="openTMFromCard(event,\''+s.id+'\')"><i class="fas fa-external-link-alt"></i> TM</button><button class="btn btn-warning" onclick="quickCopy(\''+s.id+'\')"><i class="fas fa-copy"></i> COPY</button>'+(cm?'<button class="btn btn-ghost" onclick="editS(\''+s.id+'\')"><i class="fas fa-edit"></i> EDIT</button><button class="btn btn-danger" onclick="quickDel(\''+s.id+'\')"><i class="fas fa-trash"></i> HAPUS</button>':'')+'</div></div>'}).join('')}
+function populateOwnerFilter(v){const s=document.getElementById('ownerFilter');if(!s)return;const cv=s.value;const o={};v.forEach(x=>{const e=x.ownerEmail||'unknown';const n=x.ownerName||e;if(!o[e])o[e]={name:n,count:0};o[e].count++});let h='<option value="all">👥 Semua Pengguna ('+v.length+')</option>';Object.keys(o).sort((a,b)=>(o[a].name||'').localeCompare(o[b].name||'')).forEach(e=>{h+='<option value="'+esc(e)+'">'+esc(o[e].name)+' ('+o[e].count+')</option>'});s.innerHTML=h;if(cv&&Array.from(s.options).some(o=>o.value===cv))s.value=cv;else s.value='all'}
+function renderScriptsSection(){const m=getUserScripts();document.getElementById('scTot').textContent=m.length;document.getElementById('scChr').textContent=m.reduce((a,s)=>a+(s.code?s.code.length:0),0).toLocaleString('id-ID');document.getElementById('scLines').textContent=m.reduce((a,s)=>a+(s.code?s.code.split('\n').length:0),0).toLocaleString('id-ID');const s=[...m].filter(x=>x&&x.updated).sort((a,b)=>new Date(b.updated)-new Date(a.updated));document.getElementById('scLast').textContent=s[0]?ago(s[0].updated):'-';renderList()}
+function renderList(){const m=getUserScripts();const q=(document.getElementById('qIn').value||'').toLowerCase().trim();let f=m.filter(s=>s&&((s.name||'').toLowerCase().includes(q)||(s.desc||'').toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)));if(q)updateSearchUI(f.length,true);else updateSearchUI(0,false);document.getElementById('fCnt').textContent=f.length;const c=document.getElementById('list');c.innerHTML=f.length===0?emptyH(q?'Tidak ditemukan':'Belum ada script',q?'Tidak ada script cocok dengan "'+esc(q)+'"':'Klik "Script Baru" untuk mulai'):f.sort((a,b)=>new Date(b.updated||0)-new Date(a.updated||0)).map(cardH).join('')}
+function cardH(s){const dn=s.name||'Unnamed';const vb=s.isPublic===false?'<span class="owner-badge priv"><i class="fas fa-lock"></i> PRIVATE</span>':'<span class="owner-badge pub"><i class="fas fa-globe"></i> PUBLIK</span>';const ln=s.code?s.code.split('\n').length:0;const sz=s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB';
+return '<div class="card"><div class="card-header" onclick="editS(\''+s.id+'\')" style="cursor:pointer"><div class="card-icon"><i class="fas fa-code"></i></div><div class="card-body"><div class="card-title">'+esc(dn)+' '+vb+'</div><div class="card-desc">'+esc(s.desc||'Tanpa deskripsi')+'</div></div></div><div class="card-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+ago(s.updated)+'</span><span><span class="icon"><i class="fas fa-file-code"></i></span>'+sz+'</span><span><span class="icon"><i class="fas fa-align-left"></i></span>'+ln+' baris</span></div><div class="card-actions"><button class="btn btn-success" onclick="event.stopPropagation();openTMFromCard(event,\''+s.id+'\')"><i class="fas fa-external-link-alt"></i> TM</button><button class="btn btn-ghost" onclick="event.stopPropagation();editS(\''+s.id+'\')"><i class="fas fa-edit"></i> Edit</button><button class="btn btn-warning" onclick="event.stopPropagation();quickCopy(\''+s.id+'\')"><i class="fas fa-copy"></i> Copy</button><button class="btn btn-danger" onclick="event.stopPropagation();quickDel(\''+s.id+'\')"><i class="fas fa-trash"></i> Hapus</button></div></div>'}
 function emptyH(t,m){return '<div class="empty"><div class="icon"><i class="fas fa-robot"></i></div><h4>'+t+'</h4><p>'+m+'</p>'+(t==='Belum ada script'?'<button class="btn btn-primary" onclick="newS()"><i class="fas fa-plus"></i> SCRIPT PERTAMA</button>':'')+'</div>'}
 function renderHistorySection(){let all=[];scripts.forEach(s=>{(s.history||[]).forEach(h=>{all.push({...h,scriptName:s.name||h.scriptName||'Unnamed',scriptId:s.id})})});
-db.ref('deleted_history').once('value').then(snap=>{const val=snap.val();if(val){Object.values(val).forEach(d=>{(d.history||[]).forEach(h=>{all.push({...h,scriptName:d.name||h.scriptName||'Deleted Script',deleted:true})})})}
+db.ref('deleted_history').once('value').then(sn=>{const v=sn.val();if(v){Object.values(v).forEach(d=>{(d.history||[]).forEach(h=>{all.push({...h,scriptName:d.name||h.scriptName||'Deleted Script',deleted:true})})})}
 all.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-document.getElementById('hTot').textContent=all.length;
-document.getElementById('hCreate').textContent=all.filter(h=>h.action==='create').length;
-document.getElementById('hUpdate').textContent=all.filter(h=>h.action==='update').length;
-document.getElementById('hDelete').textContent=all.filter(h=>h.action==='delete').length;
-document.getElementById('hCnt').textContent=all.length;
-const c=document.getElementById('historyList');
-if(all.length===0){c.innerHTML='<div class="empty"><div class="icon"><i class="fas fa-scroll"></i></div><h4>BELUM ADA HISTORI</h4><p>Aksi edit, buat, dan hapus script akan tercatat di sini</p></div>';return}
+document.getElementById('hTot').textContent=all.length;document.getElementById('hCreate').textContent=all.filter(h=>h.action==='create').length;document.getElementById('hUpdate').textContent=all.filter(h=>h.action==='update').length;document.getElementById('hDelete').textContent=all.filter(h=>h.action==='delete').length;document.getElementById('hCnt').textContent=all.length;
+const c=document.getElementById('historyList');if(all.length===0){c.innerHTML='<div class="empty"><div class="icon"><i class="fas fa-scroll"></i></div><h4>BELUM ADA HISTORI</h4><p>Aksi edit, buat, dan hapus script akan tercatat di sini</p></div>';return}
 c.innerHTML=all.slice(0,50).map(h=>{const al={create:'<i class="fas fa-magic"></i> DIBUAT',update:'<i class="fas fa-pen"></i> DIPERBARUI',delete:'<i class="fas fa-trash"></i> DIHAPUS'}[h.action]||h.action;const pi=h.action==='update'?'<i class="fas fa-pen"></i>':h.action==='create'?'<i class="fas fa-magic"></i>':'<i class="fas fa-trash"></i>';const sn=(h.scriptName||'').replace(/'/g,"\\'");
 return '<div class="card"><div class="card-header"><div class="card-icon" onclick="event.stopPropagation();showHistDetail(\''+h.timestamp+'\',\''+sn+'\')" style="cursor:pointer" title="Klik untuk detail">'+pi+'</div><div class="card-body"><div class="card-title">'+esc(h.scriptName||'-')+'</div><div class="card-desc">'+al+' oleh '+esc(h.editor||'-')+' ('+esc(h.email||'-')+')</div></div></div><div class="card-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+formatDate(h.timestamp)+'</span><span><span class="icon"><i class="fas fa-user"></i></span>'+esc(h.editor||'-')+'</span><span><span class="icon"><i class="fas fa-envelope"></i></span>'+esc(h.email||'-')+'</span><span><span class="icon"><i class="fas fa-globe"></i></span>'+esc(h.ip||'-')+'</span></div></div>'}).join('')})}
 function renderLoginHistory(){const c=document.getElementById('loginHistoryContent');if(!isAdmin()){c.innerHTML='<div class="access-denied"><div class="icon"><i class="fas fa-user-shield"></i></div><h4>Akses Ditolak</h4><p>Halaman ini hanya untuk <strong style="color:var(--neon-cyan)">Administrator</strong></p></div>';return}
-c.innerHTML='<div class="bento"><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-sign-in-alt"></i></span>Total Login</div><div class="bento-value" id="lhTotal">...</div><div class="bento-sub">Semua sesi login</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-users"></i></span>User Unik</div><div class="bento-value" id="lhUsers">...</div><div class="bento-sub">Pengguna berbeda</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-crown"></i></span>Admin Login</div><div class="bento-value" id="lhAdmin">...</div><div class="bento-sub">Login oleh admin</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-clock"></i></span>Login Terakhir</div><div class="bento-value" id="lhLast" style="font-size:16px">...</div><div class="bento-sub">Waktu terakhir</div></div></div><div class="section"><div class="section-header"><h3><span class="bar"></span><i class="fas fa-user-shield"></i> LOG HISTORI LOGIN</h3><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><small><span id="lhCnt">0</span> ENTRI</small><button class="btn btn-danger" onclick="openClearLoginHistory()" style="padding:6px 12px;font-size:10px"><i class="fas fa-broom"></i> BERSIHKAN</button></div></div><div id="loginHistoryList" class="card-list"><div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data...</h4></div></div></div>';
-loadLoginHistoryData()}
-async function loadLoginHistoryData(){try{const snap=await db.ref('login_history').orderByChild('loginTime').limitToLast(200).once('value');const val=snap.val();if(!val){document.getElementById('loginHistoryList').innerHTML='<div class="empty"><div class="icon"><i class="fas fa-user-clock"></i></div><h4>BELUM ADA DATA LOGIN</h4><p>Data login akan tercatat saat user masuk</p></div>';document.getElementById('lhTotal').textContent='0';document.getElementById('lhUsers').textContent='0';document.getElementById('lhAdmin').textContent='0';document.getElementById('lhLast').textContent='-';document.getElementById('lhCnt').textContent='0';return}
-const entries=Object.values(val).sort((a,b)=>new Date(b.loginTime)-new Date(a.loginTime));
-document.getElementById('lhTotal').textContent=entries.length;
-document.getElementById('lhUsers').textContent=new Set(entries.map(e=>e.email)).size;
-document.getElementById('lhAdmin').textContent=entries.filter(e=>e.isAdmin).length;
-document.getElementById('lhLast').textContent=entries[0]?ago(entries[0].loginTime):'-';
-document.getElementById('lhCnt').textContent=entries.length;
-document.getElementById('loginHistoryList').innerHTML=entries.slice(0,100).map(en=>{const initial=(en.name||en.email||'?').charAt(0).toUpperCase();const av=en.photo?('<img src="'+en.photo+'" alt="avatar">'):initial;const at=en.isAdmin?'<span class="admin-tag"><i class="fas fa-crown"></i> ADMIN</span>':'';
-return '<div class="login-history-card"><div class="login-history-header"><div class="login-avatar">'+av+'</div><div class="login-info"><div class="login-name">'+esc(en.name||'Unknown')+' '+at+'</div><div class="login-email">'+esc(en.email||'Unknown')+'</div></div></div><div class="login-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+formatDate(en.loginTime)+'</span><span><span class="icon"><i class="fas fa-globe"></i></span>'+esc(en.ip||'Unknown')+'</span><span><span class="icon"><i class="fas fa-laptop"></i></span>'+esc(parseBrowser(en.userAgent||''))+'</span><span><span class="icon"><i class="fas fa-desktop"></i></span>'+esc(en.platform||'Unknown')+'</span></div></div>'}).join('')}catch(e){document.getElementById('loginHistoryList').innerHTML='<div class="empty"><div class="icon"><i class="fas fa-exclamation-triangle"></i></div><h4>ERROR</h4><p>Gagal memuat data: '+esc(e.message)+'</p></div>'}}
-function parseBrowser(ua){if(!ua)return'Unknown';if(ua.includes('Firefox'))return'Firefox';if(ua.includes('Edg'))return'Edge';if(ua.includes('Chrome'))return'Chrome';if(ua.includes('Safari'))return'Safari';if(ua.includes('Opera')||ua.includes('OPR'))return'Opera';return'Browser'}
-function showHistDetail(timestamp,scriptName){let all=[];scripts.forEach(s=>{(s.history||[]).forEach(h=>{all.push({...h,scriptName:s.name||h.scriptName||'Unnamed'})})});
-db.ref('deleted_history').once('value').then(snap=>{const val=snap.val();if(val){Object.values(val).forEach(d=>{(d.history||[]).forEach(h=>{all.push({...h,scriptName:d.name||h.scriptName||'Deleted Script'})})})}
-const entry=all.find(h=>h.timestamp===timestamp&&h.scriptName===scriptName);
-if(!entry){toast('❌ Data histori tidak ditemukan','error');return}
-const al={create:'<i class="fas fa-magic"></i> SCRIPT DIBUAT',update:'<i class="fas fa-pen"></i> SCRIPT DIPERBARUI',delete:'<i class="fas fa-trash"></i> SCRIPT DIHAPUS'}[entry.action]||entry.action;
-const ai=entry.action==='update'?'<i class="fas fa-pen"></i>':entry.action==='create'?'<i class="fas fa-magic"></i>':'<i class="fas fa-trash"></i>';
-let codeHtml='';
-if(entry.action==='update'&&entry.oldCode&&entry.newCode){codeHtml='<div class="history-detail-section"><h4>📝 PERBANDINGAN KODE</h4><div class="code-comparison"><div class="code-box"><div class="code-header old">❌ KODE LAMA</div><div class="code-content">'+esc(entry.oldCode)+'</div></div><div class="code-box"><div class="code-header new">✅ KODE BARU</div><div class="code-content">'+esc(entry.newCode)+'</div></div></div></div>'}
-else if(entry.action==='create'&&entry.newCode){codeHtml='<div class="history-detail-section"><h4>📝 KODE SCRIPT</h4><div class="code-box"><div class="code-header new">✨ KODE</div><div class="code-content">'+esc(entry.newCode)+'</div></div></div>'}
-else if(entry.action==='delete'&&entry.oldCode){codeHtml='<div class="history-detail-section"><h4>📝 KODE TERAKHIR</h4><div class="code-box"><div class="code-header old">🗑️ KODE</div><div class="code-content">'+esc(entry.oldCode)+'</div></div></div>'}
-const diffHtml=entry.diff&&entry.diff.length>0?'<div class="history-detail-section"><h4>📊 DETAIL PERUBAHAN</h4><div class="diff-box">'+entry.diff.map(d=>{if(d.type==='added')return '<div><span class="diff-added">+ Baris '+d.line+':</span> '+esc(d.text.substring(0,120))+(d.text.length>120?'...':'')+'</div>';if(d.type==='removed')return '<div><span class="diff-removed">- Baris '+d.line+':</span> '+esc(d.text.substring(0,120))+(d.text.length>120?'...':'')+'</div>';return ''}).join('')+'</div></div>':'';
-document.getElementById('histDetailContent').innerHTML='<div class="history-detail-header"><div class="history-detail-icon">'+ai+'</div><div><div class="history-detail-title">'+esc(entry.scriptName)+'</div><div class="history-detail-subtitle">'+al+'</div></div></div><div class="history-detail-section"><h4><i class="fas fa-user"></i> INFORMASI EDITOR</h4><div class="history-detail-grid"><div class="history-detail-item"><label>NAMA EDITOR</label><span>'+esc(entry.editor||'-')+'</span></div><div class="history-detail-item"><label>EMAIL GOOGLE</label><span>'+esc(entry.email||'-')+'</span></div><div class="history-detail-item"><label>IP ADDRESS</label><span>'+esc(entry.ip||'-')+'</span></div><div class="history-detail-item"><label>WAKTU AKSI</label><span>'+formatDate(entry.timestamp)+'</span></div></div></div>'+diffHtml+codeHtml;
+c.innerHTML='<div class="bento"><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-sign-in-alt"></i></span>Total Login</div><div class="bento-value" id="lhTotal">...</div><div class="bento-sub">Semua sesi login</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-users"></i></span>User Unik</div><div class="bento-value" id="lhUsers">...</div><div class="bento-sub">Pengguna berbeda</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-crown"></i></span>Admin Login</div><div class="bento-value" id="lhAdmin">...</div><div class="bento-sub">Login oleh admin</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-clock"></i></span>Login Terakhir</div><div class="bento-value" id="lhLast" style="font-size:16px">...</div><div class="bento-sub">Waktu terakhir</div></div></div><div class="section"><div class="section-header"><h3><span class="bar"></span><i class="fas fa-user-shield"></i> LOG HISTORI LOGIN</h3><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><small><span id="lhCnt">0</span> ENTRI</small><button class="btn btn-danger" onclick="openClearLoginHistory()" style="padding:6px 12px;font-size:10px"><i class="fas fa-broom"></i> BERSIHKAN</button></div></div><div id="loginHistoryList" class="card-list"><div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data...</h4></div></div></div>';loadLoginHistoryData()}
+async function loadLoginHistoryData(){try{const sn=await db.ref('login_history').orderByChild('loginTime').limitToLast(200).once('value');const v=sn.val();if(!v){document.getElementById('loginHistoryList').innerHTML='<div class="empty"><div class="icon"><i class="fas fa-user-clock"></i></div><h4>BELUM ADA DATA LOGIN</h4><p>Data login akan tercatat saat user masuk</p></div>';document.getElementById('lhTotal').textContent='0';document.getElementById('lhUsers').textContent='0';document.getElementById('lhAdmin').textContent='0';document.getElementById('lhLast').textContent='-';document.getElementById('lhCnt').textContent='0';return}
+const e=Object.values(v).sort((a,b)=>new Date(b.loginTime)-new Date(a.loginTime));
+document.getElementById('lhTotal').textContent=e.length;document.getElementById('lhUsers').textContent=new Set(e.map(x=>x.email)).size;document.getElementById('lhAdmin').textContent=e.filter(x=>x.isAdmin).length;document.getElementById('lhLast').textContent=e[0]?ago(e[0].loginTime):'-';document.getElementById('lhCnt').textContent=e.length;
+document.getElementById('loginHistoryList').innerHTML=e.slice(0,100).map(x=>{const i=(x.name||x.email||'?').charAt(0).toUpperCase();const a=x.photo?('<img src="'+x.photo+'" alt="avatar">'):i;const t=x.isAdmin?'<span class="admin-tag"><i class="fas fa-crown"></i> ADMIN</span>':'';
+return '<div class="login-history-card"><div class="login-history-header"><div class="login-avatar">'+a+'</div><div class="login-info"><div class="login-name">'+esc(x.name||'Unknown')+' '+t+'</div><div class="login-email">'+esc(x.email||'Unknown')+'</div></div></div><div class="login-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+formatDate(x.loginTime)+'</span><span><span class="icon"><i class="fas fa-globe"></i></span>'+esc(x.ip||'Unknown')+'</span><span><span class="icon"><i class="fas fa-laptop"></i></span>'+esc(parseBrowser(x.userAgent||''))+'</span><span><span class="icon"><i class="fas fa-desktop"></i></span>'+esc(x.platform||'Unknown')+'</span></div></div>'}).join('')}catch(e){document.getElementById('loginHistoryList').innerHTML='<div class="empty"><div class="icon"><i class="fas fa-exclamation-triangle"></i></div><h4>ERROR</h4><p>Gagal memuat data: '+esc(e.message)+'</p></div>'}}
+function parseBrowser(u){if(!u)return'Unknown';if(u.includes('Firefox'))return'Firefox';if(u.includes('Edg'))return'Edge';if(u.includes('Chrome'))return'Chrome';if(u.includes('Safari'))return'Safari';if(u.includes('Opera')||u.includes('OPR'))return'Opera';return'Browser'}
+function showHistDetail(ts,sn){let all=[];scripts.forEach(s=>{(s.history||[]).forEach(h=>{all.push({...h,scriptName:s.name||h.scriptName||'Unnamed'})})});
+db.ref('deleted_history').once('value').then(sn2=>{const v=sn2.val();if(v){Object.values(v).forEach(d=>{(d.history||[]).forEach(h=>{all.push({...h,scriptName:d.name||h.scriptName||'Deleted Script'})})})}
+const e=all.find(h=>h.timestamp===ts&&h.scriptName===sn);if(!e){toast('❌ Data histori tidak ditemukan','error');return}
+const al={create:'<i class="fas fa-magic"></i> SCRIPT DIBUAT',update:'<i class="fas fa-pen"></i> SCRIPT DIPERBARUI',delete:'<i class="fas fa-trash"></i> SCRIPT DIHAPUS'}[e.action]||e.action;
+const ai=e.action==='update'?'<i class="fas fa-pen"></i>':e.action==='create'?'<i class="fas fa-magic"></i>':'<i class="fas fa-trash"></i>';
+let ch='';if(e.action==='update'&&e.oldCode&&e.newCode){ch='<div class="history-detail-section"><h4>📝 PERBANDINGAN KODE</h4><div class="code-comparison"><div class="code-box"><div class="code-header old">❌ KODE LAMA</div><div class="code-content">'+esc(e.oldCode)+'</div></div><div class="code-box"><div class="code-header new">✅ KODE BARU</div><div class="code-content">'+esc(e.newCode)+'</div></div></div></div>'}
+else if(e.action==='create'&&e.newCode){ch='<div class="history-detail-section"><h4>📝 KODE SCRIPT</h4><div class="code-box"><div class="code-header new">✨ KODE</div><div class="code-content">'+esc(e.newCode)+'</div></div></div>'}
+else if(e.action==='delete'&&e.oldCode){ch='<div class="history-detail-section"><h4>📝 KODE TERAKHIR</h4><div class="code-box"><div class="code-header old">🗑️ KODE</div><div class="code-content">'+esc(e.oldCode)+'</div></div></div>'}
+const dh=e.diff&&e.diff.length>0?'<div class="history-detail-section"><h4>📊 DETAIL PERUBAHAN</h4><div class="diff-box">'+e.diff.map(d=>{if(d.type==='added')return '<div><span class="diff-added">+ Baris '+d.line+':</span> '+esc(d.text.substring(0,120))+(d.text.length>120?'...':'')+'</div>';if(d.type==='removed')return '<div><span class="diff-removed">- Baris '+d.line+':</span> '+esc(d.text.substring(0,120))+(d.text.length>120?'...':'')+'</div>';return ''}).join('')+'</div></div>':'';
+document.getElementById('histDetailContent').innerHTML='<div class="history-detail-header"><div class="history-detail-icon">'+ai+'</div><div><div class="history-detail-title">'+esc(e.scriptName)+'</div><div class="history-detail-subtitle">'+al+'</div></div></div><div class="history-detail-section"><h4><i class="fas fa-user"></i> INFORMASI EDITOR</h4><div class="history-detail-grid"><div class="history-detail-item"><label>NAMA EDITOR</label><span>'+esc(e.editor||'-')+'</span></div><div class="history-detail-item"><label>EMAIL GOOGLE</label><span>'+esc(e.email||'-')+'</span></div><div class="history-detail-item"><label>IP ADDRESS</label><span>'+esc(e.ip||'-')+'</span></div><div class="history-detail-item"><label>WAKTU AKSI</label><span>'+formatDate(e.timestamp)+'</span></div></div></div>'+dh+ch;
 document.getElementById('histDetailOverlay').classList.add('show')})}
 function closeHistDetail(){document.getElementById('histDetailOverlay').classList.remove('show')}
 function newS(){editId=null;document.getElementById('sName').value='';document.getElementById('sAuthor').value=currentUser.name||'';document.getElementById('sDesc').value='';document.getElementById('sCode').value='';document.getElementById('edTitle').textContent='SCRIPT BARU';document.getElementById('bDel').style.display='none';const p=document.querySelector('input[name="sVis"][value="public"]');if(p)p.checked=true;updateStats();openEditor()}
 function editS(id){const s=scripts.find(x=>x&&x.id===id);if(!s){toast('❌ Script tidak ditemukan','error');return}if(!isAdmin()&&s.ownerEmail!==currentUser.email){toast('⛔ Hanya pemilik atau admin yang bisa edit','error');return}editId=id;document.getElementById('sName').value=s.name||'';document.getElementById('sAuthor').value=s.author||'';document.getElementById('sDesc').value=s.desc||'';document.getElementById('sCode').value=s.code||'';document.getElementById('edTitle').textContent='EDIT: '+(s.name||'Unnamed');document.getElementById('bDel').style.display='inline-flex';const vv=s.isPublic===false?'private':'public';const vr=document.querySelector('input[name="sVis"][value="'+vv+'"]');if(vr)vr.checked=true;updateStats();openEditor()}
 function updateStats(){const c=document.getElementById('sCode').value;document.getElementById('cCnt').textContent=c.length.toLocaleString('id-ID');document.getElementById('lCnt').textContent=c?c.split('\n').length:0}
-async function saveS(){const name=document.getElementById('sName').value.trim();const author=document.getElementById('sAuthor').value.trim();const desc=document.getElementById('sDesc').value.trim();const code=document.getElementById('sCode').value;if(!name){toast('Nama wajib diisi','error');return}if(!code){toast('Code kosong','error');return}const vc=document.querySelector('input[name="sVis"]:checked');const isPublic=vc?(vc.value!=='private'):true;const now=new Date().toISOString();let toSave;
-if(editId){const i=scripts.findIndex(s=>s&&s.id===editId);if(i>=0){if(!isAdmin()&&scripts[i].ownerEmail!==currentUser.email){toast('⛔ Hanya pemilik atau admin yang bisa edit','error');return}const old={...scripts[i]};scripts[i]={...scripts[i],name,author,desc,code,isPublic,updated:now};pushHistory(scripts[i],buildHistoryEntry('update',name,old,scripts[i]));toSave=scripts[i]}}
-else{const ns={id:'s_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),name,author,desc,code,isPublic,created:now,updated:now,ownerEmail:currentUser.email,ownerName:currentUser.name,history:[]};pushHistory(ns,buildHistoryEntry('create',name,null,ns));scripts.push(ns);editId=ns.id;toSave=ns}
-try{toast('Menyimpan ke Firebase...','info');await FIREBASE.save(toSave);document.getElementById('edTitle').textContent=name;document.getElementById('bDel').style.display='inline-flex';renderAll();toast(isPublic?'✅ Tersimpan (PUBLIK)':'🔒 Tersimpan (PRIVATE)','success');setTimeout(()=>{closeEditor()},600)}catch(e){toast('❌ Gagal: '+e.message,'error')}}
-function quickCopy(id){const s=scripts.find(x=>x&&x.id===id);if(!s){toast('Script tidak ditemukan','error');return}const code=buildCode(s);navigator.clipboard.writeText(code).then(()=>toast('✅ Script di-copy','success')).catch(()=>{fallbackCopy(code);toast('✅ Script di-copy','success')})}
+async function saveS(){const n=document.getElementById('sName').value.trim();const a=document.getElementById('sAuthor').value.trim();const d=document.getElementById('sDesc').value.trim();const c=document.getElementById('sCode').value;if(!n){toast('Nama wajib diisi','error');return}if(!c){toast('Code kosong','error');return}const vc=document.querySelector('input[name="sVis"]:checked');const ip=vc?(vc.value!=='private'):true;const now=new Date().toISOString();let ts;
+if(editId){const i=scripts.findIndex(s=>s&&s.id===editId);if(i>=0){if(!isAdmin()&&scripts[i].ownerEmail!==currentUser.email){toast('⛔ Hanya pemilik atau admin yang bisa edit','error');return}const o={...scripts[i]};scripts[i]={...scripts[i],name:n,author:a,desc:d,code:c,isPublic:ip,updated:now};pushHistory(scripts[i],buildHistoryEntry('update',n,o,scripts[i]));ts=scripts[i]}}
+else{const ns={id:'s_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),name:n,author:a,desc:d,code:c,isPublic:ip,created:now,updated:now,ownerEmail:currentUser.email,ownerName:currentUser.name,history:[]};pushHistory(ns,buildHistoryEntry('create',n,null,ns));scripts.push(ns);editId=ns.id;ts=ns}
+try{toast('Menyimpan ke Firebase...','info');await FIREBASE.save(ts);document.getElementById('edTitle').textContent=n;document.getElementById('bDel').style.display='inline-flex';renderAll();toast(ip?'✅ Tersimpan (PUBLIK)':'🔒 Tersimpan (PRIVATE)','success');setTimeout(()=>{closeEditor()},600)}catch(e){toast('❌ Gagal: '+e.message,'error')}}
+function quickCopy(id){const s=scripts.find(x=>x&&x.id===id);if(!s){toast('Script tidak ditemukan','error');return}const c=buildCode(s);navigator.clipboard.writeText(c).then(()=>toast('✅ Script di-copy','success')).catch(()=>{fallbackCopy(c);toast('✅ Script di-copy','success')})}
 function copyCode(){const c=document.getElementById('sCode').value;if(c){navigator.clipboard.writeText(c).then(()=>toast('✅ Disalin ke clipboard','success')).catch(()=>{fallbackCopy(c);toast('✅ Disalin','success')})}else{toast('Code kosong','error')}}
 async function sync(){try{toast('Syncing dari Firebase...','info');scripts=await FIREBASE.load();await loadPortalConfig();await loadUserPortalPin();renderAll();renderPortalMenus();toast('✅ Sync OK ('+scripts.length+' script)','success')}catch(e){toast('❌ Gagal: '+e.message,'error')}}
 function esc(t){if(!t)return'';return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function ago(d){if(!d)return'-';const s=(Date.now()-new Date(d).getTime())/1000;if(s<60)return'baru saja';if(s<3600)return Math.floor(s/60)+'m lalu';if(s<86400)return Math.floor(s/3600)+'j lalu';if(s<2592000)return Math.floor(s/86400)+'h lalu';return new Date(d).toLocaleDateString('id-ID')}
-function formatDate(iso){if(!iso)return'-';return new Date(iso).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})}
-function toast(msg,type){type=type||'info';const w=document.getElementById('toasts');const el=document.createElement('div');el.className='toast '+type;const im={success:'<i class="fas fa-check-circle"></i>',error:'<i class="fas fa-times-circle"></i>',info:'<i class="fas fa-info-circle"></i>',warning:'<i class="fas fa-exclamation-triangle"></i>',delete:'<i class="fas fa-trash-alt"></i>'};el.innerHTML='<span class="icon">'+(im[type]||'')+'</span><span>'+esc(msg)+'</span><div class="toast-progress"></div>';w.appendChild(el);setTimeout(()=>{el.style.animation='toastSlideIn 0.3s reverse';setTimeout(()=>el.remove(),300)},3500)}
-/* ===== MANAJEMEN MENU (susun/tambah/sembunyi/hapus) ===== */
-function iconOptions(sel){return ICON_LIST.map(i=>'<option value="'+i+'"'+(i===sel?' selected':'')+'>'+i+'</option>').join('')}
-function renderMenuManage(){const host=document.getElementById('menuManageList');if(!host)return;
-const menus=portalConfig.menus;
-host.innerHTML=menus.map((m,idx)=>'<div class="menu-manage-row">'+
-'<button class="btn-icon" onclick="moveMenu('+idx+',-1)" title="Naik">▲</button>'+
-'<button class="btn-icon" onclick="moveMenu('+idx+',1)" title="Turun">▼</button>'+
-'<button class="btn-icon" onclick="toggleHide('+idx+')" title="Sembunyi/Tampil">'+(m.hidden?'🙈':'')+'</button>'+
-(m.custom?'<button class="btn-icon" onclick="removeMenu('+idx+')" title="Hapus">🗑</button>':'')+
-'<input class="input-field" style="flex:1;min-width:120px" value="'+esc(m.name)+'" oninput="editMenu('+idx+',\'name\',this.value)" placeholder="Nama">'+
-'<input class="input-field" style="flex:1;min-width:140px" value="'+esc(m.link||'')+'" oninput="editMenu('+idx+',\'link\',this.value)" placeholder="https://...">'+
-'<select class="input-field" style="width:130px" onchange="editMenu('+idx+',\'icon\',this.value)">'+iconOptions(m.icon)+'</select>'+
-'</div>').join('')}
-function moveMenu(idx,dir){const m=portalConfig.menus;const j=idx+dir;if(j<0||j>=m.length)return;const t=m[idx];m[idx]=m[j];m[j]=t;renderMenuManage();renderPortalMenus()}
-function toggleHide(idx){const m=portalConfig.menus[idx];m.hidden=!m.hidden;renderMenuManage();renderPortalMenus()}
-function removeMenu(idx){const m=portalConfig.menus[idx];if(!m.custom){toast('⛔ Menu bawaan tidak bisa dihapus (gunakan 🙈 untuk sembunyikan)','warning');return}portalConfig.menus.splice(idx,1);renderMenuManage();renderPortalMenus()}
-function editMenu(idx,field,val){portalConfig.menus[idx][field]=val;if(field!=='icon')renderPortalMenus()}
-function addMenu(){const name=(document.getElementById('addName').value||'').trim();const link=(document.getElementById('addLink').value||'').trim();const icon=document.getElementById('addIcon').value;const cat=document.getElementById('addCat').value||'MENU CUSTOM';
-if(!name){toast('Nama menu wajib diisi','error');return}
-portalConfig.menus.push({id:'custom_'+Date.now(),cat,name,link:link||'#',icon,custom:true});
-document.getElementById('addName').value='';document.getElementById('addLink').value='';
-renderMenuManage();renderPortalMenus();toast('✅ Menu "'+name+'" ditambahkan','success')}
-async function openPortalSettings(){if(!isAdmin()){toast('⛔ Hanya admin yang bisa mengubah pengaturan portal','error');return}
-await loadUserPortalPin();currentPortalPinInput='';document.querySelectorAll('.portal-pin').forEach(i=>i.value='');document.getElementById('portalPinError').textContent='';document.getElementById('portalPinOverlay').classList.add('show');setTimeout(()=>{const f=document.querySelector('.portal-pin[data-index="0"]');if(f)f.focus()},100)}
+function formatDate(i){if(!i)return'-';return new Date(i).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})}
+function toast(m,t){t=t||'info';const w=document.getElementById('toasts');const el=document.createElement('div');el.className='toast '+t;const im={success:'<i class="fas fa-check-circle"></i>',error:'<i class="fas fa-times-circle"></i>',info:'<i class="fas fa-info-circle"></i>',warning:'<i class="fas fa-exclamation-triangle"></i>',delete:'<i class="fas fa-trash-alt"></i>'};el.innerHTML='<span class="icon">'+(im[t]||'')+'</span><span>'+esc(m)+'</span><div class="toast-progress"></div>';w.appendChild(el);setTimeout(()=>{el.style.animation='toastSlideIn 0.3s reverse';setTimeout(()=>el.remove(),300)},3500)}
+async function openPortalSettings(){if(!isAdmin()){toast('⛔ Hanya admin yang bisa mengubah pengaturan portal','error');return}await loadUserPortalPin();currentPortalPinInput='';document.querySelectorAll('.portal-pin').forEach(i=>i.value='');document.getElementById('portalPinError').textContent='';document.getElementById('portalPinOverlay').classList.add('show');setTimeout(()=>{const f=document.querySelector('.portal-pin[data-index="0"]');if(f)f.focus()},100)}
 function closePortalPin(){document.getElementById('portalPinOverlay').classList.remove('show');currentPortalPinInput='';document.querySelectorAll('.portal-pin').forEach(i=>i.value='')}
 function clearPortalPin(){currentPortalPinInput='';document.querySelectorAll('.portal-pin').forEach(i=>i.value='');document.getElementById('portalPinError').textContent='';const f=document.querySelector('.portal-pin[data-index="0"]');if(f)f.focus()}
-function submitPortalPin(){const correct=portalPin||DEFAULT_PORTAL_PIN;if(currentPortalPinInput===correct){closePortalPin();showPortalSettingsForm();toast('✅ PIN Benar - Akses Diberikan','success')}else{document.getElementById('portalPinError').textContent='❌ PIN Salah!';clearPortalPin()}}
+function submitPortalPin(){const c=portalPin||DEFAULT_PORTAL_PIN;if(currentPortalPinInput===c){closePortalPin();showPortalSettingsForm();toast('✅ PIN Benar - Akses Diberikan','success')}else{document.getElementById('portalPinError').textContent='❌ PIN Salah!';clearPortalPin()}}
+function catOptions(cur){const cats=[];portalConfig.menus.forEach(m=>{if(!cats.includes(m.cat))cats.push(m.cat)});if(!cats.includes('LAINNYA'))cats.push('LAINNYA');return cats.map(c=>'<option '+(c===cur?'selected':'')+'>'+esc(c)+'</option>').join('')}
 function showPortalSettingsForm(){const form=document.getElementById('portalSettingsForm');form.innerHTML='';
-const manage=document.createElement('div');manage.className='settings-panel';
-const cats=[...new Set(portalConfig.menus.map(m=>m.cat))];if(!cats.includes('MENU CUSTOM'))cats.push('MENU CUSTOM');
-manage.innerHTML='<h3 class="settings-panel-title">🗂️ SUSUN & TAMBAH MENU</h3><p style="font-size:10px;color:var(--text-muted);margin-bottom:10px">▲▼ geser urutan · 👁 sembunyikan · 🗑 hapus (menu custom) · edit nama/link/ikon langsung</p><div id="menuManageList"></div>'+
-'<div style="margin-top:14px;border-top:1px dashed var(--border-subtle);padding-top:12px"><b style="color:var(--neon-cyan);font-size:11px;letter-spacing:1px">＋ TAMBAH MENU BARU</b>'+
-'<div class="portal-input-row" style="margin-top:10px"><div class="portal-input-group"><label>Nama Menu</label><input id="addName" class="input-field" maxlength="60" placeholder="Nama menu"></div><div class="portal-input-group"><label>Link URL</label><input id="addLink" class="input-field" placeholder="https://..."></div></div>'+
-'<div class="portal-input-row"><div class="portal-input-group"><label>Ikon</label><select id="addIcon" class="input-field">'+iconOptions('fas fa-link')+'</select></div><div class="portal-input-group"><label>Kategori</label><select id="addCat" class="input-field">'+cats.map(c=>'<option>'+esc(c)+'</option>').join('')+'</select></div></div>'+
-'<button class="btn btn-primary" onclick="addMenu()" style="width:100%"><i class="fas fa-plus"></i> TAMBAH MENU</button></div>';
-form.appendChild(manage);
-const pinGroup=document.createElement('div');pinGroup.className='settings-panel';
-pinGroup.innerHTML='<h3 class="settings-panel-title">GANTI PIN PORTAL</h3><div class="input-wrapper"><label class="input-label">PIN Baru (4 digit)</label><input type="password" id="newPortalPinInput" class="input-field" maxlength="4" placeholder="Biarkan kosong jika tidak diubah"></div>';
-form.appendChild(pinGroup);
-renderMenuManage();
+const panel=document.createElement('div');panel.className='settings-panel';
+panel.innerHTML='<h3 class="settings-panel-title">📋 SUSUN & TAMBAH MENU PORTAL</h3><p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">Gunakan ↑ ↓ untuk mengurutkan, pilih kategori untuk memindah, centang "Sembunyi" untuk menyembunyikan menu, ✕ untuk hapus menu custom. Klik <b>SIMPAN</b> setelah selesai.</p><div id="menuEditList"></div><button class="btn btn-primary" id="btnAddMenu" style="margin-top:8px"><i class="fas fa-plus"></i> TAMBAH MENU</button>';
+form.appendChild(panel);
+const list=panel.querySelector('#menuEditList');
+portalConfig.menus.forEach((m,i)=>{
+const row=document.createElement('div');row.className='menu-edit-row';
+row.innerHTML='<button class="btn btn-ghost" data-act="up" data-i="'+i+'" style="padding:4px 8px">↑</button>'+
+'<button class="btn btn-ghost" data-act="down" data-i="'+i+'" style="padding:4px 8px">↓</button>'+
+'<input class="input-field" data-f="icon" data-i="'+i+'" value="'+esc(m.icon||'')+'" style="width:70px" title="Icon (emoji / fas fa-...)">'+
+'<input class="input-field" data-f="name" data-i="'+i+'" value="'+esc(m.name)+'" placeholder="Nama menu" style="flex:1;min-width:110px">'+
+'<input class="input-field" data-f="link" data-i="'+i+'" value="'+esc(m.link)+'" placeholder="https://... (# = soon)" style="flex:1;min-width:130px">'+
+'<select class="input-field" data-f="cat" data-i="'+i+'" style="width:auto">'+catOptions(m.cat)+'</select>'+
+'<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary)"><input type="checkbox" data-f="hide" data-i="'+i+'" '+(m.hide?'checked':'')+'> Sembunyi</label>'+
+(m.custom?'<button class="btn btn-danger" data-act="del" data-i="'+i+'" style="padding:4px 8px">✕</button>':'');
+list.appendChild(row)});
+list.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const i=+b.dataset.i;const act=b.dataset.act;
+if(act==='up'&&i>0){[portalConfig.menus[i-1],portalConfig.menus[i]]=[portalConfig.menus[i],portalConfig.menus[i-1]];showPortalSettingsForm()}
+if(act==='down'&&i<portalConfig.menus.length-1){[portalConfig.menus[i+1],portalConfig.menus[i]]=[portalConfig.menus[i],portalConfig.menus[i+1]];showPortalSettingsForm()}
+if(act==='del'){portalConfig.menus.splice(i,1);showPortalSettingsForm()}});
+list.addEventListener('input',e=>{const f=e.target.dataset.f;if(!f)return;const i=+e.target.dataset.i;const m=portalConfig.menus[i];if(!m)return;
+if(f==='hide')m.hide=e.target.checked;else m[f]=e.target.value});
+panel.querySelector('#btnAddMenu').onclick=()=>{portalConfig.menus.push({id:'custom-'+Date.now(),cat:'LAINNYA',name:'MENU BARU',link:'#',icon:'🔗',custom:true,hide:false});showPortalSettingsForm()};
+const pin=document.createElement('div');pin.className='settings-panel';
+pin.innerHTML='<h3 class="settings-panel-title">GANTI PIN PORTAL</h3><div class="input-wrapper"><label class="input-label">PIN Baru (4 digit)</label><input type="password" id="newPortalPinInput" class="input-field" maxlength="4" placeholder="Biarkan kosong jika tidak diubah"></div>';
+form.appendChild(pin);
 document.getElementById('portalSettingsOverlay').classList.add('show')}
 function closePortalSettings(){document.getElementById('portalSettingsOverlay').classList.remove('show')}
-async function savePortalSettings(){try{
-if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');
-const newPin=document.getElementById('newPortalPinInput');
-if(newPin&&newPin.value.trim()){await saveUserPortalPin(newPin.value.trim());toast('✅ PIN portal disimpan','success')}
-await savePortalConfigToFirebase('manual save');
-renderPortalMenus();closePortalSettings();toast('✅ Pengaturan Portal tersimpan di Firebase','success');
-}catch(e){toast('❌ Gagal menyimpan: '+e.message,'error')}}
-async function resetPortalLinks(){if(!confirm('Reset semua menu & link ke default?'))return;try{
-if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');
-portalConfig.links={...defaultPortalLinks};portalConfig.menus=[...defaultMenus];
-await savePortalConfigToFirebase('reset');renderPortalMenus();showPortalSettingsForm();toast('✅ Menu & link direset!','success');
-}catch(e){toast('❌ Gagal reset: '+e.message,'error')}}
+async function savePortalSettings(){try{if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');
+portalConfig.menus.forEach(m=>{m.name=(m.name||'').trim()||'MENU';m.link=(m.link||'').trim()||'#'});
+const np=document.getElementById('newPortalPinInput');if(np&&np.value.trim()){await saveUserPortalPin(np.value.trim());toast('✅ PIN portal disimpan','success')}
+await savePortalConfigToFirebase('manual save');renderPortalMenus();closePortalSettings();toast('✅ Pengaturan Portal tersimpan','success')}catch(e){toast('❌ Gagal menyimpan: '+e.message,'error')}}
+async function resetPortalLinks(){if(!confirm('Reset semua menu & link ke default?'))return;try{if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');portalConfig.links={...defaultPortalLinks};portalConfig.menus=DEFAULT_MENUS.map(m=>({...m}));await savePortalConfigToFirebase('reset');renderPortalMenus();showPortalSettingsForm();toast('✅ Menu & link direset!','success')}catch(e){toast('❌ Gagal reset: '+e.message,'error')}}
 function openClearLoginHistory(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}document.getElementById('clearLoginHistoryOverlay').classList.add('show')}
 function closeClearLoginHistory(){document.getElementById('clearLoginHistoryOverlay').classList.remove('show')}
-async function clearLoginHistoryAll(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus SEMUA histori login?\nAksi ini tidak dapat dibatalkan.'))return;try{toast('🧹 Menghapus semua histori login...','delete');const snap=await db.ref('login_history').once('value');const val=snap.val();if(!val){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const up={};let c=0;Object.keys(val).forEach(k=>{up[k]=null;c++});await db.ref('login_history').update(up);closeClearLoginHistory();toast('✅ '+c+' histori login dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
-async function clearLoginHistoryNonAdmin(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus login NON-ADMIN?\nLogin admin tetap disimpan.'))return;try{toast('🧹 Menghapus login non-admin...','delete');const snap=await db.ref('login_history').once('value');const val=snap.val();if(!val){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const up={};let c=0;Object.entries(val).forEach(([k,it])=>{if(!it||!it.isAdmin){up[k]=null;c++}});if(c===0){closeClearLoginHistory();toast('ℹ️ Tidak ada login non-admin','info');return}await db.ref('login_history').update(up);closeClearLoginHistory();toast('✅ '+c+' login non-admin dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
-async function clearLoginHistoryOld(days){days=days||7;if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus login lebih dari '+days+' hari?\nTidak dapat dibatalkan.'))return;try{toast('🧹 Menghapus login lama...','delete');const cutoff=Date.now()-(days*24*60*60*1000);const snap=await db.ref('login_history').once('value');const val=snap.val();if(!val){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const up={};let c=0;Object.entries(val).forEach(([k,it])=>{const lt=it&&it.loginTime?new Date(it.loginTime).getTime():0;if(lt&&lt<cutoff){up[k]=null;c++}});if(c===0){closeClearLoginHistory();toast('ℹ️ Tidak ada login lama','info');return}await db.ref('login_history').update(up);closeClearLoginHistory();toast('✅ '+c+' login lama dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
+async function clearLoginHistoryAll(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus SEMUA histori login?\nAksi ini tidak dapat dibatalkan.'))return;try{toast('🧹 Menghapus semua histori login...','delete');const sn=await db.ref('login_history').once('value');const v=sn.val();if(!v){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const u={};let c=0;Object.keys(v).forEach(k=>{u[k]=null;c++});await db.ref('login_history').update(u);closeClearLoginHistory();toast('✅ '+c+' histori login dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
+async function clearLoginHistoryNonAdmin(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus login NON-ADMIN?\nLogin admin tetap disimpan.'))return;try{toast('🧹 Menghapus login non-admin...','delete');const sn=await db.ref('login_history').once('value');const v=sn.val();if(!v){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const u={};let c=0;Object.entries(v).forEach(([k,it])=>{if(!it||!it.isAdmin){u[k]=null;c++}});if(c===0){closeClearLoginHistory();toast('ℹ️ Tidak ada login non-admin','info');return}await db.ref('login_history').update(u);closeClearLoginHistory();toast('✅ '+c+' login non-admin dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
+async function clearLoginHistoryOld(days){days=days||7;if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus login lebih dari '+days+' hari?\nTidak dapat dibatalkan.'))return;try{toast('🧹 Menghapus login lama...','delete');const cut=Date.now()-(days*24*60*60*1000);const sn=await db.ref('login_history').once('value');const v=sn.val();if(!v){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const u={};let c=0;Object.entries(v).forEach(([k,it])=>{const lt=it&&it.loginTime?new Date(it.loginTime).getTime():0;if(lt&&lt<cut){u[k]=null;c++}});if(c===0){closeClearLoginHistory();toast('ℹ️ Tidak ada login lama','info');return}await db.ref('login_history').update(u);closeClearLoginHistory();toast('✅ '+c+' login lama dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){['editorOverlay','tmHelpOverlay','histDetailOverlay','portalSettingsOverlay','portalPinOverlay','deleteConfirmOverlay','clearLoginHistoryOverlay'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('show')})}});
 </script>
 </body>
