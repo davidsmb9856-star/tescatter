@@ -507,15 +507,11 @@ function copyCode(){copyText($('sCode').value)}
 function copyText(t){navigator.clipboard.writeText(t).then(()=>toast('✅ Disalin','success')).catch(()=>toast('❌ Gagal','error'))}
 async function sync(){scripts=await db.ref('scripts').once('value').then(s=>{const v=s.val();return v?Object.values(v).filter(x=>x&&x.id):[]});renderAll();toast('✅ Sync OK','success')}
 function forceClean(){renderAll();toast('✅ Clean selesai','success')}
-/* ================= CATATAN ================= */
-let currentFolder='KENDALA ALL',lightboxImages=[],lightboxIndex=0;
 function loadNotes(f){currentFolder=f;$('judulCatatan').textContent='💫 '+f;google.script.run.withSuccessHandler(renderNotes).getNotes(f)}
 function renderNotes(notes){const c=$('notesList');lightboxImages=[];if(currentFolder==='FOTO'){c.className='foto-gallery';c.innerHTML=notes.map((n,i)=>{lightboxImages.push(n.content);return `<div class="foto-card"><img src="${esc(n.content)}" onclick="openLB(${i})"><div class="foto-title">${esc(n.title)}</div><button class="copy-button" onclick="event.stopPropagation();copyText('${esc(n.content)}')">Copy Foto</button></div>`}).join('');return}
  c.className='';c.innerHTML=notes.map(n=>`<div class="note-item"><div class="note-title">${esc(n.title)}</div><div class="note-content-preview">${esc((n.content||'').slice(0,120))}</div></div>`).join('')}
 function searchNotes(){const q=$('searchInput').value.toLowerCase();document.querySelectorAll('#notesList .note-item,.foto-card').forEach(c=>{c.style.display=c.innerText.toLowerCase().includes(q)?'':'none'})}
 function openLB(i){lightboxIndex=i;/* lightbox sederhana */const w=window.open(lightboxImages[i],'_blank')}
-/* ================= PREDIKSI & OCR ================= */
-let allPasaranList=[],kelompokData={};
 function membacaIsiFoto_prosesLink(){const l=$('membacaIsiFoto_input').value.trim();if(!l)return;$('membacaIsiFoto_modal').style.display='flex';$('membacaIsiFoto_gambar').src=l;$('membacaIsiFoto_hasil').innerText='⏳ Memindai...';
  if(typeof Tesseract!=='undefined')Tesseract.recognize(l,'eng').then(({data})=>{$('membacaIsiFoto_hasil').innerText=data.text||'Tidak terbaca'}).catch(()=>{$('membacaIsiFoto_hasil').innerText='❌ Gagal baca'})}
 function membacaIsiFoto_tutup(){$('membacaIsiFoto_modal').style.display='none'}
@@ -555,8 +551,6 @@ function copySemuaData(){copyText(['bonusUserid1','bonusScatter1_1','bonusScatte
 function hapusSemuaData(){['bonusUserid1','bonusScatter1_1','bonusScatter2_1','bonusScatter3_1','bonusRekening1','bonusKodeTransaksi1','bonusUserid2','bonusScatter1_2','bonusScatter2_2','bonusScatter3_2','bonusRekening2','bonusKodeTransaksi2'].forEach(i=>$(i).value='')}
 /* ================= HADIAH ================= */
 function showHadiahTab(){google.script.run.withSuccessHandler(res=>{const c=$('hadiahContainer');c.innerHTML='';(res.data||[]).forEach(g=>{const box=document.createElement('div');box.className='hadiah-box';box.innerHTML=`<details><summary>${esc(g.judul)}</summary><div class="tabel-dua-kolom"><table><tr><th>Nama</th><th>Hadiah</th><th>Diskon</th></tr>${g.items.map(it=>`<tr><td>${esc(it.nama)}</td><td>${esc(it.hadiah)}</td><td>${esc(it.diskon||'NO DISCOUNT')}</td></tr>`).join('')}</table></div></details>`;c.appendChild(box)})}).getPengaturanTogelLengkap()}
-/* ================= REPORT ================= */
-let reportData=[];
 function loadReportLineData(){google.script.run.withSuccessHandler(res=>{reportData=res.data||[];displayReport()}).getReportLineData()}
 function displayReport(){$('reportLineCardContainer').innerHTML=reportData.map(r=>`<div class="report-card"><div class="card-accordion-title" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">${esc(r.colA)||'[Kosong]'}</div><div class="card-content-panel" style="display:none"><div class="report-field-group"><label>MEMO/REPORT</label><div class="report-display-value">${esc(r.colB)}</div></div><div class="report-field-group"><label>POST KE ADMIN</label><div class="report-display-value">${esc(r.colC)}</div></div><div class="report-field-group"><label>REPORT KE LINE</label><div class="report-display-value">${esc(r.colD)}</div></div></div></div>`).join('')||'<div class="empty">Tidak ada</div>'}
 function searchReportLine(){const q=$('reportSearch').value.toLowerCase();document.querySelectorAll('#reportLineCardContainer .report-card').forEach(c=>c.style.display=c.textContent.toLowerCase().includes(q)?'':'none')}
@@ -843,24 +837,41 @@ function setTextColor(color) {
   updatable.forEach(el => el.style.color = color);
 }
 
-// ===================================
-// === VARIABEL GLOBAL ===
-// ===================================
-let currentFolder = 'DEPOSIT';
-let allNotes = [];
+let currentUser = null;
+let scripts = [];
+let editId = null;
+let currentSection = 'portal';
+
+let currentFolder = 'KENDALA ALL';
 let allPasaranList = [];
-let lastPrediksiIndex = "";
-let lastJadwalIndex = "";
 let kelompokData = {};
-let lastKelompok = "";
-let lastLabel = "";
 let lightboxImages = [];
 let lightboxIndex = 0;
-let zoomLevel = 1;
-let offsetX = 0, offsetY = 0;
-let isDragging = false;
-let startX = 0, startY = 0;
+let reportData = [];
 
+let lastPrediksiIndex = "";
+let lastJadwalIndex = "";
+let lastKelompok = "";
+let lastLabel = "";
+
+let zoomLevel = 1;
+let offsetX = 0;
+let offsetY = 0;
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+
+let editIndex = null;
+let imageList = [];
+let currentImageIndex = 0;
+let focusRowIndex = null;
+
+let bonusAllPackagesData = [];
+let bonusCurrentPackageIndex = 0;
+let isBonusZoomOpen = false;
+
+let conversationHistory = [];
+const MAX_HISTORY = 10;
 // ===================================
 // === FUNGSI UTAMA & INISIALISASI ===
 // ===================================
@@ -1942,11 +1953,6 @@ function updateNominalTogel() {
         .updateNominalTogel(nominal);
 }
 
-let editIndex = null;
-let imageList = [];
-let currentImageIndex = 0;
-let reportData = [];
-let focusRowIndex = null;
 window.gambarLinks = [];
 
 // ===================================
