@@ -348,8 +348,10 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 .jawaban-label{font-size:10px;font-weight:700;color:var(--neon-cyan);letter-spacing:1px;text-transform:uppercase;font-family:'Space Grotesk',sans-serif;flex-shrink:0;background:rgba(70,130,180,.15);padding:3px 8px;border-radius:5px;border:1px solid rgba(70,130,180,.3)}
 .jawaban-text{flex:1;font-size:12px;color:var(--text-primary);line-height:1.5;word-break:break-word;font-weight:500}
 .jawaban-actions{display:flex;gap:4px}
-.jawaban-actions .btn-mini{padding:4px 8px;font-size:9px;background:var(--field-bg);border:1px solid var(--border-normal);color:var(--text-tertiary);border-radius:5px;cursor:pointer;transition:var(--transition);font-family:'Inter',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-.jawaban-actions .btn-mini:hover{color:var(--neon-cyan);border-color:var(--neon-cyan);background:rgba(70,130,180,.1)}
+.jawaban-actions .btn-mini{padding:6px 10px;font-size:9px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));border:1px solid rgba(70,130,180,.4);color:#fff;border-radius:5px;cursor:pointer;transition:var(--transition);font-family:'Inter',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:4px}
+.jawaban-actions .btn-mini:hover{transform:scale(1.05);box-shadow:0 0 10px rgba(70,130,180,.4)}
+.jawaban-actions .btn-mini.danger{background:linear-gradient(135deg,var(--neon-red),#8f1d1d);border-color:rgba(198,40,40,.4)}
+.jawaban-actions .btn-mini.danger:hover{box-shadow:0 0 10px rgba(198,40,40,.4)}
 .kendala-meta{display:flex;gap:14px;font-size:10px;color:var(--text-tertiary);margin-top:12px;padding-top:10px;border-top:1px dashed var(--border-subtle);flex-wrap:wrap}
 .kendala-meta span{display:flex;align-items:center;gap:5px}
 .kendala-meta .icon{font-size:11px;color:var(--neon-cyan)}
@@ -394,6 +396,16 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 .notif-footer .time{font-family:'JetBrains Mono',monospace}
 .notif-empty{text-align:center;padding:40px 20px;background:var(--field-bg);border:1px dashed var(--border-normal);border-radius:var(--radius-md);color:var(--text-tertiary);font-size:12px}
 .notif-empty i{font-size:32px;opacity:.4;margin-bottom:10px;display:block;color:var(--neon-cyan)}
+
+/* ============ SEARCH BAR STYLES ============ */
+.section-search-bar{display:flex;gap:10px;align-items:center;margin-bottom:14px;padding:10px 14px;background:var(--field-bg);border:1px solid var(--border-subtle);border-radius:var(--radius-md);transition:var(--transition)}
+.section-search-bar:focus-within{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(70,130,180,.1)}
+.section-search-bar i{color:var(--neon-cyan);font-size:14px;flex-shrink:0}
+.section-search-bar input{flex:1;background:none;border:none;outline:none;color:var(--text-primary);font-size:12.5px;font-family:'Inter',sans-serif;font-weight:500}
+.section-search-bar input::placeholder{color:var(--text-muted)}
+.section-search-bar .search-info{font-size:10px;color:var(--neon-cyan);font-family:'Space Grotesk',sans-serif;font-weight:600;flex-shrink:0}
+.section-search-bar .clear-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;transition:var(--transition)}
+.section-search-bar .clear-btn:hover{color:var(--neon-red);background:rgba(198,40,40,.1)}
 
 @media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{padding:14px 16px}.content{padding:18px 16px}.search-box{width:150px}.bento{grid-template-columns:repeat(2,1fr)}.topbar h2{font-size:15px}.code-comparison{grid-template-columns:1fr}.menu-grid{grid-template-columns:1fr}.clock-time{font-size:34px}.delete-confirm-modal{max-width:95%;padding:22px}.foto-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.notif-grid{grid-template-columns:1fr}.foto-preview{height:130px}}
 </style>
@@ -518,6 +530,12 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 <button class="btn btn-primary" onclick="openKendalaForm()" style="padding:7px 14px;font-size:10.5px"><i class="fas fa-plus"></i> TAMBAH KENDALA</button>
 </div>
 </div>
+<div class="section-search-bar">
+<i class="fas fa-search"></i>
+<input type="text" id="kendalaSearch" placeholder="Cari kendala atau jawaban..." oninput="renderKendalaSection()">
+<span class="search-info" id="kendalaSearchInfo"></span>
+<button class="clear-btn" onclick="document.getElementById('kendalaSearch').value='';renderKendalaSection()"><i class="fas fa-times-circle"></i></button>
+</div>
 <div id="kendalaFormContainer"></div>
 <div id="kendalaList"></div>
 </div>
@@ -539,30 +557,26 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 <button class="btn btn-primary" onclick="openFotoForm()" style="padding:7px 14px;font-size:10.5px"><i class="fas fa-plus"></i> TAMBAH FOTO</button>
 </div>
 </div>
+<div class="section-search-bar">
+<i class="fas fa-search"></i>
+<input type="text" id="fotoSearch" placeholder="Cari foto berdasarkan judul atau deskripsi..." oninput="renderFotoSection()">
+<span class="search-info" id="fotoSearchInfo"></span>
+<button class="clear-btn" onclick="document.getElementById('fotoSearch').value='';renderFotoSection()"><i class="fas fa-times-circle"></i></button>
+</div>
 <div id="fotoFormContainer"></div>
 <div id="fotoList"></div>
 </div>
 </div></div>
 
+<!-- LOGIN HISTORY (dengan Notif Terbaru) -->
 <div class="content" id="section-login-history"><div class="container"><div id="loginHistoryContent"></div></div></div>
+
 <div class="content show" id="section-portal"><div class="container">
 <div class="clock-wrapper">
 <div class="clock-time" id="clockTime">00:00:00</div>
 <div class="clock-date" id="clockDate">Loading...</div>
 <div class="clock-day" id="clockDay">Loading...</div>
 </div>
-
-<!-- NOTIF TERBARU SECTION -->
-<section class="notif-section" style="margin-bottom:26px">
-<div class="section-header">
-<h3><span class="bar"></span><i class="fas fa-bell" style="color:var(--neon-yellow)"></i> NOTIF TERBARU</h3>
-<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-<small><span id="notifCnt">0</span> ITEM</small>
-<button class="btn btn-ghost" onclick="renderNotifTerbaru()" style="padding:6px 12px;font-size:10px"><i class="fas fa-sync"></i> Refresh</button>
-</div>
-</div>
-<div id="notifTerbaruList"></div>
-</section>
 
 <div id="portalMenus"></div>
 <section style="margin-bottom:26px;">
@@ -796,7 +810,7 @@ document.querySelectorAll('.nav-item').forEach(ni=>ni.classList.remove('active')
 if(!navEl)navEl=document.querySelector('.nav-item[data-section="'+sectionName+'"]');
 const target=document.getElementById('section-'+sectionName);if(target)target.classList.add('show');
 if(navEl)navEl.classList.add('active');
-const titles={'portal':'<i class="fas fa-rocket"></i> CYBER PORTAL','dashboard':'<i class="fas fa-chart-line"></i> DASHBOARD','scripts':'<i class="fas fa-box"></i> SCRIPT SAYA','history':'<i class="fas fa-scroll"></i> HISTORI EDIT','login-history':'<i class="fas fa-user-shield"></i> HISTORI LOGIN <span style="color:var(--neon-cyan);font-size:11px;margin-left:6px">👑 ADMIN</span>','kendala-section':'<i class="fas fa-headset"></i> ALL KENDALA','foto-section':'<i class="fas fa-camera"></i> GALERI FOTO'};
+const titles={'portal':'<i class="fas fa-rocket"></i> CYBER PORTAL','dashboard':'<i class="fas fa-chart-line"></i> DASHBOARD','scripts':'<i class="fas fa-box"></i> SCRIPT SAYA','history':'<i class="fas fa-scroll"></i> HISTORI EDIT','login-history':'<i class="fas fa-user-shield"></i> HISTORI LOGIN & NOTIF <span style="color:var(--neon-cyan);font-size:11px;margin-left:6px">👑 ADMIN</span>','kendala-section':'<i class="fas fa-headset"></i> ALL KENDALA','foto-section':'<i class="fas fa-camera"></i> GALERI FOTO'};
 document.getElementById('pageTitle').innerHTML=titles[sectionName]||titles.portal;
 const showSearch=sectionName==='scripts'||sectionName==='dashboard';
 document.getElementById('searchBox').style.display=showSearch?'flex':'none';
@@ -808,7 +822,7 @@ if(sectionName==='scripts')renderScriptsSection();
 if(sectionName==='history')renderHistorySection();
 if(sectionName==='dashboard')renderDash();
 if(sectionName==='login-history')renderLoginHistory();
-if(sectionName==='portal'){renderPortalMenus();renderNotifTerbaru()}
+if(sectionName==='portal')renderPortalMenus();
 if(sectionName==='kendala-section'){startKendalaListener();renderKendalaSection()}
 if(sectionName==='foto-section'){startFotoListener();renderFotoSection()}}
 function renderUserCard(){const c=document.getElementById('userCardContainer');if(currentUser){const initial=(currentUser.name||currentUser.email||'?').charAt(0).toUpperCase();const av=currentUser.photo?('<img src="'+currentUser.photo+'" alt="avatar">'):initial;const tag=isAdmin()?'<span style="color:var(--neon-cyan);font-size:9px;margin-left:3px" title="Administrator"><i class="fas fa-crown"></i></span>':'';c.innerHTML='<div class="user-card"><div class="user-avatar">'+av+'</div><div class="user-info"><div class="user-name">'+esc(currentUser.name||'User')+tag+'</div><div class="user-email">'+esc(currentUser.email)+' <span class="verified" title="Terverifikasi Google"><i class="fas fa-check-circle"></i></span></div></div></div>'}else{c.innerHTML=''}}
@@ -841,7 +855,7 @@ lt.textContent='LOADING SCRIPTS';
 scripts=await withRetry(()=>FIREBASE.load());
 await loadPortalConfig();await loadUserPortalPin();
 if(!appInitialized){appInitialized=true;init();startClock();startPortalListener();startFocusSync();startKendalaListener();startFotoListener()}
-renderAll();renderPortalMenus();applySettings();renderNotifTerbaru();
+renderAll();renderPortalMenus();applySettings();
 if(!userNavigated){showSection('portal')}
 setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},500);
 }catch(e){console.error(e);lt.textContent='ERROR';lt.style.color='#c62828';toast('❌ Gagal init: '+e.message,'error');setLoadingHide();setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},800)}}
@@ -853,7 +867,7 @@ ta.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='s'){e.preventDefault();
 document.querySelectorAll('.portal-pin').forEach((input,index)=>{input.addEventListener('input',e=>{currentPortalPinInput=Array.from(document.querySelectorAll('.portal-pin')).map(i=>i.value).join('');if(e.target.value&&index<3){const next=document.querySelector('.portal-pin[data-index="'+(index+1)+'"]');if(next)next.focus()}if(currentPortalPinInput.length===4){setTimeout(submitPortalPin,250)}});input.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!e.target.value&&index>0){const prev=document.querySelector('.portal-pin[data-index="'+(index-1)+'"]');if(prev)prev.focus()}})})}
 function startClock(){updateClock();if(clockInterval)clearInterval(clockInterval);clockInterval=setInterval(updateClock,1000)}
 function updateClock(){const now=new Date();const s=portalConfig.settings;const t=document.getElementById('clockTime');if(t)t.textContent=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:(s.clock24===false)});const d=document.getElementById('clockDate');if(d)d.textContent=now.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});const y=document.getElementById('clockDay');if(y)y.textContent=now.toLocaleDateString('id-ID',{weekday:'long'})}
-function renderAll(){try{renderDash()}catch(e){console.error(e)}try{renderScriptsSection()}catch(e){console.error(e)}try{renderHistorySection()}catch(e){console.error(e)}try{renderNotifTerbaru()}catch(e){console.error(e)}}
+function renderAll(){try{renderDash()}catch(e){console.error(e)}try{renderScriptsSection()}catch(e){console.error(e)}try{renderHistorySection()}catch(e){console.error(e)}}
 function renderDash(){
 const visibleScripts=scripts.filter(s=>{if(!s)return false;if(isAdmin())return true;return s.isPublic!==false});
 document.getElementById('sTot').textContent=visibleScripts.length;
@@ -891,8 +905,10 @@ if(all.length===0){c.innerHTML='<div class="empty"><div class="icon"><i class="f
 c.innerHTML=all.slice(0,50).map(h=>{const al={create:'<i class="fas fa-magic"></i> DIBUAT',update:'<i class="fas fa-pen"></i> DIPERBARUI',delete:'<i class="fas fa-trash"></i> DIHAPUS'}[h.action]||h.action;const pi=h.action==='update'?'<i class="fas fa-pen"></i>':h.action==='create'?'<i class="fas fa-magic"></i>':'<i class="fas fa-trash"></i>';const sn=(h.scriptName||'').replace(/'/g,"\\'");
 return '<div class="card"><div class="card-header"><div class="card-icon" onclick="event.stopPropagation();showHistDetail(\''+h.timestamp+'\',\''+sn+'\')" style="cursor:pointer" title="Klik untuk detail">'+pi+'</div><div class="card-body"><div class="card-title">'+esc(h.scriptName||'-')+'</div><div class="card-desc">'+al+' oleh '+esc(h.editor||'-')+' ('+esc(h.email||'-')+')</div></div></div><div class="card-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+formatDate(h.timestamp)+'</span><span><span class="icon"><i class="fas fa-user"></i></span>'+esc(h.editor||'-')+'</span><span><span class="icon"><i class="fas fa-envelope"></i></span>'+esc(h.email||'-')+'</span><span><span class="icon"><i class="fas fa-globe"></i></span>'+esc(h.ip||'-')+'</span></div></div>'}).join('')})}
 function renderLoginHistory(){const c=document.getElementById('loginHistoryContent');if(!isAdmin()){c.innerHTML='<div class="access-denied"><div class="icon"><i class="fas fa-user-shield"></i></div><h4>Akses Ditolak</h4><p>Halaman ini hanya untuk <strong style="color:var(--neon-cyan)">Administrator</strong></p></div>';return}
-c.innerHTML='<div class="bento"><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-sign-in-alt"></i></span>Total Login</div><div class="bento-value" id="lhTotal">...</div><div class="bento-sub">Semua sesi login</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-users"></i></span>User Unik</div><div class="bento-value" id="lhUsers">...</div><div class="bento-sub">Pengguna berbeda</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-crown"></i></span>Admin Login</div><div class="bento-value" id="lhAdmin">...</div><div class="bento-sub">Login oleh admin</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-clock"></i></span>Login Terakhir</div><div class="bento-value" id="lhLast" style="font-size:16px">...</div><div class="bento-sub">Waktu terakhir</div></div></div><div class="section"><div class="section-header"><h3><span class="bar"></span><i class="fas fa-user-shield"></i> LOG HISTORI LOGIN</h3><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><small><span id="lhCnt">0</span> ENTRI</small><button class="btn btn-purple" onclick="exportBackup()" style="padding:6px 12px;font-size:10px"><i class="fas fa-download"></i> BACKUP</button><button class="btn btn-danger" onclick="openClearLoginHistory()" style="padding:6px 12px;font-size:10px"><i class="fas fa-broom"></i> BERSIHKAN</button></div></div><div id="loginHistoryList" class="card-list"><div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data...</h4></div></div></div>';
-loadLoginHistoryData()}
+c.innerHTML='<div class="bento"><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-sign-in-alt"></i></span>Total Login</div><div class="bento-value" id="lhTotal">...</div><div class="bento-sub">Semua sesi login</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-users"></i></span>User Unik</div><div class="bento-value" id="lhUsers">...</div><div class="bento-sub">Pengguna berbeda</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-crown"></i></span>Admin Login</div><div class="bento-value" id="lhAdmin">...</div><div class="bento-sub">Login oleh admin</div></div><div class="bento-stat"><div class="bento-label"><span class="icon"><i class="fas fa-clock"></i></span>Login Terakhir</div><div class="bento-value" id="lhLast" style="font-size:16px">...</div><div class="bento-sub">Waktu terakhir</div></div></div>'+
+'<section class="notif-section" style="margin-bottom:26px"><div class="section-header"><h3><span class="bar"></span><i class="fas fa-bell" style="color:var(--neon-yellow)"></i> NOTIF TERBARU</h3><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><small><span id="notifCnt">0</span> ITEM</small><button class="btn btn-ghost" onclick="renderNotifTerbaru()" style="padding:6px 12px;font-size:10px"><i class="fas fa-sync"></i> Refresh</button></div></div><div id="notifTerbaruList"></div></section>'+
+'<div class="section"><div class="section-header"><h3><span class="bar"></span><i class="fas fa-user-shield"></i> LOG HISTORI LOGIN</h3><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><small><span id="lhCnt">0</span> ENTRI</small><button class="btn btn-purple" onclick="exportBackup()" style="padding:6px 12px;font-size:10px"><i class="fas fa-download"></i> BACKUP</button><button class="btn btn-danger" onclick="openClearLoginHistory()" style="padding:6px 12px;font-size:10px"><i class="fas fa-broom"></i> BERSIHKAN</button></div></div><div id="loginHistoryList" class="card-list"><div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data...</h4></div></div></div>';
+loadLoginHistoryData();renderNotifTerbaru()}
 async function loadLoginHistoryData(){try{const snap=await db.ref('login_history').orderByChild('loginTime').limitToLast(200).once('value');const val=snap.val();if(!val){document.getElementById('loginHistoryList').innerHTML='<div class="empty"><div class="icon"><i class="fas fa-user-clock"></i></div><h4>BELUM ADA DATA LOGIN</h4><p>Data login akan tercatat saat user masuk</p></div>';document.getElementById('lhTotal').textContent='0';document.getElementById('lhUsers').textContent='0';document.getElementById('lhAdmin').textContent='0';document.getElementById('lhLast').textContent='-';document.getElementById('lhCnt').textContent='0';return}
 const entries=Object.values(val).sort((a,b)=>new Date(b.loginTime)-new Date(a.loginTime));
 document.getElementById('lhTotal').textContent=entries.length;
@@ -1019,11 +1035,34 @@ function startKendalaListener(){
         const kBadge=document.getElementById('kendalaBadge');
         if(kBadge)kBadge.textContent=kendalaList.length;
         if(currentSection==='kendala-section')renderKendalaSection();
-        if(currentSection==='portal')renderNotifTerbaru();
+        if(currentSection==='login-history'&&isAdmin())renderNotifTerbaru();
     },err=>console.error('Kendala listener error:',err));
 }
 
 function renderKendalaSection(){
+    // SEARCH FILTER
+    const searchQ=(document.getElementById('kendalaSearch').value||'').toLowerCase().trim();
+    let filtered=kendalaList;
+    if(searchQ){
+        filtered=kendalaList.filter(k=>{
+            const matchJudul=(k.judul||'').toLowerCase().includes(searchQ);
+            const matchJ1=(k.jawaban1||'').toLowerCase().includes(searchQ);
+            const matchJ2=(k.jawaban2||'').toLowerCase().includes(searchQ);
+            const matchJ3=(k.jawaban3||'').toLowerCase().includes(searchQ);
+            const matchOwner=(k.ownerName||'').toLowerCase().includes(searchQ);
+            return matchJudul||matchJ1||matchJ2||matchJ3||matchOwner;
+        });
+    }
+    
+    const searchInfo=document.getElementById('kendalaSearchInfo');
+    if(searchInfo){
+        if(searchQ){
+            searchInfo.textContent=filtered.length+' dari '+kendalaList.length+' ditemukan';
+        }else{
+            searchInfo.textContent='';
+        }
+    }
+    
     // BENTO STATS
     document.getElementById('kTot').textContent=kendalaList.length;
     const totalJawaban=kendalaList.reduce((a,k)=>{
@@ -1037,14 +1076,18 @@ function renderKendalaSection(){
     const kUsers=new Set(kendalaList.map(k=>k.ownerEmail||'')).size;
     document.getElementById('kUsers').textContent=kUsers;
     document.getElementById('kLast').textContent=kendalaList[0]?ago(kendalaList[0].createdAt):'-';
-    document.getElementById('kCnt').textContent=kendalaList.length;
+    document.getElementById('kCnt').textContent=filtered.length;
     
     const container=document.getElementById('kendalaList');
-    if(kendalaList.length===0){
-        container.innerHTML='<div class="empty"><div class="icon"><i class="fas fa-headset"></i></div><h4>BELUM ADA KENDALA</h4><p>Klik tombol "TAMBAH KENDALA" untuk menambahkan kendala baru</p></div>';
+    if(filtered.length===0){
+        if(searchQ){
+            container.innerHTML='<div class="empty"><div class="icon"><i class="fas fa-search"></i></div><h4>TIDAK DITEMUKAN</h4><p>Tidak ada kendala yang cocok dengan "'+esc(searchQ)+'"</p></div>';
+        }else{
+            container.innerHTML='<div class="empty"><div class="icon"><i class="fas fa-headset"></i></div><h4>BELUM ADA KENDALA</h4><p>Klik tombol "TAMBAH KENDALA" untuk menambahkan kendala baru</p></div>';
+        }
         return;
     }
-    container.innerHTML=kendalaList.map((k,idx)=>{
+    container.innerHTML=filtered.map((k,idx)=>{
         const mine=currentUser&&k.ownerEmail===currentUser.email;
         const canEdit=mine||isAdmin();
         const jawabanHTML=[];
@@ -1053,7 +1096,7 @@ function renderKendalaSection(){
                 <span class="jawaban-label">JAWABAN 1</span>
                 <div class="jawaban-text">${esc(k.jawaban1)}</div>
                 <div class="jawaban-actions">
-                    <button class="btn-mini" onclick="copyText('${esc(k.jawaban1).replace(/'/g,"\\'")}')"><i class="fas fa-copy"></i></button>
+                    <button class="btn-mini" onclick="copyText('${esc(k.jawaban1).replace(/'/g,"\\'")}')"><i class="fas fa-copy"></i> Copy</button>
                 </div>
             </div>
         `);
@@ -1062,7 +1105,7 @@ function renderKendalaSection(){
                 <span class="jawaban-label">JAWABAN 2</span>
                 <div class="jawaban-text">${esc(k.jawaban2)}</div>
                 <div class="jawaban-actions">
-                    <button class="btn-mini" onclick="copyText('${esc(k.jawaban2).replace(/'/g,"\\'")}')"><i class="fas fa-copy"></i></button>
+                    <button class="btn-mini" onclick="copyText('${esc(k.jawaban2).replace(/'/g,"\\'")}')"><i class="fas fa-copy"></i> Copy</button>
                 </div>
             </div>
         `);
@@ -1071,12 +1114,14 @@ function renderKendalaSection(){
                 <span class="jawaban-label">JAWABAN 3</span>
                 <div class="jawaban-text">${esc(k.jawaban3)}</div>
                 <div class="jawaban-actions">
-                    <button class="btn-mini" onclick="copyText('${esc(k.jawaban3).replace(/'/g,"\\'")}')"><i class="fas fa-copy"></i></button>
+                    <button class="btn-mini" onclick="copyText('${esc(k.jawaban3).replace(/'/g,"\\'")}')"><i class="fas fa-copy"></i> Copy</button>
                 </div>
             </div>
         `);
+        const isNew=(Date.now()-new Date(k.createdAt).getTime())<86400000*2;
         return `
-            <div class="kendala-card">
+            <div class="kendala-card" style="${isNew?'border-left:3px solid var(--neon-cyan)':''}">
+                ${isNew?'<span class="badge-new" style="position:absolute;top:10px;right:10px">NEW</span>':''}
                 <div class="kendala-judul">
                     <div class="num">${idx+1}</div>
                     <div class="title">${esc(k.judul)}</div>
@@ -1086,7 +1131,7 @@ function renderKendalaSection(){
                     <span><span class="icon"><i class="fas fa-user"></i></span>${esc(k.ownerName||'Unknown')}</span>
                     <span><span class="icon"><i class="fas fa-envelope"></i></span>${esc(k.ownerEmail||'-')}</span>
                     <span><span class="icon"><i class="fas fa-clock"></i></span>${ago(k.createdAt)}</span>
-                    ${canEdit?`<span><button class="btn-mini" onclick="deleteKendala('${k.id}','${esc(k.judul).replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i> Hapus</button></span>`:''}
+                    ${canEdit?`<span><button class="btn-mini danger" onclick="deleteKendala('${k.id}','${esc(k.judul).replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i> Hapus</button></span>`:''}
                 </div>
             </div>
         `;
@@ -1160,7 +1205,6 @@ async function saveKendala(){
         await kendalaRef().push(newK);
         closeKendalaForm();
         toast('✅ Kendala berhasil disimpan!','success');
-        setTimeout(()=>{toast('🔔 Notif: Kendala baru ditambahkan','info')},500);
     }catch(e){
         toast('❌ Gagal menyimpan: '+e.message,'error');
     }
@@ -1182,12 +1226,13 @@ async function deleteKendala(id,judul){
     }
 }
 
+// COPY TEXT (untuk jawaban)
 function copyText(text){
     navigator.clipboard.writeText(text).then(()=>{
-        toast('✅ Disalin ke clipboard','success');
+        toast('✅ Jawaban berhasil di-copy!','success');
     }).catch(()=>{
         fallbackCopy(text);
-        toast('✅ Disalin ke clipboard','success');
+        toast('✅ Jawaban berhasil di-copy!','success');
     });
 }
 
@@ -1213,24 +1258,50 @@ function startFotoListener(){
         const pBadge=document.getElementById('fotoBadge');
         if(pBadge)pBadge.textContent=fotoList.length;
         if(currentSection==='foto-section')renderFotoSection();
-        if(currentSection==='portal')renderNotifTerbaru();
+        if(currentSection==='login-history'&&isAdmin())renderNotifTerbaru();
     },err=>console.error('Foto listener error:',err));
 }
 
 function renderFotoSection(){
+    // SEARCH FILTER
+    const searchQ=(document.getElementById('fotoSearch').value||'').toLowerCase().trim();
+    let filtered=fotoList;
+    if(searchQ){
+        filtered=fotoList.filter(f=>{
+            const matchJudul=(f.judul||'').toLowerCase().includes(searchQ);
+            const matchDesc=(f.desc||'').toLowerCase().includes(searchQ);
+            const matchUrl=(f.url||'').toLowerCase().includes(searchQ);
+            const matchOwner=(f.ownerName||'').toLowerCase().includes(searchQ);
+            return matchJudul||matchDesc||matchUrl||matchOwner;
+        });
+    }
+    
+    const searchInfo=document.getElementById('fotoSearchInfo');
+    if(searchInfo){
+        if(searchQ){
+            searchInfo.textContent=filtered.length+' dari '+fotoList.length+' ditemukan';
+        }else{
+            searchInfo.textContent='';
+        }
+    }
+    
     document.getElementById('pTot').textContent=fotoList.length;
     document.getElementById('pLinks').textContent=fotoList.filter(f=>f.url).length;
     const pUsers=new Set(fotoList.map(f=>f.ownerEmail||'')).size;
     document.getElementById('pUsers').textContent=pUsers;
     document.getElementById('pLast').textContent=fotoList[0]?ago(fotoList[0].createdAt):'-';
-    document.getElementById('pCnt').textContent=fotoList.length;
+    document.getElementById('pCnt').textContent=filtered.length;
     
     const container=document.getElementById('fotoList');
-    if(fotoList.length===0){
-        container.innerHTML='<div class="empty"><div class="icon"><i class="fas fa-camera"></i></div><h4>BELUM ADA FOTO</h4><p>Klik tombol "TAMBAH FOTO" untuk menambahkan foto baru dengan link apapun</p></div>';
+    if(filtered.length===0){
+        if(searchQ){
+            container.innerHTML='<div class="empty"><div class="icon"><i class="fas fa-search"></i></div><h4>TIDAK DITEMUKAN</h4><p>Tidak ada foto yang cocok dengan "'+esc(searchQ)+'"</p></div>';
+        }else{
+            container.innerHTML='<div class="empty"><div class="icon"><i class="fas fa-camera"></i></div><h4>BELUM ADA FOTO</h4><p>Klik tombol "TAMBAH FOTO" untuk menambahkan foto baru dengan link apapun</p></div>';
+        }
         return;
     }
-    container.innerHTML='<div class="foto-grid">'+fotoList.map(f=>{
+    container.innerHTML='<div class="foto-grid">'+filtered.map(f=>{
         const mine=currentUser&&f.ownerEmail===currentUser.email;
         const canEdit=mine||isAdmin();
         const isNew=(Date.now()-new Date(f.createdAt).getTime())<86400000*2;
@@ -1245,7 +1316,7 @@ function renderFotoSection(){
                     <div class="foto-judul">${esc(f.judul||'Tanpa Judul')}</div>
                     <div class="foto-url">${esc(f.url)}</div>
                     <div class="foto-actions">
-                        <button class="btn btn-success" onclick="event.stopPropagation();copyFotoUrl('${esc(f.url).replace(/'/g,"\\'")}')"><i class="fas fa-copy"></i> COPY</button>
+                        <button class="btn btn-success" onclick="event.stopPropagation();copyFotoImage('${esc(f.url).replace(/'/g,"\\'")}')"><i class="fas fa-image"></i> COPY GAMBAR</button>
                         ${canEdit?`<button class="btn btn-danger" onclick="event.stopPropagation();deleteFoto('${f.id}','${esc(f.judul||'').replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i></button>`:''}
                     </div>
                 </div>
@@ -1334,7 +1405,6 @@ async function saveFoto(){
         await fotoRef().push(newF);
         closeFotoForm();
         toast('✅ Foto berhasil disimpan!','success');
-        setTimeout(()=>{toast('🔔 Notif: Foto baru ditambahkan','info')},500);
     }catch(e){
         toast('❌ Gagal menyimpan: '+e.message,'error');
     }
@@ -1353,6 +1423,37 @@ async function deleteFoto(id,judul){
         toast('✅ Foto berhasil dihapus!','delete');
     }catch(e){
         toast('❌ Gagal hapus: '+e.message,'error');
+    }
+}
+
+// COPY GAMBAR (bukan link) - Menggunakan Clipboard API untuk copy image blob
+async function copyFotoImage(url){
+    try{
+        toast('📋 Meng-copy gambar...','info');
+        
+        // Fetch gambar sebagai blob
+        const response=await fetch(url,{mode:'cors'});
+        if(!response.ok)throw new Error('Gagal fetch gambar');
+        const blob=await response.blob();
+        
+        // Cek apakah Clipboard API support image
+        if(navigator.clipboard&&typeof ClipboardItem!=='undefined'){
+            const clipboardItem=new ClipboardItem({[blob.type]:blob});
+            await navigator.clipboard.write([clipboardItem]);
+            toast('✅ Gambar berhasil di-copy ke clipboard!','success');
+        }else{
+            throw new Error('Browser tidak support copy gambar');
+        }
+    }catch(e){
+        // Fallback: copy URL jika copy gambar gagal (CORS atau browser tidak support)
+        console.error('Copy image failed:',e);
+        try{
+            await navigator.clipboard.writeText(url);
+            toast('⚠️ Copy gambar gagal, link URL di-copy sebagai gantinya','warning');
+        }catch(e2){
+            fallbackCopy(url);
+            toast('⚠️ Link URL di-copy (gambar tidak bisa di-copy)','warning');
+        }
     }
 }
 
@@ -1378,7 +1479,8 @@ function openFotoDetail(id){
         ${f.desc?`<p style="color:var(--text-secondary);font-size:12.5px;line-height:1.6;margin-bottom:12px">${esc(f.desc)}</p>`:''}
         <div class="foto-url-display">
             <span class="url">${esc(f.url)}</span>
-            <button class="btn btn-success" onclick="copyFotoUrl('${esc(f.url).replace(/'/g,"\\'")}')" style="padding:6px 12px;font-size:10px;flex-shrink:0"><i class="fas fa-copy"></i> COPY</button>
+            <button class="btn btn-success" onclick="copyFotoImage('${esc(f.url).replace(/'/g,"\\'")}')" style="padding:6px 12px;font-size:10px;flex-shrink:0"><i class="fas fa-image"></i> COPY GAMBAR</button>
+            <button class="btn btn-warning" onclick="copyFotoUrl('${esc(f.url).replace(/'/g,"\\'")}')" style="padding:6px 12px;font-size:10px;flex-shrink:0"><i class="fas fa-link"></i> COPY LINK</button>
         </div>
         <div style="display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-subtle);font-size:10px;color:var(--text-tertiary);flex-wrap:wrap">
             <span><i class="fas fa-user"></i> ${esc(f.ownerName||'Unknown')}</span>
@@ -1396,7 +1498,7 @@ function closeFotoDetail(){
 }
 
 /* ============================================================ */
-/* ============ NOTIF TERBARU ================================ */
+/* ============ NOTIF TERBARU (di Histori Login) ============== */
 /* ============================================================ */
 function renderNotifTerbaru(){
     const container=document.getElementById('notifTerbaruList');
@@ -1414,8 +1516,7 @@ function renderNotifTerbaru(){
             ownerEmail:k.ownerEmail||'',
             createdAt:k.createdAt,
             icon:'<i class="fas fa-headset"></i>',
-            iconClass:'kendala-icon',
-            action:()=>{navTo('kendala-section',null)}
+            iconClass:'kendala-icon'
         });
     });
     fotoList.forEach(f=>{
@@ -1428,23 +1529,23 @@ function renderNotifTerbaru(){
             ownerEmail:f.ownerEmail||'',
             createdAt:f.createdAt,
             icon:'<i class="fas fa-camera"></i>',
-            iconClass:'foto-icon',
-            action:()=>{navTo('foto-section',null);setTimeout(()=>openFotoDetail(f.id),300)}
+            iconClass:'foto-icon'
         });
     });
     
+    // URUTKAN TERBARU DULU
     allNotif.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-    const top10=allNotif.slice(0,10);
+    const top20=allNotif.slice(0,20);
     
     const notifBadge=document.getElementById('notifCnt');
     if(notifBadge)notifBadge.textContent=allNotif.length;
     
-    if(top10.length===0){
+    if(top20.length===0){
         container.innerHTML='<div class="notif-empty"><i class="fas fa-bell-slash"></i><h4>BELUM ADA NOTIFIKASI</h4><p>Notifikasi terbaru dari kendala dan foto akan muncul di sini</p></div>';
         return;
     }
     
-    container.innerHTML='<div class="notif-grid">'+top10.map((n,idx)=>{
+    container.innerHTML='<div class="notif-grid">'+top20.map((n,idx)=>{
         const isNew=(Date.now()-new Date(n.createdAt).getTime())<86400000*2;
         return `
             <div class="notif-card ${isNew?'new':''}" onclick="notifAction('${n.type}','${n.id}')">
