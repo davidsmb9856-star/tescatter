@@ -4,12 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#4682b4">
-<title>ScriptVault × Cyber Portal — Dove Blue FINAL v43</title>
+<title>ScriptVault × Cyber Portal — Dove Blue v43</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-<link rel="preconnect" href="https://script-vault-e9e0c-default-rtdb.firebaseio.com" crossorigin>
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
@@ -61,6 +60,7 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 .welcome-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:5px 16px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:2px}
 .owner-badge.pub{background:rgba(21,128,61,.12);color:var(--neon-green);border:1px solid rgba(21,128,61,.3)}
 .owner-badge.priv{background:rgba(198,40,40,.12);color:var(--neon-red);border:1px solid rgba(198,40,40,.3)}
+.owner-badge.admin-only-badge{background:rgba(70,130,180,.15);color:var(--neon-cyan);border:1px solid rgba(70,130,180,.4)}
 .auth-gate{position:fixed;inset:0;background:var(--bg-primary);z-index:9999;display:none;align-items:center;justify-content:center;padding:40px}
 .auth-gate.show{display:flex}
 .auth-box{background:linear-gradient(135deg,var(--bg-tertiary),var(--bg-secondary));backdrop-filter:blur(30px);border:1px solid var(--border-normal);border-radius:var(--radius-xl);padding:44px;max-width:440px;width:100%;text-align:center;box-shadow:var(--shadow-lg),var(--shadow-glow);position:relative;overflow:hidden;animation:slideUp .6s ease}
@@ -82,8 +82,6 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .loading p{color:var(--neon-cyan);font-size:13px;font-weight:600;font-family:'Space Grotesk',sans-serif;letter-spacing:3px;text-transform:uppercase}
-.load-progress{width:220px;height:4px;background:var(--field-bg);border-radius:4px;overflow:hidden;margin-top:8px}
-.load-progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-blue));border-radius:4px;transition:width .3s ease}
 .loading small{color:var(--text-muted);font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:600}
 .app{position:relative;z-index:1;display:grid;grid-template-columns:270px 1fr;height:100vh;opacity:0;transition:opacity .7s}
 .app.show{opacity:1}
@@ -336,6 +334,7 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 .access-denied p{color:var(--text-secondary);font-size:13px;margin-bottom:6px;line-height:1.6}
 .kendala-form-wrap{background:var(--field-bg);border:1px solid var(--border-normal);border-radius:var(--radius-md);padding:18px;margin-bottom:16px}
 .kendala-form-wrap .form-group{margin-bottom:12px}
+.kendala-form-wrap .form-group:last-child{margin-bottom:0}
 .kendala-card{background:linear-gradient(135deg,var(--bg-tertiary),var(--bg-secondary));border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:16px;transition:var(--transition);margin-bottom:10px;position:relative;overflow:hidden}
 .kendala-card:hover{border-color:rgba(70,130,180,.3);transform:translateY(-2px);box-shadow:var(--shadow-glow)}
 .kendala-judul{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:10px;display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}
@@ -350,6 +349,7 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 .jawaban-actions{display:flex;gap:4px;flex-shrink:0}
 .jawaban-actions .btn-mini{padding:7px 11px;font-size:10px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));border:1px solid rgba(70,130,180,.4);color:#fff;border-radius:6px;cursor:pointer;transition:var(--transition);font-family:'Inter',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:inline-flex;align-items:center;gap:5px;box-shadow:var(--shadow-sm);white-space:nowrap}
 .jawaban-actions .btn-mini:hover{transform:scale(1.05);box-shadow:0 0 10px rgba(70,130,180,.4)}
+.jawaban-actions .btn-mini.edit{background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple))}
 .kendala-meta{display:flex;gap:14px;font-size:10px;color:var(--text-tertiary);margin-top:12px;padding-top:10px;border-top:1px dashed var(--border-subtle);flex-wrap:wrap;align-items:center}
 .kendala-meta span{display:flex;align-items:center;gap:5px}
 .kendala-meta .icon{font-size:11px;color:var(--neon-cyan)}
@@ -422,47 +422,52 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 .section-search-bar .clear-btn:hover{color:var(--neon-red);background:rgba(198,40,40,.1)}
 .copy-flash{animation:copyFlash 0.6s ease;background:rgba(21,128,61,.2)!important;border-color:var(--neon-green)!important}
 @keyframes copyFlash{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
-/* ===== FILTER PENGGUNA MODERN (CHIPS) ===== */
-.owner-chips{display:flex;gap:8px;overflow-x:auto;padding:6px 0 12px;scrollbar-width:thin}
-.owner-chips::-webkit-scrollbar{height:6px}
-.owner-chips::-webkit-scrollbar-thumb{background:rgba(70,130,180,.3);border-radius:6px}
-.owner-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--border-normal);background:var(--field-bg);cursor:pointer;transition:var(--transition);white-space:nowrap;font-size:11.5px;font-weight:600;color:var(--text-secondary);font-family:'Inter',sans-serif}
-.owner-chip:hover{border-color:var(--neon-cyan);color:var(--neon-cyan);transform:translateY(-1px)}
-.owner-chip.active{background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));color:#fff;border-color:transparent;box-shadow:var(--shadow-glow)}
-.owner-chip .oc-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--neon-purple),var(--neon-cyan));display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
-.owner-chip .oc-count{background:rgba(255,255,255,.22);padding:1px 7px;border-radius:999px;font-size:9px;font-weight:800;font-family:'Space Grotesk',sans-serif}
-.owner-chip:not(.active) .oc-count{background:rgba(70,130,180,.12);color:var(--neon-cyan)}
-/* ===== VISIBILITAS KENDALA ===== */
-.visibility-toggle{display:flex;gap:8px}
-.vis-opt{flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--radius-md);cursor:pointer;font-size:12px;font-weight:600;border:1px solid var(--border-normal);background:var(--field-bg);color:var(--text-secondary);transition:var(--transition)}
-.vis-opt:hover{border-color:var(--neon-cyan)}
-.vis-opt input{width:auto;accent-color:var(--neon-cyan)}
-.vis-opt.selected{border-color:var(--neon-cyan);background:rgba(70,130,180,.1);color:var(--neon-cyan)}
-.vis-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;font-size:9px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:.5px;margin-left:auto}
-.vis-badge.pub{background:rgba(21,128,61,.12);color:var(--neon-green);border:1px solid rgba(21,128,61,.3)}
-.vis-badge.adm{background:rgba(198,40,40,.12);color:var(--neon-red);border:1px solid rgba(198,40,40,.3)}
-/* ===== KOMENTAR ===== */
-.kendala-comments{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border-subtle)}
-.comment-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;max-height:220px;overflow-y:auto;padding-right:4px}
-.comment-list::-webkit-scrollbar{width:5px}.comment-list::-webkit-scrollbar-thumb{background:rgba(70,130,180,.3);border-radius:6px}
-.comment-item{background:var(--field-bg);border:1px solid var(--border-subtle);border-radius:8px;padding:8px 12px;animation:fadeIn .3s}
-.comment-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.comment-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--neon-blue),var(--neon-cyan));display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
-.comment-author{font-size:11px;font-weight:700;color:var(--neon-cyan)}
-.comment-time{font-size:9px;color:var(--text-muted);margin-left:auto;font-family:'JetBrains Mono',monospace}
-.comment-text{font-size:12px;color:var(--text-primary);line-height:1.5;word-break:break-word;white-space:pre-line}
-.comment-input-row{display:flex;gap:8px}
-.comment-input{flex:1;padding:9px 12px;background:var(--field-bg);border:1px solid var(--border-normal);border-radius:8px;color:var(--text-primary);font-size:12px;font-family:'Inter',sans-serif}
-.comment-input:focus{outline:none;border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(70,130,180,.1)}
-.comment-send{padding:9px 14px}
-.comment-empty{font-size:11px;color:var(--text-muted);text-align:center;padding:10px;font-style:italic}
-/* ===== SIDEBAR MANAGER ===== */
-.sb-row{display:flex;gap:8px;align-items:center;border:1px solid var(--border-subtle);border-radius:10px;padding:9px 10px;margin-bottom:8px;background:var(--field-bg)}
-.sb-ctrl{display:flex;gap:4px}
-.sb-fields{flex:1;display:flex;gap:8px;align-items:center}
-.sb-fields .set-input{margin-top:0;flex:1}
-.sb-lock{font-size:9px;color:var(--text-muted);white-space:nowrap;font-family:'Space Grotesk',sans-serif;letter-spacing:.5px}
-@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{padding:14px 16px}.content{padding:18px 16px}.search-box{width:150px}.bento{grid-template-columns:repeat(2,1fr)}.topbar h2{font-size:15px}.code-comparison{grid-template-columns:1fr}.menu-grid{grid-template-columns:1fr}.clock-time{font-size:34px}.delete-confirm-modal{max-width:95%;padding:22px}.foto-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.notif-grid{grid-template-columns:1fr}.foto-preview{height:130px}.mgr-fields{grid-template-columns:1fr}.history-switch{flex-direction:column}.visibility-toggle{flex-direction:column}.sb-fields{flex-direction:column;align-items:stretch}}
+/* ============ ✦ BARU: FILTER PENGGUNA CHIPS ============ */
+.owner-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.owner-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--field-bg);border:1px solid var(--border-subtle);border-radius:999px;cursor:pointer;transition:var(--transition);font-size:11px;font-weight:600;color:var(--text-secondary);font-family:'Inter',sans-serif}
+.owner-chip:hover{border-color:rgba(70,130,180,.3);color:var(--text-primary);transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.owner-chip.active{background:linear-gradient(135deg,rgba(70,130,180,.2),rgba(70,130,180,.1));border-color:var(--neon-cyan);color:var(--neon-cyan);box-shadow:var(--shadow-glow)}
+.owner-chip .chip-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.owner-chip .chip-count{background:rgba(70,130,180,.15);color:var(--neon-cyan);font-size:9px;padding:2px 7px;border-radius:8px;font-weight:700;border:1px solid rgba(70,130,180,.3)}
+/* ============ ✦ BARU: JAWABAN DINAMIS ============ */
+.jawab-item{position:relative;margin-bottom:10px}
+.jawab-item .jawab-del{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:6px;background:rgba(198,40,40,.1);border:1px solid rgba(198,40,40,.3);color:var(--neon-red);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.jawab-item .jawab-del:hover{background:rgba(198,40,40,.2);transform:scale(1.1)}
+.btn-add-jawaban{width:100%;padding:10px;background:var(--field-bg);border:2px dashed rgba(70,130,180,.35);border-radius:var(--radius-md);color:var(--neon-cyan);font-size:12px;font-weight:600;cursor:pointer;transition:var(--transition);font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-add-jawaban:hover{border-color:var(--neon-cyan);background:rgba(70,130,180,.08);transform:translateY(-2px)}
+/* ============ ✦ BARU: VISIBILITAS TOGGLE ============ */
+.vis-toggle-wrap{display:flex;gap:10px;flex-wrap:wrap}
+.vis-option{display:flex;align-items:center;gap:8px;padding:11px 16px;background:var(--field-bg);border:1px solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;font-size:12px;font-weight:600;color:var(--text-primary);transition:var(--transition)}
+.vis-option:hover{border-color:rgba(70,130,180,.3)}
+.vis-option.selected{border-color:var(--neon-cyan);background:rgba(70,130,180,.1);color:var(--neon-cyan)}
+.vis-option input{width:auto;accent-color:var(--neon-cyan)}
+/* ============ ✦ BARU: KOMENTAR ============ */
+.comment-section{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border-subtle);display:none}
+.comment-section.open{display:block;animation:fadeIn .3s}
+.comment-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;max-height:200px;overflow-y:auto}
+.comment-item{display:flex;gap:8px;padding:8px 10px;background:var(--field-bg);border-radius:var(--radius-sm);border:1px solid var(--border-subtle)}
+.comment-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.comment-body{flex:1;min-width:0}
+.comment-author{font-size:10px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:6px}
+.comment-author .comment-time{font-size:9px;color:var(--text-muted);font-weight:400;font-family:'JetBrains Mono',monospace}
+.comment-text{font-size:11.5px;color:var(--text-secondary);line-height:1.5;margin-top:2px;word-break:break-word}
+.comment-input-wrap{display:flex;gap:8px}
+.comment-input-wrap input{flex:1;padding:9px 12px;background:var(--field-bg);border:1px solid var(--border-subtle);border-radius:var(--radius-md);color:var(--text-primary);font-size:12px;font-family:'Inter',sans-serif}
+.comment-input-wrap input:focus{outline:none;border-color:var(--neon-cyan)}
+.comment-input-wrap button{width:38px;height:38px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));border:none;color:#fff;cursor:pointer;font-size:13px;transition:var(--transition)}
+.comment-input-wrap button:hover{transform:scale(1.05);box-shadow:var(--shadow-glow)}
+.btn-comment{padding:5px 10px;font-size:9px;background:var(--field-bg);border:1px solid var(--border-subtle);color:var(--text-tertiary);border-radius:5px;cursor:pointer;transition:var(--transition);font-family:'Inter',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:inline-flex;align-items:center;gap:4px}
+.btn-comment:hover{border-color:var(--neon-cyan);color:var(--neon-cyan)}
+/* ============ ✦ BARU: NAV SIDEBAR MANAGER ============ */
+.nav-mgr-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--field-bg);border:1px solid var(--border-subtle);border-radius:8px;margin-bottom:6px}
+.nav-mgr-row .nav-mgr-drag{color:var(--text-muted);cursor:grab;font-size:12px}
+.nav-mgr-row input{flex:1;padding:7px 10px;background:var(--bg-tertiary);border:1px solid var(--border-normal);border-radius:6px;color:var(--text-primary);font-size:11px}
+.nav-mgr-row input:focus{outline:none;border-color:var(--neon-cyan)}
+.nav-mgr-row .nav-mgr-btns{display:flex;gap:4px}
+.nav-mgr-row .nav-mgr-btns button{width:26px;height:26px;border-radius:6px;border:1px solid var(--border-normal);background:var(--bg-tertiary);color:var(--text-secondary);cursor:pointer;font-size:10px}
+.nav-mgr-row .nav-mgr-btns button:hover{color:var(--neon-cyan);border-color:var(--neon-cyan)}
+.nav-mgr-row .nav-mgr-btns button.del:hover{color:var(--neon-red);border-color:var(--neon-red)}
+@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{padding:14px 16px}.content{padding:18px 16px}.search-box{width:150px}.bento{grid-template-columns:repeat(2,1fr)}.topbar h2{font-size:15px}.code-comparison{grid-template-columns:1fr}.menu-grid{grid-template-columns:1fr}.clock-time{font-size:34px}.delete-confirm-modal{max-width:95%;padding:22px}.foto-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.notif-grid{grid-template-columns:1fr}.foto-preview{height:130px}.mgr-fields{grid-template-columns:1fr}.history-switch{flex-direction:column}.owner-chips{overflow-x:auto;flex-wrap:nowrap;padding-bottom:8px}}
 </style>
 </head>
 <body>
@@ -487,7 +492,6 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 <div class="loading" id="loading">
 <div class="loader-wrap"><div class="loader-ring"></div><div class="loader-ring"></div><div class="loader-core">🐒</div></div>
 <p id="loadTxt">INITIALIZING</p>
-<div class="load-progress"><div class="load-progress-bar" id="loadProgress"></div></div>
 <small>SCRIPTVAULT × DOVE BLUE v43</small>
 </div>
 <div class="app" id="app">
@@ -528,10 +532,7 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 </div>
 <div class="section">
 <div class="section-header"><h3><span class="bar"></span>🐒 SEMUA SCRIPT (PUBLIK)</h3><small><span id="recentCnt">0</span> SCRIPT</small></div>
-<div style="margin-bottom:14px;">
-<label style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;display:flex;align-items:center;gap:7px;margin-bottom:8px;"><i class="fas fa-filter" style="color:var(--neon-cyan);"></i> FILTER PENGGUNA</label>
-<div id="ownerFilterChips" class="owner-chips"></div>
-</div>
+<div id="ownerFilterContainer" class="owner-chips"></div>
 <div id="recentList" class="card-list"></div>
 </div>
 </div></div>
@@ -714,17 +715,23 @@ let MAX_HISTORY=30;
 let currentUser=null,currentIP='unknown',scripts=[],editId=null,deleteCallback=null;
 let currentSection='portal',uiInitialized=false,portalListenerStarted=false,clockInterval=null;
 let userNavigated=false,appInitialized=false,initPromise=null,online=true,lastSyncAt=0,searchTimer=null,autoRefreshTimer=null;
-let editMenus=[],editSidebarMenus=[];
-let kendalaList=[],fotoList=[],kendalaListenerStarted=false,fotoListenerStarted=false,editingKendalaId=null,editingFotoId=null;
-let openComments=new Set(),selectedOwner='all',answerCount=0,deletedHistoryCache=null;
+let editMenus=[];
+let kendalaList=[];
+let fotoList=[];
+let kendalaListenerStarted=false;
+let fotoListenerStarted=false;
+let editingKendalaId=null;
+let editingFotoId=null;
+let currentOwnerFilter='all';
 const defaultSettings={appTitle:'SCRIPTVAULT',appSubtitle:'DOVE BLUE 2026',logoEmoji:'🐒',footerText:'👑 Created by',announcementOn:false,announcementText:'📢 Selamat datang di ScriptVault Portal!',maintenanceOn:false,maintenanceMsg:'🔧 Portal sedang dalam perawatan. Coba lagi nanti.',welcomeOn:true,openNewTab:true,clock24:true,autoRefreshOn:false,autoRefreshSec:60,defaultPublic:true,maxHistory:30,adminEmails:'david.smb9856@gmail.com'};
-const DEFAULT_SIDEBAR_MENUS=[
-{id:'portal',name:'Cyber Portal',icon:'fa-rocket',visible:true},
-{id:'dashboard',name:'Dashboard',icon:'fa-chart-line',visible:true},
-{id:'scripts',name:'Script Saya',icon:'fa-box',visible:true},
-{id:'kendala-section',name:'All Kendala',icon:'fa-headset',visible:true},
-{id:'foto-section',name:'Foto',icon:'fa-camera',visible:true},
-{id:'login-history',name:'Histori Login',icon:'fa-user-shield',visible:true,adminOnly:true}
+/* ✦ BARU: Default navigasi sidebar */
+const DEFAULT_NAV_MENUS=[
+{id:'portal',name:'Cyber Portal',icon:'fa-rocket',badgeText:'TOP',show:true},
+{id:'dashboard',name:'Dashboard',icon:'fa-chart-line',badgeId:'allBadge',show:true},
+{id:'scripts',name:'Script Saya',icon:'fa-box',badgeId:'myBadge',show:true},
+{id:'kendala-section',name:'All Kendala',icon:'fa-headset',badgeId:'kendalaBadge',show:true},
+{id:'foto-section',name:'Foto',icon:'fa-camera',badgeId:'fotoBadge',show:true},
+{id:'login-history',name:'Histori Login',icon:'fa-user-shield',adminOnly:true,show:true}
 ];
 const DEFAULT_MENUS=[
 {id:'app-utama',name:'BUKA APLIKASI UTAMA',desc:'Akses semua fitur Line Togel lengkap',url:'https://script.google.com/macros/s/AKfycbya8o-PPA76I8CsTlEVmcANKVuxapOGU5WhhienU7NNQ6HO-igG4Ly8yZPujUZE6DFRlw/exec',icon:'fa-rocket',cat:'APLIKASI UTAMA',prime:1},
@@ -745,28 +752,48 @@ const DEFAULT_MENUS=[
 {id:'feature-5',name:'FEATURE 5',desc:'Akses fitur tambahan',url:'#',icon:'fa-chart-line',cat:'LINK LAUNCHER',soon:1,ext:1}
 ];
 const DEFAULT_PORTAL_PIN='1234';
-let portalConfig={menus:JSON.parse(JSON.stringify(DEFAULT_MENUS)),sidebarMenus:JSON.parse(JSON.stringify(DEFAULT_SIDEBAR_MENUS)),settings:{...defaultSettings},pin:DEFAULT_PORTAL_PIN,loaded:false};
+let portalConfig={menus:JSON.parse(JSON.stringify(DEFAULT_MENUS)),navMenus:JSON.parse(JSON.stringify(DEFAULT_NAV_MENUS)),settings:{...defaultSettings},pin:DEFAULT_PORTAL_PIN,loaded:false};
 let currentPortalPinInput='',portalPin=DEFAULT_PORTAL_PIN;
 function portalSettingsRef(){return db.ref('portal_settings/main')}
 function userPinRef(uid){return db.ref('user_pins/'+uid)}
 function getAdminEmails(){const a=String(portalConfig.settings.adminEmails||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);return a.length?a:['david.smb9856@gmail.com']}
 function isAdmin(){return currentUser&&getAdminEmails().includes((currentUser.email||'').toLowerCase())}
-function applyPortalConfig(val){
-if(!val)return;
-if(Array.isArray(val.menus)&&val.menus.length)portalConfig.menus=val.menus;
-if(Array.isArray(val.sidebarMenus)&&val.sidebarMenus.length)portalConfig.sidebarMenus=val.sidebarMenus;
-portalConfig.settings=Object.assign({},defaultSettings,val.settings||{});
-}
 async function loadPortalConfig(){try{const snap=await portalSettingsRef().once('value');const val=snap.val();
-if(val){applyPortalConfig(val)}
+if(val){if(Array.isArray(val.menus)&&val.menus.length)portalConfig.menus=val.menus;if(Array.isArray(val.navMenus)&&val.navMenus.length)portalConfig.navMenus=val.navMenus;portalConfig.settings=Object.assign({},defaultSettings,val.settings||{})}
 else{if(currentUser&&isAdmin()){await savePortalConfigToFirebase('init default')}}
-portalConfig.loaded=true;renderPortalMenus();renderSidebarNav();applySettings()}catch(e){console.error(e);portalConfig.loaded=true;renderPortalMenus();renderSidebarNav();applySettings()}}
+portalConfig.loaded=true;renderPortalMenus();applySettings();renderSidebarNav()}catch(e){console.error(e);portalConfig.loaded=true;renderPortalMenus();applySettings();renderSidebarNav()}}
 async function savePortalConfigToFirebase(reason='manual'){if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');
-await portalSettingsRef().set({menus:portalConfig.menus,sidebarMenus:portalConfig.sidebarMenus,settings:portalConfig.settings,updatedAt:new Date().toISOString(),updatedBy:currentUser.email||'unknown',reason})}
+await portalSettingsRef().set({menus:portalConfig.menus,navMenus:portalConfig.navMenus,settings:portalConfig.settings,updatedAt:new Date().toISOString(),updatedBy:currentUser.email||'unknown',reason})}
 function startPortalListener(){if(portalListenerStarted)return;portalListenerStarted=true;
-portalSettingsRef().on('value',snap=>{const val=snap.val();applyPortalConfig(val);renderPortalMenus();renderSidebarNav();applySettings()},err=>console.error(err))}
+portalSettingsRef().on('value',snap=>{const val=snap.val();
+if(val){if(Array.isArray(val.menus)&&val.menus.length)portalConfig.menus=val.menus;if(Array.isArray(val.navMenus)&&val.navMenus.length)portalConfig.navMenus=val.navMenus;portalConfig.settings=Object.assign({},defaultSettings,val.settings||{})}
+renderPortalMenus();applySettings();renderSidebarNav()},err=>console.error(err))}
 async function loadUserPortalPin(){if(!currentUser){portalPin=DEFAULT_PORTAL_PIN;return}try{const snap=await userPinRef(currentUser.uid).once('value');const val=snap.val();portalPin=(val&&val.portalPin)?String(val.portalPin):DEFAULT_PORTAL_PIN}catch(e){portalPin=DEFAULT_PORTAL_PIN}}
 async function saveUserPortalPin(pin){if(!currentUser)throw new Error('Login diperlukan');const p=String(pin||'').trim();if(!/^\d{4}$/.test(p))throw new Error('PIN harus 4 digit');await userPinRef(currentUser.uid).set({portalPin:p,updatedAt:new Date().toISOString(),email:currentUser.email||''});portalPin=p}
+/* ✦ BARU: Render sidebar nav dinamis */
+function renderSidebarNav(){
+const nav=portalConfig.navMenus||DEFAULT_NAV_MENUS;
+const container=document.getElementById('navContainer');
+let html='<div class="nav-label">PORTAL</div>';
+let hasAdminSection=false;
+nav.forEach(m=>{
+if(m.show===false)return;
+if(m.adminOnly&&!isAdmin())return;
+if(m.adminOnly&&!hasAdminSection){hasAdminSection=true;html+='<div class="nav-label" style="margin-top:10px;color:var(--neon-cyan)"><i class="fas fa-crown"></i> ADMIN</div>'}
+const iconHtml=m.icon&&m.icon.indexOf('fa-')===0?'<i class="fas '+esc(m.icon)+'"></i>':esc(m.icon||'');
+let badgeHtml='';
+if(m.badgeText)badgeHtml='<span class="nav-badge">'+esc(m.badgeText)+'</span>';
+else if(m.badgeId)badgeHtml='<span class="nav-badge" id="'+m.badgeId+'">0</span>';
+else if(m.adminOnly)badgeHtml='<span class="admin-badge"><i class="fas fa-crown"></i> ADMIN</span>';
+const active=currentSection===m.id?' active':'';
+html+='<div class="nav-item'+(m.adminOnly?' admin-only':'')+active+'" data-section="'+m.id+'" onclick="navTo(\''+m.id+'\', this)"><span class="nav-icon">'+iconHtml+'</span>'+esc(m.name)+badgeHtml+'</div>';
+});
+container.innerHTML=html;
+
+/* ✦ TAMBAHKAN 2 BARIS INI: */
+const psb=document.getElementById('portalSettingsSidebarBtn');
+if(psb)psb.style.display=isAdmin()?'flex':'none';
+}
 function renderPortalMenus(){const menus=portalConfig.menus||DEFAULT_MENUS;const host=document.getElementById('portalMenus');const cats=[];
 menus.forEach(m=>{const c=m.cat||'LAINNYA';if(!cats.includes(c))cats.push(c)});
 const target=(portalConfig.settings.openNewTab===false)?'_self':'_blank';
@@ -780,26 +807,6 @@ const href=(m.url&&m.url!=='#')?m.url:'#';
 html+='<a href="'+esc(href)+'" target="'+target+'" class="'+cls+'"><div class="menu-card-icon">'+iconHtml+'</div><div class="menu-card-content"><h3>'+esc(m.name)+'</h3><p>'+esc(m.desc||'')+'</p></div><div class="menu-card-arrow"><i class="fas '+(m.ext?'fa-external-link-alt':'fa-arrow-right')+'"></i></div>'+soon+'</a>'});
 html+='</div></section>'});
 host.innerHTML=html||'<div class="empty"><div class="icon">🗂️</div><h4>TIDAK ADA MENU</h4><p>Tambahkan menu lewat Pengaturan Portal</p></div>'}
-/* ===== RENDER SIDEBAR DINAMIS ===== */
-function renderSidebarNav(){
-const c=document.getElementById('navContainer');if(!c)return;
-const menus=(portalConfig.sidebarMenus&&portalConfig.sidebarMenus.length)?portalConfig.sidebarMenus:DEFAULT_SIDEBAR_MENUS;
-const badgeIds={dashboard:'allBadge',scripts:'myBadge','kendala-section':'kendalaBadge','foto-section':'fotoBadge'};
-let html='';
-menus.forEach(m=>{
-if(!m||!m.visible)return;
-if(m.adminOnly&&!isAdmin())return;
-const icon=m.icon||'fa-link';
-const active=(currentSection===m.id)?' active':'';
-let badge='';
-if(badgeIds[m.id])badge='<span class="nav-badge" id="'+badgeIds[m.id]+'">0</span>';
-else if(m.id==='portal')badge='<span class="nav-badge">TOP</span>';
-else if(m.id==='login-history')badge='<span class="admin-badge"><i class="fas fa-crown"></i> ADMIN</span>';
-html+='<div class="nav-item'+active+(m.adminOnly?' admin-only':'')+'" data-section="'+m.id+'" onclick="navTo(\''+m.id+'\', this)"><span class="nav-icon"><i class="fas '+esc(icon)+'"></i></span>'+esc(m.name)+badge+'</div>';
-});
-c.innerHTML=html;
-updateBadges();
-}
 function applySettings(){const s=portalConfig.settings;
 document.querySelectorAll('.logo-text h1').forEach(el=>el.textContent=s.appTitle||'SCRIPTVAULT');
 document.querySelectorAll('.logo-text small').forEach(el=>el.textContent=s.appSubtitle||'DOVE BLUE 2026');
@@ -828,17 +835,25 @@ async function recordLogin(){if(!currentUser)return;try{await db.ref('login_hist
 function showWelcome(u){if(portalConfig.settings.welcomeOn===false)return;$('welcomeTitle').textContent='SELAMAT DATANG';$('welcomeSub').textContent=(u.name||'User')+' · '+(u.email||'');$('welcomeBadge').textContent=isAdmin()?'👑 ADMINISTRATOR':'✅ USER TERVERIFIKASI';const o=$('welcomeOverlay');o.classList.remove('show');void o.offsetWidth;o.classList.add('show');setTimeout(()=>o.classList.remove('show'),3000)}
 function $(id){return document.getElementById(id)}
 auth.onAuthStateChanged(async(user)=>{
-if(user){currentUser={name:user.displayName||'User',email:user.email,photo:user.photoURL||null,uid:user.uid};
-renderUserCard();renderAdminNav();setLoadingHide();
-document.getElementById('app').classList.add('show');document.getElementById('authGate').classList.remove('show');
+if(user){
+currentUser={name:user.displayName||'User',email:user.email,photo:user.photoURL||null,uid:user.uid};
+renderUserCard();renderSidebarNav();setLoadingHide();
+document.getElementById('app').classList.add('show');
+document.getElementById('authGate').classList.remove('show');
 fetchIP();
 await initApp();
-if(shouldRecordLogin(user.uid)){recordLogin();showWelcome(currentUser);toast('✅ Login berhasil! Halo '+currentUser.name,'success');if(isAdmin())setTimeout(()=>toast('👑 Admin access granted','success'),1200)}}
-else{currentUser=null;scripts=[];userNavigated=false;initPromise=null;clearLoginSession();renderUserCard();renderAdminNav();setLoadingHide();
-document.getElementById('authGate').classList.add('show');document.getElementById('app').classList.remove('show')}});
+if(shouldRecordLogin(user.uid)){
+recordLogin();
+showWelcome(currentUser);
+toast('✅ Login berhasil! Halo '+currentUser.name,'success');
+if(isAdmin())setTimeout(()=>toast('👑 Admin access granted','success'),1200);
+}
+}else{
+currentUser=null;scripts=[];userNavigated=false;initPromise=null;clearLoginSession();renderUserCard();renderSidebarNav();setLoadingHide();
+document.getElementById('authGate').classList.add('show');document.getElementById('app').classList.remove('show');
+}});
 async function loginGoogle(){try{toast('Membuka login Google...','info');await auth.signInWithPopup(googleProvider)}catch(e){if(e.code==='auth/popup-closed-by-user')toast('Login dibatalkan','info');else if(e.code==='auth/popup-blocked-by-browser')toast('Popup diblokir. Jalankan via localhost/https.','error');else toast('❌ Gagal login: '+e.message,'error')}}
 function logoutUser(){if(!currentUser)return;if(!confirm('Logout?\n👤 '+currentUser.name+'\n📧 '+currentUser.email))return;auth.signOut().then(()=>{toast('👋 Berhasil logout','success')}).catch(e=>toast('❌ Gagal logout: '+e.message,'error'))}
-function renderAdminNav(){renderSidebarNav();const psb=document.getElementById('portalSettingsSidebarBtn');if(psb)psb.style.display=isAdmin()?'flex':'none'}
 function navTo(sectionName,navEl){userNavigated=true;showSection(sectionName,navEl)}
 function showSection(sectionName,navEl){
 if(sectionName==='login-history'&&!isAdmin()){toast('⛔ Akses ditolak! Hanya admin.','error');return}
@@ -877,7 +892,7 @@ document.getElementById('confirmDeleteBtn').addEventListener('click',function(){
 document.getElementById('deleteConfirmOverlay').addEventListener('click',function(e){if(e.target===this)closeDeleteConfirm()});
 function openEditor(){document.getElementById('editorOverlay').classList.add('show');setTimeout(()=>document.getElementById('sName').focus(),100)}
 function closeEditor(){document.getElementById('editorOverlay').classList.remove('show')}
-async function executeDelete(id){if(!id){toast('❌ Error: ID tidak valid','error');return}const idx=scripts.findIndex(s=>s&&s.id===id);if(idx===-1){toast('❌ Script tidak ditemukan','error');return}const script=scripts[idx];const name=script.name||'Unnamed';const old={...script};if(!isAdmin()&&script.ownerEmail!==currentUser.email){toast('⛔ Hanya pemilik atau admin yang bisa hapus','error');return}pushHistory(script,buildHistoryEntry('delete',name,old,null));try{toast('🗑️ Menghapus script...','delete');await FIREBASE.save(script);await db.ref('deleted_history/'+id).set({originalId:id,name,deletedBy:currentUser.email,deletedAt:new Date().toISOString(),history:script.history||[],lastCode:script.code||null});deletedHistoryCache=null;await FIREBASE.delete(id);scripts.splice(idx,1);if(editId===id){editId=null;closeEditor()}renderActiveSection();toast('🗑️ "'+name+'" berhasil dihapus!','delete')}catch(e){toast('❌ Gagal hapus: '+e.message,'error');scripts=await FIREBASE.load();renderActiveSection()}}
+async function executeDelete(id){if(!id){toast('❌ Error: ID tidak valid','error');return}const idx=scripts.findIndex(s=>s&&s.id===id);if(idx===-1){toast('❌ Script tidak ditemukan','error');return}const script=scripts[idx];const name=script.name||'Unnamed';const old={...script};if(!isAdmin()&&script.ownerEmail!==currentUser.email){toast('⛔ Hanya pemilik atau admin yang bisa hapus','error');return}pushHistory(script,buildHistoryEntry('delete',name,old,null));try{toast('🗑️ Menghapus script...','delete');await FIREBASE.save(script);await db.ref('deleted_history/'+id).set({originalId:id,name,deletedBy:currentUser.email,deletedAt:new Date().toISOString(),history:script.history||[],lastCode:script.code||null});await FIREBASE.delete(id);scripts.splice(idx,1);if(editId===id){editId=null;closeEditor()}renderActiveSection();toast('🗑️ "'+name+'" berhasil dihapus!','delete')}catch(e){toast('❌ Gagal hapus: '+e.message,'error');scripts=await FIREBASE.load();renderActiveSection()}}
 function delS(){if(!editId){toast('❌ Tidak ada script','error');return}const s=scripts.find(x=>x&&x.id===editId);openDeleteConfirm(s?s.name:'Unnamed',()=>executeDelete(editId))}
 function quickDel(id){const s=scripts.find(x=>x&&x.id===id);openDeleteConfirm(s?s.name:'Unnamed',()=>executeDelete(id))}
 function buildCode(s){let c=s.code||'';if(!/\/\/\s*==UserScript==/i.test(c)){const n=(s.name||'Script').replace(/\*\//g,'* /');const d=(s.desc||'').replace(/\*\//g,'* /');const a=(s.author||currentUser.name||'ScriptVault User').replace(/\*\//g,'* /');c='// ==UserScript==\n// @name         '+n+'\n// @namespace    scriptvault.local\n// @version      1.0\n// @description  '+(d||'Script from ScriptVault')+'\n// @author       '+a+'\n// @match        *://*/*\n// @grant        none\n// @run-at       document-idle\n// ==/UserScript==\n'+c}return c}
@@ -886,15 +901,14 @@ function openTMFromEditor(){const name=document.getElementById('sName').value.tr
 function tryOpenTM(){toast('🐒 Code sudah di-copy!','success');setTimeout(()=>{const w=window.open(TM_URL,'_blank');setTimeout(()=>{if(!w||w.closed||typeof w.closed=='undefined'){document.getElementById('tmHelpOverlay').classList.add('show')}},1000)},300)}
 function fallbackCopy(text){const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(t)}
 function initApp(){if(initPromise)return initPromise;initPromise=doInit();return initPromise}
-async function doInit(){const lt=document.getElementById('loadTxt');const lp=document.getElementById('loadProgress');const setP=(p,t)=>{if(lp)lp.style.width=p+'%';if(lt&&t)lt.textContent=t};try{
-setP(10,'CONNECTING');
+async function doInit(){const lt=document.getElementById('loadTxt');try{
+lt.textContent='CONNECTING';
 const [scriptsData]=await Promise.all([withRetry(()=>FIREBASE.load()),loadPortalConfig(),loadUserPortalPin()]);
 scripts=scriptsData;
-setP(60,'RENDERING');
+lt.textContent='RENDERING';
 if(!appInitialized){appInitialized=true;init();startClock();startPortalListener();startFocusSync()}
-renderActiveSection();renderPortalMenus();renderSidebarNav();applySettings();
+renderActiveSection();renderPortalMenus();applySettings();renderSidebarNav();
 if(!userNavigated){showSection('portal')}
-setP(100,'READY');
 setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},400);
 }catch(e){console.error(e);lt.textContent='ERROR';lt.style.color='#c62828';toast('❌ Gagal init: '+e.message,'error');setLoadingHide();setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},800)}}
 function init(){if(uiInitialized)return;uiInitialized=true;
@@ -905,15 +919,7 @@ ta.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='s'){e.preventDefault();
 document.querySelectorAll('.portal-pin').forEach((input,index)=>{input.addEventListener('input',e=>{currentPortalPinInput=Array.from(document.querySelectorAll('.portal-pin')).map(i=>i.value).join('');if(e.target.value&&index<3){const next=document.querySelector('.portal-pin[data-index="'+(index+1)+'"]');if(next)next.focus()}if(currentPortalPinInput.length===4){setTimeout(submitPortalPin,250)}});input.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!e.target.value&&index>0){const prev=document.querySelector('.portal-pin[data-index="'+(index-1)+'"]');if(prev)prev.focus()}})})}
 function startClock(){updateClock();if(clockInterval)clearInterval(clockInterval);clockInterval=setInterval(updateClock,1000)}
 function updateClock(){const now=new Date();const s=portalConfig.settings;const t=document.getElementById('clockTime');if(t)t.textContent=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:(s.clock24===false)});const d=document.getElementById('clockDate');if(d)d.textContent=now.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});const y=document.getElementById('clockDay');if(y)y.textContent=now.toLocaleDateString('id-ID',{weekday:'long'})}
-function updateBadges(){
-const visibleScripts=scripts.filter(s=>{if(!s)return false;if(isAdmin())return true;return s.isPublic!==false});
-const ab=document.getElementById('allBadge');if(ab)ab.textContent=visibleScripts.length;
-const mb=document.getElementById('myBadge');if(mb)mb.textContent=getUserScripts().length;
-const kb=document.getElementById('kendalaBadge');if(kb)kb.textContent=kendalaList.length;
-const fb=document.getElementById('fotoBadge');if(fb)fb.textContent=fotoList.length;
-}
-function renderActiveSection(){try{updateBadges()}catch(e){console.error(e)}
-try{
+function renderActiveSection(){try{updateBadges()}catch(e){console.error(e)}try{
 if(currentSection==='dashboard')renderDash();
 else if(currentSection==='scripts')renderScriptsSection();
 else if(currentSection==='login-history')renderLoginHistory();
@@ -921,30 +927,40 @@ else if(currentSection==='portal')renderPortalMenus();
 else if(currentSection==='kendala-section')renderKendalaSection();
 else if(currentSection==='foto-section')renderFotoSection();
 }catch(e){console.error(e)}}
+function updateBadges(){
+const visibleScripts=scripts.filter(s=>{if(!s)return false;if(isAdmin())return true;return s.isPublic!==false});
+const ab=document.getElementById('allBadge');if(ab)ab.textContent=visibleScripts.length;
+const my=getUserScripts();
+const mb=document.getElementById('myBadge');if(mb)mb.textContent=my.length;
+const kb=document.getElementById('kendalaBadge');if(kb)kb.textContent=kendalaList.length;
+const fb=document.getElementById('fotoBadge');if(fb)fb.textContent=fotoList.length;
+}
 function renderAll(){renderActiveSection()}
-/* ===== FILTER PENGGUNA MODERN (CHIPS) ===== */
-function renderOwnerChips(vs){
-const host=document.getElementById('ownerFilterChips');if(!host)return;
+/* ✦ UBAH: Filter pengguna dengan chips modern */
+function renderOwnerFilter(vs){
+const container=document.getElementById('ownerFilterContainer');
+if(!container)return;
 const owners={};
 vs.forEach(s=>{const e=s.ownerEmail||'unknown';const n=s.ownerName||e;if(!owners[e])owners[e]={name:n,count:0};owners[e].count++});
-let html='<button class="owner-chip'+(selectedOwner==='all'?' active':'')+'" onclick="selectOwner(\'all\')"><span class="oc-avatar">👥</span>Semua Pengguna<span class="oc-count">'+vs.length+'</span></button>';
+let html='<div class="owner-chip'+(currentOwnerFilter==='all'?' active':'')+'" onclick="setOwnerFilter(\'all\')"><span class="chip-avatar">👥</span>Semua<span class="chip-count">'+vs.length+'</span></div>';
 Object.keys(owners).sort((a,b)=>(owners[a].name||'').localeCompare(owners[b].name||'')).forEach(e=>{
-const init=(owners[e].name||'?').charAt(0).toUpperCase();
-const safe=e.replace(/'/g,"\\'");
-html+='<button class="owner-chip'+(selectedOwner===e?' active':'')+'" onclick="selectOwner(\''+safe+'\')" title="'+esc(e)+'"><span class="oc-avatar">'+esc(init)+'</span>'+esc(owners[e].name)+'<span class="oc-count">'+owners[e].count+'</span></button>';
+const initial=(owners[e].name||'?').charAt(0).toUpperCase();
+html+='<div class="owner-chip'+(currentOwnerFilter===e?' active':'')+'" onclick="setOwnerFilter(\''+esc(e).replace(/'/g,"\\'")+'\')"><span class="chip-avatar">'+esc(initial)+'</span>'+esc(owners[e].name)+'<span class="chip-count">'+owners[e].count+'</span></div>';
 });
-host.innerHTML=html;
+container.innerHTML=html;
 }
-function selectOwner(o){selectedOwner=o;renderDash()}
+function setOwnerFilter(val){currentOwnerFilter=val;renderDash()}
 function renderDash(){
 const visibleScripts=scripts.filter(s=>{if(!s)return false;if(isAdmin())return true;return s.isPublic!==false});
 document.getElementById('sTot').textContent=visibleScripts.length;
 document.getElementById('sChr').textContent=visibleScripts.reduce((a,s)=>a+(s.code?s.code.length:0),0).toLocaleString('id-ID');
 document.getElementById('sHist').textContent=visibleScripts.reduce((a,s)=>a+((s.history&&s.history.length)||0),0).toLocaleString('id-ID');
-updateBadges();
-renderOwnerChips(visibleScripts);
+const ab=document.getElementById('allBadge');if(ab)ab.textContent=visibleScripts.length;
+const my=getUserScripts();
+const mb=document.getElementById('myBadge');if(mb)mb.textContent=my.length;
+renderOwnerFilter(visibleScripts);
 let all=visibleScripts;
-if(selectedOwner&&selectedOwner!=='all')all=all.filter(s=>(s.ownerEmail||'unknown')===selectedOwner);
+if(currentOwnerFilter&&currentOwnerFilter!=='all')all=all.filter(s=>(s.ownerEmail||'unknown')===currentOwnerFilter);
 all=[...all].sort((a,b)=>new Date(b.updated||0)-new Date(a.updated||0));
 const q=(document.getElementById('qIn').value||'').toLowerCase().trim();
 if(q){all=all.filter(s=>(s.name||'').toLowerCase().includes(q)||(s.desc||'').toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)||(s.ownerEmail||'').toLowerCase().includes(q)||(s.ownerName||'').toLowerCase().includes(q));updateSearchUI(all.length,true)}else{updateSearchUI(0,false)}
@@ -957,9 +973,11 @@ function renderList(){const my=getUserScripts();const q=(document.getElementById
 function cardH(s){const dn=s.name||'Unnamed';const vb=s.isPublic===false?'<span class="owner-badge priv"><i class="fas fa-lock"></i> PRIVATE</span>':'<span class="owner-badge pub"><i class="fas fa-globe"></i> PUBLIK</span>';const lines=s.code?s.code.split('\n').length:0;const size=s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB';
 return '<div class="card"><div class="card-header" onclick="editS(\''+s.id+'\')" style="cursor:pointer"><div class="card-icon"><i class="fas fa-code"></i></div><div class="card-body"><div class="card-title">'+esc(dn)+' '+vb+'</div><div class="card-desc">'+esc(s.desc||'Tanpa deskripsi')+'</div></div></div><div class="card-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+ago(s.updated)+'</span><span><span class="icon"><i class="fas fa-file-code"></i></span>'+size+'</span><span><span class="icon"><i class="fas fa-align-left"></i></span>'+lines+' baris</span></div><div class="card-actions"><button class="btn btn-success" onclick="event.stopPropagation();openTMFromCard(event,\''+s.id+'\')"><i class="fas fa-external-link-alt"></i> TM</button><button class="btn btn-ghost" onclick="event.stopPropagation();editS(\''+s.id+'\')"><i class="fas fa-edit"></i> Edit</button><button class="btn btn-warning" onclick="event.stopPropagation();quickCopy(\''+s.id+'\')"><i class="fas fa-copy"></i> Copy</button><button class="btn btn-danger" onclick="event.stopPropagation();quickDel(\''+s.id+'\')"><i class="fas fa-trash"></i> Hapus</button></div></div>'}
 function emptyH(t,m){return '<div class="empty"><div class="icon"><i class="fas fa-robot"></i></div><h4>'+t+'</h4><p>'+m+'</p>'+(t==='Belum ada script'?'<button class="btn btn-primary" onclick="newS()"><i class="fas fa-plus"></i> SCRIPT PERTAMA</button>':'')+'</div>'}
+let deletedHistoryCache=null;
 async function getDeletedHistory(){if(deletedHistoryCache!==null)return deletedHistoryCache;try{const snap=await db.ref('deleted_history').once('value');const val=snap.val();deletedHistoryCache=val?Object.values(val):[];return deletedHistoryCache}catch(e){deletedHistoryCache=[];return[]}}
 async function renderHistorySection(){if(!document.getElementById('historyList'))return;let all=[];scripts.forEach(s=>{(s.history||[]).forEach(h=>{all.push({...h,scriptName:s.name||h.scriptName||'Unnamed',scriptId:s.id})})});
-const deletedItems=await getDeletedHistory();deletedItems.forEach(d=>{(d.history||[]).forEach(h=>{all.push({...h,scriptName:d.name||h.scriptName||'Deleted Script',deleted:true})})});
+const deletedItems=await getDeletedHistory();
+deletedItems.forEach(d=>{(d.history||[]).forEach(h=>{all.push({...h,scriptName:d.name||h.scriptName||'Deleted Script',deleted:true})})});
 all.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
 const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
 setTxt('hTot',all.length);setTxt('hCreate',all.filter(h=>h.action==='create').length);setTxt('hUpdate',all.filter(h=>h.action==='update').length);setTxt('hDelete',all.filter(h=>h.action==='delete').length);setTxt('hCnt',all.length);
@@ -967,10 +985,7 @@ const c=document.getElementById('historyList');
 if(all.length===0){c.innerHTML='<div class="empty"><div class="icon"><i class="fas fa-scroll"></i></div><h4>BELUM ADA HISTORI</h4><p>Aksi edit, buat, dan hapus script akan tercatat di sini</p></div>';return}
 c.innerHTML=all.slice(0,50).map(h=>{const al={create:'<i class="fas fa-magic"></i> DIBUAT',update:'<i class="fas fa-pen"></i> DIPERBARUI',delete:'<i class="fas fa-trash"></i> DIHAPUS'}[h.action]||h.action;const pi=h.action==='update'?'<i class="fas fa-pen"></i>':h.action==='create'?'<i class="fas fa-magic"></i>':'<i class="fas fa-trash"></i>';const sn=(h.scriptName||'').replace(/'/g,"\\'");
 return '<div class="card"><div class="card-header"><div class="card-icon" onclick="event.stopPropagation();showHistDetail(\''+h.timestamp+'\',\''+sn+'\')" style="cursor:pointer" title="Klik untuk detail">'+pi+'</div><div class="card-body"><div class="card-title">'+esc(h.scriptName||'-')+'</div><div class="card-desc">'+al+' oleh '+esc(h.editor||'-')+' ('+esc(h.email||'-')+')</div></div></div><div class="card-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+formatDate(h.timestamp)+'</span><span><span class="icon"><i class="fas fa-user"></i></span>'+esc(h.editor||'-')+'</span><span><span class="icon"><i class="fas fa-envelope"></i></span>'+esc(h.email||'-')+'</span><span><span class="icon"><i class="fas fa-globe"></i></span>'+esc(h.ip||'-')+'</span></div></div>'}).join('')}
-function switchHistoryPane(side){
-const lp=document.getElementById('lhPaneLogin'),ep=document.getElementById('lhPaneEdit');
-const bl=document.getElementById('hswLogin'),be=document.getElementById('hswEdit');
-if(!lp||!ep)return;
+function switchHistoryPane(side){const lp=document.getElementById('lhPaneLogin'),ep=document.getElementById('lhPaneEdit');const bl=document.getElementById('hswLogin'),be=document.getElementById('hswEdit');if(!lp||!ep)return;
 if(side==='edit'){lp.style.display='none';ep.style.display='block';if(bl)bl.classList.remove('active');if(be)be.classList.add('active');renderHistorySection()}
 else{lp.style.display='block';ep.style.display='none';if(bl)bl.classList.add('active');if(be)be.classList.remove('active')}}
 function renderLoginHistory(){const c=document.getElementById('loginHistoryContent');if(!isAdmin()){c.innerHTML='<div class="access-denied"><div class="icon"><i class="fas fa-user-shield"></i></div><h4>Akses Ditolak</h4><p>Halaman ini hanya untuk <strong style="color:var(--neon-cyan)">Administrator</strong></p></div>';return}
@@ -981,7 +996,7 @@ c.innerHTML='<div class="bento"><div class="bento-stat"><div class="bento-label"
 '<button class="history-switch-btn" id="hswEdit" onclick="switchHistoryPane(\'edit\')"><i class="fas fa-scroll"></i> HISTORI EDIT</button>'+
 '</div>'+
 '<div id="lhPaneLogin">'+
-'<div class="section"><div class="section-header"><h3><span class="bar"></span><i class="fas fa-user-shield"></i> LOG HISTORI LOGIN</h3><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><small><span id="lhCnt">0</span> ENTRI</small><button class="btn btn-danger" onclick="openClearLoginHistory()" style="padding:6px 12px;font-size:10px"><i class="fas fa-broom"></i> BERSIHKAN</button></div></div><div id="loginHistoryList" class="card-list"><div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data...</h4></div></div></div>'+
+'<div class="section"><div class="section-header"><h3><span class="bar"></span><i class="fas fa-user-shield"></i> LOG HISTORI LOGIN</h3><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><small><span id="lhCnt">0</span> ENTRI</small><button class="btn btn-purple" onclick="exportBackup()" style="padding:6px 12px;font-size:10px"><i class="fas fa-download"></i> BACKUP</button><button class="btn btn-danger" onclick="openClearLoginHistory()" style="padding:6px 12px;font-size:10px"><i class="fas fa-broom"></i> BERSIHKAN</button></div></div><div id="loginHistoryList" class="card-list"><div class="empty"><div class="icon"><i class="fas fa-spinner fa-spin"></i></div><h4>Memuat data...</h4></div></div></div>'+
 '</div>'+
 '<div id="lhPaneEdit" style="display:none">'+
 '<div class="bento" style="margin-bottom:14px">'+
@@ -1004,7 +1019,8 @@ document.getElementById('loginHistoryList').innerHTML=entries.slice(0,100).map(e
 return '<div class="login-history-card"><div class="login-history-header"><div class="login-avatar">'+av+'</div><div class="login-info"><div class="login-name">'+esc(en.name||'Unknown')+' '+at+'</div><div class="login-email">'+esc(en.email||'Unknown')+'</div></div></div><div class="login-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+formatDate(en.loginTime)+'</span><span><span class="icon"><i class="fas fa-globe"></i></span>'+esc(en.ip||'Unknown')+'</span><span><span class="icon"><i class="fas fa-laptop"></i></span>'+esc(parseBrowser(en.userAgent||''))+'</span><span><span class="icon"><i class="fas fa-desktop"></i></span>'+esc(en.platform||'Unknown')+'</span></div></div>'}).join('')}catch(e){document.getElementById('loginHistoryList').innerHTML='<div class="empty"><div class="icon"><i class="fas fa-exclamation-triangle"></i></div><h4>ERROR</h4><p>Gagal memuat data: '+esc(e.message)+'</p></div>'}}
 function parseBrowser(ua){if(!ua)return'Unknown';if(ua.includes('Firefox'))return'Firefox';if(ua.includes('Edg'))return'Edge';if(ua.includes('Chrome'))return'Chrome';if(ua.includes('Safari'))return'Safari';if(ua.includes('Opera')||ua.includes('OPR'))return'Opera';return'Browser'}
 async function showHistDetail(timestamp,scriptName){let all=[];scripts.forEach(s=>{(s.history||[]).forEach(h=>{all.push({...h,scriptName:s.name||h.scriptName||'Unnamed'})})});
-const deletedItems=await getDeletedHistory();deletedItems.forEach(d=>{(d.history||[]).forEach(h=>{all.push({...h,scriptName:d.name||h.scriptName||'Deleted Script'})})});
+const deletedItems=await getDeletedHistory();
+deletedItems.forEach(d=>{(d.history||[]).forEach(h=>{all.push({...h,scriptName:d.name||h.scriptName||'Deleted Script'})})});
 const entry=all.find(h=>h.timestamp===timestamp&&h.scriptName===scriptName);
 if(!entry){toast('❌ Data histori tidak ditemukan','error');return}
 const al={create:'<i class="fas fa-magic"></i> SCRIPT DIBUAT',update:'<i class="fas fa-pen"></i> SCRIPT DIPERBARUI',delete:'<i class="fas fa-trash"></i> SCRIPT DIHAPUS'}[entry.action]||entry.action;
@@ -1037,29 +1053,78 @@ function isImageUrl(url){return /\.(png|jpe?g|gif|webp|svg|bmp|avif)(\?[^\s]*)?$
 function storeLinks(key,urls){linkStore[key]=urls}
 function openStoredLinks(key){openAllUrls(linkStore[key]||[])}
 function openAllUrls(urls){if(!urls||!urls.length){toast('❌ Tidak ada link terdeteksi','error');return}if(urls.length===1){window.open(urls[0],'_blank');return}toast('🚀 Membuka '+urls.length+' link sekaligus — izinkan popup jika browser memblokir','info');urls.forEach((u,i)=>setTimeout(()=>window.open(u,'_blank'),i*180))}
-function buildLinkPanel(text,key){const urls=extractUrls(text);if(!urls.length)return '';const imgs=urls.filter(isImageUrl);const links=urls.filter(u=>!isImageUrl(u));let h='<div class="link-panel">';if(imgs.length){h+='<div class="link-images">';imgs.forEach(u=>{h+='<a href="'+esc(u)+'" target="_blank" class="link-img-wrap" title="Buka gambar penuh"><img src="'+esc(u)+'" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></a>'});h+='</div>'}
-h+='<div class="link-actions">';links.forEach((u,i)=>{h+='<a class="link-chip" href="'+esc(u)+'" target="_blank" title="'+esc(u)+'"><i class="fas fa-external-link-alt"></i> LINK '+(i+1)+'</a>'});h+='<button class="btn-mini open-all" onclick="openStoredLinks(\''+key+'\')"><i class="fas fa-rocket"></i> BUKA SEMUA LINK ('+urls.length+')</button>';h+='</div></div>';return h}
-/* ===== JAWABAN DINAMIS ===== */
-function getAnswers(k){if(Array.isArray(k.answers)&&k.answers.length)return k.answers.filter(a=>a&&String(a).trim());const arr=[];if(k.jawaban1)arr.push(k.jawaban1);if(k.jawaban2)arr.push(k.jawaban2);if(k.jawaban3)arr.push(k.jawaban3);return arr}
-function jawabanBox(k,text,num){const key='k_'+k.id+'_'+num;storeLinks(key,extractUrls(text));
-return '<div class="jawaban-box"><div class="jawaban-top"><span class="jawaban-label">JAWABAN '+num+'</span><div class="jawaban-actions"><button class="btn-mini" onclick="copyKendalaAnswer(\''+k.id+'\','+(num-1)+')"><i class="fas fa-copy"></i> COPY</button></div></div><div class="jawaban-text" id="k-text-'+k.id+'-'+num+'">'+esc(text)+'</div>'+buildLinkPanel(text,key)+'</div>'}
-function copyKendalaAnswer(id,idx){const k=kendalaList.find(x=>x.id===id);if(!k){toast('❌ Data tidak ditemukan','error');return}const ans=getAnswers(k);const text=ans[idx]||'';if(!text){toast('❌ Jawaban kosong','error');return}
-navigator.clipboard.writeText(text).then(()=>{toast('✅ Jawaban berhasil di-copy!','success')}).catch(()=>{fallbackCopy(text);toast('✅ Jawaban berhasil di-copy!','success')})}
-/* ===== KOMENTAR ===== */
-function getComments(k){if(!k.comments)return[];if(Array.isArray(k.comments))return k.comments;return Object.entries(k.comments).map(([cid,c])=>({id:cid,...c})).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt))}
-function toggleComments(id){if(openComments.has(id))openComments.delete(id);else openComments.add(id);const el=document.getElementById('comments-'+id);if(el)el.style.display=openComments.has(id)?'block':'none'}
-async function addComment(id){if(!currentUser){toast('⛔ Login terlebih dahulu','error');return}const inp=document.getElementById('comment-input-'+id);if(!inp)return;const text=inp.value.trim();if(!text){toast('❌ Komentar tidak boleh kosong','error');return}
-try{await kendalaRef().child(id).child('comments').push({text,author:currentUser.name,email:currentUser.email,uid:currentUser.uid,createdAt:new Date().toISOString()});inp.value='';toast('✅ Komentar terkirim','success')}catch(e){toast('❌ Gagal mengirim komentar: '+e.message,'error')}}
-function renderCommentList(comments){if(!comments.length)return '<div class="comment-empty">Belum ada komentar. Jadilah yang pertama!</div>';
-return comments.map(c=>{const init=(c.author||'?').charAt(0).toUpperCase();return '<div class="comment-item"><div class="comment-head"><div class="comment-avatar">'+esc(init)+'</div><span class="comment-author">'+esc(c.author||'Unknown')+'</span><span class="comment-time">'+ago(c.createdAt)+'</span></div><div class="comment-text">'+esc(c.text)+'</div></div>'}).join('')}
-/* ===== SIDEBAR MANAGER ===== */
-function sbSet(i,k,v){if(editSidebarMenus[i])editSidebarMenus[i][k]=v}
-function sbMove(i,dir){const j=i+dir;if(j<0||j>=editSidebarMenus.length)return;const t=editSidebarMenus[i];editSidebarMenus[i]=editSidebarMenus[j];editSidebarMenus[j]=t;sbRender()}
-function sbRender(){const box=document.getElementById('sidebarMgrList');if(!box)return;
-box.innerHTML=editSidebarMenus.map((m,i)=>{
-const lock=m.adminOnly?'<span class="sb-lock"><i class="fas fa-crown"></i> ADMIN</span>':'';
-return '<div class="sb-row"><div class="sb-ctrl"><button class="mgr-btn" onclick="sbMove('+i+',-1)" title="Naik">▲</button><button class="mgr-btn" onclick="sbMove('+i+',1)" title="Turun">▼</button></div><div class="sb-fields"><input class="set-input" value="'+esc(m.name||'')+'" placeholder="Nama menu" oninput="sbSet('+i+',\'name\',this.value)"><label class="mgr-toggle"><input type="checkbox" '+(m.visible?'checked':'')+' onchange="sbSet('+i+',\'visible\',this.checked)"> Tampil</label>'+lock+'</div></div>'}).join('')}
-/* ===== MENU PORTAL MANAGER ===== */
+function buildLinkPanel(text,key){const urls=extractUrls(text);if(!urls.length)return '';const imgs=urls.filter(isImageUrl);const links=urls.filter(u=>!isImageUrl(u));let h='<div class="link-panel">';if(imgs.length){h+='<div class="link-images">';imgs.forEach(u=>{h+='<a href="'+esc(u)+'" target="_blank" class="link-img-wrap" title="Buka gambar penuh"><img src="'+esc(u)+'" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></a>'});h+='</div>'}h+='<div class="link-actions">';links.forEach((u,i)=>{h+='<a class="link-chip" href="'+esc(u)+'" target="_blank" title="'+esc(u)+'"><i class="fas fa-external-link-alt"></i> LINK '+(i+1)+'</a>'});h+='<button class="btn-mini open-all" onclick="openStoredLinks(\''+key+'\')"><i class="fas fa-rocket"></i> BUKA SEMUA LINK ('+urls.length+')</button>';h+='</div></div>';return h}
+/* ✦ UBAH: jawabanBox untuk array dinamis */
+function jawabanBox(k,num,text){
+if(!text)return '';
+const key='k_'+k.id+'_'+num;
+storeLinks(key,extractUrls(text));
+return '<div class="jawaban-box">'+
+'<div class="jawaban-top"><span class="jawaban-label">JAWABAN '+(num+1)+'</span>'+
+'<div class="jawaban-actions"><button class="btn-mini" onclick="copyKendalaAnswer(\''+k.id+'\','+num+')"><i class="fas fa-copy"></i> COPY</button></div></div>'+
+'<div class="jawaban-text" id="k-text-'+k.id+'-'+num+'">'+esc(text)+'</div>'+
+buildLinkPanel(text,key)+
+'</div>';
+}
+/* ✦ BARU: Komentar functions */
+function toggleComments(id){
+const el=document.getElementById('comments-'+id);
+if(el)el.classList.toggle('open');
+}
+async function addComment(id){
+if(!currentUser){toast('⛔ Login terlebih dahulu','error');return}
+const input=document.getElementById('commentInput-'+id);
+if(!input)return;
+const text=input.value.trim();
+if(!text){toast('❌ Komentar tidak boleh kosong','error');return}
+try{
+await kendalaRef().child(id).child('komentar').push({
+author:currentUser.name||'Unknown',
+email:currentUser.email||'',
+text:text,
+createdAt:new Date().toISOString()
+});
+input.value='';
+toast('✅ Komentar terkirim','success');
+}catch(e){toast('❌ Gagal: '+e.message,'error')}
+}
+function renderComments(k){
+const komentar=k.komentar||[];
+let html='<div class="comment-section" id="comments-'+k.id+'">';
+html+='<div class="comment-list">';
+if(komentar.length===0){html+='<div style="color:var(--text-muted);font-size:11px;font-style:italic;padding:8px">Belum ada komentar</div>'}
+else{
+komentar.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)).forEach(c=>{
+const initial=(c.author||'?').charAt(0).toUpperCase();
+html+='<div class="comment-item"><div class="comment-avatar">'+esc(initial)+'</div><div class="comment-body"><div class="comment-author">'+esc(c.author)+'<span class="comment-time">'+ago(c.createdAt)+'</span></div><div class="comment-text">'+esc(c.text)+'</div></div></div>';
+});
+}
+html+='</div>';
+html+='<div class="comment-input-wrap"><input type="text" id="commentInput-'+k.id+'" placeholder="Tulis komentar..." onkeydown="if(event.key===\'Enter\')addComment(\''+k.id+'\')"><button onclick="addComment(\''+k.id+'\')"><i class="fas fa-paper-plane"></i></button></div>';
+html+='</div>';
+return html;
+}
+/* ✦ BARU: Nav Manager functions */
+let editNavMenus=[];
+function navMgrSet(i,k,v){if(editNavMenus[i])editNavMenus[i][k]=v}
+function navMgrMove(i,dir){const j=i+dir;if(j<0||j>=editNavMenus.length)return;const t=editNavMenus[i];editNavMenus[i]=editNavMenus[j];editNavMenus[j]=t;navMgrRender()}
+function navMgrToggle(i){if(editNavMenus[i])editNavMenus[i].show=!editNavMenus[i].show;navMgrRender()}
+function navMgrRender(){
+const box=document.getElementById('navMgrList');if(!box)return;
+box.innerHTML=editNavMenus.map((m,i)=>{
+const iconHtml=m.icon&&m.icon.indexOf('fa-')===0?'<i class="fas '+esc(m.icon)+'"></i>':esc(m.icon||'');
+return '<div class="nav-mgr-row">'+
+'<span class="nav-mgr-drag">☰</span>'+
+'<span style="width:20px;text-align:center">'+iconHtml+'</span>'+
+'<input value="'+esc(m.name||'')+'" placeholder="Nama menu" oninput="navMgrSet('+i+',\'name\',this.value)">'+
+(m.adminOnly?'<span style="font-size:9px;color:var(--neon-cyan);font-weight:700">ADMIN</span>':'')+
+'<div class="nav-mgr-btns">'+
+'<button onclick="navMgrMove('+i+',-1)" title="Naik">▲</button>'+
+'<button onclick="navMgrMove('+i+',1)" title="Turun">▼</button>'+
+'<button onclick="navMgrToggle('+i+')" title="Show/Hide" style="'+(m.show===false?'opacity:.4':'')+'">'+(m.show===false?'👁':'🙈')+'</button>'+
+'</div></div>';
+}).join('');
+}
 function mgrSet(i,k,v){if(editMenus[i])editMenus[i][k]=v}
 function mgrMove(i,dir){const j=i+dir;if(j<0||j>=editMenus.length)return;const t=editMenus[i];editMenus[i]=editMenus[j];editMenus[j]=t;mgrRender()}
 function mgrDel(i){if(!confirm('Hapus menu "'+(editMenus[i].name||'')+'"?'))return;editMenus.splice(i,1);mgrRender()}
@@ -1069,10 +1134,13 @@ function mgrRender(){const box=document.getElementById('menuMgrList');if(!box)re
 const fq=(document.getElementById('mgrFilter')?document.getElementById('mgrFilter').value:'').toLowerCase().trim();
 const cats=[...new Set(editMenus.map(m=>(m.cat||'LAINNYA')))].sort();
 const rows=[];
-editMenus.forEach((m,i)=>{if(fq&&!((m.name||'').toLowerCase().includes(fq)||(m.cat||'').toLowerCase().includes(fq)||(m.url||'').toLowerCase().includes(fq)))return;
-rows.push('<div class="mgr-row"><div class="mgr-ctrl"><span class="mgr-index">#'+(i+1)+'</span><button class="mgr-btn" onclick="mgrMove('+i+',-1)" title="Naik">▲</button><button class="mgr-btn" onclick="mgrMove('+i+',1)" title="Turun">▼</button><button class="mgr-btn" onclick="mgrDup('+i+')" title="Duplikat">⧉</button><button class="mgr-btn del" onclick="mgrDel('+i+')" title="Hapus">🗑</button></div><div class="mgr-fields"><input class="set-input" value="'+esc(m.icon||'')+'" placeholder="icon (fa-... / emoji)" oninput="mgrSet('+i+',\'icon\',this.value)"><input class="set-input" list="mgrCatList" value="'+esc(m.cat||'')+'" placeholder="Kategori/Section" oninput="mgrSet('+i+',\'cat\',this.value)"><input class="set-input" value="'+esc(m.name||'')+'" placeholder="Nama menu" oninput="mgrSet('+i+',\'name\',this.value)"><input class="set-input" value="'+esc(m.url||'')+'" placeholder="https://..." oninput="mgrSet('+i+',\'url\',this.value)"><input class="set-input" style="grid-column:1/-1" value="'+esc(m.desc||'')+'" placeholder="Deskripsi (opsional)" oninput="mgrSet('+i+',\'desc\',this.value)"><div class="mgr-extra" style="grid-column:1/-1"><label class="mgr-toggle"><input type="checkbox" '+(m.prime?'checked':'')+' onchange="mgrSet('+i+',\'prime\',this.checked)">⭐ Prime/Unggulan</label><label class="mgr-toggle"><input type="checkbox" '+(m.soon?'checked':'')+' onchange="mgrSet('+i+',\'soon\',this.checked)">🕒 Coming Soon</label><label class="mgr-toggle"><input type="checkbox" '+(m.ext?'checked':'')+' onchange="mgrSet('+i+',\'ext\',this.checked)">🔗 Icon External</label></div></div></div>')});
+editMenus.forEach((m,i)=>{
+if(fq && !((m.name||'').toLowerCase().includes(fq)||(m.cat||'').toLowerCase().includes(fq)||(m.url||'').toLowerCase().includes(fq)))return;
+rows.push('<div class="mgr-row"><div class="mgr-ctrl"><span class="mgr-index">#'+(i+1)+'</span><button class="mgr-btn" onclick="mgrMove('+i+',-1)" title="Naik">▲</button><button class="mgr-btn" onclick="mgrMove('+i+',1)" title="Turun">▼</button><button class="mgr-btn" onclick="mgrDup('+i+')" title="Duplikat">⧉</button><button class="mgr-btn del" onclick="mgrDel('+i+')" title="Hapus">🗑</button></div><div class="mgr-fields"><input class="set-input" value="'+esc(m.icon||'')+'" placeholder="icon (fa-... / emoji)" oninput="mgrSet('+i+',\'icon\',this.value)"><input class="set-input" list="mgrCatList" value="'+esc(m.cat||'')+'" placeholder="Kategori/Section" oninput="mgrSet('+i+',\'cat\',this.value)"><input class="set-input" value="'+esc(m.name||'')+'" placeholder="Nama menu" oninput="mgrSet('+i+',\'name\',this.value)"><input class="set-input" value="'+esc(m.url||'')+'" placeholder="https://..." oninput="mgrSet('+i+',\'url\',this.value)"><input class="set-input" style="grid-column:1/-1" value="'+esc(m.desc||'')+'" placeholder="Deskripsi (opsional)" oninput="mgrSet('+i+',\'desc\',this.value)"><div class="mgr-extra" style="grid-column:1/-1"><label class="mgr-toggle"><input type="checkbox" '+(m.prime?'checked':'')+' onchange="mgrSet('+i+',\'prime\',this.checked)">⭐ Prime/Unggulan</label><label class="mgr-toggle"><input type="checkbox" '+(m.soon?'checked':'')+' onchange="mgrSet('+i+',\'soon\',this.checked)">🕒 Coming Soon</label><label class="mgr-toggle"><input type="checkbox" '+(m.ext?'checked':'')+' onchange="mgrSet('+i+',\'ext\',this.checked)">🔗 Icon External</label></div></div></div>');
+});
 box.innerHTML='<datalist id="mgrCatList">'+cats.map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist>'+(rows.length?rows.join(''):'<div style="color:var(--text-muted);font-size:11px;padding:10px">Tidak ada menu cocok dengan filter.</div>');
-const cnt=document.getElementById('mgrCount');if(cnt)cnt.textContent=editMenus.length+' menu'}
+const cnt=document.getElementById('mgrCount');if(cnt)cnt.textContent=editMenus.length+' menu';
+}
 async function openPortalSettings(){if(!isAdmin()){toast('⛔ Hanya admin yang bisa mengubah pengaturan portal','error');return}
 await loadUserPortalPin();currentPortalPinInput='';document.querySelectorAll('.portal-pin').forEach(i=>i.value='');document.getElementById('portalPinError').textContent='';document.getElementById('portalPinOverlay').classList.add('show');setTimeout(()=>{const f=document.querySelector('.portal-pin[data-index="0"]');if(f)f.focus()},100)}
 function clearPortalPin(){currentPortalPinInput='';document.querySelectorAll('.portal-pin').forEach(i=>i.value='');document.getElementById('portalPinError').textContent='';const f=document.querySelector('.portal-pin[data-index="0"]');if(f)f.focus()}
@@ -1081,11 +1149,12 @@ function switchRow(l,k){return '<div class="set-row"><label>'+l+'</label><span c
 function inputRow(l,k,ph,ty){return '<div style="margin-bottom:10px"><label style="font-size:10.5px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px">'+l+'</label><input type="'+(ty||'text')+'" class="set-input" data-set="'+k+'" value="'+esc(portalConfig.settings[k]==null?'':portalConfig.settings[k])+'" placeholder="'+(ph||'')+'"></div>'}
 function showPortalSettingsForm(){
 const form=document.getElementById('portalSettingsForm');form.innerHTML='';
-editSidebarMenus=JSON.parse(JSON.stringify(portalConfig.sidebarMenus||DEFAULT_SIDEBAR_MENUS));
 editMenus=JSON.parse(JSON.stringify(portalConfig.menus||DEFAULT_MENUS));
-const sb=document.createElement('div');sb.className='settings-panel';
-sb.innerHTML='<h3 class="settings-panel-title">🧭 MANAJEMEN SIDEBAR — NAMA & URUTAN MENU</h3><div id="sidebarMgrList"></div><div style="font-size:10px;color:var(--text-muted);margin-top:6px"><i class="fas fa-info-circle"></i> Gunakan ▲▼ untuk menggeser posisi menu. Centang "Tampil" untuk menyembunyikan/menampilkan.</div>';
-form.appendChild(sb);sbRender();
+editNavMenus=JSON.parse(JSON.stringify(portalConfig.navMenus||DEFAULT_NAV_MENUS));
+/* ✦ BARU: Nav Sidebar Manager */
+const nv=document.createElement('div');nv.className='settings-panel';
+nv.innerHTML='<h3 class="settings-panel-title">🧭 NAVIGASI SIDEBAR — GESER · RENAME · SHOW/HIDE</h3><div id="navMgrList"></div><div style="font-size:10px;color:var(--text-muted);margin-top:6px"><i class="fas fa-info-circle"></i> Gunakan ▲▼ untuk geser posisi, klik nama untuk rename, 👁 untuk show/hide</div>';
+form.appendChild(nv);navMgrRender();
 const mg=document.createElement('div');mg.className='settings-panel';
 mg.innerHTML='<h3 class="settings-panel-title">🗂️ MANAJEMEN MENU PORTAL — SUSUN · DUPLIKAT · TAMBAH · HAPUS</h3><div class="mgr-filter-bar"><div class="section-search-bar" style="flex:1;margin-bottom:0"><i class="fas fa-search"></i><input type="text" id="mgrFilter" placeholder="Filter menu (nama / kategori / url)..." oninput="mgrRender()"></div><small id="mgrCount" style="white-space:nowrap;color:var(--neon-cyan);font-weight:700;font-family:Space Grotesk,sans-serif;font-size:10px"></small></div><div id="menuMgrList"></div><button class="btn btn-success" onclick="mgrAdd()" style="margin-top:8px"><i class="fas fa-plus"></i> TAMBAH MENU</button>';
 form.appendChild(mg);mgrRender();
@@ -1106,19 +1175,20 @@ function closePortalSettings(){document.getElementById('portalSettingsOverlay').
 function collectSettingsFromForm(){const settings=Object.assign({},portalConfig.settings);document.querySelectorAll('#portalSettingsForm .set-check').forEach(cb=>{settings[cb.dataset.set]=cb.checked});document.querySelectorAll('#portalSettingsForm .set-input[data-set]').forEach(i=>{settings[i.dataset.set]=i.value});return settings}
 async function savePortalSettings(){try{
 if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');
-portalConfig.sidebarMenus=editSidebarMenus.filter(m=>m&&(m.name||'').trim());
 portalConfig.menus=editMenus.filter(m=>m&&(m.name||'').trim());
+portalConfig.navMenus=editNavMenus;
 portalConfig.settings=collectSettingsFromForm();
 const np=document.getElementById('newPortalPinInput');if(np&&np.value.trim()){await saveUserPortalPin(np.value.trim());toast('✅ PIN portal disimpan','success')}
 await savePortalConfigToFirebase('manual save lengkap');
-renderSidebarNav();renderPortalMenus();applySettings();closePortalSettings();toast('✅ Pengaturan Portal tersimpan','success');
+renderPortalMenus();applySettings();renderSidebarNav();closePortalSettings();toast('✅ Pengaturan Portal tersimpan','success');
 }catch(e){toast('❌ Gagal menyimpan: '+e.message,'error')}}
-async function resetPortal(){if(!confirm('Reset semua menu & pengaturan ke default?'))return;try{if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');portalConfig.menus=JSON.parse(JSON.stringify(DEFAULT_MENUS));portalConfig.sidebarMenus=JSON.parse(JSON.stringify(DEFAULT_SIDEBAR_MENUS));portalConfig.settings={...defaultSettings};await savePortalConfigToFirebase('reset');renderSidebarNav();renderPortalMenus();applySettings();showPortalSettingsForm();toast('✅ Menu & pengaturan direset!','success')}catch(e){toast('❌ Gagal reset: '+e.message,'error')}}
+async function resetPortal(){if(!confirm('Reset semua menu & pengaturan ke default?'))return;try{if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');portalConfig.menus=JSON.parse(JSON.stringify(DEFAULT_MENUS));portalConfig.navMenus=JSON.parse(JSON.stringify(DEFAULT_NAV_MENUS));portalConfig.settings={...defaultSettings};await savePortalConfigToFirebase('reset');renderPortalMenus();applySettings();renderSidebarNav();showPortalSettingsForm();toast('✅ Menu & pengaturan direset!','success')}catch(e){toast('❌ Gagal reset: '+e.message,'error')}}
 function openClearLoginHistory(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}document.getElementById('clearLoginHistoryOverlay').classList.add('show')}
 function closeClearLoginHistory(){document.getElementById('clearLoginHistoryOverlay').classList.remove('show')}
 async function clearLoginHistoryAll(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus SEMUA histori login?\nAksi ini tidak dapat dibatalkan.'))return;try{toast('🧹 Menghapus semua histori login...','delete');const snap=await db.ref('login_history').once('value');const val=snap.val();if(!val){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const up={};let c=0;Object.keys(val).forEach(k=>{up[k]=null;c++});await db.ref('login_history').update(up);closeClearLoginHistory();toast('✅ '+c+' histori login dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
 async function clearLoginHistoryNonAdmin(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus login NON-ADMIN?\nLogin admin akan tetap disimpan.'))return;try{toast('🧹 Menghapus login non-admin...','delete');const snap=await db.ref('login_history').once('value');const val=snap.val();if(!val){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const up={};let c=0;Object.entries(val).forEach(([k,it])=>{if(!it||!it.isAdmin){up[k]=null;c++}});if(c===0){closeClearLoginHistory();toast('ℹ️ Tidak ada login non-admin','info');return}await db.ref('login_history').update(up);closeClearLoginHistory();toast('✅ '+c+' login non-admin dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
 async function clearLoginHistoryOld(days){days=days||7;if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus login lebih dari '+days+' hari?\nAksi ini tidak dapat dibatalkan.'))return;try{toast('🧹 Menghapus login lama...','delete');const cutoff=Date.now()-(days*24*60*60*1000);const snap=await db.ref('login_history').once('value');const val=snap.val();if(!val){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const up={};let c=0;Object.entries(val).forEach(([k,it])=>{const lt=it&&it.loginTime?new Date(it.loginTime).getTime():0;if(lt&&lt<cutoff){up[k]=null;c++}});if(c===0){closeClearLoginHistory();toast('ℹ️ Tidak ada login lama','info');return}await db.ref('login_history').update(up);closeClearLoginHistory();toast('✅ '+c+' login lama dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
+function exportBackup(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}try{const data={exportedAt:new Date().toISOString(),scripts,menus:portalConfig.menus,navMenus:portalConfig.navMenus,settings:portalConfig.settings,kendala:kendalaList,foto:fotoList};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='scriptvault-backup-'+stamp()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href)},400);toast('✅ Backup JSON diunduh','success')}catch(e){toast('❌ Gagal backup: '+e.message,'error')}}
 function stamp(){const d=new Date();return d.getFullYear()+''+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'_'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')}
 function withRetry(fn,retries=2,delay=800){return new Promise((res,rej)=>{const attempt=i=>fn().then(res).catch(e=>{if(i>=retries)rej(e);else setTimeout(()=>attempt(i+1),delay*(i+1))});attempt(0)})}
 db.ref('.info/connected').on('value',snap=>{const c=!!snap.val();if(c&&!online&&currentUser){toast('🔄 Koneksi pulih, sinkronisasi...','info');safeSync()}online=c;updateConnUI()});
@@ -1131,66 +1201,110 @@ function toggleTheme(){applyTheme(!document.documentElement.classList.contains('
 try{if(localStorage.getItem('sv_theme')==='1')applyTheme(true)}catch(e){}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){['editorOverlay','tmHelpOverlay','histDetailOverlay','portalSettingsOverlay','portalPinOverlay','deleteConfirmOverlay','clearLoginHistoryOverlay','fotoDetailOverlay'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('show')})}});
 updateConnUI();
-/* ===== KENDALA CRUD ===== */
+/* ============ KENDALA - CRUD + FIREBASE + JAWABAN DINAMIS + VISIBILITAS + KOMENTAR ============ */
 function kendalaRef(){return db.ref('kendala')}
-function startKendalaListener(){if(kendalaListenerStarted)return;kendalaListenerStarted=true;
-kendalaRef().on('value',snap=>{const val=snap.val();kendalaList=[];
-if(val){Object.entries(val).forEach(([id,item])=>{if(item&&item.judul){kendalaList.push({id,...item})}})}
+function startKendalaListener(){
+if(kendalaListenerStarted)return;
+kendalaListenerStarted=true;
+kendalaRef().on('value',snap=>{
+const val=snap.val();
+kendalaList=[];
+if(val){
+Object.entries(val).forEach(([id,item])=>{
+if(item&&item.judul){
+/* ✦ Konversi format lama ke array */
+if(item.jawaban1||item.jawaban2||item.jawaban3){
+const arr=[];
+if(item.jawaban1)arr.push(item.jawaban1);
+if(item.jawaban2)arr.push(item.jawaban2);
+if(item.jawaban3)arr.push(item.jawaban3);
+item.jawaban=arr;
+}
+if(!Array.isArray(item.jawaban))item.jawaban=[];
+kendalaList.push({id,...item});
+}
+});
+}
 kendalaList.sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
+const kBadge=document.getElementById('kendalaBadge');
+if(kBadge)kBadge.textContent=kendalaList.length;
 if(currentSection==='kendala-section')renderKendalaSection();
 if(currentSection==='login-history'&&isAdmin())renderNotifTerbaru();
-updateBadges()},err=>console.error('Kendala listener error:',err))}
+},err=>console.error('Kendala listener error:',err));
+}
 function renderKendalaSection(){
 const searchQ=(document.getElementById('kendalaSearch')?document.getElementById('kendalaSearch').value:'').toLowerCase().trim();
-let base=kendalaList;
-if(!isAdmin())base=base.filter(k=>k.visibility!=='admin');
-let filtered=base;
-if(searchQ){filtered=base.filter(k=>{const ansText=getAnswers(k).join(' ');return (k.judul||'').toLowerCase().includes(searchQ)||ansText.toLowerCase().includes(searchQ)||(k.ownerName||'').toLowerCase().includes(searchQ)})}
+/* ✦ Filter visibility */
+let visible=kendalaList.filter(k=>{
+if(k.visibility==='admin'&&!isAdmin())return false;
+return true;
+});
+let filtered=visible;
+if(searchQ){
+filtered=visible.filter(k=>{
+return (k.judul||'').toLowerCase().includes(searchQ)
+||(k.jawaban||[]).some(j=>(j||'').toLowerCase().includes(searchQ))
+||(k.ownerName||'').toLowerCase().includes(searchQ);
+});
+}
 const searchInfo=document.getElementById('kendalaSearchInfo');
-if(searchInfo){searchInfo.textContent=searchQ?(filtered.length+' dari '+base.length+' ditemukan'):''}
-document.getElementById('kTot').textContent=base.length;
-document.getElementById('kJaw').textContent=base.reduce((a,k)=>a+getAnswers(k).length,0);
-document.getElementById('kUsers').textContent=new Set(base.map(k=>k.ownerEmail||'')).size;
-document.getElementById('kLast').textContent=base[0]?ago(base[0].createdAt):'-';
+if(searchInfo){searchInfo.textContent=searchQ?(filtered.length+' dari '+visible.length+' ditemukan'):''}
+document.getElementById('kTot').textContent=visible.length;
+const totalJawaban=visible.reduce((a,k)=>a+((k.jawaban||[]).filter(Boolean).length),0);
+document.getElementById('kJaw').textContent=totalJawaban;
+document.getElementById('kUsers').textContent=new Set(visible.map(k=>k.ownerEmail||'')).size;
+document.getElementById('kLast').textContent=visible[0]?ago(visible[0].createdAt):'-';
 document.getElementById('kCnt').textContent=filtered.length;
 const container=document.getElementById('kendalaList');
-if(filtered.length===0){container.innerHTML=searchQ?'<div class="empty"><div class="icon"><i class="fas fa-search"></i></div><h4>TIDAK DITEMUKAN</h4><p>Tidak ada kendala cocok dengan "'+esc(searchQ)+'"</p></div>':'<div class="empty"><div class="icon"><i class="fas fa-headset"></i></div><h4>BELUM ADA KENDALA</h4><p>Klik "TAMBAH KENDALA" untuk menambahkan</p></div>';return}
+if(filtered.length===0){
+container.innerHTML=searchQ
+?'<div class="empty"><div class="icon"><i class="fas fa-search"></i></div><h4>TIDAK DITEMUKAN</h4><p>Tidak ada kendala cocok dengan "'+esc(searchQ)+'"</p></div>'
+:'<div class="empty"><div class="icon"><i class="fas fa-headset"></i></div><h4>BELUM ADA KENDALA</h4><p>Klik "TAMBAH KENDALA" untuk menambahkan</p></div>';
+return;
+}
 container.innerHTML=filtered.map((k,idx)=>{
-const answers=getAnswers(k);
-const jawabanHTML=answers.length?answers.map((a,i)=>jawabanBox(k,a,i+1)).join(''):'<div style="color:var(--text-muted);font-size:11px;font-style:italic;padding:8px">Belum ada jawaban</div>';
+const jawabanHTML=(k.jawaban||[]).map((j,i)=>jawabanBox(k,i,j)).filter(Boolean).join('');
 const judulImgs=extractUrls(k.judul).filter(isImageUrl);
 const judulImgHtml=judulImgs.length?'<div class="judul-images">'+judulImgs.map(u=>'<a href="'+esc(u)+'" target="_blank" class="link-img-wrap" title="Buka gambar penuh"><img src="'+esc(u)+'" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></a>').join('')+'</div>':'';
 const isNew=(Date.now()-new Date(k.createdAt).getTime())<86400000*2;
-const visBadge=k.visibility==='admin'?'<span class="vis-badge adm"><i class="fas fa-user-shield"></i> ADMIN ONLY</span>':'<span class="vis-badge pub"><i class="fas fa-globe"></i> PUBLIK</span>';
-const comments=getComments(k);
-const commentsOpen=openComments.has(k.id);
+const commentCount=(k.komentar||[]).length;
+const visBadge=k.visibility==='admin'?'<span class="owner-badge admin-only-badge" style="margin-left:6px"><i class="fas fa-crown"></i> ADMIN</span>':'';
 return `
 <div class="kendala-card" style="${isNew?'border-left:3px solid var(--neon-cyan)':''}">
 ${isNew?'<span class="badge-new" style="position:absolute;top:10px;right:10px">NEW</span>':''}
 <div class="kendala-judul">
 <div class="num">${idx+1}</div>
-<div class="title">${esc(k.judul)}</div>
-${visBadge}
+<div class="title">${esc(k.judul)}${visBadge}</div>
 </div>
 ${judulImgHtml}
-<div class="jawaban-grid">${jawabanHTML}</div>
-<div class="kendala-comments" id="comments-${k.id}" style="display:${commentsOpen?'block':'none'}">
-<div class="comment-list">${renderCommentList(comments)}</div>
-<div class="comment-input-row">
-<input class="comment-input" id="comment-input-${k.id}" placeholder="Tulis komentar..." onkeydown="if(event.key==='Enter')addComment('${k.id}')">
-<button class="btn btn-primary comment-send" onclick="addComment('${k.id}')"><i class="fas fa-paper-plane"></i></button>
-</div>
-</div>
+<div class="jawaban-grid">${jawabanHTML||'<div style="color:var(--text-muted);font-size:11px;font-style:italic;padding:8px">Belum ada jawaban</div>'}</div>
 <div class="kendala-meta">
 <span><span class="icon"><i class="fas fa-user"></i></span>${esc(k.ownerName||'Unknown')}</span>
 <span><span class="icon"><i class="fas fa-clock"></i></span>${ago(k.createdAt)}</span>
-<button class="btn-mini" onclick="toggleComments('${k.id}')"><i class="fas fa-comments"></i> KOMENTAR (${comments.length})</button>
 <button class="btn-mini edit" onclick="editKendala('${k.id}')"><i class="fas fa-edit"></i> EDIT</button>
+<button class="btn-comment" onclick="toggleComments('${k.id}')"><i class="fas fa-comments"></i> ${commentCount}</button>
 </div>
-</div>`}).join('')}
-function answerFieldHTML(value,idx){return '<div class="form-group answer-field"><label>JAWABAN '+idx+' (SOLUSI)'+(idx>1?' — OPSIONAL':'')+'</label><textarea class="kendala-answer-input" placeholder="Tulis solusi/jawaban..." style="min-height:70px;font-family:Inter,sans-serif;font-size:12.5px;line-height:1.6">'+esc(value||'')+'</textarea></div>'}
-function addAnswerField(value){answerCount++;const c=document.getElementById('kendalaAnswersContainer');if(!c)return;c.insertAdjacentHTML('beforeend',answerFieldHTML(value,answerCount))}
-function openKendalaForm(){if(!currentUser){toast('⛔ Login terlebih dahulu','error');return}editingKendalaId=null;answerCount=0;
+${renderComments(k)}
+</div>
+`;
+}).join('');
+}
+function copyKendalaAnswer(id,num){
+const k=kendalaList.find(x=>x.id===id);
+if(!k){toast('❌ Data tidak ditemukan','error');return}
+const jawaban=k.jawaban||[];
+const text=jawaban[num]||'';
+if(!text){toast('❌ Jawaban kosong','error');return}
+navigator.clipboard.writeText(text).then(()=>{
+toast('✅ Jawaban berhasil di-copy!','success');
+const el=document.getElementById('k-text-'+id+'-'+num);
+if(el){el.classList.add('copy-flash');setTimeout(()=>el.classList.remove('copy-flash'),600)}
+}).catch(()=>{fallbackCopy(text);toast('✅ Jawaban berhasil di-copy!','success')});
+}
+/* ✦ BARU: Form kendala dengan jawaban dinamis + visibilitas */
+function openKendalaForm(){
+if(!currentUser){toast('⛔ Login terlebih dahulu','error');return}
+editingKendalaId=null;
 const container=document.getElementById('kendalaFormContainer');
 container.innerHTML=`
 <div class="kendala-form-wrap">
@@ -1198,99 +1312,203 @@ container.innerHTML=`
 <h4 style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--neon-cyan);display:flex;align-items:center;gap:8px;letter-spacing:1px"><i class="fas fa-plus-circle"></i> TAMBAH KENDALA BARU</h4>
 <button class="btn btn-ghost" onclick="closeKendalaForm()" style="padding:6px 12px;font-size:10px"><i class="fas fa-times"></i> Batal</button>
 </div>
-<div class="form-group"><label>JUDUL KENDALA *</label><input type="text" id="kendalaJudul" placeholder="Contoh: Login gagal / Server down" maxlength="200"></div>
-<div class="form-group"><label>VISIBILITAS</label>
-<div class="visibility-toggle">
-<label class="vis-opt selected" onclick="selectVis(this,'public')"><input type="radio" name="kendalaVis" value="public" checked> <i class="fas fa-globe"></i> Semua Pengguna</label>
-<label class="vis-opt" onclick="selectVis(this,'admin')"><input type="radio" name="kendalaVis" value="admin"> <i class="fas fa-user-shield"></i> Admin Saja</label>
-</div></div>
-<div id="kendalaAnswersContainer"></div>
-<button class="btn btn-ghost" onclick="addAnswerField()" style="width:100%;margin-top:8px"><i class="fas fa-plus"></i> TAMBAH JAWABAN</button>
+<div class="form-group">
+<label>JUDUL KENDALA *</label>
+<input type="text" id="kendalaJudul" placeholder="Contoh: Login gagal / Server down" maxlength="200">
+</div>
+<div class="form-group">
+<label>RESPONS VISIBILITAS</label>
+<div class="vis-toggle-wrap">
+<label class="vis-option selected" onclick="selectVis(this,'all')"><input type="radio" name="kendalaVis" value="all" checked> 👥 Semua Pengguna</label>
+<label class="vis-option" onclick="selectVis(this,'admin')"><input type="radio" name="kendalaVis" value="admin"> 👑 Admin Saja</label>
+</div>
+</div>
+<div class="form-group">
+<label>JAWABAN / SOLUSI *</label>
+<div id="jawabanContainer">
+<div class="jawab-item">
+<textarea class="jawab-input" placeholder="Tulis solusi/jawaban pertama..." style="min-height:80px;font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.6"></textarea>
+</div>
+</div>
+<button type="button" class="btn-add-jawaban" onclick="addJawabanField()"><i class="fas fa-plus"></i> Tambah Jawaban</button>
+</div>
 <div style="display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--border-subtle)">
 <button class="btn btn-ghost" onclick="closeKendalaForm()" style="flex:1"><i class="fas fa-times"></i> Batal</button>
 <button class="btn btn-primary" onclick="saveKendala()" style="flex:1"><i class="fas fa-save"></i> Simpan</button>
 </div>
-</div>`;
-addAnswerField();
-setTimeout(()=>document.getElementById('kendalaJudul').focus(),100)}
-function selectVis(el,val){document.querySelectorAll('.vis-opt').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');const r=el.querySelector('input');if(r)r.checked=true}
-function editKendala(id){if(!currentUser){toast('⛔ Login dulu','error');return}const k=kendalaList.find(x=>x.id===id);if(!k){toast('❌ Kendala tidak ditemukan','error');return}editingKendalaId=id;answerCount=0;
+</div>
+`;
+setTimeout(()=>document.getElementById('kendalaJudul').focus(),100);
+}
+function editKendala(id){
+if(!currentUser){toast('⛔ Login dulu','error');return}
+const k=kendalaList.find(x=>x.id===id);
+if(!k){toast('❌ Kendala tidak ditemukan','error');return}
+editingKendalaId=id;
+const jawabanArr=k.jawaban||[];
+let jawabanFields='';
+jawabanArr.forEach((j,i)=>{
+jawabanFields+='<div class="jawab-item"><textarea class="jawab-input" style="min-height:80px;font-family:\'Inter\',sans-serif;font-size:12.5px;line-height:1.6">'+esc(j)+'</textarea>'+(i>0?'<button type="button" class="jawab-del" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>':'')+'</div>';
+});
+const visVal=k.visibility||'all';
 const container=document.getElementById('kendalaFormContainer');
-const visAdm=k.visibility==='admin';
 container.innerHTML=`
 <div class="kendala-form-wrap" style="border-color:var(--neon-cyan)">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border-subtle)">
 <h4 style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--neon-cyan);display:flex;align-items:center;gap:8px;letter-spacing:1px"><i class="fas fa-edit"></i> EDIT KENDALA</h4>
 <button class="btn btn-ghost" onclick="closeKendalaForm()" style="padding:6px 12px;font-size:10px"><i class="fas fa-times"></i> Batal</button>
 </div>
-<div class="form-group"><label>JUDUL KENDALA *</label><input type="text" id="kendalaJudul" value="${esc(k.judul||'')}" maxlength="200"></div>
-<div class="form-group"><label>VISIBILITAS</label>
-<div class="visibility-toggle">
-<label class="vis-opt ${visAdm?'':'selected'}" onclick="selectVis(this,'public')"><input type="radio" name="kendalaVis" value="public" ${visAdm?'':'checked'}> <i class="fas fa-globe"></i> Semua Pengguna</label>
-<label class="vis-opt ${visAdm?'selected':''}" onclick="selectVis(this,'admin')"><input type="radio" name="kendalaVis" value="admin" ${visAdm?'checked':''}> <i class="fas fa-user-shield"></i> Admin Saja</label>
-</div></div>
-<div id="kendalaAnswersContainer"></div>
-<button class="btn btn-ghost" onclick="addAnswerField()" style="width:100%;margin-top:8px"><i class="fas fa-plus"></i> TAMBAH JAWABAN</button>
+<div class="form-group">
+<label>JUDUL KENDALA *</label>
+<input type="text" id="kendalaJudul" value="${esc(k.judul||'')}" maxlength="200">
+</div>
+<div class="form-group">
+<label>RESPONS VISIBILITAS</label>
+<div class="vis-toggle-wrap">
+<label class="vis-option${visVal==='all'?' selected':''}" onclick="selectVis(this,'all')"><input type="radio" name="kendalaVis" value="all" ${visVal==='all'?'checked':''}> 👥 Semua Pengguna</label>
+<label class="vis-option${visVal==='admin'?' selected':''}" onclick="selectVis(this,'admin')"><input type="radio" name="kendalaVis" value="admin" ${visVal==='admin'?'checked':''}> 👑 Admin Saja</label>
+</div>
+</div>
+<div class="form-group">
+<label>JAWABAN / SOLUSI *</label>
+<div id="jawabanContainer">${jawabanFields||'<div class="jawab-item"><textarea class="jawab-input" placeholder="Tulis solusi/jawaban pertama..." style="min-height:80px;font-family:\'Inter\',sans-serif;font-size:12.5px;line-height:1.6"></textarea></div>'}</div>
+<button type="button" class="btn-add-jawaban" onclick="addJawabanField()"><i class="fas fa-plus"></i> Tambah Jawaban</button>
+</div>
 <div style="display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--border-subtle)">
 <button class="btn btn-ghost" onclick="closeKendalaForm()" style="flex:1"><i class="fas fa-times"></i> Batal</button>
 <button class="btn btn-primary" onclick="saveKendala()" style="flex:1"><i class="fas fa-save"></i> Update Kendala</button>
 </div>
-</div>`;
-const ans=getAnswers(k);
-if(ans.length){ans.forEach(a=>addAnswerField(a))}else{addAnswerField()}
+</div>
+`;
 container.scrollIntoView({behavior:'smooth',block:'start'});
-setTimeout(()=>document.getElementById('kendalaJudul').focus(),100)}
+setTimeout(()=>document.getElementById('kendalaJudul').focus(),100);
+}
+function selectVis(el,val){
+document.querySelectorAll('.vis-option').forEach(o=>o.classList.remove('selected'));
+el.classList.add('selected');
+el.querySelector('input').checked=true;
+}
+function addJawabanField(){
+const container=document.getElementById('jawabanContainer');
+if(!container)return;
+const div=document.createElement('div');
+div.className='jawab-item';
+div.innerHTML='<textarea class="jawab-input" placeholder="Tulis solusi/jawaban berikutnya..." style="min-height:80px;font-family:\'Inter\',sans-serif;font-size:12.5px;line-height:1.6"></textarea><button type="button" class="jawab-del" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
+container.appendChild(div);
+div.querySelector('textarea').focus();
+}
 function closeKendalaForm(){document.getElementById('kendalaFormContainer').innerHTML='';editingKendalaId=null}
-async function saveKendala(){if(!currentUser){toast('⛔ Login terlebih dahulu','error');return}
+async function saveKendala(){
+if(!currentUser){toast('⛔ Login terlebih dahulu','error');return}
 const judul=document.getElementById('kendalaJudul').value.trim();
-const answers=Array.from(document.querySelectorAll('.kendala-answer-input')).map(t=>t.value.trim()).filter(Boolean);
-const vc=document.querySelector('input[name="kendalaVis"]:checked');
-const visibility=vc?vc.value:'public';
+const visEl=document.querySelector('input[name="kendalaVis"]:checked');
+const visibility=visEl?visEl.value:'all';
+const jawabanInputs=document.querySelectorAll('#jawabanContainer .jawab-input');
+const jawaban=[];
+jawabanInputs.forEach(inp=>{const v=inp.value.trim();if(v)jawaban.push(v)});
 if(!judul){toast('❌ Judul wajib diisi','error');return}
-if(!answers.length){toast('❌ Minimal isi 1 jawaban','error');return}
+if(jawaban.length===0){toast('❌ Minimal isi satu jawaban','error');return}
 try{
-if(editingKendalaId){toast('💾 Mengupdate kendala...','info');
-await kendalaRef().child(editingKendalaId).update({judul,answers,visibility,jawaban1:null,jawaban2:null,jawaban3:null,updatedAt:new Date().toISOString(),updatedBy:currentUser.email,updatedByName:currentUser.name});
-closeKendalaForm();toast('✅ Kendala berhasil di-update!','success')}
-else{toast('💾 Menyimpan kendala...','info');
-await kendalaRef().push({judul,answers,visibility,createdAt:new Date().toISOString(),ownerEmail:currentUser.email,ownerName:currentUser.name,ownerUid:currentUser.uid,ip:currentIP});
-closeKendalaForm();toast('✅ Kendala berhasil disimpan!','success')}
-}catch(e){toast('❌ Gagal: '+e.message,'error')}}
-/* ===== FOTO CRUD ===== */
+if(editingKendalaId){
+toast('💾 Mengupdate kendala...','info');
+await kendalaRef().child(editingKendalaId).update({
+judul,jawaban,visibility,
+updatedAt:new Date().toISOString(),
+updatedBy:currentUser.email,
+updatedByName:currentUser.name
+});
+closeKendalaForm();
+toast('✅ Kendala berhasil di-update!','success');
+}else{
+toast('💾 Menyimpan kendala...','info');
+await kendalaRef().push({
+judul,jawaban,visibility,
+createdAt:new Date().toISOString(),
+ownerEmail:currentUser.email,
+ownerName:currentUser.name,
+ownerUid:currentUser.uid,
+ip:currentIP
+});
+closeKendalaForm();
+toast('✅ Kendala berhasil disimpan!','success');
+}
+}catch(e){toast('❌ Gagal: '+e.message,'error')}
+}
+async function copyFotoImage(id){
+const f=fotoList.find(x=>x.id===id);
+if(!f){toast('❌ Foto tidak ditemukan','error');return}
+const url=f.url;
+try{
+toast('📋 Meng-copy gambar...','info');
+const response=await fetch(url,{mode:'cors'});
+if(!response.ok)throw new Error('Gagal fetch');
+const blob=await response.blob();
+if(navigator.clipboard&&typeof ClipboardItem!=='undefined'){
+const clipboardItem=new ClipboardItem({[blob.type]:blob});
+await navigator.clipboard.write([clipboardItem]);
+toast('✅ Gambar berhasil di-copy! (Paste Ctrl+V)','success');
+}else{throw new Error('Browser tidak support')}
+}catch(e){
+try{await navigator.clipboard.writeText(url);toast('⚠️ Copy gambar gagal (CORS). Link URL di-copy','warning')}
+catch(e2){fallbackCopy(url);toast('⚠️ Link URL di-copy sebagai fallback','warning')}}
+}
 function fotoRef(){return db.ref('foto')}
-function startFotoListener(){if(fotoListenerStarted)return;fotoListenerStarted=true;
-fotoRef().on('value',snap=>{const val=snap.val();fotoList=[];
+function startFotoListener(){
+if(fotoListenerStarted)return;
+fotoListenerStarted=true;
+fotoRef().on('value',snap=>{
+const val=snap.val();
+fotoList=[];
 if(val){Object.entries(val).forEach(([id,item])=>{if(item&&item.url){fotoList.push({id,...item})}})}
 fotoList.sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
+const pBadge=document.getElementById('fotoBadge');if(pBadge)pBadge.textContent=fotoList.length;
 if(currentSection==='foto-section')renderFotoSection();
 if(currentSection==='login-history'&&isAdmin())renderNotifTerbaru();
-updateBadges()},err=>console.error('Foto listener error:',err))}
-async function copyFotoImage(id){const f=fotoList.find(x=>x.id===id);if(!f){toast('❌ Foto tidak ditemukan','error');return}const url=f.url;
-try{toast('📋 Meng-copy gambar...','info');const response=await fetch(url,{mode:'cors'});if(!response.ok)throw new Error('Gagal fetch');const blob=await response.blob();
-if(navigator.clipboard&&typeof ClipboardItem!=='undefined'){const clipboardItem=new ClipboardItem({[blob.type]:blob});await navigator.clipboard.write([clipboardItem]);toast('✅ Gambar berhasil di-copy! (Paste Ctrl+V)','success')}else{throw new Error('Browser tidak support')}}
-catch(e){try{await navigator.clipboard.writeText(url);toast('⚠️ Copy gambar gagal (CORS). Link URL di-copy','warning')}catch(e2){fallbackCopy(url);toast('⚠️ Link URL di-copy sebagai fallback','warning')}}}
+},err=>console.error('Foto listener error:',err));
+}
 function renderFotoSection(){
 const searchQ=(document.getElementById('fotoSearch')?document.getElementById('fotoSearch').value:'').toLowerCase().trim();
-let filtered=fotoList;
-if(searchQ){filtered=fotoList.filter(f=>(f.judul||'').toLowerCase().includes(searchQ)||(f.desc||'').toLowerCase().includes(searchQ)||(f.ownerName||'').toLowerCase().includes(searchQ))}
+let visible=fotoList.filter(f=>{if(f.visibility==='admin'&&!isAdmin())return false;return true});
+let filtered=visible;
+if(searchQ){filtered=visible.filter(f=>{return (f.judul||'').toLowerCase().includes(searchQ)||(f.desc||'').toLowerCase().includes(searchQ)||(f.ownerName||'').toLowerCase().includes(searchQ)})}
 const searchInfo=document.getElementById('fotoSearchInfo');
-if(searchInfo){searchInfo.textContent=searchQ?(filtered.length+' dari '+fotoList.length+' ditemukan'):''}
-document.getElementById('pTot').textContent=fotoList.length;
-document.getElementById('pLinks').textContent=fotoList.filter(f=>f.url).length;
-document.getElementById('pUsers').textContent=new Set(fotoList.map(f=>f.ownerEmail||'')).size;
-document.getElementById('pLast').textContent=fotoList[0]?ago(fotoList[0].createdAt):'-';
+if(searchInfo){searchInfo.textContent=searchQ?(filtered.length+' dari '+visible.length+' ditemukan'):''}
+document.getElementById('pTot').textContent=visible.length;
+document.getElementById('pLinks').textContent=visible.filter(f=>f.url).length;
+document.getElementById('pUsers').textContent=new Set(visible.map(f=>f.ownerEmail||'')).size;
+document.getElementById('pLast').textContent=visible[0]?ago(visible[0].createdAt):'-';
 document.getElementById('pCnt').textContent=filtered.length;
 const container=document.getElementById('fotoList');
-if(filtered.length===0){container.innerHTML=searchQ?'<div class="empty"><div class="icon"><i class="fas fa-search"></i></div><h4>TIDAK DITEMUKAN</h4><p>Tidak ada foto cocok dengan "'+esc(searchQ)+'"</p></div>':'<div class="empty"><div class="icon"><i class="fas fa-camera"></i></div><h4>BELUM ADA FOTO</h4><p>Klik "TAMBAH FOTO" untuk menambahkan</p></div>';return}
-container.innerHTML='<div class="foto-grid">'+filtered.map(f=>{const isNew=(Date.now()-new Date(f.createdAt).getTime())<86400000*2;
+if(filtered.length===0){
+container.innerHTML=searchQ?'<div class="empty"><div class="icon"><i class="fas fa-search"></i></div><h4>TIDAK DITEMUKAN</h4><p>Tidak ada foto cocok dengan "'+esc(searchQ)+'"</p></div>':'<div class="empty"><div class="icon"><i class="fas fa-camera"></i></div><h4>BELUM ADA FOTO</h4><p>Klik "TAMBAH FOTO" untuk menambahkan</p></div>';
+return;
+}
+container.innerHTML='<div class="foto-grid">'+filtered.map(f=>{
+const isNew=(Date.now()-new Date(f.createdAt).getTime())<86400000*2;
+const visBadge=f.visibility==='admin'?'<div class="foto-badge" style="background:rgba(70,130,180,.85)"><i class="fas fa-crown"></i> ADMIN</div>':'';
 return `
 <div class="foto-card" onclick="openFotoDetail('${f.id}')">
 ${isNew?'<div class="foto-badge" style="background:rgba(198,40,40,.85)"><i class="fas fa-bolt"></i> NEW</div>':''}
-<div class="foto-preview"><img src="${esc(f.url)}" alt="${esc(f.judul||'Foto')}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="fallback" style="display:none"><i class="fas fa-image"></i></div></div>
-<div class="foto-info"><div class="foto-judul">${esc(f.judul||'Tanpa Judul')}</div><div class="foto-url">${esc(f.url)}</div>
-<div class="foto-actions"><button class="btn btn-success" onclick="event.stopPropagation();copyFotoImage('${f.id}')"><i class="fas fa-image"></i> COPY GAMBAR</button><button class="btn btn-warning" onclick="event.stopPropagation();editFoto('${f.id}')"><i class="fas fa-edit"></i> EDIT</button></div>
-</div></div>`}).join('')+'</div>'}
-function openFotoForm(){if(!currentUser){toast('⛔ Login terlebih dahulu','error');return}editingFotoId=null;
+${visBadge}
+<div class="foto-preview">
+<img src="${esc(f.url)}" alt="${esc(f.judul||'Foto')}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+<div class="fallback" style="display:none"><i class="fas fa-image"></i></div>
+</div>
+<div class="foto-info">
+<div class="foto-judul">${esc(f.judul||'Tanpa Judul')}</div>
+<div class="foto-url">${esc(f.url)}</div>
+<div class="foto-actions">
+<button class="btn btn-success" onclick="event.stopPropagation();copyFotoImage('${f.id}')"><i class="fas fa-image"></i> COPY GAMBAR</button>
+<button class="btn btn-warning" onclick="event.stopPropagation();editFoto('${f.id}')"><i class="fas fa-edit"></i> EDIT</button>
+</div>
+</div>
+</div>
+`;
+}).join('')+'</div>';
+}
+function openFotoForm(){
+if(!currentUser){toast('⛔ Login terlebih dahulu','error');return}
+editingFotoId=null;
 const container=document.getElementById('fotoFormContainer');
 container.innerHTML=`
 <div class="kendala-form-wrap">
@@ -1301,14 +1519,26 @@ container.innerHTML=`
 <div class="form-group"><label>JUDUL FOTO *</label><input type="text" id="fotoJudul" placeholder="Contoh: Bukti transfer / Screenshot" maxlength="150"></div>
 <div class="form-group"><label>LINK FOTO (URL) *</label><input type="url" id="fotoUrl" placeholder="https://example.com/image.jpg" maxlength="1000"><div style="font-size:10px;color:var(--text-muted);margin-top:6px"><i class="fas fa-info-circle"></i> Bisa link gambar apa saja (imgur, gdrive, dll)</div></div>
 <div class="form-group"><label>DESKRIPSI (OPSIONAL)</label><textarea id="fotoDesc" placeholder="Deskripsi tambahan..." style="min-height:60px;font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.6"></textarea></div>
+<div class="form-group"><label>RESPONS VISIBILITAS</label>
+<div class="vis-toggle-wrap">
+<label class="vis-option selected" onclick="selectVis(this,'all')"><input type="radio" name="fotoVis" value="all" checked> 👥 Semua Pengguna</label>
+<label class="vis-option" onclick="selectVis(this,'admin')"><input type="radio" name="fotoVis" value="admin"> 👑 Admin Saja</label>
+</div></div>
 <div id="fotoPreviewBox" style="display:none;margin-top:10px;padding:12px;background:var(--code-bg);border:1px solid var(--border-subtle);border-radius:var(--radius-md)"><div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px">PREVIEW</div><img id="fotoPreviewImg" style="max-width:100%;max-height:200px;border-radius:var(--radius-sm)"></div>
 <div style="display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--border-subtle)">
 <button class="btn btn-ghost" onclick="closeFotoForm()" style="flex:1"><i class="fas fa-times"></i> Batal</button>
 <button class="btn btn-warning" onclick="previewFoto()" style="flex:1"><i class="fas fa-eye"></i> Preview</button>
 <button class="btn btn-primary" onclick="saveFoto()" style="flex:1"><i class="fas fa-save"></i> Simpan</button>
-</div></div>`;
-setTimeout(()=>document.getElementById('fotoJudul').focus(),100)}
-function editFoto(id){if(!currentUser){toast('⛔ Login dulu','error');return}const f=fotoList.find(x=>x.id===id);if(!f){toast('❌ Foto tidak ditemukan','error');return}editingFotoId=id;
+</div></div>
+`;
+setTimeout(()=>document.getElementById('fotoJudul').focus(),100);
+}
+function editFoto(id){
+if(!currentUser){toast('⛔ Login dulu','error');return}
+const f=fotoList.find(x=>x.id===id);
+if(!f){toast('❌ Foto tidak ditemukan','error');return}
+editingFotoId=id;
+const visVal=f.visibility||'all';
 const container=document.getElementById('fotoFormContainer');
 container.innerHTML=`
 <div class="kendala-form-wrap" style="border-color:var(--neon-cyan)">
@@ -1319,51 +1549,87 @@ container.innerHTML=`
 <div class="form-group"><label>JUDUL FOTO *</label><input type="text" id="fotoJudul" value="${esc(f.judul||'')}" maxlength="150"></div>
 <div class="form-group"><label>LINK FOTO (URL) *</label><input type="url" id="fotoUrl" value="${esc(f.url||'')}" maxlength="1000"></div>
 <div class="form-group"><label>DESKRIPSI (OPSIONAL)</label><textarea id="fotoDesc" style="min-height:60px;font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.6">${esc(f.desc||'')}</textarea></div>
+<div class="form-group"><label>RESPONS VISIBILITAS</label>
+<div class="vis-toggle-wrap">
+<label class="vis-option${visVal==='all'?' selected':''}" onclick="selectVis(this,'all')"><input type="radio" name="fotoVis" value="all" ${visVal==='all'?'checked':''}> 👥 Semua Pengguna</label>
+<label class="vis-option${visVal==='admin'?' selected':''}" onclick="selectVis(this,'admin')"><input type="radio" name="fotoVis" value="admin" ${visVal==='admin'?'checked':''}> 👑 Admin Saja</label>
+</div></div>
 <div id="fotoPreviewBox" style="display:block;margin-top:10px;padding:12px;background:var(--code-bg);border:1px solid var(--border-subtle);border-radius:var(--radius-md)"><div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px">PREVIEW</div><img id="fotoPreviewImg" src="${esc(f.url||'')}" style="max-width:100%;max-height:200px;border-radius:var(--radius-sm)"></div>
 <div style="display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--border-subtle)">
 <button class="btn btn-ghost" onclick="closeFotoForm()" style="flex:1"><i class="fas fa-times"></i> Batal</button>
 <button class="btn btn-warning" onclick="previewFoto()" style="flex:1"><i class="fas fa-eye"></i> Preview</button>
 <button class="btn btn-primary" onclick="saveFoto()" style="flex:1"><i class="fas fa-save"></i> Update Foto</button>
-</div></div>`;
+</div></div>
+`;
 container.scrollIntoView({behavior:'smooth',block:'start'});
-setTimeout(()=>document.getElementById('fotoJudul').focus(),100)}
+setTimeout(()=>document.getElementById('fotoJudul').focus(),100);
+}
 function previewFoto(){const url=document.getElementById('fotoUrl').value.trim();if(!url){toast('❌ Masukkan URL foto dulu','error');return}const box=document.getElementById('fotoPreviewBox');const img=document.getElementById('fotoPreviewImg');img.src=url;box.style.display='block';img.onerror=()=>{toast('⚠️ URL tidak bisa dimuat','warning')}}
 function closeFotoForm(){document.getElementById('fotoFormContainer').innerHTML='';editingFotoId=null}
-async function saveFoto(){if(!currentUser){toast('⛔ Login terlebih dahulu','error');return}
-const judul=document.getElementById('fotoJudul').value.trim();const url=document.getElementById('fotoUrl').value.trim();const desc=document.getElementById('fotoDesc').value.trim();
-if(!judul){toast('❌ Judul wajib diisi','error');return}if(!url){toast('❌ URL wajib diisi','error');return}
-try{if(editingFotoId){toast('💾 Mengupdate foto...','info');await fotoRef().child(editingFotoId).update({judul,url,desc:desc||'',updatedAt:new Date().toISOString(),updatedBy:currentUser.email,updatedByName:currentUser.name});closeFotoForm();toast('✅ Foto berhasil di-update!','success')}
-else{toast('💾 Menyimpan foto...','info');await fotoRef().push({judul,url,desc:desc||'',createdAt:new Date().toISOString(),ownerEmail:currentUser.email,ownerName:currentUser.name,ownerUid:currentUser.uid,ip:currentIP});closeFotoForm();toast('✅ Foto berhasil disimpan!','success')}}catch(e){toast('❌ Gagal: '+e.message,'error')}}
+async function saveFoto(){
+if(!currentUser){toast('⛔ Login terlebih dahulu','error');return}
+const judul=document.getElementById('fotoJudul').value.trim();
+const url=document.getElementById('fotoUrl').value.trim();
+const desc=document.getElementById('fotoDesc').value.trim();
+const visEl=document.querySelector('input[name="fotoVis"]:checked');
+const visibility=visEl?visEl.value:'all';
+if(!judul){toast('❌ Judul wajib diisi','error');return}
+if(!url){toast('❌ URL wajib diisi','error');return}
+try{
+if(editingFotoId){
+toast('💾 Mengupdate foto...','info');
+await fotoRef().child(editingFotoId).update({judul,url,desc:desc||'',visibility,updatedAt:new Date().toISOString(),updatedBy:currentUser.email,updatedByName:currentUser.name});
+closeFotoForm();toast('✅ Foto berhasil di-update!','success');
+}else{
+toast('💾 Menyimpan foto...','info');
+await fotoRef().push({judul,url,desc:desc||'',visibility,createdAt:new Date().toISOString(),ownerEmail:currentUser.email,ownerName:currentUser.name,ownerUid:currentUser.uid,ip:currentIP});
+closeFotoForm();toast('✅ Foto berhasil disimpan!','success');
+}
+}catch(e){toast('❌ Gagal: '+e.message,'error')}
+}
 function copyFotoUrl(url){navigator.clipboard.writeText(url).then(()=>{toast('✅ Link foto di-copy!','success')}).catch(()=>{fallbackCopy(url);toast('✅ Link foto di-copy!','success')})}
-function openFotoDetail(id){const f=fotoList.find(x=>x.id===id);if(!f){toast('❌ Foto tidak ditemukan','error');return}
+function openFotoDetail(id){
+const f=fotoList.find(x=>x.id===id);
+if(!f){toast('❌ Foto tidak ditemukan','error');return}
 document.getElementById('fotoDetailContent').innerHTML=`
-<div class="foto-modal-preview"><img src="${esc(f.url)}" alt="${esc(f.judul||'Foto')}" onerror="this.style.display='none'"></div>
+<div class="foto-modal-preview"><img src="${esc(f.url)}" alt="${esc(f.judul||'Foto')}" loading="lazy" onerror="this.style.display='none'"></div>
 <h4 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px;color:var(--text-primary)">${esc(f.judul||'Tanpa Judul')}</h4>
 ${f.desc?`<p style="color:var(--text-secondary);font-size:12.5px;line-height:1.6;margin-bottom:12px">${esc(f.desc)}</p>`:''}
-<div class="foto-url-display"><span class="url">${esc(f.url)}</span><button class="btn btn-success" onclick="copyFotoImage('${f.id}')" style="padding:6px 12px;font-size:10px;flex-shrink:0"><i class="fas fa-image"></i> COPY GAMBAR</button><button class="btn btn-warning" onclick="copyFotoUrl('${esc(f.url).replace(/'/g,"\\'")}')" style="padding:6px 12px;font-size:10px;flex-shrink:0"><i class="fas fa-link"></i> COPY LINK</button></div>
-<div style="display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-subtle);font-size:10px;color:var(--text-tertiary);flex-wrap:wrap"><span><i class="fas fa-user"></i> ${esc(f.ownerName||'Unknown')}</span><span><i class="fas fa-clock"></i> ${formatDate(f.createdAt)}</span></div>
-<div style="display:flex;gap:10px;margin-top:16px"><button class="btn btn-warning" onclick="editFoto('${f.id}');closeFotoDetail()" style="flex:1"><i class="fas fa-edit"></i> EDIT FOTO</button></div>`;
-document.getElementById('fotoDetailOverlay').classList.add('show')}
+<div class="foto-url-display"><span class="url">${esc(f.url)}</span>
+<button class="btn btn-success" onclick="copyFotoImage('${f.id}')" style="padding:6px 12px;font-size:10px;flex-shrink:0"><i class="fas fa-image"></i> COPY GAMBAR</button>
+<button class="btn btn-warning" onclick="copyFotoUrl('${esc(f.url).replace(/'/g,"\\'")}')" style="padding:6px 12px;font-size:10px;flex-shrink:0"><i class="fas fa-link"></i> COPY LINK</button></div>
+<div style="display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-subtle);font-size:10px;color:var(--text-tertiary);flex-wrap:wrap">
+<span><i class="fas fa-user"></i> ${esc(f.ownerName||'Unknown')}</span><span><i class="fas fa-clock"></i> ${formatDate(f.createdAt)}</span></div>
+<div style="display:flex;gap:10px;margin-top:16px"><button class="btn btn-warning" onclick="editFoto('${f.id}');closeFotoDetail()" style="flex:1"><i class="fas fa-edit"></i> EDIT FOTO</button></div>
+`;
+document.getElementById('fotoDetailOverlay').classList.add('show');
+}
 function closeFotoDetail(){document.getElementById('fotoDetailOverlay').classList.remove('show')}
-/* ===== NOTIF TERBARU ===== */
-function renderNotifTerbaru(){const container=document.getElementById('notifTerbaruList');if(!container)return;
+function renderNotifTerbaru(){
+const container=document.getElementById('notifTerbaruList');
+if(!container)return;
 const allNotif=[];
-kendalaList.forEach(k=>{allNotif.push({type:'kendala',id:k.id,judul:k.judul,preview:getAnswers(k)[0]||'',ownerName:k.ownerName||'Unknown',createdAt:k.createdAt,icon:'<i class="fas fa-headset"></i>',iconClass:'kendala-icon'})});
+kendalaList.forEach(k=>{allNotif.push({type:'kendala',id:k.id,judul:k.judul,preview:(k.jawaban||[])[0]||'',ownerName:k.ownerName||'Unknown',createdAt:k.createdAt,icon:'<i class="fas fa-headset"></i>',iconClass:'kendala-icon'})});
 fotoList.forEach(f=>{allNotif.push({type:'foto',id:f.id,judul:f.judul||'Foto',preview:f.desc||f.url||'',ownerName:f.ownerName||'Unknown',createdAt:f.createdAt,icon:'<i class="fas fa-camera"></i>',iconClass:'foto-icon'})});
 allNotif.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
 const top20=allNotif.slice(0,20);
 const notifBadge=document.getElementById('notifCnt');if(notifBadge)notifBadge.textContent=allNotif.length;
 if(top20.length===0){container.innerHTML='<div class="notif-empty"><i class="fas fa-bell-slash"></i><h4>BELUM ADA NOTIFIKASI</h4><p>Notifikasi kendala dan foto akan muncul di sini</p></div>';return}
-container.innerHTML='<div class="notif-grid">'+top20.map(n=>{const isNew=(Date.now()-new Date(n.createdAt).getTime())<86400000*2;
+container.innerHTML='<div class="notif-grid">'+top20.map((n,idx)=>{
+const isNew=(Date.now()-new Date(n.createdAt).getTime())<86400000*2;
 return `
 <div class="notif-card ${isNew?'new':''}" onclick="notifAction('${n.type}','${n.id}')">
 ${isNew?'<div style="position:absolute;top:8px;right:8px;background:rgba(198,40,40,.85);color:#fff;padding:2px 7px;border-radius:5px;font-size:8px;font-weight:800;letter-spacing:1px;font-family:Space Grotesk,sans-serif;z-index:2">NEW</div>':''}
 <div class="notif-header"><div class="notif-icon ${n.iconClass}">${n.icon}</div><div class="notif-title">${esc(n.judul)}</div><span class="notif-type ${n.type}">${n.type.toUpperCase()}</span></div>
 <div class="notif-preview">${esc(n.preview)}</div>
 <div class="notif-footer"><span class="author"><i class="fas fa-user"></i> ${esc(n.ownerName)}</span><span class="time"><i class="fas fa-clock"></i> ${ago(n.createdAt)}</span></div>
-</div>`}).join('')+'</div>'}
-function notifAction(type,id){if(type==='kendala'){navTo('kendala-section',null)}else if(type==='foto'){navTo('foto-section',null);setTimeout(()=>openFotoDetail(id),300)}}
-renderSidebarNav();
+</div>
+`;}).join('')+'</div>';
+}
+function notifAction(type,id){
+if(type==='kendala'){navTo('kendala-section',null)}
+else if(type==='foto'){navTo('foto-section',null);setTimeout(()=>openFotoDetail(id),300)}
+}
 </script>
 </body>
 </html>
