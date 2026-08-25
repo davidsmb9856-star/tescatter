@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#4682b4">
-<title>ScriptVault × Cyber Portal — Dove Blue v44</title>
+<!-- ✦ ANTI-CACHE: pastikan browser selalu memuat file terbaru -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>ScriptVault × Cyber Portal — Dove Blue v45</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
@@ -339,7 +343,6 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 .jawaban-actions{display:flex;gap:4px;flex-shrink:0}
 .jawaban-actions .btn-mini{padding:7px 11px;font-size:10px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue));border:1px solid rgba(70,130,180,.4);color:#fff;border-radius:6px;cursor:pointer;transition:var(--transition);font-family:'Inter',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:inline-flex;align-items:center;gap:5px;box-shadow:var(--shadow-sm);white-space:nowrap}
 .jawaban-actions .btn-mini:hover{transform:scale(1.05);box-shadow:0 0 10px rgba(70,130,180,.4)}
-.jawaban-actions .btn-mini.edit{background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple))}
 .kendala-meta{display:flex;gap:14px;font-size:10px;color:var(--text-tertiary);margin-top:12px;padding-top:10px;border-top:1px dashed var(--border-subtle);flex-wrap:wrap;align-items:center}
 .kendala-meta span{display:flex;align-items:center;gap:5px}
 .kendala-meta .icon{font-size:11px;color:var(--neon-cyan)}
@@ -476,7 +479,7 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 <div class="loading" id="loading">
 <div class="loader-wrap"><div class="loader-ring"></div><div class="loader-ring"></div><div class="loader-core">🐒</div></div>
 <p id="loadTxt">INITIALIZING</p>
-<small>SCRIPTVAULT × DOVE BLUE v44</small>
+<small>SCRIPTVAULT × DOVE BLUE v45</small>
 </div>
 <div class="app" id="app">
 <aside class="sidebar">
@@ -484,7 +487,7 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 <div id="userCardContainer"></div>
 <div class="nav" id="navContainer"></div>
 <div class="sidebar-footer">
-<div class="sidebar-info"><span id="connState">ONLINE</span> · v44.0 · DOVE BLUE</div>
+<div class="sidebar-info"><span id="connState">ONLINE</span> · v45.0 · DOVE BLUE</div>
 <div class="sidebar-actions">
 <button class="sidebar-btn clean" id="portalSettingsSidebarBtn" onclick="openPortalSettings()" style="display:none"><i class="fas fa-cog"></i> Portal</button>
 <button class="sidebar-btn logout" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Out</button>
@@ -507,7 +510,6 @@ body{background:radial-gradient(1100px 500px at 8% -8%,rgba(70,130,180,.14) 0%,t
 <button class="btn btn-primary" onclick="newS()" id="newScriptBtn" style="display:none"><i class="fas fa-plus"></i> SCRIPT BARU</button>
 </div>
 </div>
-<!-- ✦ v44: BENTO STAT DIHAPUS DARI SEMUA SECTION -->
 <div class="content" id="section-dashboard"><div class="container">
 <div class="section">
 <div class="section-header"><h3><span class="bar"></span>🐒 SEMUA SCRIPT (PUBLIK)</h3><small><span id="recentCnt">0</span> SCRIPT</small></div>
@@ -676,14 +678,11 @@ let MAX_HISTORY=30;
 let currentUser=null,currentIP='unknown',scripts=[],editId=null,deleteCallback=null;
 let currentSection='portal',uiInitialized=false,portalListenerStarted=false,clockInterval=null;
 let userNavigated=false,appInitialized=false,initPromise=null,online=true,lastSyncAt=0,searchTimer=null,autoRefreshTimer=null;
-let editMenus=[];
-let kendalaList=[];
-let fotoList=[];
-let kendalaListenerStarted=false;
-let fotoListenerStarted=false;
-let editingKendalaId=null;
-let editingFotoId=null;
-let currentOwnerFilter='all';
+let editMenus=[];let editNavMenus=[];
+let kendalaList=[];let fotoList=[];
+let kendalaListenerStarted=false;let fotoListenerStarted=false;
+let editingKendalaId=null;let editingFotoId=null;
+let currentOwnerFilter='all';let deletedHistoryCache=null;
 const defaultSettings={appTitle:'SCRIPTVAULT',appSubtitle:'DOVE BLUE 2026',logoEmoji:'🐒',footerText:'👑 Created by',announcementOn:false,announcementText:'📢 Selamat datang di ScriptVault Portal!',maintenanceOn:false,maintenanceMsg:'🔧 Portal sedang dalam perawatan. Coba lagi nanti.',welcomeOn:true,openNewTab:true,clock24:true,autoRefreshOn:false,autoRefreshSec:60,defaultPublic:true,maxHistory:30,adminEmails:'david.smb9856@gmail.com'};
 const DEFAULT_NAV_MENUS=[
 {id:'portal',name:'Cyber Portal',icon:'fa-rocket',badgeText:'TOP',show:true},
@@ -714,6 +713,9 @@ const DEFAULT_MENUS=[
 const DEFAULT_PORTAL_PIN='1234';
 let portalConfig={menus:JSON.parse(JSON.stringify(DEFAULT_MENUS)),navMenus:JSON.parse(JSON.stringify(DEFAULT_NAV_MENUS)),settings:{...defaultSettings},pin:DEFAULT_PORTAL_PIN,loaded:false};
 let currentPortalPinInput='',portalPin=DEFAULT_PORTAL_PIN;
+/* ✦ CACHE LOKAL: muat pengaturan terakhir secara instan (anti tampilan lama saat refresh) */
+try{const _c=JSON.parse(localStorage.getItem('sv_portal_cache')||'null');if(_c){if(Array.isArray(_c.menus)&&_c.menus.length)portalConfig.menus=_c.menus;if(Array.isArray(_c.navMenus)&&_c.navMenus.length)portalConfig.navMenus=_c.navMenus;portalConfig.settings=Object.assign({},defaultSettings,_c.settings||{})}}catch(e){}
+function cachePortalConfig(){try{localStorage.setItem('sv_portal_cache',JSON.stringify({menus:portalConfig.menus,navMenus:portalConfig.navMenus,settings:portalConfig.settings}))}catch(e){}}
 function portalSettingsRef(){return db.ref('portal_settings/main')}
 function userPinRef(uid){return db.ref('user_pins/'+uid)}
 function getAdminEmails(){const a=String(portalConfig.settings.adminEmails||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);return a.length?a:['david.smb9856@gmail.com']}
@@ -721,13 +723,13 @@ function isAdmin(){return currentUser&&getAdminEmails().includes((currentUser.em
 async function loadPortalConfig(){try{const snap=await portalSettingsRef().once('value');const val=snap.val();
 if(val){if(Array.isArray(val.menus)&&val.menus.length)portalConfig.menus=val.menus;if(Array.isArray(val.navMenus)&&val.navMenus.length)portalConfig.navMenus=val.navMenus;portalConfig.settings=Object.assign({},defaultSettings,val.settings||{})}
 else{if(currentUser&&isAdmin()){await savePortalConfigToFirebase('init default')}}
-portalConfig.loaded=true;renderPortalMenus();applySettings();renderSidebarNav()}catch(e){console.error(e);portalConfig.loaded=true;renderPortalMenus();applySettings();renderSidebarNav()}}
+portalConfig.loaded=true;cachePortalConfig();renderPortalMenus();applySettings();renderSidebarNav()}catch(e){console.error(e);portalConfig.loaded=true;renderPortalMenus();applySettings();renderSidebarNav()}}
 async function savePortalConfigToFirebase(reason='manual'){if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');
 await portalSettingsRef().set({menus:portalConfig.menus,navMenus:portalConfig.navMenus,settings:portalConfig.settings,updatedAt:new Date().toISOString(),updatedBy:currentUser.email||'unknown',reason})}
 function startPortalListener(){if(portalListenerStarted)return;portalListenerStarted=true;
 portalSettingsRef().on('value',snap=>{const val=snap.val();
 if(val){if(Array.isArray(val.menus)&&val.menus.length)portalConfig.menus=val.menus;if(Array.isArray(val.navMenus)&&val.navMenus.length)portalConfig.navMenus=val.navMenus;portalConfig.settings=Object.assign({},defaultSettings,val.settings||{})}
-renderPortalMenus();applySettings();renderSidebarNav()},err=>console.error(err))}
+cachePortalConfig();renderPortalMenus();applySettings();renderSidebarNav()},err=>console.error(err))}
 async function loadUserPortalPin(){if(!currentUser){portalPin=DEFAULT_PORTAL_PIN;return}try{const snap=await userPinRef(currentUser.uid).once('value');const val=snap.val();portalPin=(val&&val.portalPin)?String(val.portalPin):DEFAULT_PORTAL_PIN}catch(e){portalPin=DEFAULT_PORTAL_PIN}}
 async function saveUserPortalPin(pin){if(!currentUser)throw new Error('Login diperlukan');const p=String(pin||'').trim();if(!/^\d{4}$/.test(p))throw new Error('PIN harus 4 digit');await userPinRef(currentUser.uid).set({portalPin:p,updatedAt:new Date().toISOString(),email:currentUser.email||''});portalPin=p}
 function renderSidebarNav(){
@@ -748,7 +750,6 @@ const active=currentSection===m.id?' active':'';
 html+='<div class="nav-item'+(m.adminOnly?' admin-only':'')+active+'" data-section="'+m.id+'" onclick="navTo(\''+m.id+'\', this)"><span class="nav-icon">'+iconHtml+'</span>'+esc(m.name)+badgeHtml+'</div>';
 });
 container.innerHTML=html;
-/* ✦ FIX: tombol Pengaturan Portal muncul untuk admin */
 const psb=document.getElementById('portalSettingsSidebarBtn');
 if(psb)psb.style.display=isAdmin()?'flex':'none';
 }
@@ -792,14 +793,16 @@ function clearLoginSession(){try{sessionStorage.removeItem('sv_login_session')}c
 async function recordLogin(){if(!currentUser)return;try{await db.ref('login_history').push().set({email:currentUser.email,name:currentUser.name||'Unknown',photo:currentUser.photo||null,uid:currentUser.uid,loginTime:new Date().toISOString(),ip:currentIP,userAgent:navigator.userAgent,platform:navigator.platform,language:navigator.language,screenRes:window.screen.width+'x'+window.screen.height,isAdmin:!!isAdmin()})}catch(e){console.error(e)}}
 function showWelcome(u){if(portalConfig.settings.welcomeOn===false)return;$('welcomeTitle').textContent='SELAMAT DATANG';$('welcomeSub').textContent=(u.name||'User')+' · '+(u.email||'');$('welcomeBadge').textContent=isAdmin()?'👑 ADMINISTRATOR':'✅ USER TERVERIFIKASI';const o=$('welcomeOverlay');o.classList.remove('show');void o.offsetWidth;o.classList.add('show');setTimeout(()=>o.classList.remove('show'),3000)}
 function $(id){return document.getElementById(id)}
+/* ✦ URUTAN BARU: loading tetap tampil sampai initApp selesai (tidak ada kedipan tampilan lama) */
 auth.onAuthStateChanged(async(user)=>{
 if(user){
 currentUser={name:user.displayName||'User',email:user.email,photo:user.photoURL||null,uid:user.uid};
-renderUserCard();renderSidebarNav();setLoadingHide();
-document.getElementById('app').classList.add('show');
+renderUserCard();renderSidebarNav();
 document.getElementById('authGate').classList.remove('show');
 fetchIP();
 await initApp();
+setLoadingHide();
+document.getElementById('app').classList.add('show');
 if(shouldRecordLogin(user.uid)){
 recordLogin();
 showWelcome(currentUser);
@@ -831,11 +834,10 @@ const qIn=document.getElementById('qIn');
 if(showSearch){qIn.placeholder=sectionName==='dashboard'?'Cari script publik...':'Cari script saya...';qIn.value='';updateSearchUI(0,false)}
 if(sectionName==='scripts')renderScriptsSection();
 if(sectionName==='dashboard')renderDash();
-if(sectionName==='login-history')renderLoginHistory();
+if(sectionName==='login-history'){startKendalaListener();startFotoListener();renderLoginHistory()}
 if(sectionName==='portal')renderPortalMenus();
 if(sectionName==='kendala-section'){startKendalaListener();renderKendalaSection()}
-if(sectionName==='foto-section'){startFotoListener();renderFotoSection()}
-}
+if(sectionName==='foto-section'){startFotoListener();renderFotoSection()}}
 function renderUserCard(){const c=document.getElementById('userCardContainer');if(currentUser){const initial=(currentUser.name||currentUser.email||'?').charAt(0).toUpperCase();const av=currentUser.photo?('<img src="'+currentUser.photo+'" alt="avatar">'):initial;const tag=isAdmin()?'<span style="color:var(--neon-cyan);font-size:9px;margin-left:3px" title="Administrator"><i class="fas fa-crown"></i></span>':'';c.innerHTML='<div class="user-card"><div class="user-avatar">'+av+'</div><div class="user-info"><div class="user-name">'+esc(currentUser.name||'User')+tag+'</div><div class="user-email">'+esc(currentUser.email)+' <span class="verified" title="Terverifikasi Google"><i class="fas fa-check-circle"></i></span></div></div></div>'}else{c.innerHTML=''}}
 async function fetchIP(){try{const r=await fetch('https://api.ipify.org?format=json');const d=await r.json();currentIP=d.ip||'unknown'}catch(e){try{const r2=await fetch('https://api64.ipify.org?format=json');const d2=await r2.json();currentIP=d2.ip||'unknown'}catch(e2){currentIP='unknown'}}}
 function buildHistoryEntry(action,scriptName,oldData,newData){let diff=null;if(oldData&&newData&&action==='update'){diff=calculateDiff(oldData.code||'',newData.code||'')}return{action,timestamp:new Date().toISOString(),editor:currentUser.name,email:currentUser.email,uid:currentUser.uid,ip:currentIP,scriptName:scriptName||'Unnamed',diff,oldCode:oldData?oldData.code:null,newCode:newData?newData.code:null}}
@@ -860,6 +862,7 @@ function openTMFromEditor(){const name=document.getElementById('sName').value.tr
 function tryOpenTM(){toast('🐒 Code sudah di-copy!','success');setTimeout(()=>{const w=window.open(TM_URL,'_blank');setTimeout(()=>{if(!w||w.closed||typeof w.closed=='undefined'){document.getElementById('tmHelpOverlay').classList.add('show')}},1000)},300)}
 function fallbackCopy(text){const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(t)}
 function initApp(){if(initPromise)return initPromise;initPromise=doInit();return initPromise}
+/* ✦ INIT PARALEL + loading dilepas setelah semua siap */
 async function doInit(){const lt=document.getElementById('loadTxt');try{
 lt.textContent='CONNECTING';
 const [scriptsData]=await Promise.all([withRetry(()=>FIREBASE.load()),loadPortalConfig(),loadUserPortalPin()]);
@@ -889,12 +892,10 @@ else if(currentSection==='foto-section')renderFotoSection();
 function updateBadges(){
 const visibleScripts=scripts.filter(s=>{if(!s)return false;if(isAdmin())return true;return s.isPublic!==false});
 const ab=document.getElementById('allBadge');if(ab)ab.textContent=visibleScripts.length;
-const my=getUserScripts();
-const mb=document.getElementById('myBadge');if(mb)mb.textContent=my.length;
+const mb=document.getElementById('myBadge');if(mb)mb.textContent=getUserScripts().length;
 const kb=document.getElementById('kendalaBadge');if(kb)kb.textContent=kendalaList.length;
 const fb=document.getElementById('fotoBadge');if(fb)fb.textContent=fotoList.length;
 }
-function renderAll(){renderActiveSection()}
 function renderOwnerFilter(vs){
 const container=document.getElementById('ownerFilterContainer');
 if(!container)return;
@@ -908,12 +909,10 @@ html+='<div class="owner-chip'+(currentOwnerFilter===e?' active':'')+'" onclick=
 container.innerHTML=html;
 }
 function setOwnerFilter(val){currentOwnerFilter=val;renderDash()}
-/* ✦ v44: renderDash tanpa panel statistik */
 function renderDash(){
 const visibleScripts=scripts.filter(s=>{if(!s)return false;if(isAdmin())return true;return s.isPublic!==false});
 const ab=document.getElementById('allBadge');if(ab)ab.textContent=visibleScripts.length;
-const my=getUserScripts();
-const mb=document.getElementById('myBadge');if(mb)mb.textContent=my.length;
+const mb=document.getElementById('myBadge');if(mb)mb.textContent=getUserScripts().length;
 renderOwnerFilter(visibleScripts);
 let all=visibleScripts;
 if(currentOwnerFilter&&currentOwnerFilter!=='all')all=all.filter(s=>(s.ownerEmail||'unknown')===currentOwnerFilter);
@@ -924,13 +923,11 @@ const c=document.getElementById('recentList');document.getElementById('recentCnt
 if(all.length===0){c.innerHTML=q?'<div class="empty"><div class="icon"><i class="fas fa-search"></i></div><h4>TIDAK DITEMUKAN</h4><p>Tidak ada script cocok dengan "'+esc(q)+'"</p></div>':'<div class="empty"><div class="icon">🐒</div><h4>BELUM ADA SCRIPT PUBLIK</h4><p>Script publik akan muncul di sini</p></div>';return}
 c.innerHTML=all.map(s=>{const dn=s.name||'Unnamed';const oe=s.ownerEmail||'Unknown';const on=s.ownerName||'Unknown';const mine=currentUser&&s.ownerEmail===currentUser.email;const ob=mine?'<span class="owner-badge mine"><i class="fas fa-check"></i> MILIK ANDA</span>':'<span class="owner-badge other"><i class="fas fa-user"></i> '+esc(on)+'</span>';const vb=s.isPublic===false?'<span class="owner-badge priv"><i class="fas fa-lock"></i> PRIVATE</span>':'<span class="owner-badge pub"><i class="fas fa-globe"></i> PUBLIK</span>';const oh='<div class="card-author"><i class="fas fa-envelope"></i> '+esc(oe)+' '+ob+' '+vb+'</div>';const lines=s.code?s.code.split('\n').length:0;const size=s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB';const can=mine||isAdmin();
 return '<div class="card"><div class="card-header"><div class="card-icon"><i class="fas fa-code"></i></div><div class="card-body"><div class="card-title">'+esc(dn)+'</div><div class="card-desc">'+esc(s.desc||'Tanpa deskripsi')+'</div>'+oh+'</div></div><div class="card-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+ago(s.updated)+'</span><span><span class="icon"><i class="fas fa-file-code"></i></span>'+size+'</span><span><span class="icon"><i class="fas fa-align-left"></i></span>'+lines+' baris</span></div><div class="card-actions"><button class="btn btn-success" onclick="openTMFromCard(event,\''+s.id+'\')"><i class="fas fa-external-link-alt"></i> TM</button><button class="btn btn-warning" onclick="quickCopy(\''+s.id+'\')"><i class="fas fa-copy"></i> COPY</button>'+(can?'<button class="btn btn-ghost" onclick="editS(\''+s.id+'\')"><i class="fas fa-edit"></i> EDIT</button><button class="btn btn-danger" onclick="quickDel(\''+s.id+'\')"><i class="fas fa-trash"></i> HAPUS</button>':'')+'</div></div>'}).join('')}
-/* ✦ v44: renderScriptsSection tanpa panel statistik */
 function renderScriptsSection(){renderList()}
 function renderList(){const my=getUserScripts();const q=(document.getElementById('qIn').value||'').toLowerCase().trim();let f=my.filter(s=>s&&((s.name||'').toLowerCase().includes(q)||(s.desc||'').toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)));if(q)updateSearchUI(f.length,true);else updateSearchUI(0,false);document.getElementById('fCnt').textContent=f.length;const c=document.getElementById('list');c.innerHTML=f.length===0?emptyH(q?'Tidak ditemukan':'Belum ada script',q?'Tidak ada script cocok dengan "'+esc(q)+'"':'Klik "Script Baru" untuk mulai'):f.sort((a,b)=>new Date(b.updated||0)-new Date(a.updated||0)).map(cardH).join('')}
 function cardH(s){const dn=s.name||'Unnamed';const vb=s.isPublic===false?'<span class="owner-badge priv"><i class="fas fa-lock"></i> PRIVATE</span>':'<span class="owner-badge pub"><i class="fas fa-globe"></i> PUBLIK</span>';const lines=s.code?s.code.split('\n').length:0;const size=s.code?(s.code.length/1024).toFixed(1)+' KB':'0 KB';
 return '<div class="card"><div class="card-header" onclick="editS(\''+s.id+'\')" style="cursor:pointer"><div class="card-icon"><i class="fas fa-code"></i></div><div class="card-body"><div class="card-title">'+esc(dn)+' '+vb+'</div><div class="card-desc">'+esc(s.desc||'Tanpa deskripsi')+'</div></div></div><div class="card-meta"><span><span class="icon"><i class="fas fa-clock"></i></span>'+ago(s.updated)+'</span><span><span class="icon"><i class="fas fa-file-code"></i></span>'+size+'</span><span><span class="icon"><i class="fas fa-align-left"></i></span>'+lines+' baris</span></div><div class="card-actions"><button class="btn btn-success" onclick="event.stopPropagation();openTMFromCard(event,\''+s.id+'\')"><i class="fas fa-external-link-alt"></i> TM</button><button class="btn btn-ghost" onclick="event.stopPropagation();editS(\''+s.id+'\')"><i class="fas fa-edit"></i> Edit</button><button class="btn btn-warning" onclick="event.stopPropagation();quickCopy(\''+s.id+'\')"><i class="fas fa-copy"></i> Copy</button><button class="btn btn-danger" onclick="event.stopPropagation();quickDel(\''+s.id+'\')"><i class="fas fa-trash"></i> Hapus</button></div></div>'}
 function emptyH(t,m){return '<div class="empty"><div class="icon"><i class="fas fa-robot"></i></div><h4>'+t+'</h4><p>'+m+'</p>'+(t==='Belum ada script'?'<button class="btn btn-primary" onclick="newS()"><i class="fas fa-plus"></i> SCRIPT PERTAMA</button>':'')+'</div>'}
-let deletedHistoryCache=null;
 async function getDeletedHistory(){if(deletedHistoryCache!==null)return deletedHistoryCache;try{const snap=await db.ref('deleted_history').once('value');const val=snap.val();deletedHistoryCache=val?Object.values(val):[];return deletedHistoryCache}catch(e){deletedHistoryCache=[];return[]}}
 async function renderHistorySection(){if(!document.getElementById('historyList'))return;let all=[];scripts.forEach(s=>{(s.history||[]).forEach(h=>{all.push({...h,scriptName:s.name||h.scriptName||'Unnamed',scriptId:s.id})})});
 const deletedItems=await getDeletedHistory();
@@ -945,7 +942,6 @@ return '<div class="card"><div class="card-header"><div class="card-icon" onclic
 function switchHistoryPane(side){const lp=document.getElementById('lhPaneLogin'),ep=document.getElementById('lhPaneEdit');const bl=document.getElementById('hswLogin'),be=document.getElementById('hswEdit');if(!lp||!ep)return;
 if(side==='edit'){lp.style.display='none';ep.style.display='block';if(bl)bl.classList.remove('active');if(be)be.classList.add('active');renderHistorySection()}
 else{lp.style.display='block';ep.style.display='none';if(bl)bl.classList.add('active');if(be)be.classList.remove('active')}}
-/* ✦ v44: renderLoginHistory tanpa panel statistik */
 function renderLoginHistory(){const c=document.getElementById('loginHistoryContent');if(!isAdmin()){c.innerHTML='<div class="access-denied"><div class="icon"><i class="fas fa-user-shield"></i></div><h4>Akses Ditolak</h4><p>Halaman ini hanya untuk <strong style="color:var(--neon-cyan)">Administrator</strong></p></div>';return}
 c.innerHTML='<section class="notif-section" style="margin-bottom:26px"><div class="section-header"><h3><span class="bar"></span><i class="fas fa-bell" style="color:var(--neon-yellow)"></i> NOTIF TERBARU</h3><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><small><span id="notifCnt">0</span> ITEM</small><button class="btn btn-ghost" onclick="renderNotifTerbaru()" style="padding:6px 12px;font-size:10px"><i class="fas fa-sync"></i> Refresh</button></div></div><div id="notifTerbaruList"></div></section>'+
 '<div class="history-switch">'+
@@ -989,7 +985,7 @@ else{const ns={id:'s_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),nam
 try{toast('Menyimpan ke Firebase...','info');await FIREBASE.save(toSave);document.getElementById('edTitle').textContent=name;document.getElementById('bDel').style.display='inline-flex';renderActiveSection();toast(isPublic?'✅ Tersimpan (PUBLIK)':'🔒 Tersimpan (PRIVATE)','success');setTimeout(()=>{closeEditor()},600)}catch(e){toast('❌ Gagal: '+e.message,'error')}}
 function quickCopy(id){const s=scripts.find(x=>x&&x.id===id);if(!s){toast('Script tidak ditemukan','error');return}const code=buildCode(s);navigator.clipboard.writeText(code).then(()=>toast('✅ Script di-copy','success')).catch(()=>{fallbackCopy(code);toast('✅ Script di-copy','success')})}
 function copyCode(){const c=document.getElementById('sCode').value;if(c){navigator.clipboard.writeText(c).then(()=>toast('✅ Disalin ke clipboard','success')).catch(()=>{fallbackCopy(c);toast('✅ Disalin','success')})}else{toast('Code kosong','error')}}
-async function sync(){try{toast('Syncing dari Firebase...','info');scripts=await FIREBASE.load();deletedHistoryCache=null;renderActiveSection();toast('✅ Sync OK ('+scripts.length+' script)','success')}catch(e){toast('❌ Gagal: '+e.message,'error')}}
+async function sync(){try{toast('Syncing dari Firebase...','info');scripts=await FIREBASE.load();deletedHistoryCache=null;await loadPortalConfig();renderActiveSection();renderPortalMenus();toast('✅ Sync OK ('+scripts.length+' script)','success')}catch(e){toast('❌ Gagal: '+e.message,'error')}}
 function esc(t){if(!t)return'';return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function ago(d){if(!d)return'-';const s=(Date.now()-new Date(d).getTime())/1000;if(s<60)return'baru saja';if(s<3600)return Math.floor(s/60)+'m lalu';if(s<86400)return Math.floor(s/3600)+'j lalu';if(s<2592000)return Math.floor(s/86400)+'h lalu';return new Date(d).toLocaleDateString('id-ID')}
 function formatDate(iso){if(!iso)return'-';return new Date(iso).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})}
@@ -1031,7 +1027,7 @@ let html='<div class="comment-section" id="comments-'+k.id+'">';
 html+='<div class="comment-list">';
 if(komentar.length===0){html+='<div style="color:var(--text-muted);font-size:11px;font-style:italic;padding:8px">Belum ada komentar</div>'}
 else{
-komentar.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)).forEach(c=>{
+komentar.slice().sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)).forEach(c=>{
 const initial=(c.author||'?').charAt(0).toUpperCase();
 html+='<div class="comment-item"><div class="comment-avatar">'+esc(initial)+'</div><div class="comment-body"><div class="comment-author">'+esc(c.author)+'<span class="comment-time">'+ago(c.createdAt)+'</span></div><div class="comment-text">'+esc(c.text)+'</div></div></div>';
 });
@@ -1041,7 +1037,6 @@ html+='<div class="comment-input-wrap"><input type="text" id="commentInput-'+k.i
 html+='</div>';
 return html;
 }
-let editNavMenus=[];
 function navMgrSet(i,k,v){if(editNavMenus[i])editNavMenus[i][k]=v}
 function navMgrMove(i,dir){const j=i+dir;if(j<0||j>=editNavMenus.length)return;const t=editNavMenus[i];editNavMenus[i]=editNavMenus[j];editNavMenus[j]=t;navMgrRender()}
 function navMgrToggle(i){if(editNavMenus[i])editNavMenus[i].show=!editNavMenus[i].show;navMgrRender()}
@@ -1057,7 +1052,7 @@ return '<div class="nav-mgr-row">'+
 '<div class="nav-mgr-btns">'+
 '<button onclick="navMgrMove('+i+',-1)" title="Naik">▲</button>'+
 '<button onclick="navMgrMove('+i+',1)" title="Turun">▼</button>'+
-'<button onclick="navMgrToggle('+i+')" title="Show/Hide" style="'+(m.show===false?'opacity:.4':'')+'">'+(m.show===false?'👁':'🙈')+'</button>'+
+'<button onclick="navMgrToggle('+i+')" title="Show/Hide" style="'+(m.show===false?'opacity:.4':'')+'">'+(m.show===false?'👁':'')+'</button>'+
 '</div></div>';
 }).join('');
 }
@@ -1088,7 +1083,7 @@ const form=document.getElementById('portalSettingsForm');form.innerHTML='';
 editMenus=JSON.parse(JSON.stringify(portalConfig.menus||DEFAULT_MENUS));
 editNavMenus=JSON.parse(JSON.stringify(portalConfig.navMenus||DEFAULT_NAV_MENUS));
 const nv=document.createElement('div');nv.className='settings-panel';
-nv.innerHTML='<h3 class="settings-panel-title">🧭 NAVIGASI SIDEBAR — GESER · RENAME · SHOW/HIDE</h3><div id="navMgrList"></div><div style="font-size:10px;color:var(--text-muted);margin-top:6px"><i class="fas fa-info-circle"></i> Gunakan ▲▼ untuk geser posisi, klik nama untuk rename, 👁 untuk show/hide</div>';
+nv.innerHTML='<h3 class="settings-panel-title">🧭 NAVIGASI SIDEBAR — GESER · RENAME · SHOW/HIDE</h3><div id="navMgrList"></div><div style="font-size:10px;color:var(--text-muted);margin-top:6px"><i class="fas fa-info-circle"></i> ▲▼ geser posisi · ketik untuk rename · 👁 show/hide</div>';
 form.appendChild(nv);navMgrRender();
 const mg=document.createElement('div');mg.className='settings-panel';
 mg.innerHTML='<h3 class="settings-panel-title">🗂️ MANAJEMEN MENU PORTAL — SUSUN · DUPLIKAT · TAMBAH · HAPUS</h3><div class="mgr-filter-bar"><div class="section-search-bar" style="flex:1;margin-bottom:0"><i class="fas fa-search"></i><input type="text" id="mgrFilter" placeholder="Filter menu (nama / kategori / url)..." oninput="mgrRender()"></div><small id="mgrCount" style="white-space:nowrap;color:var(--neon-cyan);font-weight:700;font-family:Space Grotesk,sans-serif;font-size:10px"></small></div><div id="menuMgrList"></div><button class="btn btn-success" onclick="mgrAdd()" style="margin-top:8px"><i class="fas fa-plus"></i> TAMBAH MENU</button>';
@@ -1115,9 +1110,9 @@ portalConfig.navMenus=editNavMenus;
 portalConfig.settings=collectSettingsFromForm();
 const np=document.getElementById('newPortalPinInput');if(np&&np.value.trim()){await saveUserPortalPin(np.value.trim());toast('✅ PIN portal disimpan','success')}
 await savePortalConfigToFirebase('manual save lengkap');
-renderPortalMenus();applySettings();renderSidebarNav();closePortalSettings();toast('✅ Pengaturan Portal tersimpan','success');
+cachePortalConfig();renderPortalMenus();applySettings();renderSidebarNav();closePortalSettings();toast('✅ Pengaturan Portal tersimpan','success');
 }catch(e){toast('❌ Gagal menyimpan: '+e.message,'error')}}
-async function resetPortal(){if(!confirm('Reset semua menu & pengaturan ke default?'))return;try{if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');portalConfig.menus=JSON.parse(JSON.stringify(DEFAULT_MENUS));portalConfig.navMenus=JSON.parse(JSON.stringify(DEFAULT_NAV_MENUS));portalConfig.settings={...defaultSettings};await savePortalConfigToFirebase('reset');renderPortalMenus();applySettings();renderSidebarNav();showPortalSettingsForm();toast('✅ Menu & pengaturan direset!','success')}catch(e){toast('❌ Gagal reset: '+e.message,'error')}}
+async function resetPortal(){if(!confirm('Reset semua menu & pengaturan ke default?'))return;try{if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');portalConfig.menus=JSON.parse(JSON.stringify(DEFAULT_MENUS));portalConfig.navMenus=JSON.parse(JSON.stringify(DEFAULT_NAV_MENUS));portalConfig.settings={...defaultSettings};await savePortalConfigToFirebase('reset');cachePortalConfig();renderPortalMenus();applySettings();renderSidebarNav();showPortalSettingsForm();toast('✅ Menu & pengaturan direset!','success')}catch(e){toast('❌ Gagal reset: '+e.message,'error')}}
 function openClearLoginHistory(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}document.getElementById('clearLoginHistoryOverlay').classList.add('show')}
 function closeClearLoginHistory(){document.getElementById('clearLoginHistoryOverlay').classList.remove('show')}
 async function clearLoginHistoryAll(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}if(!confirm('⚠️ Hapus SEMUA histori login?\nAksi ini tidak dapat dibatalkan.'))return;try{toast('🧹 Menghapus semua histori login...','delete');const snap=await db.ref('login_history').once('value');const val=snap.val();if(!val){closeClearLoginHistory();toast('ℹ️ Tidak ada data','info');return}const up={};let c=0;Object.keys(val).forEach(k=>{up[k]=null;c++});await db.ref('login_history').update(up);closeClearLoginHistory();toast('✅ '+c+' histori login dihapus','delete');if(currentSection==='login-history')renderLoginHistory()}catch(e){toast('❌ Gagal: '+e.message,'error')}}
@@ -1131,7 +1126,7 @@ function updateConnUI(){const el=document.getElementById('connState');if(el){el.
 async function safeSync(){const now=Date.now();if(now-lastSyncAt<5000)return;lastSyncAt=now;try{scripts=await FIREBASE.load();renderActiveSection()}catch(e){}}
 function startFocusSync(){window.addEventListener('focus',()=>{if(currentUser)safeSync()})}
 function startAutoRefresh(){if(autoRefreshTimer){clearInterval(autoRefreshTimer);autoRefreshTimer=null}const s=portalConfig.settings;if(s.autoRefreshOn){const sec=Math.max(10,parseInt(s.autoRefreshSec)||60);autoRefreshTimer=setInterval(()=>{if(currentUser){FIREBASE.load().then(d=>{scripts=d;renderActiveSection()}).catch(()=>{})}},sec*1000)}}
-function applyTheme(dark){document.documentElement.classList.toggle('dark',dark);const b=document.getElementById('themeBtn');if(b)b.textContent=dark?'☀️':'';try{localStorage.setItem('sv_theme',dark?'1':'0')}catch(e){}}
+function applyTheme(dark){document.documentElement.classList.toggle('dark',dark);const b=document.getElementById('themeBtn');if(b)b.textContent=dark?'☀️':'🌙';try{localStorage.setItem('sv_theme',dark?'1':'0')}catch(e){}}
 function toggleTheme(){applyTheme(!document.documentElement.classList.contains('dark'))}
 try{if(localStorage.getItem('sv_theme')==='1')applyTheme(true)}catch(e){}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){['editorOverlay','tmHelpOverlay','histDetailOverlay','portalSettingsOverlay','portalPinOverlay','deleteConfirmOverlay','clearLoginHistoryOverlay','fotoDetailOverlay'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('show')})}});
@@ -1165,7 +1160,6 @@ if(currentSection==='kendala-section')renderKendalaSection();
 if(currentSection==='login-history'&&isAdmin())renderNotifTerbaru();
 },err=>console.error('Kendala listener error:',err));
 }
-/* ✦ v44: renderKendalaSection tanpa panel statistik */
 function renderKendalaSection(){
 const searchQ=(document.getElementById('kendalaSearch')?document.getElementById('kendalaSearch').value:'').toLowerCase().trim();
 let visible=kendalaList.filter(k=>{if(k.visibility==='admin'&&!isAdmin())return false;return true});
@@ -1217,8 +1211,7 @@ ${renderComments(k)}
 function copyKendalaAnswer(id,num){
 const k=kendalaList.find(x=>x.id===id);
 if(!k){toast('❌ Data tidak ditemukan','error');return}
-const jawaban=k.jawaban||[];
-const text=jawaban[num]||'';
+const text=(k.jawaban||[])[num]||'';
 if(!text){toast('❌ Jawaban kosong','error');return}
 navigator.clipboard.writeText(text).then(()=>{
 toast('✅ Jawaban berhasil di-copy!','success');
@@ -1378,7 +1371,6 @@ if(currentSection==='foto-section')renderFotoSection();
 if(currentSection==='login-history'&&isAdmin())renderNotifTerbaru();
 },err=>console.error('Foto listener error:',err));
 }
-/* ✦ v44: renderFotoSection tanpa panel statistik */
 function renderFotoSection(){
 const searchQ=(document.getElementById('fotoSearch')?document.getElementById('fotoSearch').value:'').toLowerCase().trim();
 let visible=fotoList.filter(f=>{if(f.visibility==='admin'&&!isAdmin())return false;return true});
