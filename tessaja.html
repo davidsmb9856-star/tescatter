@@ -937,27 +937,13 @@ mergeNavDefaults();
 portalConfig.loaded=true;cachePortalConfig();renderPortalMenus();applySettings();renderSidebarNav()}catch(e){console.error(e);mergeNavDefaults();portalConfig.loaded=true;renderPortalMenus();applySettings();renderSidebarNav()}}
 async function savePortalConfigToFirebase(reason='manual'){if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');
 await portalSettingsRef().set({menus:portalConfig.menus,navMenus:portalConfig.navMenus,settings:portalConfig.settings,updatedAt:new Date().toISOString(),updatedBy:currentUser.email||'unknown',reason})}
-function startPortalListener(){
-if(portalListenerStarted)return;
-portalListenerStarted=true;
-portalSettingsRef().on('value',snap=>{
-const val=snap.val();
-if(val){
-if(Array.isArray(val.menus)&&val.menus.length)portalConfig.menus=val.menus;
-if(Array.isArray(val.navMenus)&&val.navMenus.length)portalConfig.navMenus=val.navMenus;
-portalConfig.settings=Object.assign({},defaultSettings,val.settings||{});
-}
+function startPortalListener(){if(portalListenerStarted)return;portalListenerStarted=true;
+portalSettingsRef().on('value',snap=>{const val=snap.val();
+if(val){if(Array.isArray(val.menus)&&val.menus.length)portalConfig.menus=val.menus;if(Array.isArray(val.navMenus)&&val.navMenus.length)portalConfig.navMenus=val.navMenus;portalConfig.settings=Object.assign({},defaultSettings,val.settings||{})}
 mergeNavDefaults();
-cachePortalConfig();
-renderPortalMenus();
-applySettings();
-renderSidebarNav();
-if(!portalConfig.settings.directAccessOn&&isGuestDirect()){
-exitDirectAccess();
-toast('🔒 Akses langsung dimatikan oleh admin — silakan login Google','warning');
-}
-},err=>console.error(err));
-}
+cachePortalConfig();renderPortalMenus();applySettings();renderSidebarNav();
+if(!portalConfig.settings.directAccessOn&&isGuestDirect()){exitDirectAccess();toast('🔒 Akses langsung dimatikan oleh admin — silakan login Google','warning')}
+},err=>console.error(err))}
 async function loadUserPortalPin(){if(!currentUser){portalPin=DEFAULT_PORTAL_PIN;return}try{const snap=await userPinRef(currentUser.uid).once('value');const val=snap.val();portalPin=(val&&val.portalPin)?String(val.portalPin):DEFAULT_PORTAL_PIN}catch(e){portalPin=DEFAULT_PORTAL_PIN}}
 async function saveUserPortalPin(pin){if(!currentUser)throw new Error('Login diperlukan');const p=String(pin||'').trim();if(!/^\d{4}$/.test(p))throw new Error('PIN harus 4 digit');await userPinRef(currentUser.uid).set({portalPin:p,updatedAt:new Date().toISOString(),email:currentUser.email||''});portalPin=p}
 function renderSidebarNav(){
@@ -1084,71 +1070,12 @@ function showWelcome(u){
 if(portalConfig.settings.welcomeOn===false)return;
 $('welcomeTitle').textContent='SELAMAT DATANG';
 $('welcomeSub').textContent=(u.name||'User')+' · '+(u.email||'');
-$('welcomeBadge').textContent=isAdmin()
-?'👑 ADMINISTRATOR'
-:(u.uid==='guest_direct'?'🔓 GUEST':'✅ USER TERVERIFIKASI');
-const o=$('welcomeOverlay');
-o.classList.remove('show');
-void o.offsetWidth;
-o.classList.add('show');
-setTimeout(()=>o.classList.remove('show'),3000);
+$('welcomeBadge').textContent=isAdmin()?'👑 ADMINISTRATOR':(u.uid==='guest_direct'?'🔓 GUEST':'✅ USER TERVERIFIKASI');
+const o=$('welcomeOverlay');o.classList.remove('show');void o.offsetWidth;o.classList.add('show');setTimeout(()=>o.classList.remove('show'),3000);
 }
 function $(id){return document.getElementById(id)}
-auth.onAuthStateChanged(async(user)=>{
-if(user){
-const wasGuest=currentUser&&currentUser.uid==='guest_direct';
-currentUser={
-name:user.displayName||(user.isAnonymous?'Guest':'User'),
-email:user.email||(user.isAnonymous?'guest@direct.access':''),
-photo:user.photoURL||null,
-uid:user.uid
-};
-if(wasGuest)initPromise=null;
-renderUserCard();
-renderSidebarNav();
-document.getElementById('authGate').classList.remove('show');
-try{await fetchIP()}catch(e){}
-await initApp();
-setLoadingHide();
-document.getElementById('app').classList.add('show');
-if(shouldRecordLogin(user.uid)){
-recordLogin();
-showWelcome(currentUser);
-toast('✅ Login berhasil! Halo '+currentUser.name,'success');
-if(isAdmin())setTimeout(()=>toast('👑 Admin access granted','success'),1200);
-}
-}else{
-if(!portalConfig.settings.directAccessOn){
-await bootstrapPortalSettings();
-}else{
-bootstrapPortalSettings();
-}
-if(portalConfig.settings.directAccessOn){
-await enterDirectAccess();
-return;
-}
-currentUser=null;
-scripts=[];
-userNavigated=false;
-initPromise=null;
-clearLoginSession();
-renderUserCard();
-renderSidebarNav();
-setLoadingHide();
-document.getElementById('authGate').classList.add('show');
-document.getElementById('app').classList.remove('show');
-updateAuthGateInfo();
-}
-});
-async function loginGoogle(){try{toast('Membuka login Google...','info');await auth.signInWithPopup(googleProvider)}catch(e){if(e.code==='auth/popup-closed-by-user')toast('Login dibatalkan','info');else if(e.code==='auth/popup-blocked-by-browser')toast('Popup diblokir. Jalankan via localhost/https.','error');else toast('❌ Gagal login: '+e.message,'error')}}
-async function logoutUser(){if(!currentUser)return;
-const ok=await askConfirm({type:'info',icon:'fa-sign-out-alt',title:'LOGOUT?',message:'👤 '+currentUser.name+'\n📧 '+currentUser.email+'\nAnda yakin ingin keluar dari portal?',okText:'Ya, Logout'});
-if(!ok)return;
-auth.signOut().then(()=>{toast('👋 Berhasil logout','success')}).catch(e=>toast('❌ Gagal logout: '+e.message,'error'))}
 let portalBootPromise=null;
-function isGuestDirect(){
-return !!(currentUser&&currentUser.uid==='guest_direct');
-}
+function isGuestDirect(){return !!(currentUser&&currentUser.uid==='guest_direct')}
 function ensureCanWrite(action){
 if(isGuestDirect()&&!portalConfig.settings.guestWriteOn){
 toast('🔒 '+action+' memerlukan login Google. Klik tombol Login di sidebar.','warning');
@@ -1175,54 +1102,34 @@ renderPortalMenus();
 applySettings();
 renderSidebarNav();
 }
-if(portalConfig.settings.directAccessOn&&!currentUser){
-enterDirectAccess();
-}
+if(portalConfig.settings.directAccessOn&&!currentUser){enterDirectAccess()}
 finish();
-}).catch(()=>{
-clearTimeout(timer);
-finish();
-});
+}).catch(()=>{clearTimeout(timer);finish()});
 });
 return portalBootPromise;
 }
 async function enterDirectAccess(){
 if(currentUser)return;
-currentUser={
-name:'Guest',
-email:'guest@direct.access',
-photo:null,
-uid:'guest_direct'
-};
-renderUserCard();
-renderSidebarNav();
+currentUser={name:'Guest',email:'guest@direct.access',photo:null,uid:'guest_direct'};
+renderUserCard();renderSidebarNav();
 document.getElementById('authGate').classList.remove('show');
 try{await fetchIP()}catch(e){}
-try{await initApp()}catch(e){
-console.error(e);
-toast('⚠️ Sebagian data gagal dimuat: '+e.message,'error');
-}
+try{await initApp()}catch(e){console.error(e);toast('⚠️ Sebagian data gagal dimuat: '+e.message,'error')}
 setLoadingHide();
 document.getElementById('app').classList.add('show');
 showWelcome(currentUser);
 toast('🔓 Akses langsung aktif — masuk sebagai Guest','success');
 }
 function exitDirectAccess(){
-currentUser=null;
-scripts=[];
-userNavigated=false;
-initPromise=null;
-clearLoginSession();
-renderUserCard();
-renderSidebarNav();
+currentUser=null;scripts=[];userNavigated=false;initPromise=null;clearLoginSession();
+renderUserCard();renderSidebarNav();
 document.getElementById('app').classList.remove('show');
 document.getElementById('authGate').classList.add('show');
 closePortalSettings();
 updateAuthGateInfo();
 }
 function updateAuthGateInfo(){
-const el=document.getElementById('authModeInfo');
-if(!el)return;
+const el=document.getElementById('authModeInfo');if(!el)return;
 if(portalConfig.settings.directAccessOn){
 el.innerHTML='<i class="fas fa-unlock"></i> MODE: AKSES LANGSUNG (TANPA LOGIN)';
 el.style.cssText='display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:1px;background:rgba(240,168,48,.12);color:var(--neon-yellow);border:1px solid rgba(240,168,48,.4);margin-bottom:22px;font-family:Space Grotesk,sans-serif';
@@ -1231,6 +1138,36 @@ el.innerHTML='<i class="fab fa-google"></i> MODE: AKSES MELALUI GOOGLE (LOGIN WA
 el.style.cssText='display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:1px;background:rgba(52,211,153,.12);color:var(--neon-green);border:1px solid rgba(52,211,153,.4);margin-bottom:22px;font-family:Space Grotesk,sans-serif';
 }
 }
+auth.onAuthStateChanged(async(user)=>{
+if(user){
+const wasGuest=currentUser&&currentUser.uid==='guest_direct';
+currentUser={name:user.displayName||(user.isAnonymous?'Guest':'User'),email:user.email||(user.isAnonymous?'guest@direct.access':''),photo:user.photoURL||null,uid:user.uid};
+if(wasGuest)initPromise=null;
+renderUserCard();renderSidebarNav();
+document.getElementById('authGate').classList.remove('show');
+try{await fetchIP()}catch(e){}
+await initApp();
+setLoadingHide();
+document.getElementById('app').classList.add('show');
+if(shouldRecordLogin(user.uid)){
+recordLogin();
+showWelcome(currentUser);
+toast('✅ Login berhasil! Halo '+currentUser.name,'success');
+if(isAdmin())setTimeout(()=>toast('👑 Admin access granted','success'),1200);
+}
+}else{
+if(!portalConfig.settings.directAccessOn){await bootstrapPortalSettings()}
+else{bootstrapPortalSettings()}
+if(portalConfig.settings.directAccessOn){await enterDirectAccess();return}
+currentUser=null;scripts=[];userNavigated=false;initPromise=null;clearLoginSession();renderUserCard();renderSidebarNav();setLoadingHide();
+document.getElementById('authGate').classList.add('show');document.getElementById('app').classList.remove('show');
+updateAuthGateInfo();
+}});
+async function loginGoogle(){try{toast('Membuka login Google...','info');await auth.signInWithPopup(googleProvider)}catch(e){if(e.code==='auth/popup-closed-by-user')toast('Login dibatalkan','info');else if(e.code==='auth/popup-blocked-by-browser')toast('Popup diblokir. Jalankan via localhost/https.','error');else toast('❌ Gagal login: '+e.message,'error')}}
+async function logoutUser(){if(!currentUser)return;
+const ok=await askConfirm({type:'info',icon:'fa-sign-out-alt',title:'LOGOUT?',message:'👤 '+currentUser.name+'\n📧 '+currentUser.email+'\nAnda yakin ingin keluar dari portal?',okText:'Ya, Logout'});
+if(!ok)return;
+auth.signOut().then(()=>{toast('👋 Berhasil logout','success')}).catch(e=>toast('❌ Gagal logout: '+e.message,'error'))}
 function navTo(sectionName,navEl){userNavigated=true;showSection(sectionName,navEl)}
 function showSection(sectionName,navEl){
 if(sectionName==='login-history'&&!isAdmin()){toast('⛔ Akses ditolak! Hanya admin.','error');return}
@@ -1266,33 +1203,14 @@ if(sectionName==='portal')renderPortalMenus();
 if(sectionName==='kendala-section'){startKendalaListener();renderKendalaSection()}
 if(sectionName==='foto-section'){startFotoListener();renderFotoSection()}
 if(sectionName==='prediksi-section')ptRender()}
-function renderUserCard(){
-const c=document.getElementById('userCardContainer');
-if(!c)return;
-if(currentUser){
-const initial=(currentUser.name||currentUser.email||'?').charAt(0).toUpperCase();
-const av=currentUser.photo?('<img src="'+currentUser.photo+'" alt="avatar">'):initial;
+function renderUserCard(){const c=document.getElementById('userCardContainer');if(!c)return;
+if(currentUser){const initial=(currentUser.name||currentUser.email||'?').charAt(0).toUpperCase();const av=currentUser.photo?('<img src="'+currentUser.photo+'" alt="avatar">'):initial;
 const isGuest=currentUser.uid==='guest_direct';
-const tag=isAdmin()
-?'<span style="color:var(--neon-cyan);font-size:9px;margin-left:3px" title="Administrator"><i class="fas fa-crown"></i></span>'
-:(isGuest?'<span style="color:var(--neon-yellow);font-size:9px;margin-left:3px" title="Akses Langsung"><i class="fas fa-unlock"></i></span>':'');
-const guestBtn=isGuest
-?'<button class="btn btn-primary" style="padding:6px 10px;font-size:9px;margin-left:auto;flex-shrink:0" onclick="loginGoogle()"><i class="fab fa-google"></i> Login</button>'
-:'';
-const verified=isGuest
-?'':' <span class="verified" title="Terverifikasi Google"><i class="fas fa-check-circle"></i></span>';
-c.innerHTML='<div class="user-card">'
-+'<div class="user-avatar">'+av+'</div>'
-+'<div class="user-info">'
-+'<div class="user-name">'+esc(currentUser.name||'User')+tag+'</div>'
-+'<div class="user-email">'+esc(currentUser.email)+verified+'</div>'
-+'</div>'
-+guestBtn+
-'</div>';
-}else{
-c.innerHTML='';
-}
-}
+const tag=isAdmin()?'<span style="color:var(--neon-cyan);font-size:9px;margin-left:3px" title="Administrator"><i class="fas fa-crown"></i></span>':(isGuest?'<span style="color:var(--neon-yellow);font-size:9px;margin-left:3px" title="Akses Langsung"><i class="fas fa-unlock"></i></span>':'');
+const guestBtn=isGuest?'<button class="btn btn-primary" style="padding:6px 10px;font-size:9px;margin-left:auto;flex-shrink:0" onclick="loginGoogle()"><i class="fab fa-google"></i> Login</button>':'';
+const verified=isGuest?'':' <span class="verified" title="Terverifikasi Google"><i class="fas fa-check-circle"></i></span>';
+c.innerHTML='<div class="user-card"><div class="user-avatar">'+av+'</div><div class="user-info"><div class="user-name">'+esc(currentUser.name||'User')+tag+'</div><div class="user-email">'+esc(currentUser.email)+verified+'</div></div>'+guestBtn+'</div>'}
+else{c.innerHTML=''}}
 async function fetchIP(){try{const r=await fetch('https://api.ipify.org?format=json');const d=await r.json();currentIP=d.ip||'unknown'}catch(e){try{const r2=await fetch('https://api64.ipify.org?format=json');const d2=await r2.json();currentIP=d2.ip||'unknown'}catch(e2){currentIP='unknown'}}}
 function buildHistoryEntry(action,scriptName,oldData,newData){let diff=null;if(oldData&&newData&&action==='update'){diff=calculateDiff(oldData.code||'',newData.code||'')}return{action,timestamp:new Date().toISOString(),editor:currentUser.name,email:currentUser.email,uid:currentUser.uid,ip:currentIP,scriptName:scriptName||'Unnamed',diff,oldCode:oldData?oldData.code:null,newCode:newData?newData.code:null}}
 function calculateDiff(oldCode,newCode){const o=oldCode.split('\n'),n=newCode.split('\n'),diff=[],m=Math.max(o.length,n.length);for(let i=0;i<m;i++){if(o[i]!==n[i]){if(o[i])diff.push({type:'removed',line:i+1,text:o[i]});if(n[i])diff.push({type:'added',line:i+1,text:n[i]})}}return diff}
@@ -1658,15 +1576,8 @@ form.appendChild(am);
 const pv=document.createElement('div');pv.className='settings-panel';
 pv.innerHTML='<h3 class="settings-panel-title">⚙️ PERILAKU & OTOMATISASI</h3>'+switchRow('Animasi welcome saat login','welcomeOn')+switchRow('Buka link di tab baru','openNewTab')+switchRow('Jam format 24 jam','clock24')+switchRow('Auto refresh data','autoRefreshOn')+inputRow('Interval auto refresh (detik)','autoRefreshSec','60','number')+switchRow('Script baru default PUBLIK','defaultPublic')+inputRow('Maks. histori per script','maxHistory','30','number');
 form.appendChild(pv);
-const aks=document.createElement('div');
-aks.className='settings-panel';
-aks.innerHTML='<h3 class="settings-panel-title">🔑 MODE AKSES PORTAL</h3>'
-+switchRow('Akses Langsung — masuk tanpa login Google','directAccessOn')
-+switchRow('Guest boleh menyimpan data (hanya jika rule Firebase mengizinkan)','guestWriteOn')
-+'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px">'
-+'<div style="padding:13px 14px;border-radius:11px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.3);font-size:11px;line-height:1.65"><b style="color:var(--neon-green);display:flex;align-items:center;gap:6px;margin-bottom:5px"><i class="fab fa-google"></i> AKSES VIA GOOGLE</b><span style="color:var(--text-secondary)">Switch <b>MATI</b> → semua pengunjung wajib login dengan Google. Email &amp; aktivitas tercatat otomatis.</span></div>'
-+'<div style="padding:13px 14px;border-radius:11px;background:rgba(240,168,48,.06);border:1px solid rgba(240,168,48,.3);font-size:11px;line-height:1.65"><b style="color:var(--neon-yellow);display:flex;align-items:center;gap:6px;margin-bottom:5px"><i class="fas fa-unlock"></i> AKSES LANGSUNG</b><span style="color:var(--text-secondary)">Switch <b>AKTIF</b> → pengunjung langsung masuk portal tanpa login sebagai Guest.</span></div>'
-+'</div>';
+const aks=document.createElement('div');aks.className='settings-panel';
+aks.innerHTML='<h3 class="settings-panel-title">🔑 MODE AKSES PORTAL</h3>'+switchRow('Akses Langsung — masuk tanpa login Google','directAccessOn')+switchRow('Guest boleh menyimpan data (hanya jika rule Firebase mengizinkan)','guestWriteOn')+'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px">'+'<div style="padding:13px 14px;border-radius:11px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.3);font-size:11px;line-height:1.65"><b style="color:var(--neon-green);display:flex;align-items:center;gap:6px;margin-bottom:5px"><i class="fab fa-google"></i> AKSES VIA GOOGLE</b><span style="color:var(--text-secondary)">Switch <b>MATI</b> → semua pengunjung wajib login dengan Google. Email &amp; aktivitas tercatat otomatis.</span></div>'+'<div style="padding:13px 14px;border-radius:11px;background:rgba(240,168,48,.06);border:1px solid rgba(240,168,48,.3);font-size:11px;line-height:1.65"><b style="color:var(--neon-yellow);display:flex;align-items:center;gap:6px;margin-bottom:5px"><i class="fas fa-unlock"></i> AKSES LANGSUNG</b><span style="color:var(--text-secondary)">Switch <b>AKTIF</b> → pengunjung langsung masuk portal tanpa login sebagai Guest.</span></div>'+'</div>';
 form.appendChild(aks);
 const sc=document.createElement('div');sc.className='settings-panel';
 sc.innerHTML='<h3 class="settings-panel-title">🔐 KEAMANAN</h3>'+inputRow('Email Admin (pisahkan dengan koma)','adminEmails','admin@email.com')+'<div class="input-wrapper"><label class="input-label">PIN Portal Baru (4 digit)</label><input type="password" id="newPortalPinInput" class="input-field" maxlength="4" placeholder="Biarkan kosong jika tidak diubah"></div>';
@@ -1674,33 +1585,16 @@ form.appendChild(sc);
 document.getElementById('portalSettingsOverlay').classList.add('show')}
 function closePortalSettings(){document.getElementById('portalSettingsOverlay').classList.remove('show')}
 function collectSettingsFromForm(){const settings=Object.assign({},portalConfig.settings);document.querySelectorAll('#portalSettingsForm .set-check').forEach(cb=>{settings[cb.dataset.set]=cb.checked});document.querySelectorAll('#portalSettingsForm .set-input[data-set]').forEach(i=>{settings[i.dataset.set]=i.value});return settings}
-async function savePortalSettings(){
-try{
-if(!currentUser)throw new Error('Login diperlukan');
-if(!isAdmin())throw new Error('Hanya admin');
+async function savePortalSettings(){try{
+if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');
 portalConfig.menus=editMenus.filter(m=>m&&(m.name||'').trim());
 portalConfig.navMenus=editNavMenus;
 portalConfig.settings=collectSettingsFromForm();
-const np=document.getElementById('newPortalPinInput');
-if(np&&np.value.trim()){
-await saveUserPortalPin(np.value.trim());
-toast('✅ PIN portal disimpan','success');
-}
+const np=document.getElementById('newPortalPinInput');if(np&&np.value.trim()){await saveUserPortalPin(np.value.trim());toast('✅ PIN portal disimpan','success')}
 await savePortalConfigToFirebase('manual save lengkap');
-cachePortalConfig();
-renderPortalMenus();
-applySettings();
-renderSidebarNav();
-closePortalSettings();
-toast('✅ Pengaturan Portal tersimpan','success');
-if(!portalConfig.settings.directAccessOn&&isGuestDirect()){
-exitDirectAccess();
-toast('🔒 Akses langsung dimatikan — login Google sekarang wajib','warning');
-}
-}catch(e){
-toast('❌ Gagal menyimpan: '+e.message,'error');
-}
-}
+cachePortalConfig();renderPortalMenus();applySettings();renderSidebarNav();closePortalSettings();toast('✅ Pengaturan Portal tersimpan','success');
+if(!portalConfig.settings.directAccessOn&&isGuestDirect()){exitDirectAccess();toast('🔒 Akses langsung dimatikan — login Google sekarang wajib','warning')}
+}catch(e){toast('❌ Gagal menyimpan: '+e.message,'error')}}
 async function resetPortal(){const ok=await askConfirm({type:'warn',icon:'fa-undo',title:'RESET PORTAL?',message:'Semua menu & pengaturan akan dikembalikan ke default.',okText:'Ya, Reset'});if(!ok)return;try{if(!currentUser)throw new Error('Login diperlukan');if(!isAdmin())throw new Error('Hanya admin');portalConfig.menus=JSON.parse(JSON.stringify(DEFAULT_MENUS));portalConfig.navMenus=JSON.parse(JSON.stringify(DEFAULT_NAV_MENUS));portalConfig.settings={...defaultSettings};await savePortalConfigToFirebase('reset');cachePortalConfig();renderPortalMenus();applySettings();renderSidebarNav();showPortalSettingsForm();toast('✅ Menu & pengaturan direset!','success')}catch(e){toast('❌ Gagal reset: '+e.message,'error')}}
 function openClearLoginHistory(){if(!isAdmin()){toast('⛔ Hanya admin','error');return}document.getElementById('clearLoginHistoryOverlay').classList.add('show')}
 function closeClearLoginHistory(){document.getElementById('clearLoginHistoryOverlay').classList.remove('show')}
